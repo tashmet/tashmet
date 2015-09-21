@@ -1,0 +1,21 @@
+{
+  "name": "samizdat-tashmetu",
+  "version": "0.0.0",
+  "authors": [
+    "Björn Andersson <bjorn.olof.andersson@gmail.com>"
+  ],
+  "description": "Lightweight blogging server for the Samizdat Suite",
+  "main": "tashmetu.js",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "homepage": "http://samizdatjs.org",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
