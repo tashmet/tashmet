@@ -14,6 +14,7 @@
   "dependencies": {
     "express": "^4.13.3",
     "gulp": "^3.9.0",
-    "gulp-concat": "^2.6.0"
+    "gulp-concat": "^2.6.0",
+    "js-yaml": "^3.4.2"
   }
 }
