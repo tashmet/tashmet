@@ -18,6 +18,20 @@ function getFiles(srcPath) {
 function loadPost(name) {
   var root = './content/posts/' + name;
   var post = yamlFront.loadFront(fs.readFileSync(root + '/post.md', 'utf8'));
+
+  getFiles(root).forEach(function(file) {
+    if (file != 'post.md') {
+      key = file.substr(0, file.lastIndexOf('.'));
+      format = file.substr(file.lastIndexOf('.') + 1);
+      if (format == 'md') {
+        post[dir][key] = yamlFront.loadFront(fs.readFileSync(root + '/' + file, 'utf8'));
+      }
+      else if (format == 'yml') {
+        post[key] = yaml.safeLoad(fs.readFileSync(root + '/' + file, 'utf8'));
+      }
+    }
+  });
+
   getDirectories(root).forEach(function(dir) {
     if (dir == 'attachments') {
       post.attachments = getFiles(root + '/' + dir);
