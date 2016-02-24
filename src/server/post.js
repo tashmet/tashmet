@@ -15,35 +15,34 @@ function getFiles(srcPath) {
   });
 }
 
-function loadPost(name) {
-  var root = './content/posts/' + name;
-  var post = yamlFront.loadFront(fs.readFileSync(root + '/post.md', 'utf8'));
+function loadDirectory(path) {
+   var content = {};
 
-  getFiles(root).forEach(function(file) {
-    if (file != 'post.md') {
+   getFiles(path).forEach(function(file) {
       key = file.substr(0, file.lastIndexOf('.'));
       format = file.substr(file.lastIndexOf('.') + 1);
       if (format == 'md') {
-        post[dir][key] = yamlFront.loadFront(fs.readFileSync(root + '/' + file, 'utf8'));
+        content[key] = yamlFront.loadFront(fs.readFileSync(path + '/' + file, 'utf8'));
       }
       else if (format == 'yml') {
-        post[key] = yaml.safeLoad(fs.readFileSync(root + '/' + file, 'utf8'));
+        content[key] = yaml.safeLoad(fs.readFileSync(path + '/' + file, 'utf8'));
       }
+  });
+
+  return content;
+}
+
+function loadPost(name) {
+  var root = './content/posts/' + name;
+  var content = loadDirectory(root);
+  var post = content['post'];
+
+  Object.keys(content).forEach(function(key) {
+    if (key != 'post') {
+      post[key] = content[key];
     }
   });
 
-  getDirectories(root).forEach(function(dir) {
-    if (dir == 'attachments') {
-      post.attachments = getFiles(root + '/' + dir);
-    }
-    else {
-      post[dir] = {};
-      getFiles(root + '/' + dir).forEach(function(file) {
-        key = file.substr(0, file.indexOf('.'));
-        post[dir][key] = yamlFront.loadFront(fs.readFileSync(root + '/' + dir + '/' + file, 'utf8'));
-      });
-    }
-  });
   post.name = name;
   return post;
 }
