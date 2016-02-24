@@ -2,8 +2,10 @@ var post     = require('./src/server/post.js');
 var taxonomy = require('./src/server/taxonomy.js');
 var express  = require('express');
 
+var posts = [];
+
 function main(server) {
-  var posts = post.loadAll();
+  posts = post.loadAll();
 
   posts.forEach(function(post) {
     server.use('/' + post.name + '/attachments',
@@ -22,6 +24,11 @@ function main(server) {
   });
 }
 
+function getPosts() {
+  return posts;
+}
+
 module.exports = {
-  configure: main
+  configure: main,
+  posts: getPosts
 }
