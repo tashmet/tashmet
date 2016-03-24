@@ -13,7 +13,11 @@
     "wiredep": "^3.0.0"
   },
   "dependencies": {
+    "chalk": "^1.1.1",
+    "chokidar": "^1.4.3",
     "express": "^4.13.3",
-    "js-yaml": "^3.4.2"
+    "fancy-log": "^1.2.0",
+    "js-yaml": "^3.4.2",
+    "yargs": "^4.3.2"
   }
 }
