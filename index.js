@@ -62,5 +62,6 @@ function listen(port, wireup) {
 
 module.exports = {
   listen: listen,
+  log: log,
   posts: cache.posts
 }
