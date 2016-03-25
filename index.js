@@ -1,60 +1,66 @@
 var post     = require('./src/server/post.js');
 var taxonomy = require('./src/server/taxonomy.js');
+var cache    = require('./src/server/cache.js');
 var express  = require('express');
 var chokidar = require('chokidar');
 var chalk    = require('chalk');
 var log      = require('fancy-log');
 
-var posts = [];
+var app = null;
 
-function watch() {
-  var postWatcher = chokidar.watch('./content/posts', {ignored: /[\/\\]\./});
-
-  postWatcher.on('change', function(path) {
-    var postName = path.split('/')[2];
-    try {
-      var postObj = post.load(postName);
-      for(var i=0; i<posts.length; i++) {
-        if(posts[i].name == postName) {
-          posts[i] = postObj;
-          log("Updated post '" + chalk.cyan(postName) + "'");
-          break;
-        }
-      }
-    } catch(e) {
-      log(chalk.red('YAML Parsing error:'));
-      console.log(' > ' + chalk.cyan(path) + ' line ' + chalk.magenta(e.mark.line));
-      console.log(' > ' + e.message);
-    }
-  });
+function postName(path) {
+  return path.split('/')[2];
 }
 
-function main(server) {
-  posts = post.loadAll();
+function loadPost(path) {
+  try {
+    var obj = post.load(postName(path));
+    if(cache.storePost(obj)) {
+      log("Added post: " + chalk.cyan(obj.name));
+    } else {
+      log("Updated post: " + chalk.cyan(obj.name));
+    }
+  } catch(e) {
+    log(chalk.red('YAML Parsing error:'));
+    console.log(' > ' + chalk.cyan(path) + ' line ' + chalk.magenta(e.mark.line));
+    console.log(' > ' + e.message);
+  }
+}
 
-  posts.forEach(function(post) {
-    server.use('/' + post.name + '/attachments',
-      express.static('./content/posts/' + post.name + '/attachments'));
-  });
+function listen(port, wireup) {
+  app = express();
+  var server = null;
 
-  server.get('/posts', function(req, res, next) {
+  app.get('/posts', function(req, res, next) {
     res.setHeader('Content-Type', 'application/json');
-    res.send(posts);
+    res.send(cache.posts());
   });
 
-  server.get('/taxonomies/:taxonomy', function(req, res, next) {
+  app.get('/:post/attachments/*', function(req, res){
+    var path = 'posts/' + req.params.post + '/attachments/' + req.params[0];
+    res.sendFile(path, {root: './content'});
+  });
+
+  app.get('/taxonomies/:taxonomy', function(req, res, next) {
     var tax = taxonomy.load(req.params.taxonomy);
     res.setHeader('Content-Type', 'application/json');
     res.send(tax);
   });
-}
 
-function getPosts() {
-  return posts;
+  wireup(app);
+
+  chokidar.watch('./content/posts/*/post.md')
+    .on('add', loadPost)
+    .on('ready', function() {
+      if(!server) {
+        server = app.listen(port);
+        log("Tashmetu listens on port " + chalk.magenta(port));
+      }
+    });
+  chokidar.watch('./content/posts').on('change', loadPost);
 }
 
 module.exports = {
-  configure: main,
-  watch: watch,
-  posts: getPosts
+  listen: listen,
+  posts: cache.posts
 }

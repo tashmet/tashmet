@@ -1,6 +1,6 @@
 {
   "name": "samizdat-tashmetu",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "main": "dist/js/tashmetu.js",
   "authors": [
     "Björn Andersson <bjorn.olof.andersson@gmail.com>"

@@ -20,12 +20,14 @@ function loadDirectory(path) {
 
    getFiles(path).forEach(function(file) {
       key = file.substr(0, file.lastIndexOf('.'));
-      format = file.substr(file.lastIndexOf('.') + 1);
-      if (format == 'md') {
-        content[key] = yamlFront.loadFront(fs.readFileSync(path + '/' + file, 'utf8'));
+      ending = file.substr(file.lastIndexOf('.') + 1);
+      buffer = fs.readFileSync(path + '/' + file, 'utf8');
+
+      if (ending == 'md') {
+        content[key] = yamlFront.loadFront(buffer);
       }
-      else if (format == 'yml') {
-        content[key] = yaml.safeLoad(fs.readFileSync(path + '/' + file, 'utf8'));
+      else if (ending == 'yml') {
+        content[key] = yaml.safeLoad(buffer);
       }
   });
 
@@ -33,8 +35,8 @@ function loadDirectory(path) {
 }
 
 function loadPost(name) {
-  var root = './content/posts/' + name;
-  var content = loadDirectory(root);
+  var path = './content/posts/' + name;
+  var content = loadDirectory(path);
   var post = content['post'];
 
   Object.keys(content).forEach(function(key) {
