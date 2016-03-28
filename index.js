@@ -1,12 +1,11 @@
 var post     = require('./src/server/post.js');
 var taxonomy = require('./src/server/taxonomy.js');
 var cache    = require('./src/server/cache.js');
+var notify   = require('./src/server/notification.js');
 var express  = require('express');
 var chokidar = require('chokidar');
 var chalk    = require('chalk');
 var log      = require('fancy-log');
-
-var app = null;
 
 function postName(path) {
   return path.split('/')[2];
@@ -20,16 +19,17 @@ function loadPost(path) {
     } else {
       log("Updated post: " + chalk.cyan(obj.name));
     }
+    return obj;
   } catch(e) {
     log(chalk.red('YAML Parsing error:'));
     console.log(' > ' + chalk.cyan(path) + ' line ' + chalk.magenta(e.mark.line));
     console.log(' > ' + e.message);
+    return false;
   }
 }
 
 function listen(port, wireup) {
   app = express();
-  var server = null;
 
   app.get('/posts', function(req, res, next) {
     res.setHeader('Content-Type', 'application/json');
@@ -50,18 +50,41 @@ function listen(port, wireup) {
   wireup(app);
 
   chokidar.watch('./content/posts/*/post.md')
-    .on('add', loadPost)
-    .on('ready', function() {
-      if(!server) {
-        server = app.listen(port);
-        log("Tashmetu listens on port " + chalk.magenta(port));
+    .on('add', function(path) {
+      var obj = loadPost(path);
+      if(obj) {
+        notify.post('add', obj);
       }
+    })
+    .on('ready', function() {
+      log("Finished loading " + chalk.magenta(cache.posts().length) + " posts");
+
+      // watch for changes to post (*.md or *.yml files)
+      // TODO: Fix ignore pattern {ignored: /^(.*\.(?!(md|yml)$))?[^.]*$/ig})
+      chokidar.watch('./content/posts')
+        .on('change', loadPost)
+
+      // watch for changes to post data (not *.md or *.yml files)
+      chokidar.watch('./content/posts', {ignored: /^(.*\.((md|yml)$))/})
+        .on('change', function(path) { onPostData('change', path); })
+        .on('add',    function(path) { onPostData('add', path); })
+        .on('unlink', function(path) { onPostData('remove', path); })
+        .on('ready',  function() {
+          app.listen(port);
+          log("Tashmetu listens on port " + chalk.magenta(port));
+        })
     });
-  chokidar.watch('./content/posts').on('change', loadPost);
+}
+
+function onPostData(action, path) {
+  var obj = cache.post(postName(path));
+  notify.postData(action, obj, path);
 }
 
 module.exports = {
   listen: listen,
   log: log,
-  posts: cache.posts
+  posts: cache.posts,
+  onPost: notify.onPost,
+  onPostData: notify.onPostData,
 }
