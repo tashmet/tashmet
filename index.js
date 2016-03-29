@@ -70,6 +70,7 @@ function listen(port, wireup) {
         .on('add',    function(path) { onPostData('add', path); })
         .on('unlink', function(path) { onPostData('remove', path); })
         .on('ready',  function() {
+          setupPostRelationships(cache.posts());
           app.listen(port);
           log("Tashmetu listens on port " + chalk.magenta(port));
         })
@@ -81,10 +82,32 @@ function onPostData(action, path) {
   notify.postData(action, obj, path);
 }
 
+function setupPostRelationships(posts) {
+  log("Setting up post relationships");
+  posts.forEach(function(obj, index) {
+    var rest = posts.slice(0);
+    rest.splice(index, 1);
+    obj.related = post.findRelated(obj, rest, comparePosts);
+  });
+}
+
+// Default post comparison function
+var comparePosts = function(a, b) {
+  var commonTags = [];
+
+  if(a.tags && b.tags) {
+    commonTags = a.tags.filter(function(tag) {
+      return b.tags.indexOf(tag) >= 0;
+    });
+  }
+  return commonTags.length;
+}
+
 module.exports = {
   listen: listen,
   log: log,
   posts: cache.posts,
+  comparePosts: function(compare) { comparePosts = compare; },
   watchPosts: notify.watchPosts,
   watchPostData: notify.watchPostData,
 }
