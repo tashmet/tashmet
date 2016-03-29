@@ -85,6 +85,6 @@ module.exports = {
   listen: listen,
   log: log,
   posts: cache.posts,
-  onPost: notify.onPost,
-  onPostData: notify.onPostData,
+  watchPosts: notify.watchPosts,
+  watchPostData: notify.watchPostData,
 }
