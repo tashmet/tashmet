@@ -6,6 +6,7 @@ var express  = require('express');
 var chokidar = require('chokidar');
 var chalk    = require('chalk');
 var log      = require('fancy-log');
+var _        = require('lodash');
 
 function postName(path) {
   return path.split('/')[2];
@@ -93,14 +94,7 @@ function setupPostRelationships(posts) {
 
 // Default post comparison function
 var comparePosts = function(a, b) {
-  var commonTags = [];
-
-  if(a.tags && b.tags) {
-    commonTags = a.tags.filter(function(tag) {
-      return b.tags.indexOf(tag) >= 0;
-    });
-  }
-  return commonTags.length;
+  return _.intersection(a.tags, b.tags).length;
 }
 
 module.exports = {
