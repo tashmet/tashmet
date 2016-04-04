@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,6 +16,7 @@
     "js-yaml": "^3.4.2",
     "lodash": "^4.6.1",
     "yaml-front-matter": "^3.4.0",
-    "yargs": "^4.3.2"
+    "yargs": "^4.3.2",
+    "samizdat-tashmetu-cache": "0.1.0"
   }
 }
