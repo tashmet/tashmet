@@ -1,6 +1,8 @@
 var post     = require('./lib/post.js');
 var taxonomy = require('./lib/taxonomy.js');
+var factory  = require('./lib/factory.js');
 var notify   = require('./lib/notification.js');
+var util     = require('./lib/util.js')
 var cache    = require('samizdat-tashmetu-cache');
 var express  = require('express');
 var chokidar = require('chokidar');
@@ -30,10 +32,6 @@ function loadPost(path) {
   }
 }
 
-function factory(name) {
-  return require(process.cwd() + '/content/factories/' + name + '.js');
-}
-
 function createPost(fact, data) {
   if (_.isString(fact)) {
     fact = factory(fact);
@@ -51,7 +49,7 @@ function listen(port, wireup) {
 
   app.get('/:post/attachments/*', function(req, res){
     var path = 'posts/' + req.params.post + '/attachments/' + req.params[0];
-    res.sendFile(path, {root: './content'});
+    res.sendFile(path, {root: './tashmetu/content'});
   });
 
   app.get('/taxonomies/:taxonomy', function(req, res, next) {
@@ -62,7 +60,7 @@ function listen(port, wireup) {
 
   wireup(app);
 
-  chokidar.watch('./content/posts/*/post.md')
+  chokidar.watch('./tashmetu/content/posts/*/post.md')
     .on('add', function(path) {
       var obj = loadPost(path);
       if(obj) {
@@ -74,11 +72,11 @@ function listen(port, wireup) {
 
       // watch for changes to post (*.md or *.yml files)
       // TODO: Fix ignore pattern {ignored: /^(.*\.(?!(md|yml)$))?[^.]*$/ig})
-      chokidar.watch('./content/posts')
+      chokidar.watch('./tashmetu/content/posts')
         .on('change', loadPost)
 
       // watch for changes to post data (not *.md or *.yml files)
-      chokidar.watch('./content/posts', {ignored: /^(.*\.((md|yml)$))/})
+      chokidar.watch('./tashmetu/content/posts', {ignored: /^(.*\.((md|yml)$))/})
         .on('change', function(path) { onPostData('change', path); })
         .on('add',    function(path) { onPostData('add', path); })
         .on('unlink', function(path) { onPostData('remove', path); })
@@ -116,6 +114,7 @@ module.exports = {
   comparePosts: function(compare) { comparePosts = compare; },
   watchPosts: notify.watchPosts,
   watchPostData: notify.watchPostData,
-  factory: factory,
+  factory: factory.load,
+  factories: factory.loadAll,
   createPost: createPost,
 }
