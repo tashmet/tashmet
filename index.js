@@ -6,6 +6,7 @@ var express  = require('express');
 var chokidar = require('chokidar');
 var chalk    = require('chalk');
 var log      = require('fancy-log');
+var yaml     = require('js-yaml');
 var _        = require('lodash');
 
 function postName(path) {
@@ -27,6 +28,17 @@ function loadPost(path) {
     console.log(' > ' + e.message);
     return false;
   }
+}
+
+function factory(name) {
+  return require(process.cwd() + '/content/factories/' + name + '.js');
+}
+
+function createPost(fact, data) {
+  if (_.isString(fact)) {
+    fact = factory(fact);
+  }
+  return post.store(fact.create(data));
 }
 
 function listen(port, wireup) {
@@ -104,4 +116,6 @@ module.exports = {
   comparePosts: function(compare) { comparePosts = compare; },
   watchPosts: notify.watchPosts,
   watchPostData: notify.watchPostData,
+  factory: factory,
+  createPost: createPost,
 }
