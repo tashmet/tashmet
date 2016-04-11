@@ -12,7 +12,7 @@ var yaml     = require('js-yaml');
 var _        = require('lodash');
 
 function postName(path) {
-  return path.split('/')[2];
+  return path.split('/')[3];
 }
 
 function loadPost(path) {
