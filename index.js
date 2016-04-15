@@ -1,6 +1,7 @@
 var post     = require('./lib/post.js');
 var taxonomy = require('./lib/taxonomy.js');
 var factory  = require('./lib/factory.js');
+var schema   = require('./lib/schema.js');
 var notify   = require('./lib/notification.js');
 var util     = require('./lib/util.js')
 var cache    = require('samizdat-tashmetu-cache');
@@ -8,7 +9,6 @@ var express  = require('express');
 var chokidar = require('chokidar');
 var chalk    = require('chalk');
 var log      = require('fancy-log');
-var yaml     = require('js-yaml');
 var _        = require('lodash');
 
 function postName(path) {
@@ -16,20 +16,17 @@ function postName(path) {
 }
 
 function loadPost(path) {
-  try {
-    var obj = post.load(postName(path));
-    if(cache.storePost(obj)) {
-      log("Added post: " + chalk.cyan(obj.name));
-    } else {
-      log("Updated post: " + chalk.cyan(obj.name));
-    }
-    return obj;
-  } catch(e) {
-    log(chalk.red('YAML Parsing error:'));
-    console.log(' > ' + chalk.cyan(path) + ' line ' + chalk.magenta(e.mark.line));
-    console.log(' > ' + e.message);
-    return false;
+  var obj = post.load(postName(path));
+  var schemaObj = cache.schema(obj.type || 'Post');
+  if(schemaObj) {
+    schema.validate(obj, schemaObj);
   }
+  if(cache.storePost(obj)) {
+    log("Added post: " + chalk.cyan(obj.name));
+  } else {
+    log("Updated post: " + chalk.cyan(obj.name));
+  }
+  return obj;
 }
 
 function createPost(fact, data) {
@@ -40,6 +37,7 @@ function createPost(fact, data) {
 }
 
 function listen(port, wireup) {
+  var loading = true;
   app = express();
 
   app.get('/posts', function(req, res, next) {
@@ -60,12 +58,16 @@ function listen(port, wireup) {
 
   wireup(app);
 
+  chokidar.watch('./tashmetu/schemas')
+    .on('add', function(path) {
+      var obj = schema.load(path);
+      cache.storeSchema(obj);
+      log('Added schema: ' + chalk.cyan(obj.id));
+    });
+
   chokidar.watch('./tashmetu/content/posts/*/post.md')
     .on('add', function(path) {
-      var obj = loadPost(path);
-      if(obj) {
-        notify.post('add', obj);
-      }
+      onPost('add', path, loading);
     })
     .on('ready', function() {
       log("Finished loading " + chalk.magenta(cache.posts().length) + " posts");
@@ -73,7 +75,9 @@ function listen(port, wireup) {
       // watch for changes to post (*.md or *.yml files)
       // TODO: Fix ignore pattern {ignored: /^(.*\.(?!(md|yml)$))?[^.]*$/ig})
       chokidar.watch('./tashmetu/content/posts')
-        .on('change', loadPost)
+        .on('change', function(path) {
+          onPost('change', path, false);
+        })
 
       // watch for changes to post data (not *.md or *.yml files)
       chokidar.watch('./tashmetu/content/posts', {ignored: /^(.*\.((md|yml)$))/})
@@ -83,9 +87,29 @@ function listen(port, wireup) {
         .on('ready',  function() {
           setupPostRelationships(cache.posts());
           app.listen(port);
+          loading = false;
           log("Tashmetu listens on port " + chalk.magenta(port));
         })
     });
+}
+
+function onPost(action, path, loading) {
+  try {
+    notify.post(action, loadPost(path));
+  } catch(e) {
+    if(e instanceof schema.ValidationException) {
+      log(chalk.red('Failed to validate: ') + path);
+      e.errors.forEach(function(error) {
+        console.log('  ' + error.message);
+      });
+    } else if(e instanceof post.ParseException) {
+      log(chalk.red('Failed to parse: ') + e.path);
+      console.log('  ' + e.message);
+    }
+    if(loading) {
+      process.exit();
+    }
+  }
 }
 
 function onPostData(action, path) {
