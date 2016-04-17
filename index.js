@@ -1,10 +1,7 @@
-var post     = require('./lib/post.js');
-var taxonomy = require('./lib/taxonomy.js');
-var factory  = require('./lib/factory.js');
 var schema   = require('./lib/schema.js');
 var notify   = require('./lib/notification.js');
-var util     = require('./lib/util.js')
 var cache    = require('samizdat-tashmetu-cache');
+var storage  = require('samizdat-tashmetu-fs');
 var express  = require('express');
 var chokidar = require('chokidar');
 var chalk    = require('chalk');
@@ -12,28 +9,23 @@ var log      = require('fancy-log');
 var _        = require('lodash');
 
 function postName(path) {
-  return path.split('/')[3];
+  return path.split('/')[2];
 }
 
 function loadPost(path) {
-  var obj = post.load(postName(path));
+  var obj = storage.post(postName(path));
+/*
   var schemaObj = cache.schema(obj.type || 'Post');
   if(schemaObj) {
     schema.validate(obj, schemaObj);
   }
+*/
   if(cache.storePost(obj)) {
     log("Added post: " + chalk.cyan(obj.name));
   } else {
     log("Updated post: " + chalk.cyan(obj.name));
   }
   return obj;
-}
-
-function createPost(fact, data) {
-  if (_.isString(fact)) {
-    fact = factory(fact);
-  }
-  return post.store(fact.create(data));
 }
 
 function listen(port, wireup) {
@@ -60,12 +52,12 @@ function listen(port, wireup) {
 
   chokidar.watch('./tashmetu/schemas')
     .on('add', function(path) {
-      var obj = schema.load(path);
+      var obj = storage.load(path);
       cache.storeSchema(obj);
       log('Added schema: ' + chalk.cyan(obj.id));
     });
 
-  chokidar.watch('./tashmetu/content/posts/*/post.md')
+  chokidar.watch('./tashmetu/posts/*/post.md')
     .on('add', function(path) {
       onPost('add', path, loading);
     })
@@ -74,13 +66,13 @@ function listen(port, wireup) {
 
       // watch for changes to post (*.md or *.yml files)
       // TODO: Fix ignore pattern {ignored: /^(.*\.(?!(md|yml)$))?[^.]*$/ig})
-      chokidar.watch('./tashmetu/content/posts')
+      chokidar.watch('./tashmetu/posts')
         .on('change', function(path) {
           onPost('change', path, false);
         })
 
       // watch for changes to post data (not *.md or *.yml files)
-      chokidar.watch('./tashmetu/content/posts', {ignored: /^(.*\.((md|yml)$))/})
+      chokidar.watch('./tashmetu/posts', {ignored: /^(.*\.((md|yml)$))/})
         .on('change', function(path) { onPostData('change', path); })
         .on('add',    function(path) { onPostData('add', path); })
         .on('unlink', function(path) { onPostData('remove', path); })
@@ -102,7 +94,7 @@ function onPost(action, path, loading) {
       e.errors.forEach(function(error) {
         console.log('  ' + error.message);
       });
-    } else if(e instanceof post.ParseException) {
+    } else if(e instanceof storage.ParseException) {
       log(chalk.red('Failed to parse: ') + e.path);
       console.log('  ' + e.message);
     }
@@ -117,12 +109,27 @@ function onPostData(action, path) {
   notify.postData(action, obj, path);
 }
 
+function findRelatedPosts(post, rest, compare) {
+  var related = [];
+  rest.forEach(function(other) {
+    var score = compare(post, other);
+    if (score > 0) {
+      related.push({name: other.name, score: score});
+    }
+  });
+  related = _.orderBy(related, 'score', 'desc');
+
+  return _.transform(related, function(result, value, key) {
+    result.push(value.name);
+  });
+}
+
 function setupPostRelationships(posts) {
   log("Setting up post relationships");
   posts.forEach(function(obj, index) {
     var rest = posts.slice(0);
     rest.splice(index, 1);
-    obj.related = post.findRelated(obj, rest, comparePosts);
+    obj.related = findRelatedPosts(obj, rest, comparePosts);
   });
 }
 
@@ -138,7 +145,4 @@ module.exports = {
   comparePosts: function(compare) { comparePosts = compare; },
   watchPosts: notify.watchPosts,
   watchPostData: notify.watchPostData,
-  factory: factory.load,
-  factories: factory.loadAll,
-  createPost: createPost,
 }
