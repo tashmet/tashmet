@@ -1,35 +1,41 @@
-var schema   = require('./lib/schema.js');
-var notify   = require('./lib/notification.js');
 var cache    = require('samizdat-tashmetu-cache');
 var storage  = require('samizdat-tashmetu-fs');
 var express  = require('express');
-var chokidar = require('chokidar');
 var chalk    = require('chalk');
-var log      = require('fancy-log');
 var _        = require('lodash');
 
-function postName(path) {
-  return path.split('/')[2];
+var app = null;
+var log = function() {};
+
+function loadPost(name, loading) {
+  try {
+    var post = storage.post(name, cache.schema);
+
+    if(cache.storePost(post)) {
+      log("Added post: " + chalk.cyan(name));
+    } else {
+      log("Updated post: " + chalk.cyan(name));
+    }
+  } catch(e) {
+    if(e instanceof storage.ValidationException) {
+      log(chalk.red('Failed to validate: ') + name);
+      e.errors.forEach(function(error) {
+        console.log('  ' + error.message);
+      });
+    } else if(e instanceof storage.ParseException) {
+      log(chalk.red('Failed to parse: ') + e.path);
+      console.log('  ' + e.message);
+    }
+    if(loading) {
+      process.exit();
+    }
+  }
 }
 
-function loadPost(path) {
-  var obj = storage.post(postName(path));
-/*
-  var schemaObj = cache.schema(obj.type || 'Post');
-  if(schemaObj) {
-    schema.validate(obj, schemaObj);
-  }
-*/
-  if(cache.storePost(obj)) {
-    log("Added post: " + chalk.cyan(obj.name));
-  } else {
-    log("Updated post: " + chalk.cyan(obj.name));
-  }
-  return obj;
-}
 
-function listen(port, wireup) {
+function listen(port, logger, wireup) {
   var loading = true;
+  log = logger;
   app = express();
 
   app.get('/posts', function(req, res, next) {
@@ -48,65 +54,29 @@ function listen(port, wireup) {
     res.send(tax);
   });
 
-  wireup(app);
+  wireup(app, storage, cache);
 
-  chokidar.watch('./tashmetu/schemas')
-    .on('add', function(path) {
-      var obj = storage.load(path);
+  storage.watch('schemas', {
+    add: function(name) {
+      var obj = storage.schema(name);
       cache.storeSchema(obj);
       log('Added schema: ' + chalk.cyan(obj.id));
-    });
-
-  chokidar.watch('./tashmetu/posts/*/post.md')
-    .on('add', function(path) {
-      onPost('add', path, loading);
-    })
-    .on('ready', function() {
-      log("Finished loading " + chalk.magenta(cache.posts().length) + " posts");
-
-      // watch for changes to post (*.md or *.yml files)
-      // TODO: Fix ignore pattern {ignored: /^(.*\.(?!(md|yml)$))?[^.]*$/ig})
-      chokidar.watch('./tashmetu/posts')
-        .on('change', function(path) {
-          onPost('change', path, false);
-        })
-
-      // watch for changes to post data (not *.md or *.yml files)
-      chokidar.watch('./tashmetu/posts', {ignored: /^(.*\.((md|yml)$))/})
-        .on('change', function(path) { onPostData('change', path); })
-        .on('add',    function(path) { onPostData('add', path); })
-        .on('unlink', function(path) { onPostData('remove', path); })
-        .on('ready',  function() {
-          setupPostRelationships(cache.posts());
-          app.listen(port);
-          loading = false;
-          log("Tashmetu listens on port " + chalk.magenta(port));
-        })
-    });
-}
-
-function onPost(action, path, loading) {
-  try {
-    notify.post(action, loadPost(path));
-  } catch(e) {
-    if(e instanceof schema.ValidationException) {
-      log(chalk.red('Failed to validate: ') + path);
-      e.errors.forEach(function(error) {
-        console.log('  ' + error.message);
-      });
-    } else if(e instanceof storage.ParseException) {
-      log(chalk.red('Failed to parse: ') + e.path);
-      console.log('  ' + e.message);
     }
-    if(loading) {
-      process.exit();
-    }
-  }
-}
+  });
 
-function onPostData(action, path) {
-  var obj = cache.post(postName(path));
-  notify.postData(action, obj, path);
+  storage.watch('posts', {
+    add:    function(name) { loadPost(name, loading); },
+    change: function(name) { loadPost(name, loading); },
+  });
+
+  storage.ready(function() {
+    setupPostRelationships(cache.posts());
+    app.listen(port);
+    loading = false;
+    log("Tashmetu listens on port " + chalk.magenta(port));
+  });
+
+  storage.listen();
 }
 
 function findRelatedPosts(post, rest, compare) {
@@ -140,9 +110,5 @@ var comparePosts = function(a, b) {
 
 module.exports = {
   listen: listen,
-  log: log,
-  posts: cache.posts,
   comparePosts: function(compare) { comparePosts = compare; },
-  watchPosts: notify.watchPosts,
-  watchPostData: notify.watchPostData,
 }
