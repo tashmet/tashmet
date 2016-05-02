@@ -42,9 +42,7 @@ function listen(port, wireup) {
 
   storage.watch('posts', {
     add:    function(name) { loadPost(name, false); },
-    change: function(name) {
-      loadPost(name, true);
-    },
+    change: function(name) { loadPost(name, true); },
   });
 
   storage.ready(function() {
