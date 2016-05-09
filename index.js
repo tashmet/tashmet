@@ -6,7 +6,14 @@ var _        = require('lodash');
 
 function loadPost(name, change) {
   try {
-    cache.storePost(processPost(storage.post(name, cache.schema)));
+    var post = storage.post(name, cache.schema);
+    if(post.status === 'published') {
+      cache.storePost(processPost(post));
+    } else {
+      if(cache.post(name)) {
+        cache.removePost(name);
+      }
+    }
   } catch(e) {}
 }
 
