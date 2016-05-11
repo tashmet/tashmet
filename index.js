@@ -4,7 +4,7 @@ var storage  = require('samizdat-tashmetu-fs');
 var express  = require('express');
 var _        = require('lodash');
 
-function loadPost(name, change) {
+function loadPost(name) {
   try {
     var post = storage.post(name, cache.schema);
     if(post.status === 'published') {
@@ -15,6 +15,10 @@ function loadPost(name, change) {
       }
     }
   } catch(e) {}
+}
+
+function loadTaxonomy(name) {
+  cache.storeTaxonomy(storage.taxonomy(name));
 }
 
 function listen(port, wireup) {
@@ -31,9 +35,9 @@ function listen(port, wireup) {
   })
 
   app.get('/taxonomies/:taxonomy', function(req, res, next) {
-    var tax = taxonomy.load(req.params.taxonomy);
+    var terms = cache.taxonomy(req.params.taxonomy).terms;
     res.setHeader('Content-Type', 'application/json');
-    res.send(tax);
+    res.send(terms);
   });
 
   wireup(app, storage, cache);
@@ -48,8 +52,13 @@ function listen(port, wireup) {
   });
 
   storage.watch('posts', {
-    add:    function(name) { loadPost(name, false); },
-    change: function(name) { loadPost(name, true); },
+    add:    function(name) { loadPost(name); },
+    change: function(name) { loadPost(name); },
+  });
+
+  storage.watch('taxonomies', {
+    add:    function(name) { loadTaxonomy(name); },
+    change: function(name) { loadTaxonomy(name); },
   });
 
   storage.ready(function() {

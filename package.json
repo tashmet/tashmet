@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,7 +11,7 @@
     "chalk": "^1.1.1",
     "express": "^4.13.3",
     "lodash": "^4.6.1",
-    "samizdat-tashmetu-cache": "^0.2.1",
-    "samizdat-tashmetu-fs": "^0.2.1"
+    "samizdat-tashmetu-cache": "^0.2.2",
+    "samizdat-tashmetu-fs": "^0.2.4"
   }
 }
