@@ -4,6 +4,18 @@ var storage  = require('samizdat-tashmetu-fs');
 var express  = require('express');
 var _        = require('lodash');
 
+var listeners = {
+  posts:      { get: [], query: [], send: [] },
+  taxonomies: { get: [], send: [] },
+  content:    { get: [], send: [] },
+};
+
+function notify(type, action, args) {
+  listeners[type][action].forEach(function(callback) {
+    callback.apply(undefined, args);
+  });
+}
+
 function loadPost(name) {
   try {
     var post = storage.post(name, cache.schema);
@@ -25,19 +37,25 @@ function listen(port, wireup) {
   var app = express();
 
   app.get('/posts', function(req, res, next) {
+    notify('posts', 'query', [req]);
     res.setHeader('Content-Type', 'application/json');
     res.send(cache.posts());
+    notify('posts', 'send', [cache.posts()]);
   });
 
   app.get('/:post/attachments/*', function(req, res){
-    var path = 'posts/' + req.params.post + '/attachments/' + req.params[0];
-    res.sendFile(path, {root: './tashmetu/content'});
+    notify('content', 'get', [req]);
+    var path = 'tashmetu/content/posts/' + req.params.post + '/attachments/' + req.params[0];
+    res.sendFile(path, {root: '.'});
+    notify('content', 'send', [path]);
   })
 
   app.get('/taxonomies/:taxonomy', function(req, res, next) {
+    notify('taxonomies', 'get', [req]);
     var terms = cache.taxonomy(req.params.taxonomy).terms;
     res.setHeader('Content-Type', 'application/json');
     res.send(terms);
+    notify('taxonomies', 'send', [terms]);
   });
 
   wireup(app, storage, cache);
@@ -95,6 +113,12 @@ function setupPostRelationships(posts) {
   });
 }
 
+function watch(type, handlers) {
+  for(var action in handlers) {
+    listeners[type][action].push(handlers[action]);
+  }
+};
+
 // Default post comparison function
 var comparePosts = function(a, b) {
   return _.intersection(a.tags, b.tags).length;
@@ -111,5 +135,6 @@ module.exports = {
   listen: listen,
   comparePosts: function(compare) { comparePosts = compare; },
   processPost: function(process) { processPost = process; },
+  watch: watch,
   ready: function(callback) { readyListeners.push(callback); },
 }
