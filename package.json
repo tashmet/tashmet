@@ -1,7 +1,7 @@
 {
   "name": "tashmetu",
-  "version": "0.3.9",
-  "description": "",
+  "version": "0.4.0",
+  "description": "Lightweight blogging server",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,7 +11,7 @@
     "chalk": "^1.1.1",
     "express": "^4.13.3",
     "lodash": "^4.6.1",
-    "samizdat-tashmetu-cache": "^0.2.2",
-    "samizdat-tashmetu-fs": "^0.2.4"
+    "tashmetu-cache": "^0.3.0",
+    "tashmetu-fs": "^0.3.0"
   }
 }

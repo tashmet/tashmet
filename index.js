@@ -1,20 +1,11 @@
 var reporter = require('./lib/reporter')
-var cache    = require('samizdat-tashmetu-cache');
-var storage  = require('samizdat-tashmetu-fs');
+var cache    = require('tashmetu-cache');
+var storage  = require('tashmetu-fs');
+var events   = require('events');
 var express  = require('express');
 var _        = require('lodash');
 
-var listeners = {
-  posts:      { get: [], query: [], send: [] },
-  taxonomies: { get: [], send: [] },
-  content:    { get: [], send: [] },
-};
-
-function notify(type, action, args) {
-  listeners[type][action].forEach(function(callback) {
-    callback.apply(undefined, args);
-  });
-}
+var eventEmitter = new events.EventEmitter();
 
 function loadPost(name) {
   try {
@@ -37,54 +28,45 @@ function listen(port, wireup) {
   var app = express();
 
   app.get('/posts', function(req, res, next) {
-    notify('posts', 'query', [req]);
+    eventEmitter.emit('post-list-requested', req);
     res.setHeader('Content-Type', 'application/json');
     res.send(cache.posts());
-    notify('posts', 'send', [cache.posts()]);
+    eventEmitter.emit('post-list-sent', cache.posts());
   });
 
   app.get('/:post/attachments/*', function(req, res){
-    notify('content', 'get', [req]);
+    eventEmitter.emit('content-requested', req);
     var path = 'tashmetu/content/posts/' + req.params.post + '/attachments/' + req.params[0];
     res.sendFile(path, {root: '.'});
-    notify('content', 'send', [path]);
+    eventEmitter.emit('content-sent', path);
   })
 
   app.get('/taxonomies/:taxonomy', function(req, res, next) {
-    notify('taxonomies', 'get', [req]);
+    eventEmitter.emit('taxonomy-requested', req);
     var terms = cache.taxonomy(req.params.taxonomy).terms;
     res.setHeader('Content-Type', 'application/json');
     res.send(terms);
-    notify('taxonomies', 'send', [terms]);
+    eventEmitter.emit('taxonomy-sent', terms);
   });
 
   wireup(app, storage, cache);
 
   reporter(this, storage, cache);
 
-  storage.watch('schemas', {
-    add: function(name) {
-      var obj = storage.schema(name);
-      cache.storeSchema(obj);
-    },
+  storage.on('schema-added', function(name) {
+    cache.storeSchema(storage.schema(name));
   });
 
-  storage.watch('posts', {
-    add:    function(name) { loadPost(name); },
-    change: function(name) { loadPost(name); },
-  });
+  storage.on('post-added', loadPost);
+  storage.on('post-changed', loadPost);
 
-  storage.watch('taxonomies', {
-    add:    function(name) { loadTaxonomy(name); },
-    change: function(name) { loadTaxonomy(name); },
-  });
+  storage.on('taxonomy-added', loadTaxonomy);
+  storage.on('taxonomy-changed', loadTaxonomy);
 
-  storage.ready(function() {
+  storage.on('ready', function() {
     setupPostRelationships(cache.posts());
     app.listen(port);
-    readyListeners.forEach(function(callback) {
-      callback(port);
-    });
+    eventEmitter.emit('ready', port);
   });
 
   storage.listen();
@@ -113,12 +95,6 @@ function setupPostRelationships(posts) {
   });
 }
 
-function watch(type, handlers) {
-  for(var action in handlers) {
-    listeners[type][action].push(handlers[action]);
-  }
-};
-
 // Default post comparison function
 var comparePosts = function(a, b) {
   return _.intersection(a.tags, b.tags).length;
@@ -129,12 +105,11 @@ var processPost = function(post) {
   return post;
 }
 
-var readyListeners = [];
-
 module.exports = {
   listen: listen,
   comparePosts: function(compare) { comparePosts = compare; },
   processPost: function(process) { processPost = process; },
-  watch: watch,
-  ready: function(callback) { readyListeners.push(callback); },
+  on: function(event, fn) {
+    eventEmitter.on(event, fn);
+  },
 }
