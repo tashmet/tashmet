@@ -13,7 +13,7 @@ var factories = {};
 
 function loadPost(name) {
   try {
-    var post = storage.post(name, cache.schema);
+    var post = storage.post(name, schema);
     if(post.status === 'published') {
       cache.storePost(postTypes[post.type].process(post));
     } else {
@@ -65,10 +65,6 @@ function listen(port) {
   });
 
   reporter(this, storage, cache);
-
-  storage.on('schema-added', function(name) {
-    cache.storeSchema(storage.schema(name));
-  });
 
   storage.on('post-added', loadPost);
   storage.on('post-changed', loadPost);
@@ -122,6 +118,14 @@ function plugin(module) {
   modules.push(module);
 }
 
+function schema(type) {
+  if(postTypes[type]) {
+    return postTypes[type].schema;
+  } else {
+    return null;
+  }
+}
+
 module.exports = {
   listen: listen,
   plugin: plugin,
@@ -130,5 +134,6 @@ module.exports = {
   },
   factories: function() {
     return factories;
-  }
+  },
+  schema: schema
 }
