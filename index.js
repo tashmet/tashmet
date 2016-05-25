@@ -3,6 +3,7 @@ var cache    = require('tashmetu-cache');
 var storage  = require('tashmetu-fs');
 var events   = require('events');
 var express  = require('express');
+var fs       = require('fs');
 var _        = require('lodash');
 
 var eventEmitter = new events.EventEmitter();
@@ -40,9 +41,14 @@ function listen(port) {
   app.get('/:post/attachments/*', function(req, res){
     eventEmitter.emit('content-requested', req);
     var path = 'tashmetu/content/posts/' + req.params.post + '/attachments/' + req.params[0];
-    res.sendFile(path, {root: '.'});
-    eventEmitter.emit('content-sent', path);
-  })
+    res.sendFile(path, {root: '.'}, function(err) {
+      if(err) {
+        eventEmitter.emit('content-error', path);
+      } else {
+        eventEmitter.emit('content-sent', path);
+      }
+    });
+  });
 
   app.get('/taxonomies/:taxonomy', function(req, res, next) {
     eventEmitter.emit('taxonomy-requested', req);
