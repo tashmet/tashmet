@@ -8,6 +8,7 @@ var _        = require('lodash');
 var eventEmitter = new events.EventEmitter();
 var modules = [];
 var postTypes = {};
+var factories = {};
 
 function loadPost(name) {
   try {
@@ -107,6 +108,11 @@ function plugin(module) {
       postTypes[postType.name] = postType;
     });
   }
+  if(module.factories) {
+    module.factories.forEach(function(factory) {
+      factories[factory.name] = factory;
+    });
+  }
   modules.push(module);
 }
 
@@ -116,4 +122,7 @@ module.exports = {
   on: function(event, fn) {
     eventEmitter.on(event, fn);
   },
+  factories: function() {
+    return factories;
+  }
 }
