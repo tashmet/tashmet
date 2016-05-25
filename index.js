@@ -6,12 +6,14 @@ var express  = require('express');
 var _        = require('lodash');
 
 var eventEmitter = new events.EventEmitter();
+var modules = [];
+var postTypes = {};
 
 function loadPost(name) {
   try {
     var post = storage.post(name, cache.schema);
     if(post.status === 'published') {
-      cache.storePost(processPost(post));
+      cache.storePost(postTypes[post.type].process(post));
     } else {
       if(cache.post(name)) {
         cache.removePost(name);
@@ -24,7 +26,7 @@ function loadTaxonomy(name) {
   cache.storeTaxonomy(storage.taxonomy(name));
 }
 
-function listen(port, wireup) {
+function listen(port) {
   var app = express();
 
   app.get('/posts', function(req, res, next) {
@@ -49,7 +51,11 @@ function listen(port, wireup) {
     eventEmitter.emit('taxonomy-sent', terms);
   });
 
-  wireup(app, storage, cache);
+  modules.forEach(function(module) {
+    if(module.route) {
+      module.route(app, storage, cache);
+    }
+  });
 
   reporter(this, storage, cache);
 
@@ -91,24 +97,22 @@ function setupPostRelationships(posts) {
   posts.forEach(function(obj, index) {
     var rest = posts.slice(0);
     rest.splice(index, 1);
-    obj.related = findRelatedPosts(obj, rest, comparePosts);
+    obj.related = findRelatedPosts(obj, rest, postTypes[obj.type].compare);
   });
 }
 
-// Default post comparison function
-var comparePosts = function(a, b) {
-  return _.intersection(a.tags, b.tags).length;
-}
-
-// Default post processing funtion
-var processPost = function(post) {
-  return post;
+function plugin(module) {
+  if(module.posts) {
+    module.posts.forEach(function(postType) {
+      postTypes[postType.name] = postType;
+    });
+  }
+  modules.push(module);
 }
 
 module.exports = {
   listen: listen,
-  comparePosts: function(compare) { comparePosts = compare; },
-  processPost: function(process) { processPost = process; },
+  plugin: plugin,
   on: function(event, fn) {
     eventEmitter.on(event, fn);
   },
