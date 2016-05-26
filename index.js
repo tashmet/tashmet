@@ -73,7 +73,10 @@ function listen(port) {
   storage.on('taxonomy-changed', loadTaxonomy);
 
   storage.on('ready', function() {
-    setupPostRelationships(cache.posts());
+    var posts = cache.posts();
+    posts.forEach(function(post, index) {
+      post.related = findRelated(index, posts);
+    });
     app.listen(port);
     eventEmitter.emit('ready', port);
   });
@@ -81,10 +84,15 @@ function listen(port) {
   storage.listen();
 }
 
-function findRelatedPosts(post, rest, compare) {
+function findRelated(post, posts) {
+  var index = _.isString(post) ? _.findIndex(posts, ['name', post]) : post;
   var related = [];
+  var post = posts[index];
+  var rest = posts.slice(0);
+
+  rest.splice(index, 1);
   rest.forEach(function(other) {
-    var score = compare(post, other);
+    var score = postTypes[post.type].compare(post, other);
     if (score > 0) {
       related.push({name: other.name, score: score});
     }
@@ -93,14 +101,6 @@ function findRelatedPosts(post, rest, compare) {
 
   return _.transform(related, function(result, value, key) {
     result.push(value.name);
-  });
-}
-
-function setupPostRelationships(posts) {
-  posts.forEach(function(obj, index) {
-    var rest = posts.slice(0);
-    rest.splice(index, 1);
-    obj.related = findRelatedPosts(obj, rest, postTypes[obj.type].compare);
   });
 }
 
@@ -143,5 +143,6 @@ module.exports = {
   factories: function() {
     return factories;
   },
-  schema: schema
+  schema: schema,
+  findRelated: findRelated,
 }
