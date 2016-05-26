@@ -104,7 +104,10 @@ function setupPostRelationships(posts) {
   });
 }
 
-function plugin(module) {
+function load(module) {
+  if(_.isString(module)) {
+    module = require(module);
+  }
   if(module.posts) {
     module.posts.forEach(function(postType) {
       postTypes[postType.name] = postType;
@@ -116,6 +119,11 @@ function plugin(module) {
     });
   }
   modules.push(module);
+  if(module.dependencies) {
+    module.dependencies.forEach(function(dep) {
+      load(dep);
+    });
+  }
 }
 
 function schema(type) {
@@ -128,7 +136,7 @@ function schema(type) {
 
 module.exports = {
   listen: listen,
-  plugin: plugin,
+  load: load,
   on: function(event, fn) {
     eventEmitter.on(event, fn);
   },
