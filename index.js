@@ -44,6 +44,7 @@ function listen(port) {
     res.sendFile(path, {root: '.'}, function(err) {
       if(err) {
         eventEmitter.emit('content-error', path);
+        res.status(err.status).end();
       } else {
         eventEmitter.emit('content-sent', path);
       }
