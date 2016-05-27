@@ -1,4 +1,5 @@
-var reporter = require('./lib/reporter')
+var log      = require('./lib/log');
+var reporter = require('./lib/reporter');
 var cache    = require('tashmetu-cache');
 var storage  = require('tashmetu-fs');
 var events   = require('events');
@@ -30,6 +31,7 @@ function loadTaxonomy(name) {
 
 function listen(port) {
   var app = express();
+  var tashmetu = this;
 
   app.get('/posts', function(req, res, next) {
     eventEmitter.emit('post-list-requested', req);
@@ -60,8 +62,8 @@ function listen(port) {
   });
 
   modules.forEach(function(module) {
-    if(module.route) {
-      module.route(app, storage, cache);
+    if(module.init) {
+      module.init(tashmetu, storage, cache, app);
     }
   });
 
@@ -146,4 +148,5 @@ module.exports = {
   },
   schema: schema,
   findRelated: findRelated,
+  log: log,
 }
