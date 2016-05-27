@@ -16,7 +16,9 @@ function loadPost(name) {
   try {
     var post = storage.post(name, schema);
     if(post.status === 'published') {
-      cache.storePost(postTypes[post.type].process(post));
+      postTypes[post.type].process(post, function(result) {
+        cache.storePost(result);
+      });
     } else {
       if(cache.post(name)) {
         cache.removePost(name);
@@ -149,4 +151,5 @@ module.exports = {
   schema: schema,
   findRelated: findRelated,
   log: log,
+  refresh: loadPost,
 }
