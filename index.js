@@ -1,16 +1,20 @@
 var log      = require('./lib/log');
 var reporter = require('./lib/reporter');
+var socket   = require('./lib/socket');
 var cache    = require('tashmetu-cache');
 var storage  = require('tashmetu-fs');
 var events   = require('events');
 var express  = require('express');
 var fs       = require('fs');
+var http     = require('http');
 var _        = require('lodash');
 
 var eventEmitter = new events.EventEmitter();
 var modules = [];
 var postTypes = {};
 var factories = {};
+
+load(socket);
 
 function loadPost(name) {
   try {
@@ -71,6 +75,8 @@ function listen(port) {
 
   reporter(this, storage, cache);
 
+  socket.forward(cache, 'post-changed');
+
   storage.on('post-added', loadPost);
   storage.on('post-changed', loadPost);
 
@@ -82,8 +88,11 @@ function listen(port) {
     posts.forEach(function(post, index) {
       post.related = findRelated(index, posts);
     });
-    app.listen(port);
-    eventEmitter.emit('ready', port);
+
+    var server = http.Server(app);
+    server.listen(port);
+
+    eventEmitter.emit('ready', server, port);
   });
 
   storage.listen();
