@@ -1,5 +1,6 @@
 var log      = require('./lib/log');
 var reporter = require('./lib/reporter');
+var rest     = require('./lib/rest');
 var socket   = require('./lib/socket');
 var cache    = require('tashmetu-cache');
 var storage  = require('tashmetu-fs');
@@ -14,6 +15,7 @@ var modules = [];
 var postTypes = {};
 var factories = {};
 
+load(rest);
 load(socket);
 
 function loadPost(name) {
@@ -38,34 +40,6 @@ function loadTaxonomy(name) {
 function listen(port) {
   var app = express();
   var tashmetu = this;
-
-  app.get('/posts', function(req, res, next) {
-    eventEmitter.emit('post-list-requested', req);
-    res.setHeader('Content-Type', 'application/json');
-    res.send(cache.posts());
-    eventEmitter.emit('post-list-sent', cache.posts());
-  });
-
-  app.get('/:post/attachments/*', function(req, res){
-    eventEmitter.emit('content-requested', req);
-    var path = 'tashmetu/content/posts/' + req.params.post + '/attachments/' + req.params[0];
-    res.sendFile(path, {root: '.'}, function(err) {
-      if(err) {
-        eventEmitter.emit('content-error', path);
-        res.status(err.status).end();
-      } else {
-        eventEmitter.emit('content-sent', path);
-      }
-    });
-  });
-
-  app.get('/taxonomies/:taxonomy', function(req, res, next) {
-    eventEmitter.emit('taxonomy-requested', req);
-    var terms = cache.taxonomy(req.params.taxonomy).terms;
-    res.setHeader('Content-Type', 'application/json');
-    res.send(terms);
-    eventEmitter.emit('taxonomy-sent', terms);
-  });
 
   modules.forEach(function(module) {
     if(module.init) {
