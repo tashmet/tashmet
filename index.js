@@ -49,10 +49,9 @@ function listen(port) {
 
   reporter(this, storage, cache);
 
-  socket.forward(cache, 'post-changed');
-
   storage.on('post-added', loadPost);
   storage.on('post-changed', loadPost);
+  storage.on('post-removed', cache.removePost);
 
   storage.on('taxonomy-added', loadTaxonomy);
   storage.on('taxonomy-changed', loadTaxonomy);
@@ -67,6 +66,12 @@ function listen(port) {
     server.listen(port);
 
     eventEmitter.emit('ready', server, port);
+  });
+
+  socket.on('ready', function() {
+    socket.forward(cache, 'post-added');
+    socket.forward(cache, 'post-changed');
+    socket.forward(cache, 'post-removed');
   });
 
   storage.listen();
