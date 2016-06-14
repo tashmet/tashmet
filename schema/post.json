@@ -1,0 +1,9 @@
+{
+  "id": "post",
+  "type": "object",
+  "properties": {
+    "title":{ "type": "string" },
+    "date": { "type": "date" }
+  },
+  "required": ["title"]
+}

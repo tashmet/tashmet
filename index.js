@@ -1,4 +1,5 @@
 var log      = require('./lib/log');
+var post     = require('./lib/post');
 var reporter = require('./lib/reporter');
 var rest     = require('./lib/rest');
 var socket   = require('./lib/socket');
@@ -15,6 +16,7 @@ var modules = [];
 var postTypes = {};
 var factories = {};
 
+load(post);
 load(rest);
 load(socket);
 
