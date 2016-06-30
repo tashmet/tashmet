@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,10 +9,11 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^1.1.1",
+    "electrolyte": "^0.2.6",
     "express": "^4.13.3",
     "lodash": "^4.6.1",
     "socket.io": "^1.4.6",
-    "tashmetu-cache": "^0.3.0",
-    "tashmetu-fs": "^0.3.2"
+    "tashmetu-cache": "^0.3.1",
+    "tashmetu-fs": "^0.3.4"
   }
 }
