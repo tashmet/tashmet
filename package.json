@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,11 +9,14 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^1.1.1",
+    "chokidar": "^1.4.3",
     "electrolyte": "^0.2.6",
     "express": "^4.13.3",
+    "js-yaml": "^3.5.5",
+    "jsonschema": "^1.1.0",
     "lodash": "^4.6.1",
     "socket.io": "^1.4.6",
     "tashmetu-cache": "^0.3.1",
-    "tashmetu-fs": "^0.3.4"
+    "yaml-front-matter": "^3.4.0"
   }
 }

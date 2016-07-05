@@ -7,7 +7,6 @@ var join      = require('path').join;
 var _         = require('lodash');
 
 system.delegates = {
-  'tashmetu.storage': 'tashmetu-fs',
   'tashmetu.cache': 'tashmetu-cache'
 };
 
