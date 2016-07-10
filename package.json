@@ -1,10 +1,11 @@
 {
   "name": "tashmetu",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "main": "lib/index.js",
   "author": "Björn Andersson",
   "license": "MIT",
   "dependencies": {
@@ -18,5 +19,12 @@
     "socket.io": "^1.4.6",
     "tashmetu-cache": "^0.3.1",
     "yaml-front-matter": "^3.4.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-jshint": "^2.0.1",
+    "gulp-util": "^3.0.7",
+    "jshint": "^2.9.2",
+    "jshint-stylish": "^2.2.0"
   }
 }
