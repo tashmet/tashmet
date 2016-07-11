@@ -3,7 +3,7 @@
   "version": "0.6.6",
   "description": "Lightweight blogging server",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --recursive"
   },
   "main": "lib/index.js",
   "author": "Björn Andersson",
@@ -21,10 +21,13 @@
     "yaml-front-matter": "^3.4.0"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "gulp": "^3.9.1",
     "gulp-jshint": "^2.0.1",
+    "gulp-mocha": "^2.2.0",
     "gulp-util": "^3.0.7",
     "jshint": "^2.9.2",
-    "jshint-stylish": "^2.2.0"
+    "jshint-stylish": "^2.2.0",
+    "mocha": "^2.5.3"
   }
 }

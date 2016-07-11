@@ -1,4 +1,5 @@
 var gulp    = require('gulp'),
+    mocha   = require('gulp-mocha'),
     jshint  = require('gulp-jshint'),
     util    = require('gulp-util'),
     stylish = require('jshint-stylish');
@@ -9,8 +10,14 @@ gulp.task('lint', function() {
     .pipe(jshint.reporter(stylish));
 });
 
-gulp.task('watch', ['default'], function () {
-  gulp.watch('./lib/**/*.js', ['lint']);
+gulp.task('test', ['lint'], function() {
+  gulp.src('test/*.js', {read: false})
+    .pipe(mocha({reporter: 'spec'}))
+    .on('error', util.log);
 });
 
-gulp.task('default', ['lint']);
+gulp.task('watch', ['default'], function () {
+  gulp.watch('./lib/**/*.js', ['lint', 'test']);
+});
+
+gulp.task('default', ['lint', 'test']);
