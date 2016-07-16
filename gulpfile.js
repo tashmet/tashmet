@@ -11,13 +11,13 @@ gulp.task('lint', function() {
 });
 
 gulp.task('test', ['lint'], function() {
-  gulp.src('test/*.js', {read: false})
+  gulp.src('test/**/*.js', {read: false})
     .pipe(mocha({reporter: 'spec'}))
     .on('error', util.log);
 });
 
 gulp.task('watch', ['default'], function () {
-  gulp.watch('./lib/**/*.js', ['lint', 'test']);
+  gulp.watch(['./lib/**/*.js', './test/**/*.js'], ['lint', 'test']);
 });
 
 gulp.task('default', ['lint', 'test']);
