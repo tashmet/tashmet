@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
@@ -28,6 +28,7 @@
     "gulp-util": "^3.0.7",
     "jshint": "^2.9.2",
     "jshint-stylish": "^2.2.0",
-    "mocha": "^2.5.3"
+    "mocha": "^2.5.3",
+    "mock-fs": "^3.11.0"
   }
 }
