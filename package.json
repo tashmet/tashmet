@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
@@ -17,7 +17,7 @@
     "jsonschema": "^1.1.0",
     "lodash": "^4.6.1",
     "socket.io": "^1.4.6",
-    "tashmetu-cache": "^0.3.1",
+    "tashmetu-cache": "^0.4.0",
     "yaml-front-matter": "^3.4.0"
   },
   "devDependencies": {
