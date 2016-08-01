@@ -5,6 +5,48 @@ var join   = require('path').join;
 var fs     = require('fs');
 
 describe('tashmetu.storage', function() {
+  var storage = require('../../lib/services/storage.js')();
+  var resource = storage.resource('post', {
+    pattern: 'posts/{name}.md'
+  });
+
+  before(function() {
+    fsMock({
+      'tashmetu': {
+        'posts': {
+          'first.md': 'First post content',
+          'second.md': 'Second post content'
+        },
+        'taxonomies': {
+          'categories.yml': '- cars\n- boats'
+        }
+      }
+    });
+  });
+
+  after(function() {
+    fsMock.restore();
+  });
+
+  describe('get', function() {
+    it('should return an error if query does not match resource params', function(done) {
+      resource.get({}, function(err, obj) {
+        expect(err).to.equal('Missing one or more parameters');
+        done();
+      });
+    });
+
+    it('should return error if get-function is not defined');
+
+    it('should read the file from the file system', function(done) {
+      resource.get({name: 'first'}, function(err, obj) {
+        expect(obj).to.equal('First post content');
+        done();
+      });
+    });
+  });
+
+/*
   var validator = {
     checkPost: function() {}
   };
@@ -174,5 +216,6 @@ describe('tashmetu.storage', function() {
       });
     });
   });
+*/
 });
 

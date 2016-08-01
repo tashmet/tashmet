@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
@@ -9,6 +9,7 @@
   "author": "Björn Andersson",
   "license": "MIT",
   "dependencies": {
+    "async": "^2.0.1",
     "chalk": "^1.1.1",
     "chokidar": "^1.4.3",
     "electrolyte": "^0.2.6",
@@ -16,7 +17,9 @@
     "js-yaml": "^3.5.5",
     "jsonschema": "^1.1.0",
     "lodash": "^4.6.1",
+    "recursive-readdir": "^2.0.0",
     "socket.io": "^1.4.6",
+    "string-template": "^1.0.0",
     "tashmetu-cache": "^0.4.0",
     "yaml-front-matter": "^3.4.0"
   },
