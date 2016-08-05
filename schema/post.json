@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "title":{ "type": "string" },
-    "date": { "type": "date" }
+    "date": { "type": "date" },
+    "author": { "type": "string" }
   },
-  "required": ["title"]
+  "required": ["title", "author"]
 }
