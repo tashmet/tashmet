@@ -1,0 +1,8 @@
+{
+  "title": "RSS configuration",
+  "type": "object",
+  "properties": {
+    "itemLimit": { "type": "integer", "default": 30 }
+  },
+  "required": []
+}

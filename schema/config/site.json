@@ -1,0 +1,10 @@
+{
+  "title": "Site configuration",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string", "default": "" },
+    "description": { "type": "string", "default": "" },
+    "url": { "type": "string", "default": "" }
+  },
+  "required": []
+}

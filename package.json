@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
@@ -15,6 +15,7 @@
     "electrolyte": "^0.2.6",
     "express": "^4.13.3",
     "js-yaml": "^3.5.5",
+    "json-schema-defaults": "^0.1.1",
     "jsonschema": "^1.1.0",
     "lodash": "^4.6.1",
     "recursive-readdir": "^2.0.0",
