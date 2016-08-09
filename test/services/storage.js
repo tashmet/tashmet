@@ -29,6 +29,7 @@ describe('tashmetu.storage', function() {
   });
 
   describe('get', function() {
+/*
     it('should return an error if query does not match resource params', function(done) {
       resource.get({}, function(err, obj) {
         expect(err).to.equal('Missing one or more parameters');
@@ -44,6 +45,7 @@ describe('tashmetu.storage', function() {
         done();
       });
     });
+*/
   });
 
 /*
