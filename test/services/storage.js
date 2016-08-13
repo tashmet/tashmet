@@ -5,7 +5,7 @@ var join   = require('path').join;
 var fs     = require('fs');
 
 describe('tashmetu.storage', function() {
-  var storage = require('../../lib/services/storage.js')();
+  var storage = require('../../lib/server/services/storage.js')();
   var resource = storage.resource('post', {
     pattern: 'posts/{name}.md'
   });
