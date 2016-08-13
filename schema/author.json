@@ -1,0 +1,10 @@
+{
+  "id": "author",
+  "type": "object",
+  "properties": {
+    "firstname":{ "type": "string" },
+    "lastname": { "type": "string" },
+    "email": { "type": "email" }
+  },
+  "required": ["firstname", "lastname"]
+}
