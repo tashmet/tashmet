@@ -1,0 +1,22 @@
+{
+  "name": "tashmetu",
+  "version": "0.8.14",
+  "main": "dist/tashmetu.js",
+  "authors": [
+    "Björn Andersson <bjorn.olof.andersson@gmail.com>"
+  ],
+  "description": "Lightweight blogging server",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "homepage": "http://samizdatjs.org",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {}
+}

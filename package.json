@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.8.14",
+  "version": "0.8.15",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "async": "^2.0.1",
+    "browserify": "^13.1.0",
     "chalk": "^1.1.1",
     "chokidar": "^1.4.3",
     "electrolyte": "^0.2.6",
@@ -23,6 +24,7 @@
     "socket.io": "^1.4.6",
     "string-template": "^1.0.0",
     "tashmetu-cache": "^0.4.0",
+    "vinyl-source-stream": "^1.1.0",
     "yaml-front-matter": "^3.4.0"
   },
   "devDependencies": {
