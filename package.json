@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.8.23",
+  "version": "0.8.24",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
@@ -23,7 +23,6 @@
     "rss": "^1.2.1",
     "socket.io": "^1.4.6",
     "string-template": "^1.0.0",
-    "tashmetu-cache": "^0.4.0",
     "vinyl-source-stream": "^1.1.0",
     "yaml-front-matter": "^3.4.0"
   },
