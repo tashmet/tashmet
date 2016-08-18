@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.8.22",
+  "version": "0.8.23",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
