@@ -1,6 +1,6 @@
 {
-  "name": "tashmetu",
-  "version": "0.8.26",
+  "name": "@samizdatjs/tashmetu",
+  "version": "0.9.0",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
