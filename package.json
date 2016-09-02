@@ -1,6 +1,6 @@
 {
   "name": "@samizdatjs/tashmetu",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Lightweight blogging server",
   "scripts": {
     "test": "mocha --recursive"
@@ -19,7 +19,9 @@
     "json-schema-defaults": "^0.1.1",
     "jsonschema": "^1.1.0",
     "lodash": "^4.6.1",
+    "marked": "^0.3.6",
     "recursive-readdir": "^2.0.0",
+    "rest": "^2.0.0",
     "rss": "^1.2.1",
     "socket.io": "^1.4.6",
     "socket.io-client": "^1.4.8",
@@ -36,6 +38,7 @@
     "jshint": "^2.9.2",
     "jshint-stylish": "^2.2.0",
     "mocha": "^2.5.3",
-    "mock-fs": "^3.11.0"
+    "mock-fs": "^3.11.0",
+    "sinon": "^1.17.5"
   }
 }
