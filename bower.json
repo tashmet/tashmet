@@ -1,6 +1,6 @@
 {
   "name": "tashmetu",
-  "version": "0.10.6",
+  "version": "0.10.7",
   "main": "dist/tashmetu.js",
   "authors": [
     "Björn Andersson <bjorn.olof.andersson@gmail.com>"
