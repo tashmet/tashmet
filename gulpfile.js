@@ -1,32 +1,59 @@
-var gulp       = require('gulp'),
-    mocha      = require('gulp-mocha'),
-    jshint     = require('gulp-jshint'),
-    util       = require('gulp-util'),
-    browserify = require('browserify'),
-    source     = require('vinyl-source-stream'),
-    stylish    = require('jshint-stylish');
+'use strict';
 
+var gulp        = require('gulp'),
+    tslint      = require('gulp-tslint'),
+    tsc         = require('gulp-typescript'),
+    runSequence = require('run-sequence');
+
+// Lint
+//-----------------------------------------------------------------------------
 gulp.task('lint', function() {
-  return gulp.src('./lib/**/*.js')
-    .pipe(jshint())
-    .pipe(jshint.reporter(stylish));
+  var config =  {formatter: 'verbose'};
+  return gulp.src([
+    'src/**/**.ts'
+  ])
+  .pipe(tslint(config))
+  .pipe(tslint.report());
 });
 
-gulp.task('test', ['lint'], function() {
-  gulp.src('test/**/*.js', {read: false})
-    .pipe(mocha({reporter: 'dot'}))
-    .on('error', util.log);
+var tstProject = tsc.createProject('tsconfig.json', {
+  typescript: require('typescript')
 });
 
-gulp.task('browserify', ['lint'], function() {
-    return browserify('./lib/client/app.js', {standalone: 'tashmetu'})
-        .bundle()
-        .pipe(source('tashmetu.js'))
-        .pipe(gulp.dest('./dist/'));
+// Build
+//-----------------------------------------------------------------------------
+gulp.task('build', function() {
+  return gulp.src([
+    'src/**/*.ts'
+  ])
+  .pipe(tstProject())
+  .on('error', function (err) {
+      process.exit(1);
+  })
+  .js.pipe(gulp.dest('dist/'));
 });
 
-gulp.task('watch', ['default'], function () {
-  gulp.watch(['./lib/**/*.js', './test/**/*.js'], ['lint', 'test', 'browserify']);
+// Build dts
+//-----------------------------------------------------------------------------
+var tsDtsProject = tsc.createProject('tsconfig.json', {
+  declaration: true,
+  noResolve: false,
+  typescript: require('typescript')
 });
 
-gulp.task('default', ['lint', 'test', 'browserify']);
+gulp.task('build-dts', function() {
+  return gulp.src([
+    'src/**/*.ts'
+  ])
+  .pipe(tsDtsProject())
+  .on('error', function (err) {
+    process.exit(1);
+  })
+  .dts.pipe(gulp.dest('dts'));
+});
+
+// Default
+//-----------------------------------------------------------------------------
+gulp.task('default', function (cb) {
+  runSequence('lint', ['build', 'build-dts'], cb);
+});

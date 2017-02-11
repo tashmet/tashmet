@@ -1,0 +1,1 @@
+export {ReadOnlyRestProvider} from './readonly';
