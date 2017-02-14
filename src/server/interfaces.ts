@@ -2,7 +2,7 @@ import {Provider} from '@samizdatjs/tiamat';
 import * as express from 'express';
 
 export interface ServerConfig {
-  routers?: RouterProvider[];
+  routes?: any;
 
   middleware?: string[];
 }
@@ -29,7 +29,5 @@ export interface Middleware {
  *
  */
 export interface RouterProvider {
-  path: string;
-
   createRouter(provider: Provider): any;
 }

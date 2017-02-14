@@ -17,12 +17,19 @@ export class ServerActivator implements Activator<Server> {
         server.addMiddleware(middleware);
       });
     }
-    if (config.routers) {
-      config.routers.forEach((routerProvider: RouterProvider) => {
-        let router = routerProvider.createRouter(this.provider);
-        server.addRouter(router, routerProvider.path);
-      });
+    if (config.routes) {
+      for (let path in config.routes) {
+        if (config.routes[path]) {
+          if (config.routes[path] instanceof Function) {
+            server.app().use(path, config.routes[path]);
+          } else {
+            let router = config.routes[path].createRouter(this.provider);
+            server.addRouter(router, path);
+          }
+        }
+      }
     }
+    server.addRouterMethods(server);
     return server;
   }
 }
@@ -49,7 +56,8 @@ export class Server {
     this.expressApp.use(path, router);
   }
 
-  private addRouterMethods(entity: any, router: express.Router) {
+  public addRouterMethods(entity: any, _router?: express.Router) {
+    let router = _router || this.expressApp;
     let methodMetadata = Reflect.getOwnMetadata(
       'tashmetu:router-method', entity.constructor
     );

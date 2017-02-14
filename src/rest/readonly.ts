@@ -4,15 +4,11 @@ import {get, RouterProvider} from '../server';
 import * as express from 'express';
 
 export class ReadOnlyRestProvider implements RouterProvider {
-  public constructor(private config: any) {};
+  public constructor(private collection: string) {};
 
   public createRouter(provider: Provider): any {
     let database = provider.get<Database>('tashmetu.Database');
-    return new ReadOnlyRestRouter(database.collection(this.config.collection));
-  }
-
-  get path(): string {
-    return this.config.path;
+    return new ReadOnlyRestRouter(database.collection(this.collection));
   }
 }
 
