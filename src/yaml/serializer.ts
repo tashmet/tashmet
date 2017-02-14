@@ -1,12 +1,11 @@
-import {Provider} from '@samizdatjs/tiamat';
-import {Serializer, SerializerProvider} from '../content';
+import {Serializer} from '../content';
 import {YamlConfig} from './meta';
 import * as _ from 'lodash';
 
 import yaml = require('js-yaml');
 let yamlFront = require('yaml-front-matter');
 
-class YamlSerializer implements Serializer {
+export class YamlSerializer implements Serializer {
   public constructor(private config: YamlConfig) {}
 
   public parse(data: string): Object {
@@ -37,22 +36,5 @@ class YamlSerializer implements Serializer {
     } else {
       return yaml.safeDump(_.omit(data, metaKeys), options);
     }
-  }
-}
-
-const defaultOptions: YamlConfig = {
-  frontMatter: false,
-  indent: 2
-};
-
-export class YamlProvider implements SerializerProvider {
-  private config: YamlConfig;
-
-  public constructor(config?: YamlConfig) {
-    this.config = _.merge({}, defaultOptions, config || {});
-  };
-
-  public createSerializer(provider: Provider): Serializer {
-    return new YamlSerializer(this.config);
   }
 }

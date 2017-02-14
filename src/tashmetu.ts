@@ -2,7 +2,7 @@ import {component} from '@samizdatjs/tiamat';
 import {DatabaseReporter, FileSystemReporter, RequestReporter} from './reporters';
 
 export {FileSystem, DirectoryProvider, FileProvider} from './fs';
-export {YamlProvider} from './yaml';
+export {yaml} from './yaml';
 export {server, router, get, Server} from './server';
 export {ReadOnlyRestProvider} from './rest';
 export {CollectionController, DocumentController, DocumentError} from './content';

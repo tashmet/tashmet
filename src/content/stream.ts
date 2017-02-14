@@ -26,7 +26,7 @@ export class StreamActivator implements Activator<any> {
   }
 
   private createSerializer(): Serializer {
-    return this.metaData.serializer.createSerializer(this.provider);
+    return this.metaData.serializer(this.provider);
   }
 
   private getMetaData(constructor: any): StreamConfig {

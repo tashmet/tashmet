@@ -128,13 +128,6 @@ export interface Serializer {
   serialize(data: any): string;
 }
 
-/**
- * Factory for creating serializer instances given meta data.
- */
-export interface SerializerProvider {
-  createSerializer(provider: Provider): Serializer;
-}
-
 export interface Stream<T> {
   /**
    * Read a document from the stream.
@@ -177,10 +170,10 @@ export interface StreamConfig {
   source: StreamProvider;
 
   /**
-   * A serializer provider that will parse and serialize documents in the
-   * stream.
+   * A serializer provider creating a serializer that will parse and serialize
+   * documents in the stream.
    */
-  serializer: SerializerProvider;
+  serializer: (provider: Provider) => Serializer;
 
   /**
    * Name of the target collection that the stream reads and writes to.
