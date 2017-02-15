@@ -13,21 +13,21 @@ export class HookablePipe implements Pipe {
 
   public constructor(pipe: Pipe) {
     this.pipeline
-      .step(this.hooksBefore)
-      .step(pipe)
-      .step(this.hooksAfter);
+      .step('before', this.hooksBefore)
+      .step('pipe',   pipe)
+      .step('after',  this.hooksAfter);
   };
 
   public before(hook: Pipe): void {
-    this.hooksBefore.step(hook);
+    this.hooksBefore.push(hook);
   }
 
   public after(hook: Pipe): void {
-    this.hooksAfter.step(hook);
+    this.hooksAfter.push(hook);
   }
 
   public error(hook: Pipe): void {
-    this.hooksError.step(hook);
+    this.hooksError.push(hook);
   }
 
   public process(input: any, next: (output: any) => void): void {
@@ -38,6 +38,12 @@ export class HookablePipe implements Pipe {
         next(result);
       }
     });
+  }
+}
+
+export class HookablePipeline extends Pipeline {
+  public step(name: string, pipe: Pipe): Pipeline {
+    return super.step(name, new HookablePipe(pipe));
   }
 }
 

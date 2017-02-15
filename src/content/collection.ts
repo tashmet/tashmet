@@ -1,6 +1,6 @@
 import {injectable} from '@samizdatjs/tiamat';
 import {Collection, CollectionConfig, DocumentError, Stream} from './interfaces';
-import {Pipeline, DocumentPipe, HookablePipe, Inserter, PersistPipe,
+import {Pipeline, DocumentPipe, HookablePipeline, Inserter, PersistPipe,
   Validator, MergeDefaults, StripDefaults} from './pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
@@ -8,9 +8,9 @@ import {Controller} from './controller';
 @injectable()
 export class CollectionController extends Controller implements Collection {
   protected cache: Collection;
-  private upsertPipe: Pipeline = new Pipeline();
+  private pipes: {[name: string]: HookablePipeline} = {};
+  private cachePipe: Inserter = new Inserter();
   private persistPipe: PersistPipe = new PersistPipe();
-  private insertPipe: Inserter = new Inserter();
   private loadPipe: Pipeline = new Pipeline(true);
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
@@ -19,49 +19,54 @@ export class CollectionController extends Controller implements Collection {
     super();
     let config: CollectionConfig = this.getMetaData(this.constructor);
     let schema = config.schema;
-    let steps: {[key: string]: HookablePipe} = {
-      'insert':   new HookablePipe(this.insertPipe),
-      'validate': new HookablePipe(new Validator(schema)),
-      'persist':  new HookablePipe(this.persistPipe),
-      'merge':    new HookablePipe(new MergeDefaults(schema)),
-      'strip':    new HookablePipe(new StripDefaults(schema))
-    };
 
-    this.addHooks(steps);
-
-    this.loadPipe
-      .step(steps['validate'])
-      .step(steps['merge'])
-      .step(this.documentInputPipe)
-      .step(steps['insert'])
+    this.pipes['source-added'] = new HookablePipeline()
+      .step('validate', new Validator(schema))
+      .step('merge',    new MergeDefaults(schema))
+      .push(this.documentInputPipe)
+      .step('cache',    this.cachePipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
       });
 
-    this.upsertPipe
-      .step(this.loadPipe)
-      .step(steps['strip'])
-      .step(this.documentOutputPipe)
-      .step(steps['persist'])
+    this.pipes['source-changed'] = new HookablePipeline()
+      .step('validate', new Validator(schema))
+      .step('merge',    new MergeDefaults(schema))
+      .push(this.documentInputPipe)
+      .step('cache',    this.cachePipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
       });
+
+    this.pipes['upsert'] = new HookablePipeline()
+      .step('validate', new Validator(schema))
+      .step('merge',    new MergeDefaults(schema))
+      .push(this.documentInputPipe)
+      .step('cache',    this.cachePipe)
+      .step('strip',    new StripDefaults(schema))
+      .push(this.documentOutputPipe)
+      .step('persist',  this.persistPipe)
+      .on('document-error', (err: DocumentError) => {
+        this.emit('document-error', err);
+      });
+
+    this.addHooks(this.pipes);
   }
 
   public setCache(cache: Collection): void {
     this.cache = cache;
-    this.insertPipe.setCollection(cache);
+    this.cachePipe.setCollection(cache);
   }
 
   public setStream(stream: Stream<Object>): void {
     this.persistPipe.setStream(stream);
     stream.on('document-added', (doc: any) => {
-      this.loadPipe.process(doc, (output: any) => {
+      this.pipes['source-added'].process(doc, (output: any) => {
         this.emit('document-added', output);
       });
     });
     stream.on('document-changed', (doc: any) => {
-      this.loadPipe.process(doc, (output: any) => {
+      this.pipes['source-changed'].process(doc, (output: any) => {
         this.emit('document-changed', output);
       });
     });
@@ -87,7 +92,7 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public upsert(obj: any, fn: () => void): void {
-    this.upsertPipe.process(obj, (output: any) => {
+    this.pipes['upsert'].process(obj, (output: any) => {
       this.emit('document-added', obj);
       fn();
     });

@@ -6,22 +6,32 @@ import {EventEmitter} from 'events';
  * A series of pipes.
  */
 export class Pipeline extends EventEmitter implements Pipe {
-  private steps: any[] = [];
+  private steps: {[name: string]: Pipe} = {};
+  private sequence: Pipe[] = [];
 
   public constructor(private emitErrors?: boolean) {
     super();
   }
 
-  public step(step: Pipe): Pipeline {
-    this.steps.push(step);
+  public step(name: string, pipe: Pipe): Pipeline {
+    this.steps[name] = pipe;
+    return this.push(pipe);
+  }
+
+  public push(pipe: Pipe): Pipeline {
+    this.sequence.push(pipe);
     return this;
+  }
+
+  public getStep(name: string): Pipe {
+    return this.steps[name];
   }
 
   public process(input: any, next: (output: any) => void): void {
     let result = input;
 
-    eachSeries(this.steps, (step: any, done: any) => {
-      step.process(result, (output: any) => {
+    eachSeries(this.sequence, (pipe: Pipe, done: any) => {
+      pipe.process(result, (output: any) => {
         if (output instanceof Error) {
           done(output);
         } else {

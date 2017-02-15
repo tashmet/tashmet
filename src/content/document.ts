@@ -1,35 +1,28 @@
 import {injectable} from '@samizdatjs/tiamat';
 import {Collection, Document} from './interfaces';
-import {Pipeline, HookablePipe, Validator, MergeDefaults, StripDefaults} from './pipes';
+import {Pipeline, HookablePipeline, Validator, MergeDefaults, StripDefaults} from './pipes';
 import {Controller} from './controller';
 
 
 @injectable()
 export class DocumentController extends Controller implements Document {
-  private inputPipe: Pipeline = new Pipeline();
-  private outputPipe: Pipeline = new Pipeline();
+  private pipes: {[name: string]: HookablePipeline} = {};
   private collection: Collection;
   private config: any;
 
   public constructor() {
     super();
-    const config = Reflect.getOwnMetadata('tashmetu:document', this.constructor);
-    const schema = config.schema;
+    this.config = Reflect.getOwnMetadata('tashmetu:document', this.constructor);
+    const schema = this.config.schema;
 
-    let steps: {[key: string]: HookablePipe} = {
-      'validate': new HookablePipe(new Validator(schema)),
-      'merge':    new HookablePipe(new MergeDefaults(schema)),
-      'strip':    new HookablePipe(new StripDefaults(schema))
-    };
+    this.pipes['input'] = new HookablePipeline()
+      .step('validate', new Validator(schema))
+      .step('merge',    new MergeDefaults(schema));
 
-    this.addHooks(steps);
+    this.pipes['output'] = new HookablePipeline()
+      .step('strip',    new StripDefaults(schema));
 
-    this.config = config;
-    this.inputPipe
-      .step(steps['validate'])
-      .step(steps['merge']);
-    this.outputPipe
-      .step(steps['strip']);
+    this.addHooks(this.pipes);
   }
 
   get name(): string {
@@ -54,13 +47,7 @@ export class DocumentController extends Controller implements Document {
   }
 
   public getPipeline(name: string): Pipeline {
-    switch (name) {
-      case 'input':
-        return this.inputPipe;
-      case 'output':
-        return this.outputPipe;
-    }
-    return new Pipeline();
+    return this.pipes[name];
   }
 
   public get(fn: (obj: any) => void): void {

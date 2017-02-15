@@ -34,23 +34,23 @@ export function document(config: any): any {
   };
 }
 
-export function before(step: string): any {
+export function before(config: any): any {
   return function (target: any, key: string, value: any) {
-    let metadata: any = {type: 'before', step, target, key};
+    let metadata: any = {type: 'before', config, target, key};
     pushMetaData('tashmetu:collection-hook', metadata, target.constructor);
   };
 }
 
-export function after(step: string): any {
+export function after(config: any): any {
   return function (target: any, key: string, value: any) {
-    let metadata: any = {type: 'after', step, target, key};
+    let metadata: any = {type: 'after', config, target, key};
     pushMetaData('tashmetu:collection-hook', metadata, target.constructor);
   };
 }
 
-export function error(step: string): any {
+export function error(config: any): any {
   return function (target: any, key: string, value: any) {
-    let metadata: any = {type: 'error', step, target, key};
+    let metadata: any = {type: 'error', config, target, key};
     pushMetaData('tashmetu:collection-hook', metadata, target.constructor);
   };
 }

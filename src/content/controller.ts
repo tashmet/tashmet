@@ -1,33 +1,48 @@
 import {injectable, decorate} from '@samizdatjs/tiamat';
-import {Hook, HookablePipe} from './pipes';
+import {Pipeline, Hook, HookablePipe} from './pipes';
 import {EventEmitter} from 'events';
 
 decorate(injectable(), EventEmitter);
 
 @injectable()
 export class Controller extends EventEmitter {
-  public constructor() {
-    super();
-  }
-
-  protected addHooks(steps: {[key: string]: HookablePipe}): void {
-    const hooks = Reflect.getOwnMetadata(
+  protected addHooks(pipes: {[key: string]: Pipeline}): void {
+    const hooks = Reflect.getMetadata(
       'tashmetu:collection-hook', this.constructor) || [];
 
     hooks.forEach((hook: any) => {
       const pipe = new Hook(this, hook.key);
+      let steps = this.getMatchingSteps(hook.config, pipes);
 
-      switch (hook.type) {
-        case 'before':
-          steps[hook.step].before(pipe);
-          break;
-        case 'after':
-          steps[hook.step].after(pipe);
-          break;
-        case 'error':
-          steps[hook.step].error(pipe);
-          break;
-      }
+      steps.forEach((step: HookablePipe) => {
+        switch (hook.type) {
+          case 'before': step.before(pipe); break;
+          case 'after':  step.after(pipe);  break;
+          case 'error':  step.error(pipe);  break;
+        }
+      });
     });
+  }
+
+  private getMatchingSteps(hook: any, pipes: {[name: string]: Pipeline}): HookablePipe[] {
+    let steps: HookablePipe[] = [];
+    if (hook.pipe) {
+      if (hook.pipe in pipes) {
+        let step = <HookablePipe>pipes[hook.pipe].getStep(hook.step);
+        if (step) {
+          steps.push(step);
+        }
+      }
+    } else {
+      for (let name in pipes) {
+        if (pipes[name]) {
+          let step = <HookablePipe>pipes[name].getStep(hook.step);
+          if (step) {
+            steps.push(step);
+          }
+        }
+      }
+    }
+    return steps;
   }
 }
