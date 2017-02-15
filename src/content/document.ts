@@ -15,11 +15,11 @@ export class DocumentController extends Controller implements Document {
     this.config = Reflect.getOwnMetadata('tashmetu:document', this.constructor);
     const schema = this.config.schema;
 
-    this.pipes['input'] = new HookablePipeline()
+    this.pipes['input'] = new HookablePipeline(true)
       .step('validate', new Validator(schema))
       .step('merge',    new MergeDefaults(schema));
 
-    this.pipes['output'] = new HookablePipeline()
+    this.pipes['output'] = new HookablePipeline(true)
       .step('strip',    new StripDefaults(schema));
 
     this.addHooks(this.pipes);

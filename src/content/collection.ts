@@ -20,7 +20,7 @@ export class CollectionController extends Controller implements Collection {
     let config: CollectionConfig = this.getMetaData(this.constructor);
     let schema = config.schema;
 
-    this.pipes['source-added'] = new HookablePipeline()
+    this.pipes['source-added'] = new HookablePipeline(true)
       .step('validate', new Validator(schema))
       .step('merge',    new MergeDefaults(schema))
       .push(this.documentInputPipe)
@@ -29,7 +29,7 @@ export class CollectionController extends Controller implements Collection {
         this.emit('document-error', err);
       });
 
-    this.pipes['source-changed'] = new HookablePipeline()
+    this.pipes['source-changed'] = new HookablePipeline(true)
       .step('validate', new Validator(schema))
       .step('merge',    new MergeDefaults(schema))
       .push(this.documentInputPipe)
@@ -38,7 +38,7 @@ export class CollectionController extends Controller implements Collection {
         this.emit('document-error', err);
       });
 
-    this.pipes['upsert'] = new HookablePipeline()
+    this.pipes['upsert'] = new HookablePipeline(true)
       .step('validate', new Validator(schema))
       .step('merge',    new MergeDefaults(schema))
       .push(this.documentInputPipe)
