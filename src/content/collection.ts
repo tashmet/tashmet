@@ -54,6 +54,17 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public setCache(cache: Collection): void {
+    const events = [
+      'document-added',
+      'document-changed',
+      'document-removed'
+    ];
+    events.forEach((event: string) => {
+      cache.on(event, (obj: any) => {
+        this.emit(event, obj);
+      });
+    });
+
     this.cache = cache;
     this.cachePipe.setCollection(cache);
   }
@@ -61,14 +72,10 @@ export class CollectionController extends Controller implements Collection {
   public setStream(stream: Stream<Object>): void {
     this.persistPipe.setStream(stream);
     stream.on('document-added', (doc: any) => {
-      this.pipes['source-added'].process(doc, (output: any) => {
-        this.emit('document-added', output);
-      });
+      this.pipes['source-added'].process(doc, (output: any) => { return; });
     });
     stream.on('document-changed', (doc: any) => {
-      this.pipes['source-changed'].process(doc, (output: any) => {
-        this.emit('document-changed', output);
-      });
+      this.pipes['source-changed'].process(doc, (output: any) => { return; });
     });
     stream.on('document-removed', (id: string) => {
       // TODO: Remove document from collection.

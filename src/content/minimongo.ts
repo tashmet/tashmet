@@ -49,8 +49,4 @@ class MinimongoCollection extends EventEmitter implements Collection {
   public name(): string {
     return this._name;
   }
-
-  public on(event: string, listener: Function): this {
-    return this.on(event, listener);
-  }
 }
