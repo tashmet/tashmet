@@ -1,17 +1,19 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, CollectionConfig, DocumentError, Stream} from './interfaces';
+import {Collection, CollectionConfig, DocumentError, Stream, Pipe} from './interfaces';
 import {Pipeline, DocumentPipe, HookablePipeline, Inserter, PersistPipe,
-  Validator, MergeDefaults, StripDefaults} from './pipes';
+  Validator, MergeDefaults, StripDefaults, BufferPipe} from './pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
+
 
 @injectable()
 export class CollectionController extends Controller implements Collection {
   protected cache: Collection;
+  protected buffer: Collection;
   private pipes: {[name: string]: HookablePipeline} = {};
   private cachePipe: Inserter = new Inserter();
+  private bufferPipe: BufferPipe = new BufferPipe();
   private persistPipe: PersistPipe = new PersistPipe();
-  private loadPipe: Pipeline = new Pipeline(true);
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
 
@@ -50,7 +52,22 @@ export class CollectionController extends Controller implements Collection {
         this.emit('document-error', err);
       });
 
+    this.pipes['populate'] = new HookablePipeline(true)
+      .step('validate', new Validator(schema))
+      .step('merge',    new MergeDefaults(schema))
+      .push(this.documentInputPipe)
+      .step('buffer',   this.bufferPipe)
+      .step('cache',    this.cachePipe)
+      .on('document-error', (err: DocumentError) => {
+        this.emit('document-error', err);
+      });
+
     this.addHooks(this.pipes);
+  }
+
+  public setBuffer(buffer: Collection): void {
+    this.buffer = buffer;
+    this.bufferPipe.setCollection(buffer);
   }
 
   public setCache(cache: Collection): void {
@@ -70,6 +87,16 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public setStream(stream: Stream<Object>): void {
+    let documents = <any>stream.read();
+    this.bufferPipe.setCount(Object.keys(documents).length);
+    this.pipes['populate'].on('document-error', (err: any) => {
+      this.bufferPipe.decCount();
+    });
+    for (let key in documents) {
+      if (documents[key]) {
+        this.pipes['populate'].process(documents[key], (output: any) => { return; });
+      }
+    }
     this.persistPipe.setStream(stream);
     stream.on('document-added', (doc: any) => {
       this.pipes['source-added'].process(doc, (output: any) => { return; });

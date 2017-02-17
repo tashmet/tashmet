@@ -1,6 +1,7 @@
 export interface FileSystem {
   listen(): void;
 
+  readdir(path: string): string[];
   read(path: string): any;
   write(data: string, path: string): void;
 

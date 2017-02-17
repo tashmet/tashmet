@@ -14,7 +14,7 @@ export class FileSystemService extends EventEmitter implements FileSystem {
 
   public listen(): void {
     chokidar.watch(this.root, {
-      ignoreInitial: false,
+      ignoreInitial: true,
       persistent: true,
     })
       .on('add', (path: string) => {
@@ -29,6 +29,10 @@ export class FileSystemService extends EventEmitter implements FileSystem {
       .on('ready', () => {
         this.emit('ready');
       });
+  }
+
+  public readdir(path: string): any {
+    return fs.readdirSync(join(process.cwd(), 'content', path));
   }
 
   public read(path: string): any {

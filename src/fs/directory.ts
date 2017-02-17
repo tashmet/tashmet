@@ -50,8 +50,11 @@ class DirectoryStream extends EventEmitter implements Stream<Object> {
     if (id) {
       return this.loadPath(this.getPath(id));
     } else {
-      // TODO: Read all files in directory.
-      return {};
+      let result: any = {};
+      this.fileSys.readdir(this.config.name).forEach((name: string) => {
+        result[name.split('.')[0]] = this.loadPath(join(this.config.name, name));
+      });
+      return result;
     }
   }
 

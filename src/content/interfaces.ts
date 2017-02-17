@@ -28,6 +28,8 @@ export interface Collection {
   name(): string;
 
   on(event: string, fn: (obj: any) => void): void;
+
+  emit(event: string, ...args: any[]): void;
 }
 
 /**

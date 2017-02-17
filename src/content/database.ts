@@ -43,7 +43,9 @@ export class DatabaseService extends EventEmitter
   private activateCollection(controller: CollectionController): CollectionController {
     let name = this.getName(controller);
     let collection = this.cache.createCollection(name);
+    let buffer = this.cache.createCollection(name + ':buffer');
     controller.setCache(collection);
+    controller.setBuffer(buffer);
 
     controller.on('document-added', (doc: any) => {
       this.emit('document-added', doc, controller);
