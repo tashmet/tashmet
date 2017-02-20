@@ -1,8 +1,8 @@
 import {inject, service} from '@samizdatjs/tiamat';
 import {Provider, Activator} from '@samizdatjs/tiamat';
-import {Cache, Collection, Database} from './interfaces';
-import {CollectionController} from './collection';
-import {DocumentController} from './document';
+import {Cache, Collection, Database} from '../interfaces';
+import {CollectionController} from '../controllers/collection';
+import {DocumentController} from '../controllers/document';
 import {EventEmitter} from 'events';
 import * as _ from 'lodash';
 

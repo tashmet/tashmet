@@ -1,5 +1,5 @@
 import {Pipe} from '../interfaces';
-import {DocumentController} from '../document';
+import {DocumentController} from '../controllers/document';
 
 export class DocumentPipe implements Pipe {
   private documents: {[name: string]: DocumentController} = {};

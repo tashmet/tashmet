@@ -1,7 +1,7 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, CollectionConfig, DocumentError, Pipe} from './interfaces';
+import {Collection, CollectionConfig, DocumentError, Pipe} from '../interfaces';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
-  Validator, MergeDefaults, StripDefaults, BufferPipe} from './pipes';
+  Validator, MergeDefaults, StripDefaults, BufferPipe} from '../pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
 

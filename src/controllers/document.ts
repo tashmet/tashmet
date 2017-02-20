@@ -1,6 +1,6 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, Document} from './interfaces';
-import {Pipeline, HookablePipeline, Validator, MergeDefaults, StripDefaults} from './pipes';
+import {Collection, Document} from '../interfaces';
+import {Pipeline, HookablePipeline, Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {Controller} from './controller';
 
 

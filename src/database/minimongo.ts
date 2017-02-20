@@ -1,4 +1,4 @@
-import {Cache, Collection} from './interfaces';
+import {Cache, Collection} from '../interfaces';
 import {service} from '@samizdatjs/tiamat';
 import {EventEmitter} from 'events';
 
