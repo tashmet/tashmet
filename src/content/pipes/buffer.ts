@@ -13,6 +13,10 @@ export class BufferPipe implements Pipe {
     this.target = count;
   }
 
+  public getCount(): number {
+    return this.target;
+  }
+
   public decCount() {
     this.target -= 1;
     this.checkReady();

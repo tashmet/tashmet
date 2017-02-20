@@ -55,10 +55,6 @@ export interface CollectionConfig {
 export interface Database {
   collection(name: string): Collection;
 
-  loader(fn: (done: () => void) => void): void;
-
-  start(): void;
-
   on(event: string, fn: any): void;
 }
 
@@ -128,68 +124,4 @@ export interface Serializer {
   parse(data: string): Object;
 
   serialize(data: any): string;
-}
-
-export interface Stream<T> {
-  /**
-   * Read a document from the stream.
-   */
-  read(id?: string): T;
-
-  /**
-   * Write a document to the stream.
-   */
-  write(data: T): void;
-
-  /**
-   *
-   */
-  on(event: 'document-added', fn: (doc: T) => void): void;
-  on(event: 'document-changed', fn: (doc: T) => void): void;
-  on(event: 'document-removed', fn: (id: string) => void): void;
-  on(event: 'ready', fn: () => void): void;
-}
-
-/**
- * This interface describes the configuration of a stream and is the input of
- * the stream decorator.
- *
- * @stream({
- *   name: 'MyStream',
- *   source:
- * })
- */
-export interface StreamConfig {
-  /**
-   * Name of the stream. This should be a unique service identifier.
-   */
-  name: string;
-
-  /**
-   * A stream provider that will create the source stream that documents are
-   * read from and written to.
-   */
-  source: StreamProvider;
-
-  /**
-   * A serializer provider creating a serializer that will parse and serialize
-   * documents in the stream.
-   */
-  serializer: (provider: Provider) => Serializer;
-
-  /**
-   * Name of the target collection that the stream reads and writes to.
-   */
-  target: string;
-}
-
-/**
- * A stream provider is a factory for data streams.
- */
-export interface StreamProvider {
-
-  /**
-   * Create a new stream given a serializer and provider.
-   */
-  createStream(serializer: Serializer, provider: Provider): Stream<Object>;
 }

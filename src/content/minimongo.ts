@@ -41,7 +41,7 @@ class MinimongoCollection extends EventEmitter implements Collection {
   public upsert(obj: any, fn: () => void): void {
     obj._collection = this._name;
     this.collection.upsert(obj, () => {
-      this.emit('document-added', obj);
+      this.emit('document-upserted', obj);
       fn();
     });
   }

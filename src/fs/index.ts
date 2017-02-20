@@ -1,4 +1,4 @@
 export {FileSystem} from './interfaces';
 export {FileSystemService} from './service';
-export {DirectoryProvider} from './directory';
-export {FileProvider} from './file';
+export {file, FileCollection, FileCollectionActivator} from './file';
+export {directory, DirectoryCollection, DirectoryCollectionActivator} from './directory';

@@ -12,11 +12,8 @@ export class DatabaseReporter {
   public constructor(
     @inject('tashmetu.Database') database: Database,
   ) {
-    database.on('document-added', (doc: any, collection: Collection) => {
-      log(chalk.cyan('ADD ') + doc._id + ' to ' + collection.name());
-    });
-    database.on('document-changed', (doc: any, collection: Collection) => {
-      log(chalk.cyan('CHG ') + doc._id + ' to ' + collection.name());
+    database.on('document-upserted', (doc: any, collection: Collection) => {
+      log(chalk.cyan('UPS ') + doc._id + ' to ' + collection.name());
     });
     database.on('document-removed', (doc: any, collection: Collection) => {
       log(chalk.cyan('REM ') + doc._id + ' to ' + collection.name());

@@ -1,24 +1,24 @@
-import {CollectionConfig, StreamConfig} from './interfaces';
+import {CollectionConfig} from './interfaces';
 
 export function collection(config: CollectionConfig): any {
   return function (target: any) {
     Reflect.defineMetadata('tiamat:service', {
       name: config.name,
-      singleton: true,
-      activator: 'tashmetu.Database'
+      singleton: true
     }, target);
     Reflect.defineMetadata('tashmetu:collection', config, target);
   };
 }
 
-export function stream(config: StreamConfig): any {
+export function content(config: any): any {
   return function (target: any) {
     Reflect.defineMetadata('tiamat:service', {
-      name: config.name,
+      name: 'tashmetu.Content',
       singleton: true,
-      activator: 'tashmetu.StreamActivator'
+      autoCreate: true,
+      activator: 'tashmetu.Database'
     }, target);
-    Reflect.defineMetadata('tashmetu:stream', config, target);
+    Reflect.defineMetadata('tashmetu:content', config, target);
   };
 }
 
@@ -26,9 +26,7 @@ export function document(config: any): any {
   return function (target: any) {
     Reflect.defineMetadata('tiamat:service', {
       name: config.name,
-      singleton: true,
-      autoCreate: true,
-      activator: 'tashmetu.Database'
+      singleton: true
     }, target);
     Reflect.defineMetadata('tashmetu:document', config, target);
   };

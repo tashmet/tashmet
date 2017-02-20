@@ -1,3 +1,6 @@
+import {Provider} from '@samizdatjs/tiamat';
+import {Serializer} from '../content';
+
 export interface FileSystem {
   listen(): void;
 
@@ -13,12 +16,25 @@ export interface FileSystem {
 }
 
 
-export interface DirectoryConfig {
+export interface FileSystemCollectionConfig {
   /**
-   * Name of the directory.
+   * Unique service identifier.
    */
   name: string;
 
+  /**
+   * Path to file/directory.
+   */
+  path: string;
+
+  /**
+   * A serializer provider creating a serializer that will parse and serialize
+   * documents when reading from and writing to the file system.
+   */
+  serializer: (provider: Provider) => Serializer;
+}
+
+export interface DirectoryConfig extends FileSystemCollectionConfig {
   /**
    * file extension of files in the directory.
    */
@@ -26,9 +42,4 @@ export interface DirectoryConfig {
 }
 
 
-export interface FileConfig {
-  /**
-   * Name of the file.
-   */
-  name: string;
-}
+export interface FileConfig extends FileSystemCollectionConfig {}

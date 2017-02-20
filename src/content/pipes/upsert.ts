@@ -1,9 +1,6 @@
-import {Collection, Pipe} from '../interfaces';
+import {Pipe, Collection} from '../interfaces';
 
-/**
- * Pipe that adds the incoming document to a collection.
- */
-export class Inserter implements Pipe {
+export class UpsertPipe implements Pipe {
   private collection: Collection;
 
   public setCollection(collection: Collection): void {

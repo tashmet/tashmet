@@ -1,6 +1,6 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, CollectionConfig, DocumentError, Stream, Pipe} from './interfaces';
-import {Pipeline, DocumentPipe, HookablePipeline, Inserter, PersistPipe,
+import {Collection, CollectionConfig, DocumentError, Pipe} from './interfaces';
+import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
   Validator, MergeDefaults, StripDefaults, BufferPipe} from './pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
@@ -11,9 +11,9 @@ export class CollectionController extends Controller implements Collection {
   protected cache: Collection;
   protected buffer: Collection;
   private pipes: {[name: string]: HookablePipeline} = {};
-  private cachePipe: Inserter = new Inserter();
+  private cachePipe: UpsertPipe = new UpsertPipe();
   private bufferPipe: BufferPipe = new BufferPipe();
-  private persistPipe: PersistPipe = new PersistPipe();
+  private persistPipe: UpsertPipe = new UpsertPipe();
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
 
@@ -72,8 +72,7 @@ export class CollectionController extends Controller implements Collection {
 
   public setCache(cache: Collection): void {
     const events = [
-      'document-added',
-      'document-changed',
+      'document-upserted',
       'document-removed'
     ];
     events.forEach((event: string) => {
@@ -81,34 +80,37 @@ export class CollectionController extends Controller implements Collection {
         this.emit(event, obj);
       });
     });
-
     this.cache = cache;
     this.cachePipe.setCollection(cache);
+
+    let cacheCount = 0;
+    cache.on('document-upserted', (doc: any) => {
+      cacheCount += 1;
+      if (cacheCount >= this.bufferPipe.getCount()) {
+        this.emit('ready');
+      }
+    });
   }
 
-  public setStream(stream: Stream<Object>): void {
-    let documents = <any>stream.read();
-    this.bufferPipe.setCount(Object.keys(documents).length);
-    this.pipes['populate'].on('document-error', (err: any) => {
-      this.bufferPipe.decCount();
+  public setSource(source: Collection): void {
+    this.persistPipe.setCollection(source);
+
+    source.on('document-upserted', (doc: any) => {
+      this.pipes['source-upsert'].process(doc, (output: any) => { return; });
     });
-    for (let key in documents) {
-      if (documents[key]) {
-        this.pipes['populate'].process(documents[key], (output: any) => { return; });
-      }
-    }
-    this.persistPipe.setStream(stream);
-    stream.on('document-added', (doc: any) => {
-      this.pipes['source-added'].process(doc, (output: any) => { return; });
-    });
-    stream.on('document-changed', (doc: any) => {
-      this.pipes['source-changed'].process(doc, (output: any) => { return; });
-    });
-    stream.on('document-removed', (id: string) => {
+    source.on('document-removed', (id: string) => {
       // TODO: Remove document from collection.
     });
-    stream.on('ready', () => {
-      this.emit('ready');
+
+    this.pipes['populate'].on('document-error', (err: DocumentError) => {
+      this.bufferPipe.decCount();
+    });
+
+    source.find({}, {}, (docs: any[]) => {
+      this.bufferPipe.setCount(Object.keys(docs).length);
+      docs.forEach((doc: any) => {
+        this.pipes['populate'].process(doc, (output: any) => { return; });
+      });
     });
   }
 
