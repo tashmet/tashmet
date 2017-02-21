@@ -1,6 +1,6 @@
 import {inject, service} from '@samizdatjs/tiamat';
 import {Provider, Activator} from '@samizdatjs/tiamat';
-import {Cache, Collection, Database} from '../interfaces';
+import {MemoryDatabase, RemoteDatabase, Collection, Database} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {EventEmitter} from '../util';
@@ -15,8 +15,8 @@ export class DatabaseService extends EventEmitter
   private collections: {[name: string]: Collection} = {};
 
   public constructor(
-    @inject('tashmetu.Cache') private cache: Cache,
-    @inject('tashmetu.Remote') private remote: Cache,
+    @inject('tashmetu.MemoryDatabase') private cache: MemoryDatabase,
+    @inject('tashmetu.RemoteDatabase') private remote: RemoteDatabase,
     @inject('tiamat.Provider') private provider: Provider
   ) {
     super();

@@ -6,12 +6,13 @@ export * from './interfaces';
 export * from './decorators';
 
 import {DatabaseService} from './database/database';
-import {MinimongoCache, MinimongoRemote} from './database/minimongo';
+import {MemoryDB} from './database/memory';
+import {RemoteDB} from './database/remote';
 
 @component({
   entities: [
-    MinimongoCache,
-    MinimongoRemote,
+    MemoryDB,
+    RemoteDB,
     DatabaseService,
   ]
 })
