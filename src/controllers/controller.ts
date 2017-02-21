@@ -1,8 +1,6 @@
 import {injectable, decorate} from '@samizdatjs/tiamat';
 import {Pipeline, Hook, HookablePipe} from '../pipes';
-import {EventEmitter} from 'events';
-
-decorate(injectable(), EventEmitter);
+import {EventEmitter} from '../util';
 
 @injectable()
 export class Controller extends EventEmitter {

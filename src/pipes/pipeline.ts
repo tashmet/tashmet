@@ -1,5 +1,5 @@
 import {Pipe} from '../interfaces';
-import {EventEmitter} from 'events';
+import {EventEmitter} from '../util';
 
 let eachSeries = require('async-each-series');
 

@@ -1,9 +1,10 @@
 import {Cache, Collection} from '../interfaces';
 import {service} from '@samizdatjs/tiamat';
-import {EventEmitter} from 'events';
+import {EventEmitter} from '../util';
 
 let minimongo = require('minimongo');
 let LocalDb = minimongo.MemoryDb;
+let RemoteDb = minimongo.RemoteDb;
 
 @service({
   name: 'tashmetu.Cache',
@@ -11,6 +12,26 @@ let LocalDb = minimongo.MemoryDb;
 })
 export class MinimongoCache implements Cache {
   private db: any = new LocalDb();
+  private collections: {[index: string]: Collection} = {};
+
+  public createCollection(name: string): Collection {
+    this.db.addCollection(name);
+    let collection = new MinimongoCollection(this.db[name], name);
+    this.collections[name] = collection;
+    return collection;
+  }
+
+  public getCollection(name: string): Collection {
+    return this.collections[name];
+  }
+}
+
+@service({
+  name: 'tashmetu.Remote',
+  singleton: true
+})
+export class MinimongoRemote implements Cache {
+  private db: any = new RemoteDb('http://localhost:3001/api', 'hello');
   private collections: {[index: string]: Collection} = {};
 
   public createCollection(name: string): Collection {
