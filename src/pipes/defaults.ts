@@ -1,5 +1,4 @@
 import {Pipe} from '../interfaces';
-import * as _ from 'lodash';
 
 let defaults = require('json-schema-defaults');
 
@@ -12,7 +11,7 @@ export class MergeDefaults implements Pipe {
   public process(input: any, next: (output: any) => void): void {
     let output = input;
     if (this.schema) {
-      output = _.merge({}, defaults(this.schema), input);
+      output = Object.assign({}, defaults(this.schema), input);
     }
     next(output);
   }

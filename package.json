@@ -10,12 +10,9 @@
   "author": "Björn Andersson",
   "license": "MIT",
   "dependencies": {
-    "@types/async": "^2.0.37",
-    "@types/lodash": "^4.14.45",
-    "async": "^2.1.4",
+    "async-each-series": "^1.1.0",
     "json-schema-defaults": "^0.3.0",
     "jsonschema": "^1.1.1",
-    "lodash": "^4.17.4",
     "minimongo": "^4.3.1",
     "reflect-metadata": "^0.1.9"
   },

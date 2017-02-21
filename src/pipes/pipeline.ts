@@ -1,6 +1,7 @@
 import {Pipe} from '../interfaces';
-import {eachSeries} from 'async';
 import {EventEmitter} from 'events';
+
+let eachSeries = require('async-each-series');
 
 /**
  * A series of pipes.

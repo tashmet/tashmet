@@ -4,7 +4,6 @@ import {Cache, Collection, Database} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {EventEmitter} from 'events';
-import * as _ from 'lodash';
 
 @service({
   name: 'tashmetu.Database',
@@ -28,9 +27,12 @@ export class DatabaseService extends EventEmitter
 
   public activate(config: any): any {
     let meta = Reflect.getOwnMetadata('tashmetu:content', config.constructor);
-    _.each(meta, (ctrlConfig: any, name: string) => {
+    Object.keys(meta).forEach((name: string) => {
+      let ctrlConfig = meta[name];
       let colCtrl = this.activateCollectionController(name, ctrlConfig);
-      _.each(ctrlConfig.documents, (docName: string) => {
+      ctrlConfig.documents = ctrlConfig.documents || [];
+
+      ctrlConfig.documents.forEach((docName: string) => {
         let docCtrl = this.provider.get<DocumentController>(docName);
         docCtrl.setCollection(colCtrl);
         colCtrl.addDocumentController(docCtrl);
