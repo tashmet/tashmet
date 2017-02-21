@@ -20,11 +20,11 @@ export class CollectionController extends Controller implements Collection {
   public constructor() {
     super();
     let config: CollectionConfig = this.getMetaData(this.constructor);
-    let schema = config.schema;
+    let schemas = Reflect.getMetadata('tashmetu:schemas', this.constructor);
 
     this.pipes['source-added'] = new HookablePipeline(true)
-      .step('validate', new Validator(schema))
-      .step('merge',    new MergeDefaults(schema))
+      .step('validate', new Validator(schemas))
+      .step('merge',    new MergeDefaults(schemas))
       .push(this.documentInputPipe)
       .step('cache',    this.cachePipe)
       .on('document-error', (err: DocumentError) => {
@@ -32,8 +32,8 @@ export class CollectionController extends Controller implements Collection {
       });
 
     this.pipes['source-changed'] = new HookablePipeline(true)
-      .step('validate', new Validator(schema))
-      .step('merge',    new MergeDefaults(schema))
+      .step('validate', new Validator(schemas))
+      .step('merge',    new MergeDefaults(schemas))
       .push(this.documentInputPipe)
       .step('cache',    this.cachePipe)
       .on('document-error', (err: DocumentError) => {
@@ -41,11 +41,11 @@ export class CollectionController extends Controller implements Collection {
       });
 
     this.pipes['upsert'] = new HookablePipeline(true)
-      .step('validate', new Validator(schema))
-      .step('merge',    new MergeDefaults(schema))
+      .step('validate', new Validator(schemas))
+      .step('merge',    new MergeDefaults(schemas))
       .push(this.documentInputPipe)
       .step('cache',    this.cachePipe)
-      .step('strip',    new StripDefaults(schema))
+      .step('strip',    new StripDefaults(schemas))
       .push(this.documentOutputPipe)
       .step('persist',  this.persistPipe)
       .on('document-error', (err: DocumentError) => {
@@ -53,8 +53,8 @@ export class CollectionController extends Controller implements Collection {
       });
 
     this.pipes['populate'] = new HookablePipeline(true)
-      .step('validate', new Validator(schema))
-      .step('merge',    new MergeDefaults(schema))
+      .step('validate', new Validator(schemas))
+      .step('merge',    new MergeDefaults(schemas))
       .push(this.documentInputPipe)
       .step('buffer',   this.bufferPipe)
       .step('cache',    this.cachePipe)

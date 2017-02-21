@@ -10,11 +10,11 @@ let JsonValidator = jsonschema.Validator;
 export class Validator implements Pipe {
   private jsonValidator = new JsonValidator();
 
-  public constructor(private schema: any) {}
+  public constructor(private schemas: any[]) {}
 
   public process(input: any, next: (output: any) => void): void {
-    if (this.schema) {
-      let result = this.jsonValidator.validate(input, this.schema);
+    for (let schema of this.schemas) {
+      let result = this.jsonValidator.validate(input, schema);
       if (result.errors.length > 0) {
         return next(new DocumentError(
           result.errors[0].instance, result.errors[0].message));

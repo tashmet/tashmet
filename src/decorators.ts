@@ -6,6 +6,16 @@ export function collection(config: CollectionConfig): any {
       name: config.name,
       singleton: true
     }, target);
+
+    if (config.schema) {
+      let parentSchemas = Reflect.getMetadata('tashmetu:schemas', target) || [];
+      let schemas = parentSchemas.slice();
+      schemas.push(config.schema);
+      Reflect.defineMetadata('tashmetu:schemas', schemas, target);
+    } else {
+      Reflect.defineMetadata('tashmetu:schemas', [], target);
+    }
+
     Reflect.defineMetadata('tashmetu:collection', config, target);
   };
 }
