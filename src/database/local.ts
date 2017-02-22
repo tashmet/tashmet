@@ -1,14 +1,14 @@
-import {MemoryDatabase, Collection} from '../interfaces';
+import {LocalDatabase, Collection} from '../interfaces';
 import {service} from '@samizdatjs/tiamat';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
 
 @service({
-  name: 'tashmetu.MemoryDatabase',
+  name: 'tashmetu.LocalDatabase',
   singleton: true
 })
-export class MemoryDB implements MemoryDatabase {
-  private db: any = new loki('test');
+export class LocalDB implements LocalDatabase {
+  private db: any = new loki('local');
   private collections: {[index: string]: Collection} = {};
 
   public createCollection(name: string): Collection {

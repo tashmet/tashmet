@@ -1,6 +1,6 @@
 import {inject, service} from '@samizdatjs/tiamat';
 import {Provider, Activator} from '@samizdatjs/tiamat';
-import {MemoryDatabase, RemoteDatabase, Collection, Database} from '../interfaces';
+import {LocalDatabase, RemoteDatabase, Collection, Database} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {EventEmitter} from '../util';
@@ -15,8 +15,8 @@ export class DatabaseService extends EventEmitter
   private collections: {[name: string]: Collection} = {};
 
   public constructor(
-    @inject('tashmetu.MemoryDatabase') private cache: MemoryDatabase,
-    @inject('tashmetu.RemoteDatabase') private remote: RemoteDatabase,
+    @inject('tashmetu.LocalDatabase') private localDB: LocalDatabase,
+    @inject('tashmetu.RemoteDatabase') private remoteDB: RemoteDatabase,
     @inject('tiamat.Provider') private provider: Provider
   ) {
     super();
@@ -46,11 +46,11 @@ export class DatabaseService extends EventEmitter
     if (this.isServer()) {
       source = this.provider.get<Collection>(config.source);
     } else {
-      source = this.remote.createCollection(name);
+      source = this.remoteDB.createCollection(name);
     }
     let controller = this.provider.get<CollectionController>(name);
-    let collection = this.cache.createCollection(name);
-    let buffer = this.cache.createCollection(name + ':buffer');
+    let collection = this.localDB.createCollection(name);
+    let buffer = this.localDB.createCollection(name + ':buffer');
     controller.setCache(collection);
     controller.setBuffer(buffer);
     controller.setSource(source);

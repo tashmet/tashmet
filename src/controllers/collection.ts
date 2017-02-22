@@ -4,6 +4,7 @@ import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
   Validator, MergeDefaults, StripDefaults, BufferPipe} from '../pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
+import {pull} from 'lodash';
 
 
 @injectable()
@@ -16,6 +17,8 @@ export class CollectionController extends Controller implements Collection {
   private persistPipe: UpsertPipe = new UpsertPipe();
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
+  private ready = false;
+  private upsertQueue: string[] = [];
 
   public constructor() {
     super();
@@ -76,9 +79,12 @@ export class CollectionController extends Controller implements Collection {
 
     let cacheCount = 0;
     cache.on('document-upserted', (doc: any) => {
-      cacheCount += 1;
-      if (cacheCount >= this.bufferPipe.getCount()) {
-        this.emit('ready');
+      if (!this.ready) {
+        cacheCount += 1;
+        if (cacheCount >= this.bufferPipe.getCount()) {
+          this.ready = true;
+          this.emit('ready');
+        }
       }
     });
   }
@@ -87,7 +93,9 @@ export class CollectionController extends Controller implements Collection {
     this.persistPipe.setCollection(source);
 
     source.on('document-upserted', (doc: any) => {
-      this.pipes['source-upsert'].process(doc, (output: any) => { return; });
+      if (this.upsertQueue.indexOf(doc._id) < 0) {
+        this.pipes['source-upsert'].process(doc, (output: any) => { return; });
+      }
     });
     source.on('document-removed', (id: string) => {
       // TODO: Remove document from collection.
@@ -119,8 +127,9 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public upsert(obj: any, fn: () => void): void {
+    this.upsertQueue.push(obj._id);
     this.pipes['upsert'].process(obj, (output: any) => {
-      this.emit('document-added', obj);
+      pull(this.upsertQueue, obj._id);
       fn();
     });
   }

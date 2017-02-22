@@ -3,7 +3,7 @@ import {Provider} from '@samizdatjs/tiamat';
 /**
  * The cache holds collections of documents in memory.
  */
-export interface MemoryDatabase {
+export interface LocalDatabase {
   /**
    * Create a new collection given a name.
    */
