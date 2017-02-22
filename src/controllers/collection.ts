@@ -22,16 +22,7 @@ export class CollectionController extends Controller implements Collection {
     let config: CollectionConfig = this.getMetaData(this.constructor);
     let schemas = Reflect.getMetadata('tashmetu:schemas', this.constructor);
 
-    this.pipes['source-added'] = new HookablePipeline(true)
-      .step('validate', new Validator(schemas))
-      .step('merge',    new MergeDefaults(schemas))
-      .push(this.documentInputPipe)
-      .step('cache',    this.cachePipe)
-      .on('document-error', (err: DocumentError) => {
-        this.emit('document-error', err);
-      });
-
-    this.pipes['source-changed'] = new HookablePipeline(true)
+    this.pipes['source-upsert'] = new HookablePipeline(true)
       .step('validate', new Validator(schemas))
       .step('merge',    new MergeDefaults(schemas))
       .push(this.documentInputPipe)
