@@ -56,6 +56,10 @@ export class DatabaseService extends EventEmitter
     controller.setSource(source);
     this.collections[name] = controller;
 
+    if (this.isServer()) {
+      controller.populate();
+    }
+
     controller.on('document-upserted', (doc: any) => {
       this.emit('document-upserted', doc, controller);
     });

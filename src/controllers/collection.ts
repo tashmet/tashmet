@@ -11,6 +11,7 @@ import {pull} from 'lodash';
 export class CollectionController extends Controller implements Collection {
   protected cache: Collection;
   protected buffer: Collection;
+  protected source: Collection;
   private pipes: {[name: string]: HookablePipeline} = {};
   private cachePipe: UpsertPipe = new UpsertPipe();
   private bufferPipe: BufferPipe = new BufferPipe();
@@ -18,6 +19,7 @@ export class CollectionController extends Controller implements Collection {
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
   private ready = false;
+  private synced = false;
   private upsertQueue: string[] = [];
 
   public constructor() {
@@ -83,6 +85,7 @@ export class CollectionController extends Controller implements Collection {
         cacheCount += 1;
         if (cacheCount >= this.bufferPipe.getCount()) {
           this.ready = true;
+          this.synced = true;
           this.emit('ready');
         }
       }
@@ -90,6 +93,7 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public setSource(source: Collection): void {
+    this.source = source;
     this.persistPipe.setCollection(source);
 
     source.on('document-upserted', (doc: any) => {
@@ -104,8 +108,10 @@ export class CollectionController extends Controller implements Collection {
     this.pipes['populate'].on('document-error', (err: DocumentError) => {
       this.bufferPipe.decCount();
     });
+  }
 
-    source.find({}, {}, (docs: any[]) => {
+  public populate(): void {
+    this.source.find({}, {}, (docs: any[]) => {
       this.bufferPipe.setCount(Object.keys(docs).length);
       docs.forEach((doc: any) => {
         this.pipes['populate'].process(doc, (output: any) => { return; });
@@ -119,7 +125,11 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public find(filter: Object, options: Object, fn: (result: any) => void): void {
-    this.cache.find(filter, options, fn);
+    if (this.synced) {
+      this.cache.find(filter, options, fn);
+    } else {
+      this.source.find(filter, options, fn);
+    }
   }
 
   public findOne(filter: Object, options: Object, fn: (result: any) => void): void {
