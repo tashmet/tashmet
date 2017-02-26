@@ -23,7 +23,7 @@ class RemoteCollection extends EventEmitter implements Collection {
   }
 
   public find(filter: Object, options: Object, fn: (result: any) => void): void {
-    this.get(fn);
+    this.get(filter, fn);
   }
 
   public findOne(filter: Object, options: Object, fn: (result: any) => void): void {
@@ -38,14 +38,20 @@ class RemoteCollection extends EventEmitter implements Collection {
     return this._name;
   }
 
-  private get(fn: Function): void {
+  private get(selector: any, fn: Function): void {
+    let query = 'http://localhost:3001/api/' + this._name;
+    if (selector) {
+      query = query + '?selector=' + JSON.stringify(selector);
+    }
+
     let xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
       if (this.readyState === 4 && this.status === 200) {
         fn(JSON.parse(xhttp.responseText));
       }
     };
-    xhttp.open('GET', 'http://localhost:3001/api/' + this._name, true);
+
+    xhttp.open('GET', query, true);
     xhttp.send();
   }
 }
