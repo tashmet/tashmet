@@ -3,6 +3,7 @@ import {Provider, Activator} from '@samizdatjs/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
+import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
 
 @service({
@@ -17,6 +18,7 @@ export class DatabaseService extends EventEmitter
   public constructor(
     @inject('tashmetu.LocalDatabase') private localDB: LocalDatabase,
     @inject('tashmetu.RemoteDatabase') private remoteDB: RemoteDatabase,
+    @inject('tashmetu.RoutineAggregator') private routineAggregator: RoutineAggregator,
     @inject('tiamat.Provider') private provider: Provider
   ) {
     super();
@@ -51,9 +53,14 @@ export class DatabaseService extends EventEmitter
     let controller = this.provider.get<CollectionController>(name);
     let collection = this.localDB.createCollection(name);
     let buffer = this.localDB.createCollection(name + ':buffer');
+    let routines = this.routineAggregator.getRoutines(controller);
     controller.setCache(collection);
     controller.setBuffer(buffer);
     controller.setSource(source);
+    routines.forEach((routine: any) => {
+      routine.setController(controller);
+      controller.addRoutine(routine);
+    });
     this.collections[name] = controller;
 
     if (this.isServer()) {

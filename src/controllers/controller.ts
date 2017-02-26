@@ -1,16 +1,23 @@
 import {injectable, decorate} from '@samizdatjs/tiamat';
-import {Pipeline, Hook, HookablePipe} from '../pipes';
+import {Routine} from './routine';
+import {Pipeline, Hook, HookablePipe, HookablePipeline} from '../pipes';
 import {EventEmitter} from '../util';
 
 @injectable()
 export class Controller extends EventEmitter {
-  protected addHooks(pipes: {[key: string]: Pipeline}): void {
+  protected pipes: {[name: string]: HookablePipeline} = {};
+
+  public addRoutine(routine: Routine<any>): void {
+    this.addHooks(routine);
+  }
+
+  protected addHooks(host: any): void {
     const hooks = Reflect.getMetadata(
-      'tashmetu:collection-hook', this.constructor) || [];
+      'tashmetu:collection-hook', host.constructor) || [];
 
     hooks.forEach((hook: any) => {
-      const pipe = new Hook(this, hook.key);
-      let steps = this.getMatchingSteps(hook.config, pipes);
+      const pipe = new Hook(host, hook.key);
+      let steps = this.getMatchingSteps(hook.config);
 
       steps.forEach((step: HookablePipe) => {
         switch (hook.type) {
@@ -22,19 +29,19 @@ export class Controller extends EventEmitter {
     });
   }
 
-  private getMatchingSteps(hook: any, pipes: {[name: string]: Pipeline}): HookablePipe[] {
+  private getMatchingSteps(hook: any): HookablePipe[] {
     let steps: HookablePipe[] = [];
     if (hook.pipe) {
-      if (hook.pipe in pipes) {
-        let step = <HookablePipe>pipes[hook.pipe].getStep(hook.step);
+      if (hook.pipe in this.pipes) {
+        let step = <HookablePipe>this.pipes[hook.pipe].getStep(hook.step);
         if (step) {
           steps.push(step);
         }
       }
     } else {
-      for (let name in pipes) {
-        if (pipes[name]) {
-          let step = <HookablePipe>pipes[name].getStep(hook.step);
+      for (let name in this.pipes) {
+        if (this.pipes[name]) {
+          let step = <HookablePipe>this.pipes[name].getStep(hook.step);
           if (step) {
             steps.push(step);
           }

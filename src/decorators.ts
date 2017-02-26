@@ -42,6 +42,17 @@ export function document(config: any): any {
   };
 }
 
+export function routine(config: any): any {
+  return function (target: any) {
+    Reflect.defineMetadata('tiamat:service', {
+      name: config.name,
+      singleton: true,
+      activator: 'tashmetu.RoutineAggregator'
+    }, target);
+    Reflect.defineMetadata('tashmetu:routine', config, target);
+  };
+}
+
 export function before(config: any): any {
   return function (target: any, key: string, value: any) {
     let metadata: any = {type: 'before', config, target, key};

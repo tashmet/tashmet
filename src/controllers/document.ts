@@ -6,7 +6,6 @@ import {Controller} from './controller';
 
 @injectable()
 export class DocumentController extends Controller implements Document {
-  private pipes: {[name: string]: HookablePipeline} = {};
   private collection: Collection;
   private config: any;
 
@@ -22,7 +21,7 @@ export class DocumentController extends Controller implements Document {
     this.pipes['output'] = new HookablePipeline(true)
       .step('strip',    new StripDefaults(schema));
 
-    this.addHooks(this.pipes);
+    this.addHooks(this);
   }
 
   get name(): string {
