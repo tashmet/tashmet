@@ -20,6 +20,7 @@ export class CollectionController extends Controller implements Collection {
   private ready = false;
   private synced = false;
   private upsertQueue: string[] = [];
+  private cachedQueries: {[query: string]: boolean} = {};
 
   public constructor() {
     super();
@@ -136,10 +137,16 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public find(filter: Object, options: Object, fn: (result: any) => void): void {
-    if (this.synced) {
+    if (this.synced || JSON.stringify(filter) in this.cachedQueries) {
       this._cache.find(filter, options, fn);
     } else {
-      this._source.find(filter, options, fn);
+      this._source.find(filter, options, (result: any[]) => {
+        result.forEach((doc: any) => {
+          this._cache.upsert(doc, () => { return; });
+        });
+        this.cachedQueries[JSON.stringify(filter)] = true;
+        fn(result);
+      });
     }
   }
 
