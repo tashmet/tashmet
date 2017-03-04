@@ -1,10 +1,10 @@
 import {LocalDatabase, Collection} from '../interfaces';
-import {service} from '@samizdatjs/tiamat';
+import {provider} from '@samizdatjs/tiamat';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
 
-@service({
-  name: 'tashmetu.LocalDatabase',
+@provider({
+  for: 'tashmetu.LocalDatabase',
   singleton: true
 })
 export class LocalDB implements LocalDatabase {

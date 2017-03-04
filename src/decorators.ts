@@ -2,8 +2,8 @@ import {CollectionConfig} from './interfaces';
 
 export function collection(config: CollectionConfig): any {
   return function (target: any) {
-    Reflect.defineMetadata('tiamat:service', {
-      name: config.name,
+    Reflect.defineMetadata('tiamat:provider', {
+      for: config.providerFor,
       singleton: true
     }, target);
 
@@ -22,8 +22,8 @@ export function collection(config: CollectionConfig): any {
 
 export function content(config: any): any {
   return function (target: any) {
-    Reflect.defineMetadata('tiamat:service', {
-      name: 'tashmetu.Content',
+    Reflect.defineMetadata('tiamat:provider', {
+      for: 'tashmetu.Content',
       singleton: true,
       autoCreate: true,
       activator: 'tashmetu.Database'
@@ -34,8 +34,8 @@ export function content(config: any): any {
 
 export function document(config: any): any {
   return function (target: any) {
-    Reflect.defineMetadata('tiamat:service', {
-      name: config.name,
+    Reflect.defineMetadata('tiamat:provider', {
+      for: config.providerFor,
       singleton: true
     }, target);
     Reflect.defineMetadata('tashmetu:document', config, target);
@@ -44,8 +44,8 @@ export function document(config: any): any {
 
 export function routine(config: any): any {
   return function (target: any) {
-    Reflect.defineMetadata('tiamat:service', {
-      name: config.name,
+    Reflect.defineMetadata('tiamat:provider', {
+      for: config.providerFor,
       singleton: true,
       activator: 'tashmetu.RoutineAggregator'
     }, target);

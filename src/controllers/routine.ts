@@ -1,7 +1,7 @@
-import {injectable, service, Activator} from '@samizdatjs/tiamat';
+import {injectable, provider, Activator} from '@samizdatjs/tiamat';
 
-@service({
-  name: 'tashmetu.RoutineAggregator',
+@provider({
+  for: 'tashmetu.RoutineAggregator',
   singleton: true
 })
 export class RoutineAggregator implements Activator<Routine<any>> {

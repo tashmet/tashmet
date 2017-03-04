@@ -1,13 +1,13 @@
-import {inject, service} from '@samizdatjs/tiamat';
-import {Provider, Activator} from '@samizdatjs/tiamat';
+import {inject, provider} from '@samizdatjs/tiamat';
+import {Injector, Activator} from '@samizdatjs/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
 
-@service({
-  name: 'tashmetu.Database',
+@provider({
+  for: 'tashmetu.Database',
   singleton: true
 })
 export class DatabaseService extends EventEmitter
@@ -19,7 +19,7 @@ export class DatabaseService extends EventEmitter
     @inject('tashmetu.LocalDatabase') private localDB: LocalDatabase,
     @inject('tashmetu.RemoteDatabase') private remoteDB: RemoteDatabase,
     @inject('tashmetu.RoutineAggregator') private routineAggregator: RoutineAggregator,
-    @inject('tiamat.Provider') private provider: Provider
+    @inject('tiamat.Injector') private injector: Injector
   ) {
     super();
   }
@@ -36,7 +36,7 @@ export class DatabaseService extends EventEmitter
       ctrlConfig.documents = ctrlConfig.documents || [];
 
       ctrlConfig.documents.forEach((docName: string) => {
-        let docCtrl = this.provider.get<DocumentController>(docName);
+        let docCtrl = this.injector.get<DocumentController>(docName);
         docCtrl.setCollection(colCtrl);
         colCtrl.addDocumentController(docCtrl);
       });
@@ -46,11 +46,11 @@ export class DatabaseService extends EventEmitter
   private activateCollectionController(name: string, config: any): CollectionController {
     let source: Collection;
     if (this.isServer()) {
-      source = this.provider.get<Collection>(config.source);
+      source = this.injector.get<Collection>(config.source);
     } else {
       source = this.remoteDB.createCollection(name);
     }
-    let controller = this.provider.get<CollectionController>(name);
+    let controller = this.injector.get<CollectionController>(name);
     let collection = this.localDB.createCollection(name);
     let buffer = this.localDB.createCollection(name + ':buffer');
     let routines = this.routineAggregator.getRoutines(controller);

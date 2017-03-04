@@ -1,5 +1,3 @@
-import {Provider} from '@samizdatjs/tiamat';
-
 /**
  * The cache holds collections of documents in memory.
  */
@@ -39,10 +37,10 @@ export interface Collection {
  */
 export interface CollectionConfig {
   /**
-   * Name of the collection. This should be a unique service identifier that can
-   * be used for injecting the collection as a service into any component.
+   * The unique identifier that the collection provides an instance for.
+   * This is used for injecting the collection into any component.
    */
-  name: string;
+  providerFor: string;
 
   /**
    * An optional json schema that will be used for validating and providing

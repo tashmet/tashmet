@@ -14,7 +14,7 @@ import {LocalDB} from './database/local';
 import {RemoteDB} from './database/remote';
 
 @component({
-  entities: [
+  providers: [
     LocalDB,
     RemoteDB,
     DatabaseService,
