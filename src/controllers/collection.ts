@@ -136,22 +136,32 @@ export class CollectionController extends Controller implements Collection {
     this.documentOutputPipe.addController(doc);
   }
 
-  public find(filter: Object, options: Object, fn: (result: any) => void): void {
-    if (this.synced || JSON.stringify(filter) in this.cachedQueries) {
-      this._cache.find(filter, options, fn);
+  public find(selector: Object, options: Object, fn: (result: any) => void): void {
+    if (this.synced || JSON.stringify(selector) in this.cachedQueries) {
+      this._cache.find(selector, options, fn);
     } else {
-      this._source.find(filter, options, (result: any[]) => {
+      this._source.find(selector, options, (result: any[]) => {
         result.forEach((doc: any) => {
           this._cache.upsert(doc, () => { return; });
         });
-        this.cachedQueries[JSON.stringify(filter)] = true;
+        this.cachedQueries[JSON.stringify(selector)] = true;
         fn(result);
       });
     }
   }
 
-  public findOne(filter: Object, options: Object, fn: (result: any) => void): void {
-    this._cache.findOne(filter, options, fn);
+  public findOne(selector: Object, options: Object, fn: (result: any) => void): void {
+    if (this.synced || JSON.stringify(selector) in this.cachedQueries) {
+      this._cache.findOne(selector, options, fn);
+    } else {
+      this._source.findOne(selector, options, (doc: any) => {
+        if (doc) {
+          this._cache.upsert(doc, () => { return; });
+          this.cachedQueries[JSON.stringify(selector)] = true;
+        }
+        fn(doc);
+      });
+    }
   }
 
   public upsert(obj: any, fn: () => void): void {

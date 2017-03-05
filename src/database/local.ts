@@ -23,12 +23,12 @@ class MemoryCollection extends EventEmitter implements Collection {
     super();
   }
 
-  public find(filter: Object, options: Object, fn: (result: any) => void): void {
-    fn(this.collection.find(filter, options));
+  public find(selector: Object, options: Object, fn: (result: any) => void): void {
+    fn(this.collection.find(selector));
   }
 
-  public findOne(filter: Object, options: Object, fn: (result: any) => void): void {
-    this.collection.findOne(filter, options, fn);
+  public findOne(selector: Object, options: Object, fn: (result: any) => void): void {
+    fn(this.collection.findOne(selector));
   }
 
   public upsert(obj: any, fn: () => void): void {

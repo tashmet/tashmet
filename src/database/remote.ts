@@ -22,12 +22,14 @@ class RemoteCollection extends EventEmitter implements Collection {
     super();
   }
 
-  public find(filter: Object, options: Object, fn: (result: any) => void): void {
-    this.get(filter, fn);
+  public find(selector: Object, options: Object, fn: (result: any) => void): void {
+    this.get(selector, fn);
   }
 
-  public findOne(filter: Object, options: Object, fn: (result: any) => void): void {
-    fn({});
+  public findOne(selector: Object, options: Object, fn: (result: any) => void): void {
+    this.get(selector, (result: any[]) => {
+      fn(result[0]);
+    });
   }
 
   public upsert(obj: any, fn: () => void): void {
