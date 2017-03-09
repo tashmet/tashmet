@@ -31,8 +31,7 @@ export class DocumentController extends Controller implements Document {
   public setCollection(collection: Collection): void {
     this.collection = collection;
     const events = [
-      'document-added',
-      'document-changed',
+      'document-upserted',
       'document-removed',
       'document-error'
     ];

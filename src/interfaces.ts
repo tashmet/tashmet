@@ -81,16 +81,10 @@ export interface Document {
   set(obj: any): void;
 
   /**
-   * Listen for when the document has been added.
-   * The callback supplies the added document.
+   * Listen for when the document has been added or changed.
+   * The callback supplies the document.
    */
-  on(event: 'document-added', fn: (obj: any) => void): Document;
-
-  /**
-   * Listen for when the document has been changed.
-   * The callback supplies the changed document.
-   */
-  on(event: 'document-changed', fn: (obj: any) => void): Document;
+  on(event: 'document-upserted', fn: (obj: any) => void): Document;
 
   /**
    * Listen for when the document has been removed.
