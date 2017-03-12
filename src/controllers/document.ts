@@ -49,11 +49,10 @@ export class DocumentController extends Controller implements Document {
   }
 
   public get(fn: (obj: any) => void): void {
-    let self = this;
     this.collection.findOne({_id: this.config.name}, {}, (obj: any) => {
       if (!obj) {
         obj = {_id: this.config.name};
-        new MergeDefaults(self.config.schema).process(obj, fn);
+        new MergeDefaults(this.config.schema).process(obj, fn);
       } else {
         fn(obj);
       }
