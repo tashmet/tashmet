@@ -26,7 +26,7 @@ export class BufferPipe implements Pipe {
     this.buffer.on('ready', () => {
       next(input);
     });
-    this.buffer.upsert(input, () => { return; });
+    this.buffer.upsert(input);
     this.count += 1;
     this.checkReady();
   }

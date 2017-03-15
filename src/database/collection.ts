@@ -18,16 +18,16 @@ export class CollectionBase extends EventEmitter implements Collection {
     });
   }
 
-  public find(filter: Object, options: Object, fn: (result: any) => void): void {
-    this.collection.find(filter, options, fn);
+  public find(filter: Object, options: Object): Promise<any> {
+    return this.collection.find(filter, options);
   }
 
-  public findOne(filter: Object, options: Object, fn: (result: any) => void): void {
-    this.collection.findOne(filter, options, fn);
+  public findOne(filter: Object, options: Object): Promise<any> {
+    return this.collection.findOne(filter, options);
   }
 
-  public upsert(obj: any, fn: () => void): void {
-    this.collection.upsert(obj, fn);
+  public upsert(obj: any): Promise<any> {
+    return this.collection.upsert(obj);
   }
 
   public name(): string {

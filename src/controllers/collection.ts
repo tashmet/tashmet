@@ -123,7 +123,7 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public populate(): void {
-    this._source.find({}, {}, (docs: any[]) => {
+    this._source.find({}, {}).then((docs: any[]) => {
       this.bufferPipe.setCount(Object.keys(docs).length);
       docs.forEach((doc: any) => {
         this.pipes['populate'].process(doc, (output: any) => { return; });
@@ -136,39 +136,45 @@ export class CollectionController extends Controller implements Collection {
     this.documentOutputPipe.addController(doc);
   }
 
-  public find(selector: Object, options: Object, fn: (result: any) => void): void {
+  public find(selector: Object, options: Object): Promise<any> {
     if (this.synced || JSON.stringify(selector) in this.cachedQueries) {
-      this._cache.find(selector, options, fn);
-    } else {
-      this._source.find(selector, options, (result: any[]) => {
-        result.forEach((doc: any) => {
-          this._cache.upsert(doc, () => { return; });
-        });
-        this.cachedQueries[JSON.stringify(selector)] = true;
-        fn(result);
-      });
+      return this._cache.find(selector, options);
     }
-  }
-
-  public findOne(selector: Object, options: Object, fn: (result: any) => void): void {
-    if (this.synced || JSON.stringify(selector) in this.cachedQueries) {
-      this._cache.findOne(selector, options, fn);
-    } else {
-      this._source.findOne(selector, options, (doc: any) => {
-        if (doc) {
-          this._cache.upsert(doc, () => { return; });
+    return new Promise((resolve) => {
+      this._source.find(selector, options)
+        .then((result: any[]) => {
+          result.forEach((doc: any) => {
+            this._cache.upsert(doc);
+          });
           this.cachedQueries[JSON.stringify(selector)] = true;
-        }
-        fn(doc);
-      });
-    }
+          resolve(result);
+        });
+    });
   }
 
-  public upsert(obj: any, fn: () => void): void {
+  public findOne(selector: Object, options: Object): Promise<any> {
+    if (this.synced || JSON.stringify(selector) in this.cachedQueries) {
+      return this._cache.findOne(selector, options);
+    }
+    return new Promise((resolve) => {
+      this._source.findOne(selector, options)
+        .then((doc: any) => {
+          if (doc) {
+            this._cache.upsert(doc);
+            this.cachedQueries[JSON.stringify(selector)] = true;
+          }
+          resolve(doc);
+        });
+    });
+  }
+
+  public upsert(obj: any): Promise<any> {
     this.upsertQueue.push(obj._id);
-    this.pipes['upsert'].process(obj, (output: any) => {
-      pull(this.upsertQueue, obj._id);
-      fn();
+    return new Promise((resolve) => {
+      this.pipes['upsert'].process(obj, (output: any) => {
+        pull(this.upsertQueue, obj._id);
+        resolve(obj);
+      });
     });
   }
 

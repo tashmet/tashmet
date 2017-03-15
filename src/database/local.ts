@@ -23,20 +23,20 @@ class MemoryCollection extends EventEmitter implements Collection {
     super();
   }
 
-  public find(selector: Object, options: Object, fn: (result: any) => void): void {
-    fn(this.collection.find(selector));
+  public find(selector: Object, options: Object): Promise<any> {
+    return Promise.resolve(this.collection.find(selector));
   }
 
-  public findOne(selector: Object, options: Object, fn: (result: any) => void): void {
-    fn(this.collection.findOne(selector));
+  public findOne(selector: Object, options: Object): Promise<any> {
+    return Promise.resolve(this.collection.findOne(selector));
   }
 
-  public upsert(obj: any, fn: () => void): void {
+  public upsert(obj: any): Promise<any> {
     delete obj.$loki;
     obj._collection = this._name;
     this.collection.insert(obj);
     this.emit('document-upserted', obj);
-    fn();
+    return Promise.resolve(obj);
   }
 
   public name(): string {

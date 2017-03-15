@@ -48,18 +48,21 @@ export class DocumentController extends Controller implements Document {
     return this.pipes[name];
   }
 
-  public get(fn: (obj: any) => void): void {
-    this.collection.findOne({_id: this.config.name}, {}, (obj: any) => {
-      if (!obj) {
-        obj = {_id: this.config.name};
-        new MergeDefaults(this.config.schema).process(obj, fn);
-      } else {
-        fn(obj);
-      }
+  public get(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.collection.findOne({_id: this.config.name}, {})
+        .then((obj: any) => {
+          if (!obj) {
+            obj = {_id: this.config.name};
+            new MergeDefaults(this.config.schema).process(obj, resolve);
+          } else {
+            resolve(obj);
+          }
+        });
     });
   }
 
-  public set(obj: any): void {
-    this.collection.upsert(obj, () => { return; });
+  public set(obj: any): Promise<any> {
+    return this.collection.upsert(obj);
   }
 }

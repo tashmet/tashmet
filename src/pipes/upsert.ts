@@ -8,8 +8,6 @@ export class UpsertPipe implements Pipe {
   }
 
   public process(input: any, next: (output: any) => void): void {
-    this.collection.upsert(input, () => {
-      next(input);
-    });
+    this.collection.upsert(input).then(next);
   }
 }

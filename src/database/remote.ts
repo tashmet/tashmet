@@ -22,38 +22,37 @@ class RemoteCollection extends EventEmitter implements Collection {
     super();
   }
 
-  public find(selector: Object, options: Object, fn: (result: any) => void): void {
-    this.get(selector, fn);
-  }
-
-  public findOne(selector: Object, options: Object, fn: (result: any) => void): void {
-    this.get(selector, (result: any[]) => {
-      fn(result[0]);
-    });
-  }
-
-  public upsert(obj: any, fn: () => void): void {
-    fn();
-  }
-
-  public name(): string {
-    return this._name;
-  }
-
-  private get(selector: any, fn: Function): void {
+  public find(selector: Object, options: Object): Promise<any> {
     let query = 'http://localhost:3001/api/' + this._name;
     if (selector) {
       query = query + '?selector=' + JSON.stringify(selector);
     }
 
     let xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState === 4 && this.status === 200) {
-        fn(JSON.parse(xhttp.responseText));
-      }
-    };
+    return new Promise((resolve) => {
+      xhttp.onreadystatechange = function() {
+        if (this.readyState === 4 && this.status === 200) {
+          resolve(JSON.parse(xhttp.responseText));
+        }
+      };
+      xhttp.open('GET', query, true);
+      xhttp.send();
+    });
+  }
 
-    xhttp.open('GET', query, true);
-    xhttp.send();
+  public findOne(selector: Object, options: Object): Promise<any> {
+    return new Promise((resolve) => {
+      this.find(resolve, options).then((result: any[]) => {
+        resolve(result[0]);
+      });
+    });
+  }
+
+  public upsert(obj: any): Promise<any> {
+    return Promise.resolve(obj);
+  }
+
+  public name(): string {
+    return this._name;
   }
 }

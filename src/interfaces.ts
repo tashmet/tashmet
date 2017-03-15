@@ -19,11 +19,11 @@ export interface RemoteDatabase {
  * A collection of documents.
  */
 export interface Collection {
-  upsert(obj: any, fn: () => void): void;
+  upsert(obj: any): Promise<any>;
 
-  find(filter: Object, options: Object, fn: (result: any) => void): void;
+  find(filter: Object, options: Object): Promise<any>;
 
-  findOne(filter: Object, options: Object, fn: (result: any) => void): void;
+  findOne(filter: Object, options: Object): Promise<any>;
 
   name(): string;
 
@@ -73,12 +73,12 @@ export interface Document {
    * If a copy of the document does not exist in its collection a new one will
    * be created and returned with the default values from the schema.
    */
-  get(fn: (obj: any) => void): void;
+  get(): Promise<any>;
 
   /**
    * Set the content of the document.
    */
-  set(obj: any): void;
+  set(obj: any): Promise<any>;
 
   /**
    * Listen for when the document has been added or changed.
