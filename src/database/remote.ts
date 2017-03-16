@@ -42,7 +42,7 @@ class RemoteCollection extends EventEmitter implements Collection {
 
   public findOne(selector: Object, options: Object): Promise<any> {
     return new Promise((resolve) => {
-      this.find(resolve, options).then((result: any[]) => {
+      this.find(selector, options).then((result: any[]) => {
         resolve(result[0]);
       });
     });
