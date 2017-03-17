@@ -1,6 +1,6 @@
 {
   "name": "@samizdatjs/tashmetu",
-  "version": "0.12.6",
+  "version": "0.12.7",
   "description": "Tashmetu is a document storage and processing platform",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,10 +16,12 @@
     "json-schema-defaults": "^0.3.0",
     "jsonschema": "^1.1.1",
     "lokijs": "^1.4.3",
+    "mustache": "^2.3.0",
     "path-to-regexp": "^1.7.0",
     "reflect-metadata": "^0.1.9"
   },
   "devDependencies": {
+    "@types/mustache": "^0.8.29",
     "@types/node": "6.0.54",
     "@types/path-to-regexp": "^1.0.29",
     "gulp": "^3.9.1",

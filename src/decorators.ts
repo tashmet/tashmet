@@ -81,6 +81,12 @@ export function route(config: any): any {
   };
 }
 
+export function view(config: any): any {
+  return function (target: any) {
+    Reflect.defineMetadata('tashmetu:view', config, target);
+  };
+}
+
 function pushMetaData(name: string, data: any, target: any) {
   let metadataList: any[] = [];
 

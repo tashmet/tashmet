@@ -13,13 +13,15 @@ import {RoutineAggregator} from './controllers/routine';
 import {DatabaseService} from './database/database';
 import {LocalDB} from './database/local';
 import {RemoteDB} from './database/remote';
+import {MustacheRenderer} from './renderer';
 
 @component({
   providers: [
     LocalDB,
     RemoteDB,
     DatabaseService,
-    RoutineAggregator
+    RoutineAggregator,
+    MustacheRenderer
   ]
 })
 export class Tashmetu {}
