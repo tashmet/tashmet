@@ -4,6 +4,7 @@ export {CollectionController} from './controllers/collection';
 export {DocumentController} from './controllers/document';
 export {Routine} from './controllers/routine';
 export {CollectionBase} from './database/collection';
+export {Router} from './router';
 export {EventEmitter} from './util';
 export * from './interfaces';
 export * from './decorators';

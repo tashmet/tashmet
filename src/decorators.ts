@@ -74,6 +74,13 @@ export function error(config: any): any {
   };
 }
 
+export function route(config: any): any {
+  return function (target: any, key: string, value: any) {
+    let metadata: any = {config, target, key};
+    pushMetaData('tashmetu:route', metadata, target.constructor);
+  };
+}
+
 function pushMetaData(name: string, data: any, target: any) {
   let metadataList: any[] = [];
 
