@@ -28,31 +28,40 @@ export class DatabaseService extends EventEmitter
     return this.collections[name];
   }
 
-  public activate(config: any): any {
-    let meta = Reflect.getOwnMetadata('tashmetu:content', config.constructor);
-    Object.keys(meta).forEach((name: string) => {
-      let ctrlConfig = meta[name];
-      let colCtrl = this.activateCollectionController(name, ctrlConfig);
-      ctrlConfig.documents = ctrlConfig.documents || [];
-
-      ctrlConfig.documents.forEach((docName: string) => {
-        let docCtrl = this.injector.get<DocumentController>(docName);
-        docCtrl.setCollection(colCtrl);
-        colCtrl.addDocumentController(docCtrl);
-      });
-    });
+  public activate(provider: any): any {
+    if (provider instanceof DocumentController) {
+      return this.activateDocumentController(provider);
+    } else {
+      return this.activateConfig(provider);
+    }
   }
 
-  private activateCollectionController(name: string, config: any): CollectionController {
+  private activateConfig(config: any): any {
+    let meta = Reflect.getOwnMetadata('tashmetu:config', config.constructor);
+    meta.controllers.forEach((ctrlConfig: any) => {
+      let colCtrl = this.activateCollectionController(ctrlConfig);
+    });
+    return config;
+  }
+
+  private activateDocumentController(document: DocumentController): DocumentController {
+    let meta = Reflect.getOwnMetadata('tashmetu:document', document.constructor);
+    let collection = this.injector.get<CollectionController>(meta.collection);
+    collection.addDocumentController(document);
+    document.setCollection(collection);
+    return document;
+  }
+
+  private activateCollectionController(config: any): CollectionController {
     let source: Collection;
-    if (this.isServer()) {
+    if (typeof config.source === 'string') {
       source = this.injector.get<Collection>(config.source);
     } else {
-      source = this.remoteDB.createCollection(name);
+      source = config.source(this.injector);
     }
-    let controller = this.injector.get<CollectionController>(name);
-    let collection = this.localDB.createCollection(name);
-    let buffer = this.localDB.createCollection(name + ':buffer');
+    let controller = this.injector.get<CollectionController>(config.name);
+    let collection = this.localDB.createCollection(config.name);
+    let buffer = this.localDB.createCollection(config.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(controller);
     controller.setCache(collection);
     controller.setBuffer(buffer);
@@ -61,7 +70,7 @@ export class DatabaseService extends EventEmitter
       routine.setController(controller);
       controller.addRoutine(routine);
     });
-    this.collections[name] = controller;
+    this.collections[config.name] = controller;
 
     if (this.isServer()) {
       controller.populate();

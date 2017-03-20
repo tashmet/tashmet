@@ -6,6 +6,7 @@ export {Routine} from './controllers/routine';
 export {CollectionBase} from './database/collection';
 export {Router} from './router';
 export {EventEmitter} from './util';
+export {remote} from './database/remote';
 export * from './interfaces';
 export * from './decorators';
 

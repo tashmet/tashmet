@@ -20,15 +20,15 @@ export function collection(config: CollectionConfig): any {
   };
 }
 
-export function content(config: any): any {
+export function config(config: any): any {
   return function (target: any) {
     Reflect.defineMetadata('tiamat:provider', {
-      for: 'tashmetu.Content',
+      for: 'tashmetu.Config',
       singleton: true,
       autoCreate: true,
       activator: 'tashmetu.Database'
     }, target);
-    Reflect.defineMetadata('tashmetu:content', config, target);
+    Reflect.defineMetadata('tashmetu:config', config, target);
   };
 }
 
@@ -36,7 +36,8 @@ export function document(config: any): any {
   return function (target: any) {
     Reflect.defineMetadata('tiamat:provider', {
       for: config.providerFor,
-      singleton: true
+      singleton: true,
+      activator: 'tashmetu.Database'
     }, target);
     Reflect.defineMetadata('tashmetu:document', config, target);
   };
