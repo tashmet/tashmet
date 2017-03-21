@@ -1,3 +1,5 @@
+import {Injector} from '@samizdatjs/tiamat';
+
 /**
  * The cache holds collections of documents in memory.
  */
@@ -49,6 +51,8 @@ export interface CollectionConfig {
   schema?: any;
 }
 
+export type CollectionProvider = (injector: Injector) => Collection;
+
 /**
  *
  */
@@ -56,6 +60,16 @@ export interface Database {
   collection(name: string): Collection;
 
   on(event: string, fn: any): void;
+}
+
+export interface CollectionMapping {
+  name: string;
+
+  source: string | CollectionProvider;
+}
+
+export interface DatabaseConfig {
+  mappings: CollectionMapping[];
 }
 
 export class DocumentError extends Error {

@@ -1,6 +1,7 @@
 import {inject, provider} from '@samizdatjs/tiamat';
 import {Injector, Activator} from '@samizdatjs/tiamat';
-import {LocalDatabase, RemoteDatabase, Collection, Database} from '../interfaces';
+import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
+  CollectionMapping} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
@@ -16,12 +17,16 @@ export class DatabaseService extends EventEmitter
   private collections: {[name: string]: Collection} = {};
 
   public constructor(
+    @inject('tashmetu.DatabaseConfig') private dbConfig: DatabaseConfig,
     @inject('tashmetu.LocalDatabase') private localDB: LocalDatabase,
     @inject('tashmetu.RemoteDatabase') private remoteDB: RemoteDatabase,
     @inject('tashmetu.RoutineAggregator') private routineAggregator: RoutineAggregator,
     @inject('tiamat.Injector') private injector: Injector
   ) {
     super();
+    dbConfig.mappings.forEach((mapping: CollectionMapping) => {
+      this.collections[mapping.name] = this.createCollectionController(mapping);
+    });
   }
 
   public collection(name: string): Collection {
@@ -31,17 +36,7 @@ export class DatabaseService extends EventEmitter
   public activate(provider: any): any {
     if (provider instanceof DocumentController) {
       return this.activateDocumentController(provider);
-    } else {
-      return this.activateConfig(provider);
     }
-  }
-
-  private activateConfig(config: any): any {
-    let meta = Reflect.getOwnMetadata('tashmetu:config', config.constructor);
-    meta.controllers.forEach((ctrlConfig: any) => {
-      let colCtrl = this.activateCollectionController(ctrlConfig);
-    });
-    return config;
   }
 
   private activateDocumentController(document: DocumentController): DocumentController {
@@ -52,16 +47,16 @@ export class DatabaseService extends EventEmitter
     return document;
   }
 
-  private activateCollectionController(config: any): CollectionController {
+  private createCollectionController(mapping: CollectionMapping): CollectionController {
     let source: Collection;
-    if (typeof config.source === 'string') {
-      source = this.injector.get<Collection>(config.source);
+    if (typeof mapping.source === 'string') {
+      source = this.injector.get<Collection>(mapping.source);
     } else {
-      source = config.source(this.injector);
+      source = mapping.source(this.injector);
     }
-    let controller = this.injector.get<CollectionController>(config.name);
-    let collection = this.localDB.createCollection(config.name);
-    let buffer = this.localDB.createCollection(config.name + ':buffer');
+    let controller = this.injector.get<CollectionController>(mapping.name);
+    let collection = this.localDB.createCollection(mapping.name);
+    let buffer = this.localDB.createCollection(mapping.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(controller);
     controller.setCache(collection);
     controller.setBuffer(buffer);
@@ -70,7 +65,6 @@ export class DatabaseService extends EventEmitter
       routine.setController(controller);
       controller.addRoutine(routine);
     });
-    this.collections[config.name] = controller;
 
     if (this.isServer()) {
       controller.populate();
