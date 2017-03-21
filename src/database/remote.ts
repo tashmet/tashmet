@@ -1,5 +1,5 @@
-import {RemoteDatabase, Collection} from '../interfaces';
-import {provider, Injector} from '@samizdatjs/tiamat';
+import {provider, inject, Injector} from '@samizdatjs/tiamat';
+import {RemoteDatabase, Collection, ServerConfig} from '../interfaces';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
 
@@ -17,21 +17,25 @@ export function remote(path: string): any {
 export class RemoteDB implements RemoteDatabase {
   private collections: {[index: string]: Collection} = {};
 
+  @inject('tashmetu.ServerConfig') private serverConfig: ServerConfig;
+
   public createCollection(path: string): Collection {
-    let collection = new RemoteCollection(path);
+    let collection = new RemoteCollection(path, this.serverConfig);
     this.collections[path] = collection;
     return collection;
   }
 }
 
 class RemoteCollection extends EventEmitter implements Collection {
-  public constructor(private _path: string) {
+  public constructor(
+    private _path: string,
+    private serverConfig: ServerConfig
+  ) {
     super();
   }
 
   public find(selector: Object, options: Object): Promise<any> {
-    console.log(selector);
-    let query = 'http://localhost:3001' + this._path;
+    let query = this.serverConfig.host + ':' + this.serverConfig.port + this._path;
     if (selector) {
       query = query + '?selector=' + JSON.stringify(selector);
     }

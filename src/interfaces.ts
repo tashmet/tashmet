@@ -133,3 +133,9 @@ export interface Serializer {
 
   serialize(data: any): string;
 }
+
+export interface ServerConfig {
+  host: string;
+
+  port: number;
+}
