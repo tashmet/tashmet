@@ -135,7 +135,5 @@ export interface Serializer {
 }
 
 export interface ServerConfig {
-  host: string;
-
-  port: number;
+  url: string;
 }
