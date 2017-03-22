@@ -20,18 +20,6 @@ export function collection(config: CollectionConfig): any {
   };
 }
 
-export function config(config: any): any {
-  return function (target: any) {
-    Reflect.defineMetadata('tiamat:provider', {
-      for: 'tashmetu.Config',
-      singleton: true,
-      autoCreate: true,
-      activator: 'tashmetu.Database'
-    }, target);
-    Reflect.defineMetadata('tashmetu:config', config, target);
-  };
-}
-
 export function document(config: any): any {
   return function (target: any) {
     Reflect.defineMetadata('tiamat:provider', {
