@@ -32,9 +32,17 @@ class MemoryCollection extends EventEmitter implements Collection {
   }
 
   public upsert(obj: any): Promise<any> {
-    delete obj.$loki;
     obj._collection = this._name;
-    this.collection.insert(obj);
+    let existing = this.collection.findOne({_id: obj._id});
+
+    if (existing) {
+      obj.$loki = existing.$loki;
+      obj.meta = existing.meta;
+      this.collection.update(obj);
+    } else {
+      delete obj.$loki;
+      this.collection.insert(obj);
+    }
     this.emit('document-upserted', obj);
     return Promise.resolve(obj);
   }
