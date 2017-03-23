@@ -34,16 +34,18 @@ export interface Collection {
   emit(event: string, ...args: any[]): void;
 }
 
+export interface ProviderFor {
+  /**
+   * The unique identifier that the class provides an instance for.
+   * This is used for injecting the class into any component.
+   */
+  providerFor: string;
+}
+
 /**
  *
  */
-export interface ControllerConfig {
-  /**
-   * The unique identifier that the controller provides an instance for.
-   * This is used for injecting the controller into any component.
-   */
-  providerFor: string;
-
+export interface ControllerConfig extends ProviderFor {
   /**
    * An optional json schema that will be used for validating and providing
    * default values to documents managed by this controller.
@@ -146,6 +148,10 @@ export interface Serializer {
   parse(data: string): Object;
 
   serialize(data: any): string;
+}
+
+export interface RoutineConfig extends ProviderFor {
+  host: any;
 }
 
 export interface ServerConfig {

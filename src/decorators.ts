@@ -1,4 +1,4 @@
-import {CollectionConfig, DocumentConfig} from './interfaces';
+import {CollectionConfig, DocumentConfig, RoutineConfig} from './interfaces';
 
 export function collection(config: CollectionConfig): any {
   return function (target: any) {
@@ -31,7 +31,7 @@ export function document(config: DocumentConfig): any {
   };
 }
 
-export function routine(config: any): any {
+export function routine(config: RoutineConfig): any {
   return function (target: any) {
     Reflect.defineMetadata('tiamat:provider', {
       for: config.providerFor,

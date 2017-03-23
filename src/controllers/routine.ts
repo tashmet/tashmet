@@ -1,4 +1,5 @@
 import {injectable, provider, Activator} from '@samizdatjs/tiamat';
+import {RoutineConfig} from '../interfaces';
 
 @provider({
   for: 'tashmetu.RoutineAggregator',
@@ -16,7 +17,9 @@ export class RoutineAggregator implements Activator<Routine<any>> {
     let result: Routine<any>[] = [];
 
     this.routines.forEach((routine: any) => {
-      let meta = Reflect.getOwnMetadata('tashmetu:routine', routine.constructor);
+      let meta: RoutineConfig = Reflect.getOwnMetadata(
+        'tashmetu:routine', routine.constructor);
+
       if (host instanceof meta.host) {
         result.push(routine);
       }
