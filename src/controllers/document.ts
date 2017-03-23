@@ -1,5 +1,5 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, Document} from '../interfaces';
+import {Collection, Document, DocumentConfig} from '../interfaces';
 import {Pipeline, HookablePipeline, Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {Controller} from './controller';
 
@@ -7,7 +7,7 @@ import {Controller} from './controller';
 @injectable()
 export class DocumentController extends Controller implements Document {
   private collection: Collection;
-  private config: any;
+  private config: DocumentConfig;
 
   public constructor() {
     super();

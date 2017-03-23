@@ -37,18 +37,32 @@ export interface Collection {
 /**
  *
  */
-export interface CollectionConfig {
+export interface ControllerConfig {
   /**
-   * The unique identifier that the collection provides an instance for.
-   * This is used for injecting the collection into any component.
+   * The unique identifier that the controller provides an instance for.
+   * This is used for injecting the controller into any component.
    */
   providerFor: string;
 
   /**
    * An optional json schema that will be used for validating and providing
-   * default values to all documents in the collection.
+   * default values to documents managed by this controller.
    */
   schema?: any;
+}
+
+export interface CollectionConfig extends ControllerConfig {}
+
+export interface DocumentConfig extends ControllerConfig {
+  /**
+   * The name of the document.
+   */
+  name: string;
+
+  /**
+   * The provider id of the collection that this document belongs to.
+   */
+  collection: string;
 }
 
 export type CollectionProvider = (injector: Injector) => Collection;
