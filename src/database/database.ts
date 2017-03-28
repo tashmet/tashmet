@@ -1,5 +1,5 @@
-import {inject, provider} from '@samizdatjs/tiamat';
-import {Injector, Activator} from '@samizdatjs/tiamat';
+import {inject, provider, activate} from '@samizdatjs/tiamat';
+import {Injector} from '@samizdatjs/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
@@ -11,8 +11,7 @@ import {EventEmitter} from '../util';
   for: 'tashmetu.Database',
   singleton: true
 })
-export class DatabaseService extends EventEmitter
-  implements Database, Activator<any>
+export class DatabaseService extends EventEmitter implements Database
 {
   private collections: {[name: string]: Collection} = {};
 
@@ -33,12 +32,7 @@ export class DatabaseService extends EventEmitter
     return this.collections[name];
   }
 
-  public activate(provider: any): any {
-    if (provider instanceof DocumentController) {
-      return this.activateDocumentController(provider);
-    }
-  }
-
+  @activate('tashmetu.Document')
   private activateDocumentController(document: DocumentController): DocumentController {
     let meta = Reflect.getOwnMetadata('tashmetu:document', document.constructor);
     let collection = this.injector.get<CollectionController>(meta.collection);

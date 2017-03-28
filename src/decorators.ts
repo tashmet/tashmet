@@ -25,7 +25,7 @@ export function document(config: DocumentConfig): any {
     Reflect.defineMetadata('tiamat:provider', {
       for: config.providerFor,
       singleton: true,
-      activator: 'tashmetu.Database'
+      tagged: ['tashmetu.Document']
     }, target);
     Reflect.defineMetadata('tashmetu:document', config, target);
   };
@@ -36,7 +36,7 @@ export function routine(config: RoutineConfig): any {
     Reflect.defineMetadata('tiamat:provider', {
       for: config.providerFor,
       singleton: true,
-      activator: 'tashmetu.RoutineAggregator'
+      tagged: ['tashmetu.Routine']
     }, target);
     Reflect.defineMetadata('tashmetu:routine', config, target);
   };

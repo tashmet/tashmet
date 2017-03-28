@@ -1,14 +1,15 @@
-import {injectable, provider, Activator} from '@samizdatjs/tiamat';
+import {injectable, provider, activate} from '@samizdatjs/tiamat';
 import {RoutineConfig} from '../interfaces';
 
 @provider({
   for: 'tashmetu.RoutineAggregator',
   singleton: true
 })
-export class RoutineAggregator implements Activator<Routine<any>> {
+export class RoutineAggregator {
   private routines: Routine<any>[] = [];
 
-  public activate(routine: Routine<any>): Routine<any> {
+  @activate('tashmetu.Routine')
+  public addRoutine(routine: Routine<any>): Routine<any> {
     this.routines.push(routine);
     return routine;
   }
