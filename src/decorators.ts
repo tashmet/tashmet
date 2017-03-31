@@ -1,4 +1,4 @@
-import {propertyDecorator} from '@samizdatjs/tiamat';
+import {classDecorator, propertyDecorator} from '@samizdatjs/tiamat';
 import {CollectionConfig, DocumentConfig, RoutineConfig} from './interfaces';
 
 export function collection(config: CollectionConfig): any {
@@ -49,8 +49,8 @@ export interface RouteConfig {
 
 export const route = propertyDecorator<RouteConfig>('tashmetu:route');
 
-export function view(config: any): any {
-  return function (target: any) {
-    Reflect.defineMetadata('tashmetu:view', config, target);
-  };
+export interface ViewConfig {
+  template: string;
 }
+
+export const view = classDecorator<ViewConfig>('tashmetu:view');
