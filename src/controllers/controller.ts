@@ -1,4 +1,5 @@
 import {injectable, decorate} from '@samizdatjs/tiamat';
+import {HookMeta, HookConfig} from './meta';
 import {Routine} from './routine';
 import {Pipeline, Hook, HookablePipe, HookablePipeline} from '../pipes';
 import {EventEmitter} from '../util';
@@ -12,12 +13,12 @@ export class Controller extends EventEmitter {
   }
 
   protected addHooks(host: any): void {
-    const hooks = Reflect.getMetadata(
-      'tashmetu:collection-hook', host.constructor) || [];
+    const hooks: HookMeta[] = Reflect.getMetadata(
+      'tashmetu:hook', host.constructor) || [];
 
-    hooks.forEach((hook: any) => {
+    hooks.forEach((hook: HookMeta) => {
       const pipe = new Hook(host, hook.key);
-      let steps = this.getMatchingSteps(hook.config);
+      let steps = this.getMatchingSteps(hook.data);
 
       steps.forEach((step: HookablePipe) => {
         switch (hook.type) {
@@ -29,7 +30,7 @@ export class Controller extends EventEmitter {
     });
   }
 
-  private getMatchingSteps(hook: any): HookablePipe[] {
+  private getMatchingSteps(hook: HookConfig): HookablePipe[] {
     let steps: HookablePipe[] = [];
     if (hook.pipe) {
       if (hook.pipe in this.pipes) {

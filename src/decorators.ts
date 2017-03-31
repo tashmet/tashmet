@@ -42,27 +42,6 @@ export function routine(config: RoutineConfig): any {
   };
 }
 
-export function before(config: any): any {
-  return function (target: any, key: string, value: any) {
-    let metadata: any = {type: 'before', config, target, key};
-    pushMetaData('tashmetu:collection-hook', metadata, target.constructor);
-  };
-}
-
-export function after(config: any): any {
-  return function (target: any, key: string, value: any) {
-    let metadata: any = {type: 'after', config, target, key};
-    pushMetaData('tashmetu:collection-hook', metadata, target.constructor);
-  };
-}
-
-export function error(config: any): any {
-  return function (target: any, key: string, value: any) {
-    let metadata: any = {type: 'error', config, target, key};
-    pushMetaData('tashmetu:collection-hook', metadata, target.constructor);
-  };
-}
-
 export function route(config: any): any {
   return function (target: any, key: string, value: any) {
     let metadata: any = {config, target, key};

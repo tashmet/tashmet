@@ -1,6 +1,6 @@
 {
   "name": "@samizdatjs/tashmetu",
-  "version": "0.12.13",
+  "version": "0.12.14",
   "description": "Tashmetu is a document storage and processing platform",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,7 @@
   "author": "Björn Andersson",
   "license": "MIT",
   "dependencies": {
-    "@samizdatjs/tiamat": "^0.3.2",
+    "@samizdatjs/tiamat": "^0.3.4",
     "async-each-series": "^1.1.0",
     "eventemitter3": "^2.0.2",
     "json-schema-defaults": "^0.3.0",
