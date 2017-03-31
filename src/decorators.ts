@@ -1,3 +1,4 @@
+import {propertyDecorator} from '@samizdatjs/tiamat';
 import {CollectionConfig, DocumentConfig, RoutineConfig} from './interfaces';
 
 export function collection(config: CollectionConfig): any {
@@ -42,27 +43,14 @@ export function routine(config: RoutineConfig): any {
   };
 }
 
-export function route(config: any): any {
-  return function (target: any, key: string, value: any) {
-    let metadata: any = {config, target, key};
-    pushMetaData('tashmetu:route', metadata, target.constructor);
-  };
+export interface RouteConfig {
+  path: string;
 }
+
+export const route = propertyDecorator<RouteConfig>('tashmetu:route');
 
 export function view(config: any): any {
   return function (target: any) {
     Reflect.defineMetadata('tashmetu:view', config, target);
   };
-}
-
-function pushMetaData(name: string, data: any, target: any) {
-  let metadataList: any[] = [];
-
-  if (!Reflect.hasOwnMetadata(name, target)) {
-      Reflect.defineMetadata(name, metadataList, target);
-  } else {
-      metadataList = Reflect.getOwnMetadata(name, target);
-  }
-
-  metadataList.push(data);
 }

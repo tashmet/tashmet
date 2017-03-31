@@ -1,9 +1,10 @@
-import {injectable} from '@samizdatjs/tiamat';
+import {injectable, PropertyMeta} from '@samizdatjs/tiamat';
+import {RouteConfig} from './decorators';
 import * as path2re from 'path-to-regexp';
 
 @injectable()
 export class Router<T> {
-  private routes: any[];
+  private routes: PropertyMeta<RouteConfig>[];
 
   public constructor() {
     this.routes = Reflect.getMetadata('tashmetu:route', this.constructor) || [];
@@ -12,7 +13,7 @@ export class Router<T> {
   public get(path: string): Promise<T> {
     for (let i = 0; i < this.routes.length; i++) {
       let keys: any[] = [];
-      let re = path2re(this.routes[i].config.path, keys);
+      let re = path2re(this.routes[i].data.path, keys);
       let match = re.exec(path);
       if (match) {
         let params: any = {};
