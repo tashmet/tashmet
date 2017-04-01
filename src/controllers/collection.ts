@@ -1,9 +1,10 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, CollectionConfig, DocumentError, Pipe} from '../interfaces';
+import {Collection, DocumentError, Pipe} from '../interfaces';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
   Validator, MergeDefaults, StripDefaults, BufferPipe} from '../pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
+import {CollectionConfig} from './meta/decorators';
 import {pull} from 'lodash';
 
 

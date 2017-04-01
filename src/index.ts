@@ -9,7 +9,8 @@ export {EventEmitter} from './util';
 export {remote} from './database/remote';
 export * from './interfaces';
 export * from './decorators';
-export * from './controllers/meta';
+export * from './meta';
+export * from './controllers/meta/decorators';
 
 import {RoutineAggregator} from './controllers/routine';
 import {DatabaseService} from './database/database';

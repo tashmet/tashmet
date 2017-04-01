@@ -1,5 +1,5 @@
 import {injectable, decorate} from '@samizdatjs/tiamat';
-import {HookMeta, HookConfig} from './meta';
+import {HookMeta, HookConfig} from './meta/decorators';
 import {Routine} from './routine';
 import {Pipeline, Hook, HookablePipe, HookablePipeline} from '../pipes';
 import {EventEmitter} from '../util';

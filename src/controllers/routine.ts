@@ -1,5 +1,5 @@
 import {injectable, provider, activate} from '@samizdatjs/tiamat';
-import {RoutineConfig} from '../interfaces';
+import {RoutineConfig} from './meta/decorators';
 
 @provider({
   for: 'tashmetu.RoutineAggregator',
