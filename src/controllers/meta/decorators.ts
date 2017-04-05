@@ -1,6 +1,6 @@
 import {classDecorator, propertyDecorator, PropertyMeta} from '@samizdatjs/tiamat';
-import {CollectionMetaWriter, HookMetaWriter} from './writers';
-import {ProviderFor, ProviderMetaWriter} from '../../meta';
+import {CollectionDecorator, HookDecorator} from './writers';
+import {ProviderFor, ProviderDecorator} from '../../meta';
 
 /**
  *
@@ -16,7 +16,7 @@ export interface ControllerConfig extends ProviderFor {
 export interface CollectionConfig extends ControllerConfig {}
 
 export const collection = classDecorator<CollectionConfig>(
-  new CollectionMetaWriter('tashmetu:collection'));
+  new CollectionDecorator('tashmetu:collection'));
 
 export interface DocumentConfig extends ControllerConfig {
   /**
@@ -31,7 +31,7 @@ export interface DocumentConfig extends ControllerConfig {
 }
 
 export const document = classDecorator<DocumentConfig>(
-  new ProviderMetaWriter('tashmetu:document', ['tashmetu.Document']));
+  new ProviderDecorator('tashmetu:document', ['tashmetu.Document']));
 
 
 export interface RoutineConfig extends ProviderFor {
@@ -39,7 +39,7 @@ export interface RoutineConfig extends ProviderFor {
 }
 
 export const routine = classDecorator<RoutineConfig>(
-  new ProviderMetaWriter('tashmetu:routine', ['tashmetu.Routine']));
+  new ProviderDecorator('tashmetu:routine', ['tashmetu.Routine']));
 
 /**
  * Input for hook decorators (before, after and error).
@@ -60,8 +60,8 @@ export interface HookMeta extends PropertyMeta<HookConfig> {
   type: string;
 }
 
-export const before = propertyDecorator<HookConfig>(new HookMetaWriter('before'));
+export const before = propertyDecorator<HookConfig>(new HookDecorator('before'));
 
-export const after = propertyDecorator<HookConfig>(new HookMetaWriter('after'));
+export const after = propertyDecorator<HookConfig>(new HookDecorator('after'));
 
-export const error = propertyDecorator<HookConfig>(new HookMetaWriter('error'));
+export const error = propertyDecorator<HookConfig>(new HookDecorator('error'));

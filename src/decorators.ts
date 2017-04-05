@@ -1,13 +1,15 @@
-import {classDecorator, propertyDecorator} from '@samizdatjs/tiamat';
+import {classDecorator, propertyDecorator, ClassAnnotation, PropertyAnnotation} from '@samizdatjs/tiamat';
 
 export interface RouteConfig {
   path: string;
 }
 
-export const route = propertyDecorator<RouteConfig>('tashmetu:route');
+export const route = propertyDecorator<RouteConfig>(
+  new PropertyAnnotation('tashmetu:route'));
 
 export interface ViewConfig {
   template: string;
 }
 
-export const view = classDecorator<ViewConfig>('tashmetu:view');
+export const view = classDecorator<ViewConfig>(
+  new ClassAnnotation('tashmetu:view'));

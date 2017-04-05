@@ -1,10 +1,10 @@
-import {PropertyMeta, PropertyMetaWriter} from '@samizdatjs/tiamat';
+import {PropertyMeta, PropertyDecorator} from '@samizdatjs/tiamat';
 import {CollectionConfig, HookConfig, HookMeta} from './decorators';
-import {ProviderMetaWriter} from '../../meta';
+import {ProviderDecorator} from '../../meta';
 
-export class CollectionMetaWriter extends ProviderMetaWriter {
-  public write(data: CollectionConfig, target: any) {
-    super.write(data, target);
+export class CollectionDecorator extends ProviderDecorator {
+  public decorate(data: CollectionConfig, target: any) {
+    super.decorate(data, target);
 
     if (data.schema) {
       let parentSchemas = Reflect.getMetadata('tashmetu:schemas', target) || [];
@@ -17,13 +17,13 @@ export class CollectionMetaWriter extends ProviderMetaWriter {
   }
 }
 
-export class HookMetaWriter extends PropertyMetaWriter<HookConfig> {
+export class HookDecorator extends PropertyDecorator<HookConfig> {
   public constructor(private type: string) {
     super();
   }
 
-  public write(data: HookConfig, target: any, key: string) {
+  public decorate(data: HookConfig, target: any, key: string) {
     let meta: HookMeta = {target, key, type: this.type, data};
-    this.append('tashmetu:hook', meta, target.constructor);
+    this.appendMeta('tashmetu:hook', meta, target.constructor);
   }
 }

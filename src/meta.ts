@@ -1,4 +1,4 @@
-import {ClassMetaWriter} from '@samizdatjs/tiamat';
+import {ClassDecorator} from '@samizdatjs/tiamat';
 
 export interface ProviderFor {
   /**
@@ -8,7 +8,7 @@ export interface ProviderFor {
   providerFor: string;
 }
 
-export class ProviderMetaWriter extends ClassMetaWriter<ProviderFor> {
+export class ProviderDecorator extends ClassDecorator<ProviderFor> {
   public constructor(
     protected name: string,
     protected tags?: string[]
@@ -16,7 +16,7 @@ export class ProviderMetaWriter extends ClassMetaWriter<ProviderFor> {
     super();
   }
 
-  public write(data: ProviderFor, target: any) {
+  public decorate(data: ProviderFor, target: any) {
     Reflect.defineMetadata('tiamat:provider', {
       for: data.providerFor,
       singleton: true,
