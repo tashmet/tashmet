@@ -1,4 +1,4 @@
-import {ClassDecorator} from '@samizdatjs/tiamat';
+import {ClassDecorator, ClassAnnotation} from '@samizdatjs/tiamat';
 
 export interface ProviderFor {
   /**
@@ -23,5 +23,18 @@ export class ProviderDecorator extends ClassDecorator<ProviderFor> {
       tagged: this.tags || []
     }, target);
     Reflect.defineMetadata(this.name, data, target);
+  }
+}
+
+export class TaggedClassAnnotation<T> extends ClassAnnotation<T> {
+  public constructor(name: string, protected tags: string[]) {
+    super(name);
+  }
+
+  public decorate(data: T, target: any) {
+    super.decorate(data, target);
+    this.tags.forEach(tag => {
+      this.appendMeta('tiamat:tags', tag, target);
+    });
   }
 }

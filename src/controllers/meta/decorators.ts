@@ -1,11 +1,11 @@
 import {classDecorator, propertyDecorator, PropertyMeta} from '@samizdatjs/tiamat';
 import {CollectionDecorator, HookDecorator} from './writers';
-import {ProviderFor, ProviderDecorator} from '../../meta';
+import {ProviderFor, ProviderDecorator, TaggedClassAnnotation} from '../../meta';
 
 /**
  *
  */
-export interface ControllerConfig extends ProviderFor {
+export interface ControllerConfig {
   /**
    * An optional json schema that will be used for validating and providing
    * default values to documents managed by this controller.
@@ -16,7 +16,7 @@ export interface ControllerConfig extends ProviderFor {
 export interface CollectionConfig extends ControllerConfig {}
 
 export const collection = classDecorator<CollectionConfig>(
-  new CollectionDecorator('tashmetu:collection'));
+  new CollectionDecorator('tashmetu:collection', ['tashmetu.Collection']));
 
 export interface DocumentConfig extends ControllerConfig {
   /**
@@ -31,15 +31,15 @@ export interface DocumentConfig extends ControllerConfig {
 }
 
 export const document = classDecorator<DocumentConfig>(
-  new ProviderDecorator('tashmetu:document', ['tashmetu.Document']));
+  new TaggedClassAnnotation('tashmetu:document', ['tashmetu.Document']));
 
 
-export interface RoutineConfig extends ProviderFor {
+export interface RoutineConfig {
   host: any;
 }
 
 export const routine = classDecorator<RoutineConfig>(
-  new ProviderDecorator('tashmetu:routine', ['tashmetu.Routine']));
+  new TaggedClassAnnotation('tashmetu:routine', ['tashmetu.Routine']));
 
 /**
  * Input for hook decorators (before, after and error).

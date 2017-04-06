@@ -1,8 +1,8 @@
 import {PropertyMeta, PropertyDecorator} from '@samizdatjs/tiamat';
 import {CollectionConfig, HookConfig, HookMeta} from './decorators';
-import {ProviderDecorator} from '../../meta';
+import {ProviderDecorator, TaggedClassAnnotation} from '../../meta';
 
-export class CollectionDecorator extends ProviderDecorator {
+export class CollectionDecorator extends TaggedClassAnnotation<CollectionConfig> {
   public decorate(data: CollectionConfig, target: any) {
     super.decorate(data, target);
 
