@@ -6,7 +6,7 @@ let defaults = require('json-schema-defaults');
  * Pipe that merges default values from schema.
  */
 export class MergeDefaults implements Pipe {
-  public constructor(private schemas: any) {}
+  public constructor(private schemas: any[]) {}
 
   public process(input: any, next: (output: any) => void): void {
     let output = input;
@@ -22,7 +22,7 @@ export class MergeDefaults implements Pipe {
  * TODO: Deep strip
  */
 export class StripDefaults implements Pipe {
-  public constructor(private schemas: any) {}
+  public constructor(private schemas: any[]) {}
 
   public process(input: any, next: (output: any) => void): void {
     let output = input;

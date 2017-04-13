@@ -9,18 +9,19 @@ import {DocumentConfig} from './meta/decorators';
 export class DocumentController extends Controller implements Document {
   private collection: Collection;
   private config: DocumentConfig;
+  private schemas: any[];
 
   public constructor() {
     super();
     this.config = Reflect.getOwnMetadata('tashmetu:document', this.constructor);
-    const schema = this.config.schema;
+    this.schemas = Reflect.getMetadata('tashmetu:schemas', this.constructor);
 
     this.pipes['input'] = new HookablePipeline(true)
-      .step('validate', new Validator(schema))
-      .step('merge',    new MergeDefaults(schema));
+      .step('validate', new Validator(this.schemas))
+      .step('merge',    new MergeDefaults(this.schemas));
 
     this.pipes['output'] = new HookablePipeline(true)
-      .step('strip',    new StripDefaults(schema));
+      .step('strip',    new StripDefaults(this.schemas));
 
     this.addHooks(this);
   }
@@ -55,7 +56,7 @@ export class DocumentController extends Controller implements Document {
         .then((obj: any) => {
           if (!obj) {
             obj = {_id: this.config.name};
-            new MergeDefaults(this.config.schema).process(obj, resolve);
+            new MergeDefaults(this.schemas).process(obj, resolve);
           } else {
             resolve(obj);
           }

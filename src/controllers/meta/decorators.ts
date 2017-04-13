@@ -1,5 +1,5 @@
 import {classDecorator, propertyDecorator, PropertyMeta} from '@samizdatjs/tiamat';
-import {CollectionDecorator, HookDecorator} from './writers';
+import {ControllerDecorator, HookDecorator} from './writers';
 import {ProviderFor, ProviderDecorator, TaggedClassAnnotation} from '../../meta';
 
 /**
@@ -16,7 +16,7 @@ export interface ControllerConfig {
 export interface CollectionConfig extends ControllerConfig {}
 
 export const collection = classDecorator<CollectionConfig>(
-  new CollectionDecorator('tashmetu:collection', ['tashmetu.Collection']));
+  new ControllerDecorator('tashmetu:collection', ['tashmetu.Collection']));
 
 export interface DocumentConfig extends ControllerConfig {
   /**
@@ -31,7 +31,7 @@ export interface DocumentConfig extends ControllerConfig {
 }
 
 export const document = classDecorator<DocumentConfig>(
-  new TaggedClassAnnotation('tashmetu:document', ['tashmetu.Document']));
+  new ControllerDecorator('tashmetu:document', ['tashmetu.Document']));
 
 
 export interface RoutineConfig {
