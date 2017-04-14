@@ -1,5 +1,5 @@
 import {provider, inject, Injector} from '@samizdatjs/tiamat';
-import {RemoteDatabase, Collection, ServerConfig} from '../interfaces';
+import {RemoteDatabase, Collection} from '../interfaces';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
 
@@ -17,10 +17,8 @@ export function remote(path: string): any {
 export class RemoteDB implements RemoteDatabase {
   private collections: {[index: string]: Collection} = {};
 
-  @inject('tashmetu.ServerConfig') private serverConfig: ServerConfig;
-
   public createCollection(path: string): Collection {
-    let collection = new RemoteCollection(path, this.serverConfig);
+    let collection = new RemoteCollection(path);
     this.collections[path] = collection;
     return collection;
   }
@@ -29,13 +27,12 @@ export class RemoteDB implements RemoteDatabase {
 class RemoteCollection extends EventEmitter implements Collection {
   public constructor(
     private _path: string,
-    private serverConfig: ServerConfig
   ) {
     super();
   }
 
   public find(selector: Object, options: Object): Promise<any> {
-    let query = this.serverConfig.url + this._path;
+    let query = this._path;
     if (selector) {
       query = query + '?selector=' + JSON.stringify(selector);
     }
