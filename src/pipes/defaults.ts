@@ -11,7 +11,7 @@ export class MergeDefaults implements Pipe {
   public process(input: any, next: (output: any) => void): void {
     let output = input;
     for (let schema of this.schemas) {
-      output = Object.assign({}, defaults(schema), input);
+      output = Object.assign({}, defaults(schema), output);
     }
     next(output);
   }
