@@ -25,7 +25,7 @@ export class DatabaseService extends EventEmitter implements Database
   ) {
     super();
     dbConfig.mappings.forEach((mapping: CollectionMapping) => {
-      this.collections[mapping.name] = this.createCollectionController(mapping);
+      this.createCollectionController(mapping);
     });
   }
 
@@ -42,7 +42,7 @@ export class DatabaseService extends EventEmitter implements Database
     return document;
   }
 
-  private createCollectionController(mapping: CollectionMapping): CollectionController {
+  private createCollectionController(mapping: CollectionMapping) {
     let source: Collection;
     if (typeof mapping.source === 'string') {
       source = this.injector.get<Collection>(mapping.source);
@@ -50,8 +50,9 @@ export class DatabaseService extends EventEmitter implements Database
       source = mapping.source(this.injector);
     }
     let controller = this.injector.get<CollectionController>(mapping.name);
-    let collection = this.localDB.createCollection(mapping.name);
-    let buffer = this.localDB.createCollection(mapping.name + ':buffer');
+    let meta = Reflect.getOwnMetadata('tashmetu:collection', controller.constructor);
+    let collection = this.localDB.createCollection(meta.name);
+    let buffer = this.localDB.createCollection(meta.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(controller);
     controller.setCache(collection);
     controller.setBuffer(buffer);
@@ -81,7 +82,8 @@ export class DatabaseService extends EventEmitter implements Database
     controller.on('document-error', (err: any) => {
       this.emit('document-error', err, controller);
     });
-    return controller;
+
+    this.collections[meta.name] = controller;
   }
 
   private isServer() {

@@ -7,6 +7,11 @@ import {TaggedClassAnnotation} from '../../meta';
  */
 export interface ControllerConfig {
   /**
+   * The name of the controller.
+   */
+  name: string;
+
+  /**
    * An optional json schema that will be used for validating and providing
    * default values to documents managed by this controller.
    */
@@ -19,11 +24,6 @@ export const collection = classDecorator<CollectionConfig>(
   new ControllerDecorator('tashmetu:collection', ['tashmetu.Collection']));
 
 export interface DocumentConfig extends ControllerConfig {
-  /**
-   * The name of the document.
-   */
-  name: string;
-
   /**
    * The provider id of the collection that this document belongs to.
    */
