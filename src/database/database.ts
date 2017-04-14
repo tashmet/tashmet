@@ -14,6 +14,7 @@ import {EventEmitter} from '../util';
 export class DatabaseService extends EventEmitter implements Database
 {
   private collections: {[name: string]: Collection} = {};
+  private syncedCount = 0;
 
   public constructor(
     @inject('tashmetu.DatabaseConfig') private dbConfig: DatabaseConfig,
@@ -63,6 +64,13 @@ export class DatabaseService extends EventEmitter implements Database
     if (this.isServer()) {
       controller.populate();
     }
+
+    controller.on('ready', () => {
+      this.syncedCount += 1;
+      if (this.syncedCount === Object.keys(this.collections).length) {
+        this.emit('database-synced');
+      }
+    });
 
     controller.on('document-upserted', (doc: any) => {
       this.emit('document-upserted', doc, controller);
