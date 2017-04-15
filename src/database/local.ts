@@ -23,9 +23,16 @@ class MemoryCollection extends EventEmitter implements Collection {
     super();
   }
 
-  // TODO: Implement support for the query options.
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
-    return Promise.resolve(this.collection.find(selector || {}));
+    return new Promise((resolve) => {
+      let rset = this.collection.chain().find(selector || {});
+      if (options) {
+        if (options.limit) {
+          rset = rset.limit(options.limit);
+        }
+      }
+      resolve(rset.data());
+    });
   }
 
   public findOne(selector: Object): Promise<any> {
