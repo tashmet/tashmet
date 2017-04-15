@@ -32,17 +32,20 @@ export class DocumentController extends Controller implements Document {
 
   public setCollection(collection: Collection): void {
     this.collection = collection;
-    const events = [
-      'document-upserted',
-      'document-removed',
-      'document-error'
-    ];
-    events.forEach((event: string) => {
-      collection.on(event, (obj: any) => {
-        if (obj._id === this.config.name) {
-          this.emit(event, obj);
-        }
-      });
+    collection.on('document-upserted', (obj: any) => {
+      if (obj._id === this.config.name) {
+        this.emit('document-upserted', obj);
+      }
+    });
+    collection.on('document-removed', (obj: any) => {
+      if (obj._id === this.config.name) {
+        this.emit('document-removed', obj);
+      }
+    });
+    collection.on('document-error', (obj: any) => {
+      if (obj._id === this.config.name) {
+        this.emit('document-error', obj);
+      }
     });
   }
 
@@ -52,7 +55,7 @@ export class DocumentController extends Controller implements Document {
 
   public get(): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.collection.findOne({_id: this.config.name}, {})
+      this.collection.findOne({_id: this.config.name})
         .then((obj: any) => {
           if (!obj) {
             obj = {_id: this.config.name};

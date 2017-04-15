@@ -1,5 +1,5 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, DocumentError, Pipe} from '../interfaces';
+import {Collection, DocumentError, Pipe, QueryOptions} from '../interfaces';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
   Validator, MergeDefaults, StripDefaults, BufferPipe} from '../pipes';
 import {DocumentController} from './document';
@@ -80,15 +80,13 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public setCache(cache: Collection): void {
-    const events = [
-      'document-upserted',
-      'document-removed'
-    ];
-    events.forEach((event: string) => {
-      cache.on(event, (obj: any) => {
-        this.emit(event, obj);
-      });
+    cache.on('document-upserted', (obj: any) => {
+      this.emit('document-upserted', obj);
     });
+    cache.on('document-removed', (obj: any) => {
+      this.emit('document-removed', obj);
+    });
+
     this._cache = cache;
     this.cachePipe.setCollection(cache);
 
@@ -124,7 +122,7 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public populate(): void {
-    this._source.find({}, {}).then((docs: any[]) => {
+    this._source.find().then((docs: any[]) => {
       this.bufferPipe.setCount(Object.keys(docs).length);
       docs.forEach((doc: any) => {
         this.pipes['populate'].process(doc, (output: any) => { return; });
@@ -137,7 +135,7 @@ export class CollectionController extends Controller implements Collection {
     this.documentOutputPipe.addController(doc);
   }
 
-  public find(selector: Object, options: Object): Promise<any> {
+  public find(selector?: Object, options?: QueryOptions): Promise<any> {
     if (this.synced || JSON.stringify(selector) in this.cachedQueries) {
       return this._cache.find(selector, options);
     }
@@ -153,13 +151,13 @@ export class CollectionController extends Controller implements Collection {
     });
   }
 
-  public findOne(selector: Object, options: Object): Promise<any> {
+  public findOne(selector: Object): Promise<any> {
     return new Promise((resolve) => {
-      this._cache.findOne(selector, options).then((cachedDoc: any) => {
+      this._cache.findOne(selector).then((cachedDoc: any) => {
         if (cachedDoc) {
           resolve(cachedDoc);
         } else {
-          this._source.findOne(selector, options)
+          this._source.findOne(selector)
             .then((doc: any) => {
               if (doc) {
                 this._cache.upsert(doc);

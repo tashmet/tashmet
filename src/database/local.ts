@@ -1,4 +1,4 @@
-import {LocalDatabase, Collection} from '../interfaces';
+import {LocalDatabase, Collection, QueryOptions} from '../interfaces';
 import {provider} from '@samizdatjs/tiamat';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
@@ -23,11 +23,12 @@ class MemoryCollection extends EventEmitter implements Collection {
     super();
   }
 
-  public find(selector: Object, options: Object): Promise<any> {
-    return Promise.resolve(this.collection.find(selector));
+  // TODO: Implement support for the query options.
+  public find(selector?: Object, options?: QueryOptions): Promise<any> {
+    return Promise.resolve(this.collection.find(selector || {}));
   }
 
-  public findOne(selector: Object, options: Object): Promise<any> {
+  public findOne(selector: Object): Promise<any> {
     return Promise.resolve(this.collection.findOne(selector));
   }
 

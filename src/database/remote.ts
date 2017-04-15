@@ -1,5 +1,5 @@
 import {provider, inject, Injector} from '@samizdatjs/tiamat';
-import {RemoteDatabase, Collection} from '../interfaces';
+import {RemoteDatabase, Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
 
@@ -31,7 +31,8 @@ class RemoteCollection extends EventEmitter implements Collection {
     super();
   }
 
-  public find(selector: Object, options: Object): Promise<any> {
+  // TODO: Implement support for the query options.
+  public find(selector?: Object, options?: QueryOptions): Promise<any> {
     let query = this._path;
     if (selector) {
       query = query + '?selector=' + JSON.stringify(selector);
@@ -49,9 +50,9 @@ class RemoteCollection extends EventEmitter implements Collection {
     });
   }
 
-  public findOne(selector: Object, options: Object): Promise<any> {
+  public findOne(selector: Object): Promise<any> {
     return new Promise((resolve) => {
-      this.find(selector, options).then((result: any[]) => {
+      this.find(selector).then((result: any[]) => {
         resolve(result[0]);
       });
     });

@@ -1,6 +1,19 @@
 import {Injector} from '@samizdatjs/tiamat';
 
 /**
+ *
+ */
+export interface Database {
+  collection(name: string): Collection;
+
+  on(event: string, fn: any): void;
+}
+
+export interface DatabaseConfig {
+  mappings: CollectionMapping[];
+}
+
+/**
  * The cache holds collections of documents in memory.
  */
 export interface LocalDatabase {
@@ -18,41 +31,75 @@ export interface RemoteDatabase {
 }
 
 /**
+ *
+ */
+export interface QueryOptions {
+  /**
+   * Limit the number of items that are fetched.
+   */
+  limit?: number;
+
+  sort?: any;
+}
+
+/**
  * A collection of documents.
  */
 export interface Collection {
+  /**
+   * Insert a document into the collection. If the document already exists it
+   * will be updated.
+   * A promise for the upserted document is returned.
+   */
   upsert(obj: any): Promise<any>;
 
-  find(filter: Object, options: Object): Promise<any>;
+  /**
+   * Find documents in the collection.
+   */
+  find(selector?: Object, options?: QueryOptions): Promise<any[]>;
 
-  findOne(filter: Object, options: Object): Promise<any>;
+  /**
+   * Find a single document in the collection.
+   */
+  findOne(selector: Object): Promise<any>;
 
+  /**
+   * Get the name of the collection.
+   */
   name(): string;
 
-  on(event: string, fn: (obj: any) => void): void;
+  /**
+   * Listen for when a document in the collection has been added or changed.
+   * The callback supplies the document.
+   */
+  on(event: 'document-upserted', fn: (obj: any) => void): Collection;
+
+  /**
+   * Listen for when a document in the collection has been removed.
+   * The callback supplies the removed document.
+   */
+  on(event: 'document-removed', fn: (obj: any) => void): Collection;
+
+  /**
+   * Listen for when an error was generated when loading or saving a document
+   * in the collection. The callback supplies the document error.
+   */
+  on(event: 'document-error', fn: (err: DocumentError) => void): Collection;
+
+  /**
+   * Listen for when the collection has been synced.
+   */
+  on(event: 'ready', fn: () => void): Collection;
 
   emit(event: string, ...args: any[]): void;
 }
 
 export type CollectionProvider = (injector: Injector) => Collection;
 
-/**
- *
- */
-export interface Database {
-  collection(name: string): Collection;
-
-  on(event: string, fn: any): void;
-}
-
 export interface CollectionMapping {
   name: string;
 
   source: string | CollectionProvider;
-}
-
-export interface DatabaseConfig {
-  mappings: CollectionMapping[];
 }
 
 export class DocumentError extends Error {

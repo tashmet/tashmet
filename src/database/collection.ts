@@ -1,4 +1,4 @@
-import {Collection} from '../interfaces';
+import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from '../util';
 
 export class CollectionBase extends EventEmitter implements Collection {
@@ -7,23 +7,20 @@ export class CollectionBase extends EventEmitter implements Collection {
   public setCollection(collection: Collection): void {
     this.collection = collection;
 
-    const events = [
-      'document-upserted',
-      'document-removed'
-    ];
-    events.forEach((event: string) => {
-      collection.on(event, (obj: any) => {
-        this.emit(event, obj);
-      });
+    collection.on('document-upserted', (obj: any) => {
+      this.emit('document-upserted', obj);
+    });
+    collection.on('document-removed', (obj: any) => {
+      this.emit('document-removed', obj);
     });
   }
 
-  public find(filter: Object, options: Object): Promise<any> {
+  public find(filter?: Object, options?: QueryOptions): Promise<any> {
     return this.collection.find(filter, options);
   }
 
-  public findOne(filter: Object, options: Object): Promise<any> {
-    return this.collection.findOne(filter, options);
+  public findOne(filter: Object): Promise<any> {
+    return this.collection.findOne(filter);
   }
 
   public upsert(obj: any): Promise<any> {
