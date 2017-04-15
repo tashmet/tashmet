@@ -27,6 +27,9 @@ class MemoryCollection extends EventEmitter implements Collection {
     return new Promise((resolve) => {
       let rset = this.collection.chain().find(selector || {});
       if (options) {
+        if (options.sort) {
+          rset = rset.compoundsort(options.sort);
+        }
         if (options.limit) {
           rset = rset.limit(options.limit);
         }

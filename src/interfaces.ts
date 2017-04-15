@@ -35,11 +35,14 @@ export interface RemoteDatabase {
  */
 export interface QueryOptions {
   /**
+   * Sort by one or more properties in ascending or descending order.
+   */
+  sort?: any[];
+
+  /**
    * Limit the number of items that are fetched.
    */
   limit?: number;
-
-  sort?: any;
 }
 
 /**
