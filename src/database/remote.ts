@@ -31,11 +31,13 @@ class RemoteCollection extends EventEmitter implements Collection {
     super();
   }
 
-  // TODO: Implement support for the query options.
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
     let query = this._path;
     if (selector) {
       query = query + '?selector=' + JSON.stringify(selector);
+    }
+    if (options) {
+      query = query + '&options=' + JSON.stringify(options);
     }
 
     let xhttp = new XMLHttpRequest();
