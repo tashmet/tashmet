@@ -30,6 +30,9 @@ class MemoryCollection extends EventEmitter implements Collection {
         if (options.sort) {
           rset = rset.compoundsort(options.sort);
         }
+        if (options.offset) {
+          rset = rset.offset(options.offset);
+        }
         if (options.limit) {
           rset = rset.limit(options.limit);
         }

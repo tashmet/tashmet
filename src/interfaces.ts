@@ -40,6 +40,11 @@ export interface QueryOptions {
   sort?: any[];
 
   /**
+   * Skip the first number of documents from the results.
+   */
+  offset?: number;
+
+  /**
    * Limit the number of items that are fetched.
    */
   limit?: number;
