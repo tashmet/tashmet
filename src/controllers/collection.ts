@@ -136,7 +136,8 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
-    if (this.synced || JSON.stringify(selector) in this.cachedQueries) {
+    let queryHash = this.queryHash(selector, options);
+    if (this.synced || (!options && queryHash in this.cachedQueries)) {
       return this._cache.find(selector, options);
     }
     return new Promise((resolve) => {
@@ -145,7 +146,9 @@ export class CollectionController extends Controller implements Collection {
           result.forEach((doc: any) => {
             this._cache.upsert(doc);
           });
-          this.cachedQueries[JSON.stringify(selector)] = true;
+          if (!options) {
+            this.cachedQueries[queryHash] = true;
+          }
           resolve(result);
         });
     });
@@ -161,7 +164,7 @@ export class CollectionController extends Controller implements Collection {
             .then((doc: any) => {
               if (doc) {
                 this._cache.upsert(doc);
-                this.cachedQueries[JSON.stringify(selector)] = true;
+                this.cachedQueries[this.queryHash(selector)] = true;
               }
               resolve(doc);
             });
@@ -186,5 +189,9 @@ export class CollectionController extends Controller implements Collection {
 
   private getMetaData(constructor: any): CollectionConfig {
     return Reflect.getOwnMetadata('tashmetu:collection', constructor);
+  }
+
+  private queryHash(selector?: Object, options?: QueryOptions): string {
+    return JSON.stringify(selector || {}) + JSON.stringify(options || {});
   }
 }
