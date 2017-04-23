@@ -59,7 +59,9 @@ export class DocumentController extends Controller implements Document {
         .then((obj: any) => {
           if (!obj) {
             obj = {_id: this.config.name};
-            new MergeDefaults(this.schemas).process(obj, resolve);
+            let schemas = this.schemas.concat(Reflect.getMetadata(
+              'tashmetu:schemas', this.collection.constructor));
+            new MergeDefaults(schemas).process(obj, resolve);
           } else {
             resolve(obj);
           }
