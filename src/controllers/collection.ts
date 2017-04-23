@@ -1,11 +1,13 @@
 import {injectable} from '@samizdatjs/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions} from '../interfaces';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
-  Validator, MergeDefaults, StripDefaults, BufferPipe} from '../pipes';
+  Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
 import {CollectionConfig} from './meta/decorators';
 import {pull} from 'lodash';
+
+let eachSeries = require('async-each-series');
 
 
 @injectable()
@@ -14,7 +16,6 @@ export class CollectionController extends Controller implements Collection {
   protected _buffer: Collection;
   protected _source: Collection;
   private cachePipe: UpsertPipe = new UpsertPipe();
-  private bufferPipe: BufferPipe = new BufferPipe();
   private persistPipe: UpsertPipe = new UpsertPipe();
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
@@ -49,11 +50,15 @@ export class CollectionController extends Controller implements Collection {
         this.emit('document-error', err);
       });
 
-    this.pipes['populate'] = new HookablePipeline(true)
+    this.pipes['populate-pre-buffer'] = new HookablePipeline(true)
       .step('validate', new Validator(schemas))
       .step('merge',    new MergeDefaults(schemas))
       .push(this.documentInputPipe)
-      .step('buffer',   this.bufferPipe)
+      .on('document-error', (err: DocumentError) => {
+        this.emit('document-error', err);
+      });
+
+    this.pipes['populate-post-buffer'] = new HookablePipeline(true)
       .step('cache',    this.cachePipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
@@ -76,7 +81,6 @@ export class CollectionController extends Controller implements Collection {
 
   public setBuffer(buffer: Collection): void {
     this._buffer = buffer;
-    this.bufferPipe.setCollection(buffer);
   }
 
   public setCache(cache: Collection): void {
@@ -89,18 +93,6 @@ export class CollectionController extends Controller implements Collection {
 
     this._cache = cache;
     this.cachePipe.setCollection(cache);
-
-    let cacheCount = 0;
-    cache.on('document-upserted', (doc: any) => {
-      if (!this.ready) {
-        cacheCount += 1;
-        if (cacheCount >= this.bufferPipe.getCount()) {
-          this.ready = true;
-          this.synced = true;
-          this.emit('ready');
-        }
-      }
-    });
   }
 
   public setSource(source: Collection): void {
@@ -115,17 +107,28 @@ export class CollectionController extends Controller implements Collection {
     source.on('document-removed', (id: string) => {
       // TODO: Remove document from collection.
     });
-
-    this.pipes['populate'].on('document-error', (err: DocumentError) => {
-      this.bufferPipe.decCount();
-    });
   }
 
   public populate(): void {
     this._source.find().then((docs: any[]) => {
-      this.bufferPipe.setCount(Object.keys(docs).length);
-      docs.forEach((doc: any) => {
-        this.pipes['populate'].process(doc, (output: any) => { return; });
+      eachSeries(docs, (doc: any, bufferingDone: any) => {
+        this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
+          this._buffer.upsert(doc).then(() => {
+            bufferingDone();
+          });
+        });
+      }, (bufferingErr: any) => {
+        this._buffer.find().then((bufferedDocs: any[]) => {
+          eachSeries(bufferedDocs, (bufferedDoc: any, done: any) => {
+            this.pipes['populate-post-buffer'].process(bufferedDoc, (output: any) => {
+              done();
+            });
+          }, (err: any) => {
+            this.ready = true;
+            this.synced = true;
+            this.emit('ready');
+          });
+        });
       });
     });
   }
