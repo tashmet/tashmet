@@ -17,7 +17,7 @@ export class Validator implements Pipe {
       let result = this.jsonValidator.validate(input, schema);
       if (result.errors.length > 0) {
         return next(new DocumentError(
-          result.errors[0].instance, result.errors[0].message));
+          input, result.errors[0].property + ' ' + result.errors[0].message));
       }
     }
     next(input);
