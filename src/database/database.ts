@@ -6,6 +6,7 @@ import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
+import {transform} from 'lodash';
 
 @provider({
   for: 'tashmetu.Database',
@@ -61,7 +62,16 @@ export class DatabaseService extends EventEmitter implements Database
     });
 
     if (this.isServer()) {
-      collection.populate();
+      if (meta.populateAfter.length > 0) {
+        let promises = transform(meta.populateAfter, (result, depName: string) => {
+          result.push(this.injector.get<CollectionController>(depName).populate());
+        });
+        Promise.all(promises).then(deps => {
+          collection.populate();
+        });
+      } else {
+        collection.populate();
+      }
     }
 
     collection.on('ready', () => {

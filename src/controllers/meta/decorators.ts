@@ -18,10 +18,14 @@ export interface ControllerConfig {
   schema?: any;
 }
 
-export interface CollectionConfig extends ControllerConfig {}
+export interface CollectionConfig extends ControllerConfig {
+  populateAfter?: string[];
+}
 
 export const collection = classDecorator<CollectionConfig>(
-  new ControllerDecorator('tashmetu:collection', ['tashmetu.Collection']));
+  new ControllerDecorator('tashmetu:collection', ['tashmetu.Collection']), {
+    populateAfter: []
+  });
 
 export interface DocumentConfig extends ControllerConfig {
   /**

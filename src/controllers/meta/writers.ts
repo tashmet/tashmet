@@ -1,10 +1,17 @@
 import {PropertyMeta, PropertyDecorator} from '@samizdatjs/tiamat';
 import {CollectionConfig, HookConfig, HookMeta} from './decorators';
 import {TaggedClassAnnotation} from '../../meta';
+import {uniq} from 'lodash';
 
 export class ControllerDecorator extends TaggedClassAnnotation<CollectionConfig> {
   public decorate(data: CollectionConfig, target: any) {
-    super.decorate(data, target);
+    let parentMeta = Reflect.getMetadata('tashmetu:collection', target);
+    if (parentMeta) {
+      if (parentMeta.populateAfter) {
+        data.populateAfter = uniq(
+          (data.populateAfter || []).concat(parentMeta.populateAfter));
+      }
+    }
 
     if (data.schema) {
       let parentSchemas = Reflect.getMetadata('tashmetu:schemas', target) || [];
@@ -14,6 +21,8 @@ export class ControllerDecorator extends TaggedClassAnnotation<CollectionConfig>
     } else {
       Reflect.defineMetadata('tashmetu:schemas', [], target);
     }
+
+    super.decorate(data, target);
   }
 }
 

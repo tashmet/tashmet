@@ -23,6 +23,7 @@ export class CollectionController extends Controller implements Collection {
   private synced = false;
   private upsertQueue: string[] = [];
   private cachedQueries: {[query: string]: boolean} = {};
+  private populatePromise: Promise<Collection>;
 
   public constructor() {
     super();
@@ -109,28 +110,34 @@ export class CollectionController extends Controller implements Collection {
     });
   }
 
-  public populate(): void {
-    this._source.find().then((docs: any[]) => {
-      eachSeries(docs, (doc: any, bufferingDone: any) => {
-        this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
-          this._buffer.upsert(doc).then(() => {
-            bufferingDone();
-          });
-        });
-      }, (bufferingErr: any) => {
-        this._buffer.find().then((bufferedDocs: any[]) => {
-          eachSeries(bufferedDocs, (bufferedDoc: any, done: any) => {
-            this.pipes['populate-post-buffer'].process(bufferedDoc, (output: any) => {
-              done();
+  public populate(): Promise<Collection> {
+    if (!this.populatePromise) {
+      this.populatePromise = new Promise((resolve) => {
+        this._source.find().then((docs: any[]) => {
+          eachSeries(docs, (doc: any, bufferingDone: any) => {
+            this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
+              this._buffer.upsert(doc).then(() => {
+                bufferingDone();
+              });
             });
-          }, (err: any) => {
-            this.ready = true;
-            this.synced = true;
-            this.emit('ready');
+          }, (bufferingErr: any) => {
+            this._buffer.find().then((bufferedDocs: any[]) => {
+              eachSeries(bufferedDocs, (bufferedDoc: any, done: any) => {
+                this.pipes['populate-post-buffer'].process(bufferedDoc, (output: any) => {
+                  done();
+                });
+              }, (err: any) => {
+                this.ready = true;
+                this.synced = true;
+                this.emit('ready');
+                resolve(this);
+              });
+            });
           });
         });
       });
-    });
+    }
+    return this.populatePromise;
   }
 
   public addDocumentController(doc: DocumentController): void {
