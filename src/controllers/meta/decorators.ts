@@ -57,7 +57,7 @@ export interface HookConfig {
   /**
    * The name of the pipe that the hook applies to.
    */
-  pipe: string;
+  pipe?: string;
 }
 
 export interface HookMeta extends PropertyMeta<HookConfig> {
