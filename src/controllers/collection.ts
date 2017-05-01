@@ -113,28 +113,25 @@ export class CollectionController extends Controller implements Collection {
   public populate(): Promise<Collection> {
     if (!this.populatePromise) {
       this.populatePromise = new Promise((resolve) => {
-        this._source.find().then((docs: any[]) => {
-          eachSeries(docs, (doc: any, bufferingDone: any) => {
-            this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
-              this._buffer.upsert(doc).then(() => {
-                bufferingDone();
+        this._source.find()
+          .then((docs: any[]) => {
+            return this.populateBuffer(docs);
+          })
+          .then((buffer: Collection) => {
+            return buffer.find();
+          })
+          .then((bufferedDocs: any[]) => {
+            eachSeries(bufferedDocs, (bufferedDoc: any, done: any) => {
+              this.pipes['populate-post-buffer'].process(bufferedDoc, (output: any) => {
+                done();
               });
-            });
-          }, (bufferingErr: any) => {
-            this._buffer.find().then((bufferedDocs: any[]) => {
-              eachSeries(bufferedDocs, (bufferedDoc: any, done: any) => {
-                this.pipes['populate-post-buffer'].process(bufferedDoc, (output: any) => {
-                  done();
-                });
-              }, (err: any) => {
-                this.ready = true;
-                this.synced = true;
-                this.emit('ready');
-                resolve(this);
-              });
+            }, (err: any) => {
+              this.ready = true;
+              this.synced = true;
+              this.emit('ready');
+              resolve(this);
             });
           });
-        });
       });
     }
     return this.populatePromise;
@@ -203,5 +200,23 @@ export class CollectionController extends Controller implements Collection {
 
   private queryHash(selector?: Object, options?: QueryOptions): string {
     return JSON.stringify(selector || {}) + JSON.stringify(options || {});
+  }
+
+  private populateBuffer(docs: any[]): Promise<Collection> {
+    return new Promise((resolve, reject) => {
+      eachSeries(docs, (doc: any, done: any) => {
+        this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
+          this._buffer.upsert(doc).then(() => {
+            done();
+          });
+        });
+      }, (err: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this._buffer);
+        }
+      });
+    });
   }
 }
