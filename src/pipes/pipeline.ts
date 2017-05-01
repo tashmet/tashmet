@@ -43,9 +43,10 @@ export class Pipeline extends EventEmitter implements Pipe {
     }, (err: any) => {
       if (!err) {
         next(result);
-      } else if (this.emitErrors) {
-        this.emit('document-error', err);
       } else {
+        if (this.emitErrors) {
+          this.emit('document-error', err);
+        }
         next(err);
       }
     });

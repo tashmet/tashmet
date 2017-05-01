@@ -206,16 +206,15 @@ export class CollectionController extends Controller implements Collection {
     return new Promise((resolve, reject) => {
       eachSeries(docs, (doc: any, done: any) => {
         this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
-          this._buffer.upsert(doc).then(() => {
+          if (output.name === 'DocumentError') {
+            return done();
+          }
+          this._buffer.upsert(output).then(() => {
             done();
           });
         });
       }, (err: any) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this._buffer);
-        }
+        resolve(this._buffer);
       });
     });
   }
