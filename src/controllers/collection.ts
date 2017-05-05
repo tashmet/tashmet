@@ -205,6 +205,7 @@ export class CollectionController extends Controller implements Collection {
   private populateBuffer(docs: any[]): Promise<Collection> {
     return new Promise((resolve, reject) => {
       eachSeries(docs, (doc: any, done: any) => {
+        doc._collection = this.name();
         this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
           if (output.name === 'DocumentError') {
             return done();
