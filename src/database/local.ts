@@ -42,7 +42,14 @@ class MemoryCollection extends EventEmitter implements Collection {
   }
 
   public findOne(selector: Object): Promise<any> {
-    return Promise.resolve(this.collection.findOne(selector));
+    return new Promise((resolve, reject) => {
+      let obj = this.collection.findOne(selector);
+      if (obj) {
+        resolve(obj);
+      } else {
+        reject(new Error('Failed to find document in collection'));
+      }
+    });
   }
 
   public upsert(obj: any): Promise<any> {
