@@ -1,6 +1,6 @@
 {
   "name": "@samizdatjs/tashmetu",
-  "version": "0.13.6",
+  "version": "0.13.7",
   "description": "Tashmetu is a document storage and processing platform",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -101,6 +101,7 @@ export class CollectionController extends Controller implements Collection {
     this.persistPipe.setCollection(source);
 
     source.on('document-upserted', (doc: any) => {
+      doc._collection = this.name();
       if (this.upsertQueue.indexOf(doc._id) < 0) {
         this.pipes['source-upsert'].process(doc, (output: any) => { return; });
       }
@@ -184,6 +185,7 @@ export class CollectionController extends Controller implements Collection {
   public upsert(obj: any): Promise<any> {
     this.upsertQueue.push(obj._id);
     return new Promise((resolve) => {
+      obj._collection = this.name();
       this.pipes['upsert'].process(obj, (output: any) => {
         pull(this.upsertQueue, obj._id);
         resolve(obj);
