@@ -21,6 +21,7 @@ export class CollectionController extends Controller implements Collection {
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
   private ready = false;
   private synced = false;
+  private populating = false;
   private upsertQueue: string[] = [];
   private cachedQueries: {[query: string]: boolean} = {};
   private populatePromise: Promise<Collection>;
@@ -113,6 +114,7 @@ export class CollectionController extends Controller implements Collection {
 
   public populate(): Promise<Collection> {
     if (!this.populatePromise) {
+      this.populating = true;
       this.populatePromise = new Promise((resolve) => {
         this._source.find()
           .then((docs: any[]) => {
@@ -129,6 +131,7 @@ export class CollectionController extends Controller implements Collection {
             }, (err: any) => {
               this.ready = true;
               this.synced = true;
+              this.populating = false;
               this.emit('ready');
               resolve(this);
             });
@@ -169,7 +172,10 @@ export class CollectionController extends Controller implements Collection {
           resolve(cachedDoc);
         })
         .catch((error: any) => {
-          return this._source.findOne(selector);
+          if (!this.populating) {
+            return this._source.findOne(selector);
+          }
+          reject(error);
         })
         .then((doc: any) => {
           this._cache.upsert(doc);
