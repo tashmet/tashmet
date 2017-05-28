@@ -2,6 +2,7 @@ import {LocalDatabase, Collection, QueryOptions} from '../interfaces';
 import {provider} from '@samizdatjs/tiamat';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
+import * as Promise from 'bluebird';
 
 @provider({
   for: 'tashmetu.LocalDatabase',

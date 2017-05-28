@@ -1,4 +1,5 @@
 import {Pipe} from '../interfaces';
+import * as Promise from 'bluebird';
 
 let defaults = require('json-schema-defaults');
 
@@ -8,12 +9,14 @@ let defaults = require('json-schema-defaults');
 export class MergeDefaults implements Pipe {
   public constructor(private schemas: any[]) {}
 
-  public process(input: any, next: (output: any) => void): void {
-    let output = input;
-    for (let schema of this.schemas) {
-      output = Object.assign({}, defaults(schema), output);
-    }
-    next(output);
+  public process(input: any): Promise<any> {
+    return new Promise<any>(resolve => {
+      let output = input;
+      for (let schema of this.schemas) {
+        output = Object.assign({}, defaults(schema), output);
+      }
+      resolve(output);
+    });
   }
 }
 
@@ -24,16 +27,18 @@ export class MergeDefaults implements Pipe {
 export class StripDefaults implements Pipe {
   public constructor(private schemas: any[]) {}
 
-  public process(input: any, next: (output: any) => void): void {
-    let output = input;
-    for (let schema of this.schemas) {
-      let defs = defaults(schema);
-      for (let key in defs) {
-        if (input[key] === defs[key]) {
-          delete output[key];
+  public process(input: any): Promise<any> {
+    return new Promise<any>(resolve => {
+      let output = input;
+      for (let schema of this.schemas) {
+        let defs = defaults(schema);
+        for (let key in defs) {
+          if (input[key] === defs[key]) {
+            delete output[key];
+          }
         }
       }
-    }
-    next(output);
+      resolve(output);
+    });
   }
 }

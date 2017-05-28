@@ -1,6 +1,7 @@
 import {Pipe} from '../interfaces';
-import * as jsonschema from 'jsonschema';
 import {DocumentError} from '../index';
+import * as jsonschema from 'jsonschema';
+import * as Promise from 'bluebird';
 
 let JsonValidator = jsonschema.Validator;
 
@@ -12,14 +13,16 @@ export class Validator implements Pipe {
 
   public constructor(private schemas: any[]) {}
 
-  public process(input: any, next: (output: any) => void): void {
-    for (let schema of this.schemas) {
-      let result = this.jsonValidator.validate(input, schema);
-      if (result.errors.length > 0) {
-        return next(new DocumentError(
-          input, result.errors[0].property + ' ' + result.errors[0].message));
+  public process(input: any): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
+      for (let schema of this.schemas) {
+        let result = this.jsonValidator.validate(input, schema);
+        if (result.errors.length > 0) {
+          return reject(new DocumentError(
+            input, result.errors[0].property + ' ' + result.errors[0].message));
+        }
       }
-    }
-    next(input);
+      resolve(input);
+    });
   }
 }

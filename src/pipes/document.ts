@@ -1,5 +1,6 @@
 import {Pipe} from '../interfaces';
 import {DocumentController} from '../controllers/document';
+import * as Promise from 'bluebird';
 
 export class DocumentPipe implements Pipe {
   private documents: {[name: string]: DocumentController} = {};
@@ -10,12 +11,12 @@ export class DocumentPipe implements Pipe {
     this.documents[doc.name] = doc;
   }
 
-  public process(input: any, next: (output: any) => void): void {
+  public process(input: any): Promise<any> {
     let document = this.documents[input._id];
     if (document) {
-      document.getPipeline(this.action).process(input, next);
+      return document.getPipeline(this.action).process(input);
     } else {
-      next(input);
+      return Promise.resolve(input);
     }
   }
 }

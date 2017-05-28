@@ -1,4 +1,5 @@
 import {Pipe, Collection} from '../interfaces';
+import * as Promise from 'bluebird';
 
 export class UpsertPipe implements Pipe {
   private collection: Collection;
@@ -7,7 +8,7 @@ export class UpsertPipe implements Pipe {
     this.collection = collection;
   }
 
-  public process(input: any, next: (output: any) => void): void {
-    this.collection.upsert(input).then(next);
+  public process(input: any): Promise<any> {
+    return this.collection.upsert(input);
   }
 }

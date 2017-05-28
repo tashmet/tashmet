@@ -2,6 +2,7 @@ import {provider, inject, Injector} from '@samizdatjs/tiamat';
 import {RemoteDatabase, Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
+import * as Promise from 'bluebird';
 
 export function remote(path: string): any {
   return function(injector: Injector): Collection {

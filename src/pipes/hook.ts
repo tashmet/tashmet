@@ -1,5 +1,6 @@
 import {Pipe} from '../interfaces';
 import {Pipeline} from './pipeline';
+import * as Promise from 'bluebird';
 
 /**
  * Pipe that supports adding hooks at the beginning, end and for when errors
@@ -30,14 +31,15 @@ export class HookablePipe implements Pipe {
     this.hooksError.push(hook);
   }
 
-  public process(input: any, next: (output: any) => void): void {
-    this.pipeline.process(input, (result: any) => {
-      if (result instanceof Error) {
-        this.hooksError.process(result, next);
-      } else {
-        next(result);
-      }
-    });
+  public process(input: any): Promise<any> {
+    return this.pipeline.process(input)
+      .catch((err: Error) => {
+        if (this.hooksError.length > 0) {
+          return this.hooksError.process(err);
+        } else {
+          return Promise.reject(err);
+        }
+      });
   }
 }
 
@@ -53,7 +55,7 @@ export class HookablePipeline extends Pipeline {
 export class Hook implements Pipe {
   public constructor(private controller: any, private method: string) {}
 
-  public process(input: any, next: (output: any) => void): void {
-    this.controller[this.method].call(this.controller, input, next);
+  public process(input: any): Promise<any> {
+    return this.controller[this.method].call(this.controller, input);
   }
 }

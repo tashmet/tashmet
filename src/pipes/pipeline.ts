@@ -1,7 +1,6 @@
 import {Pipe} from '../interfaces';
 import {EventEmitter} from '../util';
-
-let eachSeries = require('async-each-series');
+import * as Promise from 'bluebird';
 
 /**
  * A series of pipes.
@@ -28,27 +27,26 @@ export class Pipeline extends EventEmitter implements Pipe {
     return this.steps[name];
   }
 
-  public process(input: any, next: (output: any) => void): void {
+  get length(): number {
+    return this.sequence.length;
+  }
+
+  public process(input: any): Promise<any> {
     let result = input;
 
-    eachSeries(this.sequence, (pipe: Pipe, done: any) => {
-      pipe.process(result, (output: any) => {
-        if (output instanceof Error) {
-          done(output);
-        } else {
-          result = output;
-          done();
-        }
+    return Promise.each(this.sequence, (pipe: Pipe) => {
+      return pipe.process(result).then((output: any) => {
+        result = output;
       });
-    }, (err: any) => {
-      if (!err) {
-        next(result);
-      } else {
-        if (this.emitErrors) {
-          this.emit('document-error', err);
-        }
-        next(err);
+    })
+    .then(() => {
+      return result;
+    })
+    .catch((err: any) => {
+      if (this.emitErrors) {
+        this.emit('document-error', err);
       }
+      return Promise.reject(err);
     });
   }
 }

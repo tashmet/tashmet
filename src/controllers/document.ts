@@ -3,7 +3,7 @@ import {Collection, Document} from '../interfaces';
 import {Pipeline, HookablePipeline, Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {Controller} from './controller';
 import {DocumentConfig} from './meta/decorators';
-
+import * as Promise from 'bluebird';
 
 @injectable()
 export class DocumentController extends Controller implements Document {
@@ -54,18 +54,12 @@ export class DocumentController extends Controller implements Document {
   }
 
   public get(): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.collection.findOne({_id: this.config.name})
-        .then((obj: any) => {
-          if (!obj) {
-            obj = {_id: this.config.name};
-            let schemas = this.schemas.concat(Reflect.getMetadata(
-              'tashmetu:schemas', this.collection.constructor));
-            new MergeDefaults(schemas).process(obj, resolve);
-          } else {
-            resolve(obj);
-          }
-        });
+    return this.collection.findOne({_id: this.config.name})
+      .catch((err: Error) => {
+        let doc = {_id: this.config.name};
+        let schemas = this.schemas.concat(Reflect.getMetadata(
+          'tashmetu:schemas', this.collection.constructor));
+        return new MergeDefaults(schemas).process(doc);
     });
   }
 

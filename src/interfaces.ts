@@ -1,4 +1,5 @@
 import {Injector} from '@samizdatjs/tiamat';
+import * as Promise from 'bluebird';
 
 /**
  *
@@ -160,7 +161,7 @@ export interface Pipe {
    * Processes the input and passes the result to the 'next'-callback.
    * If an error occurs, it can be passed to the callback instead.
    */
-  process(input: any, next: (output: any) => void): void;
+  process(input: any): Promise<any>;
 }
 
 /**

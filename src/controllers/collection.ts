@@ -6,9 +6,7 @@ import {DocumentController} from './document';
 import {Controller} from './controller';
 import {CollectionConfig} from './meta/decorators';
 import {pull} from 'lodash';
-
-let eachSeries = require('async-each-series');
-
+import * as Promise from 'bluebird';
 
 @injectable()
 export class CollectionController extends Controller implements Collection {
@@ -19,7 +17,6 @@ export class CollectionController extends Controller implements Collection {
   private persistPipe: UpsertPipe = new UpsertPipe();
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
-  private ready = false;
   private synced = false;
   private populating = false;
   private upsertQueue: string[] = [];
@@ -104,7 +101,7 @@ export class CollectionController extends Controller implements Collection {
     source.on('document-upserted', (doc: any) => {
       doc._collection = this.name();
       if (this.upsertQueue.indexOf(doc._id) < 0) {
-        this.pipes['source-upsert'].process(doc, (output: any) => { return; });
+        this.pipes['source-upsert'].process(doc);
       }
     });
     source.on('document-removed', (id: string) => {
@@ -115,26 +112,24 @@ export class CollectionController extends Controller implements Collection {
   public populate(): Promise<Collection> {
     if (!this.populatePromise) {
       this.populating = true;
-      this.populatePromise = new Promise((resolve) => {
+      this.populatePromise = new Promise<Collection>((resolve) => {
         this._source.find()
           .then((docs: any[]) => {
             return this.populateBuffer(docs);
           })
-          .then((buffer: Collection) => {
-            return buffer.find();
+          .then(() => {
+            return this._buffer.find();
           })
           .then((bufferedDocs: any[]) => {
-            eachSeries(bufferedDocs, (bufferedDoc: any, done: any) => {
-              this.pipes['populate-post-buffer'].process(bufferedDoc, (output: any) => {
-                done();
-              });
-            }, (err: any) => {
-              this.ready = true;
-              this.synced = true;
-              this.populating = false;
-              this.emit('ready');
-              resolve(this);
+            return Promise.each(bufferedDocs, (doc: any) => {
+              return this.pipes['populate-post-buffer'].process(doc);
             });
+          })
+          .then(() => {
+            this.synced = true;
+            this.populating = false;
+            this.emit('ready');
+            resolve(this);
           });
       });
     }
@@ -151,18 +146,16 @@ export class CollectionController extends Controller implements Collection {
     if (this.synced || (!options && queryHash in this.cachedQueries)) {
       return this._cache.find(selector, options);
     }
-    return new Promise((resolve) => {
-      this._source.find(selector, options)
-        .then((result: any[]) => {
-          result.forEach((doc: any) => {
-            this._cache.upsert(doc);
-          });
-          if (!options) {
-            this.cachedQueries[queryHash] = true;
-          }
-          resolve(result);
+    return this._source.find(selector, options)
+      .then((result: any[]) => {
+        result.forEach((doc: any) => {
+          this._cache.upsert(doc);
         });
-    });
+        if (!options) {
+          this.cachedQueries[queryHash] = true;
+        }
+        return Promise.resolve(result);
+      });
   }
 
   public findOne(selector: Object): Promise<any> {
@@ -190,13 +183,12 @@ export class CollectionController extends Controller implements Collection {
 
   public upsert(obj: any): Promise<any> {
     this.upsertQueue.push(obj._id);
-    return new Promise((resolve) => {
-      obj._collection = this.name();
-      this.pipes['upsert'].process(obj, (output: any) => {
+    obj._collection = this.name();
+    return this.pipes['upsert'].process(obj)
+      .then((output: any) => {
         pull(this.upsertQueue, obj._id);
-        resolve(obj);
+        return Promise.resolve(obj);
       });
-    });
   }
 
   public name(): string {
@@ -211,21 +203,16 @@ export class CollectionController extends Controller implements Collection {
     return JSON.stringify(selector || {}) + JSON.stringify(options || {});
   }
 
-  private populateBuffer(docs: any[]): Promise<Collection> {
-    return new Promise((resolve, reject) => {
-      eachSeries(docs, (doc: any, done: any) => {
-        doc._collection = this.name();
-        this.pipes['populate-pre-buffer'].process(doc, (output: any) => {
-          if (output.name === 'DocumentError') {
-            return done();
-          }
-          this._buffer.upsert(output).then(() => {
-            done();
-          });
+  private populateBuffer(docs: any[]): Promise<any> {
+    return Promise.each(docs, (doc: any) => {
+      doc._collection = this.name();
+      return this.pipes['populate-pre-buffer'].process(doc)
+        .then((output: any) => {
+          return this._buffer.upsert(output);
+        })
+        .catch((err: Error) => {
+          Promise.resolve();
         });
-      }, (err: any) => {
-        resolve(this._buffer);
-      });
     });
   }
 }

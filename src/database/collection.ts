@@ -1,5 +1,6 @@
 import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from '../util';
+import * as Promise from 'bluebird';
 
 export class CollectionBase extends EventEmitter implements Collection {
   protected collection: Collection;
