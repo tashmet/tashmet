@@ -3,11 +3,12 @@ import {RemoteDatabase, Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from '../util';
 import * as loki from 'lokijs';
 import * as Promise from 'bluebird';
+import * as io from 'socket.io-client';
 
-export function remote(path: string): any {
+export function remote(path: string, name: string): any {
   return function(injector: Injector): Collection {
     let database = injector.get<RemoteDatabase>('tashmetu.RemoteDatabase');
-    return database.createCollection(path);
+    return database.createCollection(path, name);
   };
 }
 
@@ -16,10 +17,17 @@ export function remote(path: string): any {
   singleton: true
 })
 export class RemoteDB implements RemoteDatabase {
+  private socket: any;
   private collections: {[index: string]: Collection} = {};
 
-  public createCollection(path: string): Collection {
-    let collection = new RemoteCollection(path);
+  public constructor() {
+    if (typeof window !== 'undefined' && window.document) {
+      this.socket = io.connect(window.location.origin);
+    }
+  }
+
+  public createCollection(path: string, name: string): Collection {
+    let collection = new RemoteCollection(path, name, this.socket);
     this.collections[path] = collection;
     return collection;
   }
@@ -28,8 +36,23 @@ export class RemoteDB implements RemoteDatabase {
 class RemoteCollection extends EventEmitter implements Collection {
   public constructor(
     private _path: string,
+    private _name: string,
+    socket: any
   ) {
     super();
+
+    if (socket) {
+      socket.on('document-upserted', (doc: any) => {
+        if (doc._collection === this._name) {
+          this.emit('document-upserted', doc);
+        }
+      });
+      socket.on('document-removed', (doc: any) => {
+        if (doc._collection === this._name) {
+          this.emit('document-removed', doc);
+        }
+      });
+    }
   }
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {

@@ -1,6 +1,6 @@
 {
   "name": "@samizdatjs/tashmetu",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Tashmetu is a document storage and processing platform",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,13 +18,15 @@
     "lokijs": "^1.4.3",
     "mustache": "^2.3.0",
     "path-to-regexp": "^1.7.0",
-    "reflect-metadata": "^0.1.9"
+    "reflect-metadata": "^0.1.9",
+    "socket.io-client": "^2.0.1"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.3",
     "@types/mustache": "^0.8.29",
     "@types/node": "6.0.54",
     "@types/path-to-regexp": "^1.0.29",
+    "@types/socket.io-client": "^1.4.29",
     "gulp": "^3.9.1",
     "gulp-tslint": "^7.0.1",
     "gulp-typescript": "^3.1.4",

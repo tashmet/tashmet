@@ -28,7 +28,7 @@ export interface RemoteDatabase {
   /**
    * Create a new collection given a name.
    */
-  createCollection(name: string): Collection;
+  createCollection(path: string, name: string): Collection;
 }
 
 /**

@@ -40,6 +40,8 @@ export class DatabaseService extends EventEmitter implements Database
   private activateCollectionController(collection: CollectionController): CollectionController {
     let providerMeta = Reflect.getOwnMetadata('tiamat:provider', collection.constructor);
     let meta = Reflect.getOwnMetadata('tashmetu:collection', collection.constructor);
+
+    this.collections[meta.name] = collection;
     this.dbConfig.mappings.forEach((mapping: CollectionMapping) => {
       if (mapping.name === providerMeta.for) {
         let source: Collection;
@@ -90,8 +92,6 @@ export class DatabaseService extends EventEmitter implements Database
     collection.on('document-error', (err: any) => {
       this.emit('document-error', err, collection);
     });
-
-    this.collections[meta.name] = collection;
 
     return collection;
   }
