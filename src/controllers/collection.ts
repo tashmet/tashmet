@@ -143,7 +143,8 @@ export class CollectionController extends Controller implements Collection {
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
     let queryHash = this.queryHash(selector, options);
-    if (this.synced || (!options && queryHash in this.cachedQueries)) {
+    let hasOptions = options && Object.keys(options).length > 0;
+    if (this.synced || (!hasOptions && queryHash in this.cachedQueries)) {
       return this._cache.find(selector, options);
     }
     return this._source.find(selector, options)
@@ -151,7 +152,7 @@ export class CollectionController extends Controller implements Collection {
         result.forEach((doc: any) => {
           this._cache.upsert(doc);
         });
-        if (!options) {
+        if (!hasOptions) {
           this.cachedQueries[queryHash] = true;
         }
         return Promise.resolve(result);

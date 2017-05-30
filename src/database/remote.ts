@@ -57,10 +57,10 @@ class RemoteCollection extends EventEmitter implements Collection {
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
     let query = this._path;
-    if (selector) {
+    if (selector && Object.keys(selector).length > 0) {
       query = query + '?selector=' + JSON.stringify(selector);
     }
-    if (options) {
+    if (options && Object.keys(options).length > 0) {
       query = query + '&options=' + JSON.stringify(options);
     }
 
