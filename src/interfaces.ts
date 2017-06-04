@@ -121,6 +121,14 @@ export interface CollectionMapping {
   source: string | CollectionProvider;
 }
 
+export interface CacheEvaluator {
+  isCached(selector: any, options: QueryOptions): boolean;
+
+  setCached(selector: any, options: QueryOptions): void;
+
+  add(doc: any): void;
+}
+
 export class DocumentError extends Error {
   public name = 'DocumentError';
 

@@ -1,11 +1,11 @@
 import {injectable} from '@samizdatjs/tiamat';
-import {Collection, DocumentError, Pipe, QueryOptions} from '../interfaces';
+import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
   RevisionUpsertPipe, Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
 import {CollectionConfig} from './meta/decorators';
-import {clone, map, pull, reject} from 'lodash';
+import {clone, map, pull, some} from 'lodash';
 import * as Promise from 'bluebird';
 
 @injectable()
@@ -20,7 +20,7 @@ export class CollectionController extends Controller implements Collection {
   private synced = false;
   private populating = false;
   private upsertQueue: string[] = [];
-  private cachedQueries: {[query: string]: any} = {};
+  private cacheEvaluators: CacheEvaluator[] = [];
   private populatePromise: Promise<Collection>;
 
   public constructor() {
@@ -141,6 +141,10 @@ export class CollectionController extends Controller implements Collection {
     this.documentOutputPipe.addController(doc);
   }
 
+  public addCacheEvaluator(evaluator: CacheEvaluator): void {
+    this.cacheEvaluators.push(evaluator);
+  }
+
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
     if (this.isCached(selector, options)) {
       return this._cache.find(selector, options);
@@ -196,8 +200,8 @@ export class CollectionController extends Controller implements Collection {
   private upsertCache(doc: any): Promise<any> {
     return this.cachePipe.process(doc).then((cachedDoc: any) => {
       if (doc._revision !== cachedDoc._revision) {
-        this.cachedQueries = reject(this.cachedQueries, (options: any) => {
-          return Object.keys(options).length > 0;
+        this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
+          ce.add(cachedDoc);
         });
       }
       return Promise.resolve(cachedDoc);
@@ -208,16 +212,16 @@ export class CollectionController extends Controller implements Collection {
     return Reflect.getOwnMetadata('tashmetu:collection', constructor);
   }
 
-  private queryHash(selector?: Object, options?: QueryOptions): string {
-    return JSON.stringify(selector || {}) + JSON.stringify(options || {});
+  private isCached(selector?: Object, options?: QueryOptions): boolean {
+    return this.synced || some(this.cacheEvaluators, (ce: CacheEvaluator) => {
+      return ce.isCached(selector || {}, options || {});
+    });
   }
 
-  private isCached(selector: any, options: any): boolean {
-    return this.synced || this.queryHash(selector, options) in this.cachedQueries;
-  }
-
-  private setCached(selector: any, options: any) {
-    this.cachedQueries[this.queryHash(selector, options)] = options;
+  private setCached(selector?: Object, options?: QueryOptions) {
+    this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
+      ce.setCached(selector || {}, options || {});
+    });
   }
 
   private populateBuffer(docs: any[]): Promise<any> {

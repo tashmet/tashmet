@@ -1,12 +1,34 @@
 import {inject, provider, activate} from '@samizdatjs/tiamat';
 import {Injector} from '@samizdatjs/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
-  CollectionMapping, View} from '../interfaces';
+  CollectionMapping, View, CacheEvaluator, QueryOptions} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
-import {find, transform} from 'lodash';
+import {find, reject, transform} from 'lodash';
+
+export class QueryHashEvaluator implements CacheEvaluator {
+  private cachedQueries: {[query: string]: any} = {};
+
+  public isCached(selector: any, options: QueryOptions): boolean {
+    return this.hash(selector, options) in this.cachedQueries;
+  }
+
+  public setCached(selector: any, options: QueryOptions) {
+    this.cachedQueries[this.hash(selector, options)] = options;
+  }
+
+  public add(doc: any) {
+    this.cachedQueries = reject(this.cachedQueries, (options: QueryOptions) => {
+      return Object.keys(options).length > 0;
+    });
+  }
+
+  private hash(selector: Object, options: QueryOptions): string {
+    return JSON.stringify(selector) + JSON.stringify(options);
+  }
+}
 
 export abstract class DynamicViewBase extends EventEmitter {
   protected triggered = false;
@@ -141,6 +163,7 @@ export class DatabaseService extends EventEmitter implements Database
       routine.setController(collection);
       collection.addRoutine(routine);
     });
+    collection.addCacheEvaluator(new QueryHashEvaluator());
 
     if (this.isServer()) {
       if (meta.populateAfter.length > 0) {
