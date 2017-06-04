@@ -199,11 +199,9 @@ export class CollectionController extends Controller implements Collection {
 
   private upsertCache(doc: any): Promise<any> {
     return this.cachePipe.process(doc).then((cachedDoc: any) => {
-      if (doc._revision !== cachedDoc._revision) {
-        this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
-          ce.add(cachedDoc);
-        });
-      }
+      this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
+        ce.add(cachedDoc);
+      });
       return Promise.resolve(cachedDoc);
     });
   }
