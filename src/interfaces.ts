@@ -38,7 +38,7 @@ export interface RemoteDatabase {
 export interface View {
   refresh(): View;
 
-  on(event: 'resultset-updated', fn: (results: any[]) => void): View;
+  on(event: 'data-updated', fn: (results: any[]) => void): View;
 }
 
 /**

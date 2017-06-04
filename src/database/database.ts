@@ -7,6 +7,7 @@ import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
 import {find, reject, transform} from 'lodash';
+import * as Promise from 'bluebird';
 
 export class QueryHashEvaluator implements CacheEvaluator {
   private cachedQueries: {[query: string]: any} = {};
@@ -20,9 +21,11 @@ export class QueryHashEvaluator implements CacheEvaluator {
   }
 
   public add(doc: any) {
+    /*
     this.cachedQueries = reject(this.cachedQueries, (options: QueryOptions) => {
       return Object.keys(options).length > 0;
     });
+    */
   }
 
   private hash(selector: Object, options: QueryOptions): string {
@@ -32,6 +35,7 @@ export class QueryHashEvaluator implements CacheEvaluator {
 
 export abstract class DynamicViewBase extends EventEmitter {
   protected triggered = false;
+  protected updating = false;
 
   public constructor(
     protected collection: Collection,
@@ -40,18 +44,27 @@ export abstract class DynamicViewBase extends EventEmitter {
     super();
 
     collection.on('document-upserted', (doc: any) => {
-      if (this.triggered) {
-        this.onUpdate(doc);
+      if (this.triggered && !this.updating) {
+        this.updating = true;
+        this.onUpdate(doc).then(() => {
+          this.updating = false;
+          this.triggered = true;
+        });
       }
     });
     collection.on('document-removed', (doc: any) => {
-      if (this.triggered) {
-        this.onUpdate(doc);
+      if (this.triggered && !this.updating) {
+        this.updating = true;
+        this.onUpdate(doc).then(() => {
+          this.updating = false;
+          this.triggered = true;
+        });
       }
     });
   }
 
   public refresh(): View {
+    this.updating = true;
     this.onUpdate();
     return this;
   }
@@ -61,7 +74,7 @@ export abstract class DynamicViewBase extends EventEmitter {
     this.refresh();
   }
 
-  protected abstract onUpdate(doc?: any): void;
+  protected abstract onUpdate(doc?: any): Promise<any>;
 }
 
 export class DynamicView extends DynamicViewBase implements View {
@@ -73,14 +86,14 @@ export class DynamicView extends DynamicViewBase implements View {
     super(collection, selector);
   }
 
-  protected onUpdate(doc?: any): void {
+  protected onUpdate(doc?: any): Promise<any> {
     let self = this;
-    this.collection.find(this.selector, this.options).then(function(result) {
-      self.triggered = true;
-      if (!doc || find(result, ['_id', doc._id])) {
-        self.emit('data-updated', result);
-      }
-    });
+    return this.collection.find(this.selector, this.options)
+      .then((result: any) => {
+        if (!doc || find(result, ['_id', doc._id])) {
+          self.emit('data-updated', result);
+        }
+      });
   }
 }
 
@@ -92,12 +105,15 @@ export class DynamicDocumentView extends DynamicViewBase implements View {
     super(collection, selector);
   }
 
-  protected onUpdate(doc?: any): void {
+  protected onUpdate(doc?: any): Promise<any> {
     let self = this;
-    this.collection.findOne(this.selector).then(function(result) {
-      self.triggered = true;
-      self.emit('data-updated', result);
-    });
+    return this.collection.findOne(this.selector)
+      .then((result: any) => {
+        self.emit('data-updated', result);
+      })
+      .catch((err: any) => {
+        return;
+      });
   }
 }
 
