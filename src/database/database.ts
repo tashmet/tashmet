@@ -8,11 +8,12 @@ import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
 import {find, transform} from 'lodash';
 
-export abstract class CollectionMonitor extends EventEmitter {
+export abstract class DynamicViewBase extends EventEmitter {
   protected triggered = false;
 
   public constructor(
-    protected collection: Collection
+    protected collection: Collection,
+    protected selector: any
   ) {
     super();
 
@@ -33,16 +34,21 @@ export abstract class CollectionMonitor extends EventEmitter {
     return this;
   }
 
+  public applySelector(selector: any): void {
+    this.selector = selector;
+    this.refresh();
+  }
+
   protected abstract onUpdate(doc?: any): void;
 }
 
-export class DynamicView extends CollectionMonitor implements View {
+export class DynamicView extends DynamicViewBase implements View {
   public constructor(
     collection: Collection,
-    private selector: any,
+    selector: any,
     private options: any
   ) {
-    super(collection);
+    super(collection, selector);
   }
 
   protected onUpdate(doc?: any): void {
@@ -56,12 +62,12 @@ export class DynamicView extends CollectionMonitor implements View {
   }
 }
 
-export class DynamicDocumentView extends CollectionMonitor implements View {
+export class DynamicDocumentView extends DynamicViewBase implements View {
   public constructor(
     collection: Collection,
-    private selector: any
+    selector: any
   ) {
-    super(collection);
+    super(collection, selector);
   }
 
   protected onUpdate(doc?: any): void {
