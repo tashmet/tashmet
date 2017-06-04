@@ -12,3 +12,31 @@ export class UpsertPipe implements Pipe {
     return this.collection.upsert(input);
   }
 }
+
+export class RevisionUpsertPipe implements Pipe {
+  private collection: Collection;
+
+  public setCollection(collection: Collection): void {
+    this.collection = collection;
+  }
+
+  public process(doc: any): Promise<any> {
+    return this.collection.findOne({_id: doc._id})
+      .then((old: any) => {
+        if (!doc._revision) {
+          doc._revision = old._revision + 1;
+          return this.collection.upsert(doc);
+        } else if (doc._revision !== old._revision) {
+          return this.collection.upsert(doc);
+        } else {
+          return Promise.resolve(doc);
+        }
+      })
+      .catch(() => {
+        if (!doc._revision) {
+          doc._revision = 1;
+        }
+        return this.collection.upsert(doc);
+      });
+  }
+}

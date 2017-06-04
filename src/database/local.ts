@@ -13,7 +13,9 @@ export class LocalDB implements LocalDatabase {
   private collections: {[index: string]: Collection} = {};
 
   public createCollection(name: string): Collection {
-    let collection = new MemoryCollection(this.db.addCollection(name, {indices: '_id'}), name);
+    let collection = new MemoryCollection(
+      this.db.addCollection(name, {indices: '_id'}), name
+    );
     this.collections[name] = collection;
     return collection;
   }

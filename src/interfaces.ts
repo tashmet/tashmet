@@ -7,6 +7,8 @@ import * as Promise from 'bluebird';
 export interface Database {
   collection(name: string): Collection;
 
+  createView(collection: string, selector?: any, options?: any): any;
+
   on(event: string, fn: any): void;
 }
 
@@ -29,6 +31,12 @@ export interface RemoteDatabase {
    * Create a new collection given a name.
    */
   createCollection(path: string, name: string): Collection;
+}
+
+export interface View {
+  refresh(): View;
+
+  on(event: 'resultset-updated', fn: (results: any[]) => void): View;
 }
 
 /**

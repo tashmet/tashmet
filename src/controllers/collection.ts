@@ -1,11 +1,11 @@
 import {injectable} from '@samizdatjs/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions} from '../interfaces';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
-  Validator, MergeDefaults, StripDefaults} from '../pipes';
+  RevisionUpsertPipe, Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {DocumentController} from './document';
 import {Controller} from './controller';
 import {CollectionConfig} from './meta/decorators';
-import {pull} from 'lodash';
+import {clone, map, pull, reject} from 'lodash';
 import * as Promise from 'bluebird';
 
 @injectable()
@@ -13,14 +13,14 @@ export class CollectionController extends Controller implements Collection {
   protected _cache: Collection;
   protected _buffer: Collection;
   protected _source: Collection;
-  private cachePipe: UpsertPipe = new UpsertPipe();
+  private cachePipe: RevisionUpsertPipe = new RevisionUpsertPipe();
   private persistPipe: UpsertPipe = new UpsertPipe();
   private documentInputPipe: DocumentPipe = new DocumentPipe('input');
   private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
   private synced = false;
   private populating = false;
   private upsertQueue: string[] = [];
-  private cachedQueries: {[query: string]: boolean} = {};
+  private cachedQueries: {[query: string]: any} = {};
   private populatePromise: Promise<Collection>;
 
   public constructor() {
@@ -142,20 +142,19 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
-    let queryHash = this.queryHash(selector, options);
-    let hasOptions = options && Object.keys(options).length > 0;
-    if (this.synced || (!hasOptions && queryHash in this.cachedQueries)) {
+    if (this.isCached(selector, options)) {
       return this._cache.find(selector, options);
     }
     return this._source.find(selector, options)
-      .then((result: any[]) => {
-        result.forEach((doc: any) => {
-          this._cache.upsert(doc);
+      .then((documents: any[]) => {
+        let cachePromises = map(documents, (doc: any) => {
+          return this.upsertCache(doc);
         });
-        if (!hasOptions) {
-          this.cachedQueries[queryHash] = true;
-        }
-        return Promise.resolve(result);
+        return Promise.all(cachePromises);
+      })
+      .then(() => {
+        this.setCached(selector, options);
+        return this._cache.find(selector, options);
       });
   }
 
@@ -172,8 +171,7 @@ export class CollectionController extends Controller implements Collection {
           reject(error);
         })
         .then((doc: any) => {
-          this._cache.upsert(doc);
-          this.cachedQueries[this.queryHash(selector)] = true;
+          this.upsertCache(doc);
           resolve(doc);
         })
         .catch((error: any) => {
@@ -183,17 +181,32 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public upsert(obj: any): Promise<any> {
-    this.upsertQueue.push(obj._id);
-    obj._collection = this.name();
-    return this.pipes['upsert'].process(obj)
+    let copy = clone(obj);
+    copy._revision = obj._revision ? obj._revision + 1 : 1;
+    copy._collection = this.name();
+
+    this.upsertQueue.push(copy._id);
+
+    return this.pipes['upsert'].process(copy)
       .then((output: any) => {
-        pull(this.upsertQueue, obj._id);
-        return Promise.resolve(obj);
+        pull(this.upsertQueue, copy._id);
+        return Promise.resolve(copy);
       });
   }
 
   public name(): string {
     return this._cache.name();
+  }
+
+  private upsertCache(doc: any): Promise<any> {
+    return this.cachePipe.process(doc).then((cachedDoc: any) => {
+      if (doc._revision !== cachedDoc._revision) {
+        this.cachedQueries = reject(this.cachedQueries, (options: any) => {
+          return Object.keys(options).length > 0;
+        });
+      }
+      return Promise.resolve(cachedDoc);
+    });
   }
 
   private getMetaData(constructor: any): CollectionConfig {
@@ -202,6 +215,14 @@ export class CollectionController extends Controller implements Collection {
 
   private queryHash(selector?: Object, options?: QueryOptions): string {
     return JSON.stringify(selector || {}) + JSON.stringify(options || {});
+  }
+
+  private isCached(selector: any, options: any): boolean {
+    return this.synced || this.queryHash(selector, options) in this.cachedQueries;
+  }
+
+  private setCached(selector: any, options: any) {
+    this.cachedQueries[this.queryHash(selector, options)] = options;
   }
 
   private populateBuffer(docs: any[]): Promise<any> {

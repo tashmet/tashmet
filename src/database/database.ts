@@ -1,12 +1,52 @@
 import {inject, provider, activate} from '@samizdatjs/tiamat';
 import {Injector} from '@samizdatjs/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
-  CollectionMapping} from '../interfaces';
+  CollectionMapping, View} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
-import {transform} from 'lodash';
+import {find, transform} from 'lodash';
+
+export class DynamicView extends EventEmitter implements View {
+  public data: any[] = [];
+  private triggered = false;
+
+  public constructor(
+    private collection: Collection,
+    private selector: any,
+    private options: any
+  ) {
+    super();
+
+    collection.on('document-upserted', (doc: any) => {
+      if (this.triggered) {
+        this.update(doc);
+      }
+    });
+    collection.on('document-removed', (doc: any) => {
+      if (this.triggered) {
+        this.update(doc);
+      }
+    });
+  }
+
+  public refresh(): View {
+    this.update();
+    return this;
+  }
+
+  private update(doc?: any) {
+    let self = this;
+    this.collection.find(this.selector, this.options).then(function(result) {
+      self.triggered = true;
+      self.data = result;
+      if (!doc || find(result, ['_id', doc._id])) {
+        self.emit('resultset-updated', result);
+      }
+    });
+  }
+}
 
 @provider({
   for: 'tashmetu.Database',
@@ -25,6 +65,10 @@ export class DatabaseService extends EventEmitter implements Database
 
   public collection(name: string): Collection {
     return this.collections[name];
+  }
+
+  public createView(collection: string, selector?: any, options?: any): any {
+    return new DynamicView(this.collections[collection], selector, options);
   }
 
   @activate('tashmetu.Document')
