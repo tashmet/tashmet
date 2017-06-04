@@ -159,25 +159,20 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public findOne(selector: Object): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this._cache.findOne(selector)
-        .then((cachedDoc: any) => {
-          resolve(cachedDoc);
-        })
-        .catch((error: any) => {
-          if (!this.populating) {
-            return this._source.findOne(selector);
-          }
-          reject(error);
-        })
-        .then((doc: any) => {
-          this.upsertCache(doc);
-          resolve(doc);
-        })
-        .catch((error: any) => {
-          reject(error);
-        });
-    });
+    return this._cache.findOne(selector)
+      .then((cachedDoc: any) => {
+        return Promise.resolve(cachedDoc);
+      })
+      .catch((error: any) => {
+        if (!this.populating) {
+          return this._source.findOne(selector);
+        }
+        return Promise.reject(error);
+      })
+      .then((doc: any) => {
+        this.upsertCache(doc);
+        return Promise.resolve(doc);
+      });
   }
 
   public upsert(obj: any): Promise<any> {
