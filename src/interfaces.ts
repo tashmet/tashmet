@@ -7,7 +7,9 @@ import * as Promise from 'bluebird';
 export interface Database {
   collection(name: string): Collection;
 
-  createView(collection: string, selector?: any, options?: any): any;
+  createView(collection: string, selector?: any, options?: any): View;
+
+  createDocumentView(collection: string, selector?: any): View;
 
   on(event: string, fn: any): void;
 }

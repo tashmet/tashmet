@@ -8,42 +8,67 @@ import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
 import {find, transform} from 'lodash';
 
-export class DynamicView extends EventEmitter implements View {
-  public data: any[] = [];
-  private triggered = false;
+export abstract class CollectionMonitor extends EventEmitter {
+  protected triggered = false;
 
   public constructor(
-    private collection: Collection,
-    private selector: any,
-    private options: any
+    protected collection: Collection
   ) {
     super();
 
     collection.on('document-upserted', (doc: any) => {
       if (this.triggered) {
-        this.update(doc);
+        this.onUpdate(doc);
       }
     });
     collection.on('document-removed', (doc: any) => {
       if (this.triggered) {
-        this.update(doc);
+        this.onUpdate(doc);
       }
     });
   }
 
   public refresh(): View {
-    this.update();
+    this.onUpdate();
     return this;
   }
 
-  private update(doc?: any) {
+  protected abstract onUpdate(doc?: any): void;
+}
+
+export class DynamicView extends CollectionMonitor implements View {
+  public constructor(
+    collection: Collection,
+    private selector: any,
+    private options: any
+  ) {
+    super(collection);
+  }
+
+  protected onUpdate(doc?: any): void {
     let self = this;
     this.collection.find(this.selector, this.options).then(function(result) {
       self.triggered = true;
-      self.data = result;
       if (!doc || find(result, ['_id', doc._id])) {
-        self.emit('resultset-updated', result);
+        self.emit('data-updated', result);
       }
+    });
+  }
+}
+
+export class DynamicDocumentView extends CollectionMonitor implements View {
+  public constructor(
+    collection: Collection,
+    private selector: any
+  ) {
+    super(collection);
+  }
+
+  protected onUpdate(doc?: any): void {
+    let self = this;
+    this.collection.findOne(this.selector).then(function(result) {
+      self.triggered = true;
+      self.emit('data-updated', result);
     });
   }
 }
@@ -67,8 +92,12 @@ export class DatabaseService extends EventEmitter implements Database
     return this.collections[name];
   }
 
-  public createView(collection: string, selector?: any, options?: any): any {
+  public createView(collection: string, selector?: any, options?: any): View {
     return new DynamicView(this.collections[collection], selector, options);
+  }
+
+  public createDocumentView(collection: string, selector?: any): View {
+    return new DynamicDocumentView(this.collections[collection], selector);
   }
 
   @activate('tashmetu.Document')
