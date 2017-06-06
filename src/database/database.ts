@@ -6,6 +6,7 @@ import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
+import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {DynamicView, DynamicViewManager} from './view';
 import {find, reject, transform} from 'lodash';
@@ -71,6 +72,7 @@ export class DatabaseService extends EventEmitter implements Database
       collection.addRoutine(routine);
     });
     collection.addCacheEvaluator(new QueryHashEvaluator());
+    collection.addCacheEvaluator(new DocumentIdEvaluator());
     this.viewManagers[meta.name] = new DynamicViewManager(collection);
 
     if (this.isServer()) {
