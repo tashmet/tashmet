@@ -7,9 +7,7 @@ import * as Promise from 'bluebird';
 export interface Database {
   collection(name: string): Collection;
 
-  createView(collection: string, selector?: any, options?: any): View;
-
-  createDocumentView(collection: string, selector?: any): View;
+  view(name: string, collection: string): View;
 
   on(event: string, fn: any): void;
 }
@@ -36,6 +34,10 @@ export interface RemoteDatabase {
 }
 
 export interface View {
+  applySelector(selector: any): View;
+
+  applyOptions(options: QueryOptions): View;
+
   refresh(): View;
 
   on(event: 'data-updated', fn: (results: any[]) => void): View;

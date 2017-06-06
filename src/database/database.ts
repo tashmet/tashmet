@@ -6,7 +6,7 @@ import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
-import {find, reject, transform} from 'lodash';
+import {find, reject, transform, values} from 'lodash';
 import * as Promise from 'bluebird';
 
 export class QueryHashEvaluator implements CacheEvaluator {
@@ -33,87 +33,66 @@ export class QueryHashEvaluator implements CacheEvaluator {
   }
 }
 
-export abstract class DynamicViewBase extends EventEmitter {
-  protected triggered = false;
-  protected updating = false;
+export class DynamicView extends EventEmitter implements View {
+  public selector: any = {};
+  public options: QueryOptions = {};
 
   public constructor(
-    protected collection: Collection,
-    protected selector: any
+    public name: string
   ) {
     super();
-
-    collection.on('document-upserted', (doc: any) => {
-      if (this.triggered && !this.updating) {
-        this.updating = true;
-        this.onUpdate(doc).then(() => {
-          this.updating = false;
-          this.triggered = true;
-        });
-      }
-    });
-    collection.on('document-removed', (doc: any) => {
-      if (this.triggered && !this.updating) {
-        this.updating = true;
-        this.onUpdate(doc).then(() => {
-          this.updating = false;
-          this.triggered = true;
-        });
-      }
-    });
   }
 
-  public refresh(): View {
-    this.updating = true;
-    this.onUpdate();
+  public applySelector(selector: any): View {
+    this.selector = selector;
     return this;
   }
 
-  public applySelector(selector: any): void {
-    this.selector = selector;
-    this.refresh();
+  public applyOptions(options: QueryOptions): View {
+    this.options = options;
+    return this;
   }
 
-  protected abstract onUpdate(doc?: any): Promise<any>;
-}
-
-export class DynamicView extends DynamicViewBase implements View {
-  public constructor(
-    collection: Collection,
-    selector: any,
-    private options: any
-  ) {
-    super(collection, selector);
-  }
-
-  protected onUpdate(doc?: any): Promise<any> {
-    let self = this;
-    return this.collection.find(this.selector, this.options)
-      .then((result: any) => {
-        if (!doc || find(result, ['_id', doc._id])) {
-          self.emit('data-updated', result);
-        }
-      });
+  public refresh(): View {
+    this.emit('refresh');
+    return this;
   }
 }
 
-export class DynamicDocumentView extends DynamicViewBase implements View {
-  public constructor(
-    collection: Collection,
-    selector: any
-  ) {
-    super(collection, selector);
+export class DynamicViewManager {
+  private views: {[name: string]: DynamicView} = {};
+
+  public constructor(private collection: CollectionController) {
+    collection.on('document-upserted', (doc: any) => {
+      this.onDocumentUpdated(doc);
+    });
+    collection.on('document-removed', (doc: any) => {
+      this.onDocumentUpdated(doc);
+    });
   }
 
-  protected onUpdate(doc?: any): Promise<any> {
-    let self = this;
-    return this.collection.findOne(this.selector)
-      .then((result: any) => {
-        self.emit('data-updated', result);
-      })
-      .catch((err: any) => {
-        return;
+  public getView(name: string): View {
+    if (!this.views[name]) {
+      let view = new DynamicView(name);
+      view.on('refresh', () => {
+        this.collection.find(view.selector, view.options).then((results: any[]) => {
+          view.emit('data-updated', results);
+        });
       });
+      this.views[name] = view;
+    }
+    return this.views[name];
+  }
+
+  private onDocumentUpdated(doc: any) {
+    Promise.each(values(this.views), (view: DynamicView) => {
+      return this.collection.cache.find(view.selector, view.options)
+        .then((documents: any[]) => {
+          if (find(documents, ['_id', doc._id])) {
+            view.emit('data-updated', documents);
+          }
+        });
+    });
   }
 }
 
@@ -123,7 +102,8 @@ export class DynamicDocumentView extends DynamicViewBase implements View {
 })
 export class DatabaseService extends EventEmitter implements Database
 {
-  private collections: {[name: string]: Collection} = {};
+  private collections: {[name: string]: CollectionController} = {};
+  private viewManagers: {[name: string]: DynamicViewManager} = {};
   private syncedCount = 0;
 
   @inject('tashmetu.DatabaseConfig') private dbConfig: DatabaseConfig;
@@ -136,12 +116,8 @@ export class DatabaseService extends EventEmitter implements Database
     return this.collections[name];
   }
 
-  public createView(collection: string, selector?: any, options?: any): View {
-    return new DynamicView(this.collections[collection], selector, options);
-  }
-
-  public createDocumentView(collection: string, selector?: any): View {
-    return new DynamicDocumentView(this.collections[collection], selector);
+  public view(name: string, collection: string): View {
+    return this.viewManagers[collection].getView(name);
   }
 
   @activate('tashmetu.Document')
@@ -180,6 +156,7 @@ export class DatabaseService extends EventEmitter implements Database
       collection.addRoutine(routine);
     });
     collection.addCacheEvaluator(new QueryHashEvaluator());
+    this.viewManagers[meta.name] = new DynamicViewManager(collection);
 
     if (this.isServer()) {
       if (meta.populateAfter.length > 0) {
