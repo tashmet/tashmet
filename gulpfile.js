@@ -3,6 +3,8 @@
 var gulp        = require('gulp'),
     tslint      = require('gulp-tslint'),
     tsc         = require('gulp-typescript'),
+    batch       = require('gulp-batch'),
+    watch       = require('gulp-watch'),
     runSequence = require('run-sequence');
 
 // Lint
@@ -50,6 +52,14 @@ gulp.task('build-dts', function() {
     process.exit(1);
   })
   .dts.pipe(gulp.dest('dts'));
+});
+
+// Watch
+//-----------------------------------------------------------------------------
+gulp.task('watch', function () {
+  watch('src/**/*.ts', batch(function (events, done) {
+    gulp.start('default', done);
+  }));
 });
 
 // Default
