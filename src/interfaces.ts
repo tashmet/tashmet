@@ -129,6 +129,8 @@ export interface CacheEvaluator {
   setCached(selector: any, options: QueryOptions): void;
 
   add(doc: any): void;
+
+  optimizeQuery(selector: any, options: QueryOptions): any;
 }
 
 export class DocumentError extends Error {

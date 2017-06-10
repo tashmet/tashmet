@@ -1,7 +1,7 @@
 import {CacheEvaluator, QueryOptions} from '../../interfaces';
 
 export class QueryHashEvaluator implements CacheEvaluator {
-  private cachedQueries: {[query: string]: any} = {};
+  protected cachedQueries: {[query: string]: any} = {};
 
   public isCached(selector: any, options: QueryOptions): boolean {
     return this.hash(selector, options) in this.cachedQueries;
@@ -19,7 +19,11 @@ export class QueryHashEvaluator implements CacheEvaluator {
     */
   }
 
-  private hash(selector: Object, options: QueryOptions): string {
-    return JSON.stringify(selector) + JSON.stringify(options);
+  public optimizeQuery(selector: any, options: QueryOptions): any {
+    return {selector: selector, options: options};
+  }
+
+  protected hash(selector: Object, options?: QueryOptions): string {
+    return JSON.stringify(selector) + JSON.stringify(options || {});
   }
 }

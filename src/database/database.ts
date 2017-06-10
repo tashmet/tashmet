@@ -8,6 +8,7 @@ import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from '../util';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
+import {RangeEvaluator} from './cache/range';
 import {DynamicView, DynamicViewManager} from './view';
 import {find, reject, transform} from 'lodash';
 import * as Promise from 'bluebird';
@@ -73,6 +74,7 @@ export class DatabaseService extends EventEmitter implements Database
     });
     collection.addCacheEvaluator(new QueryHashEvaluator());
     collection.addCacheEvaluator(new DocumentIdEvaluator());
+    collection.addCacheEvaluator(new RangeEvaluator());
     this.viewManagers[meta.name] = new DynamicViewManager(collection);
 
     if (this.isServer()) {

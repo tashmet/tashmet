@@ -13,4 +13,8 @@ export class DocumentIdEvaluator implements CacheEvaluator {
   public add(doc: any) {
     this.ids[doc._id] = true;
   }
+
+  public optimizeQuery(selector: any, options: QueryOptions): any {
+    return {selector: selector, options: options};
+  }
 }

@@ -149,7 +149,8 @@ export class CollectionController extends Controller implements Collection {
     if (this.isCached(selector, options)) {
       return this._cache.find(selector, options);
     }
-    return this._source.find(selector, options)
+    let optQuery = this.optimizeQuery(selector, options);
+    return this._source.find(optQuery.selector, optQuery.options)
       .then((documents: any[]) => {
         let cachePromises = map(documents, (doc: any) => {
           return this.upsertCache(doc);
@@ -220,6 +221,15 @@ export class CollectionController extends Controller implements Collection {
     this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
       ce.setCached(selector || {}, options || {});
     });
+  }
+
+  private optimizeQuery(selector?: Object, options?: QueryOptions): any {
+    let query = {selector: selector, options: options};
+
+    this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
+      query = ce.optimizeQuery(query.selector || {}, query.options || {});
+    });
+    return query;
   }
 
   private populateBuffer(docs: any[]): Promise<any> {
