@@ -5,6 +5,7 @@ var gulp        = require('gulp'),
     tsc         = require('gulp-typescript'),
     batch       = require('gulp-batch'),
     watch       = require('gulp-watch'),
+    exec        = require('child_process').exec,
     runSequence = require('run-sequence');
 
 // Lint
@@ -16,6 +17,16 @@ gulp.task('lint', function() {
   ])
   .pipe(tslint(config))
   .pipe(tslint.report());
+});
+
+// Test
+//-----------------------------------------------------------------------------
+gulp.task('test', function(cb) {
+  exec('npm test', function (err, stdout, stderr) {
+    console.log(stdout);
+    console.log(stderr);
+    cb(err);
+  });
 });
 
 var tstProject = tsc.createProject('tsconfig.json', {
@@ -57,7 +68,7 @@ gulp.task('build-dts', function() {
 // Watch
 //-----------------------------------------------------------------------------
 gulp.task('watch', function () {
-  watch('src/**/*.ts', batch(function (events, done) {
+  watch(['src/**/*.ts', 'test/**/*.ts'], batch(function (events, done) {
     gulp.start('default', done);
   }));
 });
@@ -65,5 +76,5 @@ gulp.task('watch', function () {
 // Default
 //-----------------------------------------------------------------------------
 gulp.task('default', function (cb) {
-  runSequence('lint', ['build', 'build-dts'], cb);
+  runSequence('lint', 'test', ['build', 'build-dts'], cb);
 });
