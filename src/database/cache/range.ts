@@ -2,7 +2,7 @@ import {QueryOptions} from '../../interfaces';
 import {QueryHashEvaluator} from './queryHash';
 import {cloneDeep, some} from 'lodash';
 
-class Range {
+export class Range {
   public constructor(public start: number, public end: number) {}
 
   public contains(other: Range): boolean {
