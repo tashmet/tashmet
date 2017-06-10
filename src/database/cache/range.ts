@@ -10,7 +10,9 @@ export class Range {
   }
 
   public overlapLength(other: Range): number {
-    return Math.max(Math.min(this.end, other.end) - Math.max(this.start, other.start), 0);
+    const minEnd = Math.min(this.end, other.end);
+    const maxStart = Math.max(this.start, other.start);
+    return Math.max(minEnd - maxStart + 1, 0);
   }
 }
 
