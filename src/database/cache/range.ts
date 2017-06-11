@@ -16,14 +16,14 @@ export class Range {
   }
 }
 
-class RangeSet {
+export class RangeSet {
   private ranges: Range[] = [];
 
   public add(range: Range) {
     let startIndex = this.getStartIndex(range);
     let endIndex = this.getEndIndex(range);
 
-    if (this.ranges.length === 0) {
+    if (this.ranges.length === 0 || startIndex === this.ranges.length) {
       this.ranges.push(range);
     } else {
       range.start = Math.min(range.start, this.ranges[startIndex].start);
@@ -49,9 +49,13 @@ class RangeSet {
     return bestMatch;
   }
 
+  public size(): number {
+    return this.ranges.length;
+  }
+
   private getStartIndex(range: Range) {
     for (let i = 0; i < this.ranges.length; i++) {
-      if (range.start <= this.ranges[i].start) {
+      if (range.start <= this.ranges[i].end) {
         return i;
       }
     }
