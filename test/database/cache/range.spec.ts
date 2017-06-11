@@ -124,5 +124,18 @@ describe('RangeSet', () => {
       expect(set.contains(new Range(3, 4))).to.equal(false);
       expect(set.contains(new Range(0, 5))).to.equal(false);
     });
+    it('should merge one overlapping range', () => {
+      set.add(new Range(6, 7));
+
+      expect(set.size()).to.equal(2);
+      expect(set.contains(new Range(5, 7))).to.equal(true);
+    });
+    it('should merge into single range', () => {
+      set.add(new Range(1, 8));
+
+      expect(set.size()).to.equal(1);
+      expect(set.contains(new Range(0, 8))).to.equal(true);
+      expect(set.contains(new Range(4, 9))).to.equal(false);
+    });
   });
 });
