@@ -138,4 +138,41 @@ describe('RangeSet', () => {
       expect(set.contains(new Range(4, 9))).to.equal(false);
     });
   });
+
+  describe('largest overlap', () => {
+    describe('with no ranges', () => {
+      const set = new RangeSet();
+
+      it('should be undefined for empty set', () => {
+        expect(set.findLargestOverlap(new Range(0, 0))).to.equal(undefined);
+      });
+    });
+
+    describe('with single range', () => {
+      const set = new RangeSet();
+      const r1 = new Range(2, 5);
+      set.add(r1);
+
+      it('should be undefined for range outside', () => {
+        expect(set.findLargestOverlap(new Range(6, 8))).to.equal(undefined);
+      });
+      it('should be the one range if overlapping', () => {
+        expect(set.findLargestOverlap(new Range(3, 7))).to.equal(r1);
+      });
+    });
+
+    describe('with multiple ranges', () => {
+      const set = new RangeSet();
+      const r1 = new Range(2, 5);
+      const r2 = new Range(8, 13);
+      set.add(r1);
+      set.add(r2);
+
+      it('should be the range with largest overlap', () => {
+        expect(set.findLargestOverlap(new Range(1, 7))).to.equal(r1);
+        expect(set.findLargestOverlap(new Range(5, 9))).to.equal(r2);
+        expect(set.findLargestOverlap(new Range(4, 8))).to.equal(r1);
+      });
+    });
+  });
 });

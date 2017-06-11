@@ -39,14 +39,16 @@ export class RangeSet {
   }
 
   public findLargestOverlap(range: Range): Range | undefined {
-    let overlapLength = 0;
-    let bestMatch: Range | undefined = undefined;
+    let largestOverlapLength = 0;
+    let largestRange: Range | undefined = undefined;
     this.ranges.forEach((r: Range) => {
-      if (range.overlapLength(r) > overlapLength) {
-        bestMatch = r;
+      const overlapLength = range.overlapLength(r);
+      if (overlapLength > largestOverlapLength) {
+        largestOverlapLength = overlapLength;
+        largestRange = r;
       }
     });
-    return bestMatch;
+    return largestRange;
   }
 
   public size(): number {
