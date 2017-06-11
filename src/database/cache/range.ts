@@ -77,7 +77,7 @@ export class RangeSet {
 export class RangeEvaluator extends QueryHashEvaluator {
   public isCached(selector: any, options: QueryOptions): boolean {
     let matchingRanges: RangeSet = this.findCachedRanges(selector, options);
-    return matchingRanges && matchingRanges.contains(this.createRange(options));
+    return Boolean(matchingRanges && matchingRanges.contains(this.createRange(options)));
   }
 
   public setCached(selector: any, options: QueryOptions) {

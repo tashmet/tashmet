@@ -176,3 +176,32 @@ describe('RangeSet', () => {
     });
   });
 });
+
+describe('RangeEvaluator', () => {
+  let evaluator = new RangeEvaluator();
+
+  it('should initially have no cached ranges', () => {
+    expect(evaluator.isCached({}, {})).to.equal(false);
+  });
+  it('should cache one range', () => {
+    expect(evaluator.setCached({}, {limit: 2}));
+    expect(evaluator.isCached({}, {})).to.equal(false);
+    expect(evaluator.isCached({}, {limit: 2})).to.equal(true);
+  });
+  it('should not have cached results for a different selector', () => {
+    expect(evaluator.isCached({test: 2}, {limit: 2})).to.equal(false);
+  });
+  it('should cache contained ranges', () => {
+    expect(evaluator.isCached({}, {limit: 1})).to.equal(true);
+    expect(evaluator.isCached({}, {offset: 1, limit: 1})).to.equal(true);
+  });
+  it('should optimize queries', () => {
+    expect(evaluator.optimizeQuery({}, {offset: 1, limit: 3})).to.deep.equal({
+      selector: {},
+      options: {
+        offset: 2,
+        limit: 2
+      }
+    });
+  });
+});
