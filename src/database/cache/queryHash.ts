@@ -11,13 +11,7 @@ export class QueryHashEvaluator implements CacheEvaluator {
     this.cachedQueries[this.hash(selector, options)] = options;
   }
 
-  public add(doc: any) {
-    /*
-    this.cachedQueries = reject(this.cachedQueries, (options: QueryOptions) => {
-      return Object.keys(options).length > 0;
-    });
-    */
-  }
+  public add(doc: any) { return; }
 
   public optimizeQuery(selector: any, options: QueryOptions): any {
     return {selector: selector, options: options};
