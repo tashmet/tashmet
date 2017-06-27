@@ -1,5 +1,6 @@
 import {injectable} from '@samizdatjs/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
+import {QueryHashEvaluator} from '../database/cache/queryHash';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
   RevisionUpsertPipe, Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {DocumentController} from './document';
@@ -21,6 +22,7 @@ export class CollectionController extends Controller implements Collection {
   private populating = false;
   private upsertQueue: string[] = [];
   private cacheEvaluators: CacheEvaluator[] = [];
+  private countCacheEvaluator: CacheEvaluator = new QueryHashEvaluator();
   private populatePromise: Promise<Collection>;
 
   public constructor() {
@@ -195,7 +197,7 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public count(selector?: Object): Promise<number> {
-    if (this.isCached(selector)) {
+    if (this.isCached(selector) || this.countCacheEvaluator.isCached(selector, {})) {
       return this._cache.count(selector);
     }
     return this._source.count(selector);
@@ -228,6 +230,7 @@ export class CollectionController extends Controller implements Collection {
     this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
       ce.setCached(selector || {}, options || {});
     });
+    this.countCacheEvaluator.setCached(selector, {});
   }
 
   private optimizeQuery(selector?: Object, options?: QueryOptions): any {
