@@ -71,6 +71,12 @@ class MemoryCollection extends EventEmitter implements Collection {
     return Promise.resolve(obj);
   }
 
+  public count(selector?: Object): Promise<number> {
+    return this.find(selector).then((result: any[]) => {
+      return result.length;
+    });
+  }
+
   public name(): string {
     return this._name;
   }

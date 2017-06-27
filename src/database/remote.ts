@@ -56,21 +56,6 @@ class RemoteCollection extends EventEmitter implements Collection {
   }
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
-    let query = this._path;
-    let params: {[name: string]: string} = {};
-    if (selector && Object.keys(selector).length > 0) {
-      params['selector'] = JSON.stringify(selector);
-    }
-    if (options && Object.keys(options).length > 0) {
-      params['options'] = JSON.stringify(options);
-    }
-    if (Object.keys(params).length > 0) {
-      const esc = encodeURIComponent;
-      query = query + '?' + Object.keys(params)
-          .map(k => esc(k) + '=' + esc(params[k]))
-          .join('&');
-    }
-
     let xhttp = new XMLHttpRequest();
     return new Promise((resolve) => {
       xhttp.onreadystatechange = function() {
@@ -78,7 +63,7 @@ class RemoteCollection extends EventEmitter implements Collection {
           resolve(JSON.parse(xhttp.responseText));
         }
       };
-      xhttp.open('GET', query, true);
+      xhttp.open('GET', this.createQuery(selector, options), true);
       xhttp.send();
     });
   }
@@ -95,7 +80,43 @@ class RemoteCollection extends EventEmitter implements Collection {
     return Promise.resolve(obj);
   }
 
+  public count(selector?: Object): Promise<number> {
+    let xhttp = new XMLHttpRequest();
+    return new Promise<number>((resolve, reject) => {
+      xhttp.onreadystatechange = function() {
+        if (this.readyState === 4 && this.status === 200) {
+          let header = xhttp.getResponseHeader('X-total-count');
+          if (header) {
+            resolve(parseInt(header, 10));
+          } else {
+            reject(new Error('Failed to get "X-total-count" header'));
+          }
+        }
+      };
+      xhttp.open('HEAD', this.createQuery(selector), true);
+      xhttp.send();
+    });
+  }
+
   public name(): string {
     return this._path;
+  }
+
+  private createQuery(selector?: Object, options?: QueryOptions): string {
+    let query = this._path;
+    let params: {[name: string]: string} = {};
+    if (selector && Object.keys(selector).length > 0) {
+      params['selector'] = JSON.stringify(selector);
+    }
+    if (options && Object.keys(options).length > 0) {
+      params['options'] = JSON.stringify(options);
+    }
+    if (Object.keys(params).length > 0) {
+      const esc = encodeURIComponent;
+      query = query + '?' + Object.keys(params)
+          .map(k => esc(k) + '=' + esc(params[k]))
+          .join('&');
+    }
+    return query;
   }
 }

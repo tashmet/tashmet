@@ -28,6 +28,10 @@ export class CollectionBase extends EventEmitter implements Collection {
     return this.collection.upsert(obj);
   }
 
+  public count(selector?: Object): Promise<number> {
+    return this.collection.count(selector);
+  }
+
   public name(): string {
     return this.collection.name();
   }

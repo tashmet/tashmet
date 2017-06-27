@@ -48,7 +48,9 @@ export class DynamicViewManager {
       view.on('refresh', () => {
         this.collection.find(view.selector, view.options)
           .then((results: any[]) => {
-            view.emit('data-updated', results);
+            this.collection.count(view.selector).then((totalCount: number) => {
+              view.emit('data-updated', results, totalCount);
+            });
           });
       });
       this.views[name] = view;

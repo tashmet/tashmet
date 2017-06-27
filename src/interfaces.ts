@@ -85,6 +85,11 @@ export interface Collection {
   findOne(selector: Object): Promise<any>;
 
   /**
+   * Get the number of documents in the collection that matches a given selector.
+   */
+  count(selector?: Object): Promise<number>;
+
+  /**
    * Get the name of the collection.
    */
   name(): string;

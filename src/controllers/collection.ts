@@ -194,6 +194,13 @@ export class CollectionController extends Controller implements Collection {
       });
   }
 
+  public count(selector?: Object): Promise<number> {
+    if (this.isCached(selector)) {
+      return this._cache.count(selector);
+    }
+    return this._source.count(selector);
+  }
+
   public name(): string {
     return this._cache.name();
   }
