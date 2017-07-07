@@ -1,7 +1,7 @@
 import {inject, provider, activate} from '@samizdatjs/tiamat';
 import {Injector} from '@samizdatjs/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
-  CollectionMapping, View, CacheEvaluator, QueryOptions} from '../interfaces';
+  CollectionMapping, View, Filter, CacheEvaluator, QueryOptions} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
@@ -33,8 +33,8 @@ export class DatabaseService extends EventEmitter implements Database
     return this.collections[name];
   }
 
-  public view(name: string, collection: string): View {
-    return this.viewManagers[collection].getView(name);
+  public view(name: string, collection: string, filters?: Filter[]): View {
+    return this.viewManagers[collection].getView(name, filters || []);
   }
 
   @activate('tashmetu.Document')
