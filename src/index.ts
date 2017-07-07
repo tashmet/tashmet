@@ -7,6 +7,7 @@ export {CollectionBase} from './database/collection';
 export {Router} from './router';
 export {EventEmitter} from './util';
 export {remote} from './database/remote';
+export {SelectorFilter, PropertyFilter, FeedFilter, SortFilter} from './database/filters';
 export * from './interfaces';
 export * from './decorators';
 export * from './meta';
