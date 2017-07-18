@@ -13,7 +13,7 @@ export interface Database {
 }
 
 export interface DatabaseConfig {
-  mappings: CollectionMapping[];
+  sources: {[name: string]: Function};
 }
 
 /**

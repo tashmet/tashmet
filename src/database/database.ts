@@ -10,7 +10,7 @@ import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
 import {DynamicView, DynamicViewManager} from './view';
-import {find, reject, transform} from 'lodash';
+import {each, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
 @provider({
@@ -52,15 +52,9 @@ export class DatabaseService extends EventEmitter implements Database
     let meta = Reflect.getOwnMetadata('tashmetu:collection', collection.constructor);
 
     this.collections[meta.name] = collection;
-    this.dbConfig.mappings.forEach((mapping: CollectionMapping) => {
-      if (mapping.name === providerMeta.for) {
-        let source: Collection;
-        if (typeof mapping.source === 'string') {
-          source = this.injector.get<Collection>(mapping.source);
-        } else {
-          source = mapping.source(this.injector);
-        }
-        collection.setSource(source);
+    each(this.dbConfig.sources, (fact: Function, colName: string) => {
+      if (colName === providerMeta.for) {
+        collection.setSource(fact(this.injector));
       }
     });
     let cache = this.localDB.createCollection(meta.name);

@@ -3,7 +3,6 @@ import {component} from '@samizdatjs/tiamat';
 export {CollectionController} from './controllers/collection';
 export {DocumentController} from './controllers/document';
 export {Routine} from './controllers/routine';
-export {CollectionBase} from './database/collection';
 export {Router} from './router';
 export {EventEmitter} from './util';
 export {remote} from './database/remote';
