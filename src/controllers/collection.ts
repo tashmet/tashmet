@@ -112,7 +112,7 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public populate(): Promise<Collection> {
-    if (!this.populatePromise) {
+    if (!this.populatePromise && this._source) {
       this.populating = true;
       this.populatePromise = new Promise<Collection>((resolve) => {
         this._source.find()
