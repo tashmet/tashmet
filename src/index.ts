@@ -8,7 +8,6 @@ export {remote} from './database/remote';
 export {SelectorFilter, PropertyFilter, FeedFilter, SortFilter} from './database/filters';
 export * from './interfaces';
 export * from './decorators';
-export * from './meta';
 export * from './controllers/meta/decorators';
 
 import {RoutineAggregator} from './controllers/routine';

@@ -1,6 +1,6 @@
-import {classDecorator, propertyDecorator, PropertyMeta} from '@samizdatjs/tiamat';
+import {classDecorator, propertyDecorator, PropertyMeta,
+  TaggedClassAnnotation} from '@samizdatjs/tiamat';
 import {ControllerDecorator, HookDecorator} from './writers';
-import {TaggedClassAnnotation} from '../../meta';
 
 /**
  *

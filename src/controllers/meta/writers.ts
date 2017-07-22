@@ -1,6 +1,6 @@
-import {PropertyMeta, PropertyDecorator} from '@samizdatjs/tiamat';
+import {PropertyMeta, PropertyDecorator,
+  TaggedClassAnnotation} from '@samizdatjs/tiamat';
 import {CollectionConfig, HookConfig, HookMeta} from './decorators';
-import {TaggedClassAnnotation} from '../../meta';
 import {uniq} from 'lodash';
 
 export class ControllerDecorator extends TaggedClassAnnotation<CollectionConfig> {
