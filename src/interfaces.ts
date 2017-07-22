@@ -147,7 +147,7 @@ export class DocumentError extends Error {
 
   public constructor(public instance: any, message: string) {
     super(message);
-  };
+  }
 }
 
 export interface Document {

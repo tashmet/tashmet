@@ -1,5 +1,5 @@
 import {View, QueryOptions, Filter} from '../interfaces';
-import {EventEmitter} from '../util';
+import {EventEmitter} from 'eventemitter3';
 import {CollectionController} from '../controllers/collection';
 import {find, values} from 'lodash';
 import * as Promise from 'bluebird';

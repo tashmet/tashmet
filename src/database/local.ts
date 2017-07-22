@@ -1,6 +1,6 @@
 import {LocalDatabase, Collection, QueryOptions} from '../interfaces';
 import {provider} from '@samizdatjs/tiamat';
-import {EventEmitter} from '../util';
+import {EventEmitter} from 'eventemitter3';
 import * as loki from 'lokijs';
 import * as Promise from 'bluebird';
 

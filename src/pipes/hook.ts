@@ -17,7 +17,7 @@ export class HookablePipe implements Pipe {
       .step('before', this.hooksBefore)
       .step('pipe',   pipe)
       .step('after',  this.hooksAfter);
-  };
+  }
 
   public before(hook: Pipe): void {
     this.hooksBefore.push(hook);

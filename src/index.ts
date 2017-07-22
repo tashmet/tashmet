@@ -4,7 +4,6 @@ export {CollectionController} from './controllers/collection';
 export {DocumentController} from './controllers/document';
 export {Routine} from './controllers/routine';
 export {Router} from './router';
-export {EventEmitter} from './util';
 export {remote} from './database/remote';
 export {SelectorFilter, PropertyFilter, FeedFilter, SortFilter} from './database/filters';
 export * from './interfaces';

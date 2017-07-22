@@ -5,7 +5,7 @@ import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
-import {EventEmitter} from '../util';
+import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';

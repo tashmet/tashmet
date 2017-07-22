@@ -1,5 +1,5 @@
 import {View, QueryOptions, Filter} from '../interfaces';
-import {EventEmitter} from '../util';
+import {EventEmitter} from 'eventemitter3';
 import {extend} from 'lodash';
 
 export class BaseFilter extends EventEmitter implements Filter {

@@ -1,5 +1,5 @@
 import {Pipe} from '../interfaces';
-import {EventEmitter} from '../util';
+import {EventEmitter} from 'eventemitter3';
 import * as Promise from 'bluebird';
 
 /**

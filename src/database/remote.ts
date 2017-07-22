@@ -1,6 +1,6 @@
 import {provider, inject, Injector} from '@samizdatjs/tiamat';
 import {RemoteDatabase, Collection, QueryOptions} from '../interfaces';
-import {EventEmitter} from '../util';
+import {EventEmitter} from 'eventemitter3';
 import * as loki from 'lokijs';
 import * as Promise from 'bluebird';
 import * as io from 'socket.io-client';
