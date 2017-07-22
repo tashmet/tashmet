@@ -1,4 +1,4 @@
-import {injectable, provider, activate, ProviderConfig} from '@samizdatjs/tiamat';
+import {injectable, provider, activate} from '@samizdatjs/tiamat';
 import {Collection} from '../interfaces';
 import {RoutineConfig} from './meta/decorators';
 import {intersection} from 'lodash';
