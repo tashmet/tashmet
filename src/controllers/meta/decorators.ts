@@ -39,7 +39,7 @@ export const document = classDecorator<DocumentConfig>(
 
 
 export interface RoutineConfig {
-  host: any;
+  appliesTo: string[];
 }
 
 export const routine = classDecorator<RoutineConfig>(

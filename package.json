@@ -1,6 +1,6 @@
 {
   "name": "@samizdatjs/tashmetu",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "Tashmetu is a document storage and processing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -10,7 +10,7 @@
   "author": "Björn Andersson",
   "license": "MIT",
   "dependencies": {
-    "@samizdatjs/tiamat": "0.4.0",
+    "@samizdatjs/tiamat": "^0.4.1",
     "bluebird": "^3.5.0",
     "eventemitter3": "^2.0.2",
     "json-schema-defaults": "^0.3.0",

@@ -1,5 +1,7 @@
-import {injectable, provider, activate} from '@samizdatjs/tiamat';
+import {injectable, provider, activate, ProviderConfig} from '@samizdatjs/tiamat';
+import {Collection} from '../interfaces';
 import {RoutineConfig} from './meta/decorators';
+import {intersection} from 'lodash';
 
 @provider({
   for: 'tashmetu.RoutineAggregator',
@@ -14,19 +16,26 @@ export class RoutineAggregator {
     return routine;
   }
 
-  public getRoutines(host: any): Routine<any>[] {
+  public getRoutines(collection: Collection): Routine<any>[] {
     let result: Routine<any>[] = [];
+    let tags = this.getTags(collection);
 
     this.routines.forEach((routine: any) => {
       let meta: RoutineConfig = Reflect.getOwnMetadata(
         'tashmetu:routine', routine.constructor);
 
-      if (host instanceof meta.host) {
+      if (intersection(tags, meta.appliesTo).length > 0) {
         result.push(routine);
       }
     });
 
     return result;
+  }
+
+  private getTags(collection: any): string[] {
+    let meta: ProviderConfig = Reflect.getOwnMetadata(
+      'tiamat:provider', collection.constructor);
+    return meta.tagged || [];
   }
 }
 
