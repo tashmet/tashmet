@@ -33,9 +33,7 @@ export class RoutineAggregator {
   }
 
   private getTags(collection: any): string[] {
-    let meta: ProviderConfig = Reflect.getOwnMetadata(
-      'tiamat:provider', collection.constructor);
-    return meta.tagged || [];
+    return Reflect.getMetadata('tiamat:tags', collection.constructor) || [];
   }
 }
 

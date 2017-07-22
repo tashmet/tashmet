@@ -1,6 +1,6 @@
 {
   "name": "@samizdatjs/tashmetu",
-  "version": "0.17.1",
+  "version": "0.17.2",
   "description": "Tashmetu is a document storage and processing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"

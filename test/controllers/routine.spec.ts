@@ -6,7 +6,7 @@ import {expect} from 'chai';
 import 'mocha';
 
 @routine({
-  appliesTo: ['tag1', 'tag3']
+  appliesTo: ['tag1', 'tag2']
 })
 class Routine1 extends Routine<CollectionController> {}
 
@@ -38,12 +38,12 @@ describe('RoutineAggregator', () => {
   describe('collection matching no routines', () => {
     @provider({
       for: 'bar',
-      tagged: ['tag2']
+      tagged: ['tag4']
     })
-    class TaggedCollection1 extends CollectionController {}
+    class TaggedCollection extends CollectionController {}
 
     it('should have one routine', () => {
-      expect(ra.getRoutines(new TaggedCollection1()))
+      expect(ra.getRoutines(new TaggedCollection()))
         .to.be.an('array').that.is.empty;
     });
   });
@@ -51,12 +51,12 @@ describe('RoutineAggregator', () => {
   describe('collection matching a single routine', () => {
     @provider({
       for: 'bar',
-      tagged: ['tag1', 'tag2']
+      tagged: ['tag1']
     })
-    class TaggedCollection2 extends CollectionController {}
+    class TaggedCollection extends CollectionController {}
 
     it('should have one routine', () => {
-      expect(ra.getRoutines(new TaggedCollection2()))
+      expect(ra.getRoutines(new TaggedCollection()))
         .to.be.an('array')
         .that.has.length(1)
         .and.contains(r1);
@@ -66,12 +66,33 @@ describe('RoutineAggregator', () => {
   describe('collection matching multipe routines', () => {
     @provider({
       for: 'bar',
-      tagged: ['tag3']
+      tagged: ['tag1', 'tag3']
     })
-    class TaggedCollection3 extends CollectionController {}
+    class TaggedCollection extends CollectionController {}
 
     it('should have multiple routines', () => {
-      expect(ra.getRoutines(new TaggedCollection3()))
+      expect(ra.getRoutines(new TaggedCollection()))
+        .to.be.an('array')
+        .that.has.length(2)
+        .and.contains.members([r1, r2]);
+    });
+  });
+
+  describe('collection matching routines on different base classes', () => {
+    @provider({
+      for: 'foo',
+      tagged: ['tag2']
+    })
+    class TaggedCollection1 extends CollectionController {}
+
+    @provider({
+      for: 'bar',
+      tagged: ['tag3']
+    })
+    class TaggedCollection2 extends TaggedCollection1 {}
+
+    it('should have multiple routines', () => {
+      expect(ra.getRoutines(new TaggedCollection2()))
         .to.be.an('array')
         .that.has.length(2)
         .and.contains.members([r1, r2]);
