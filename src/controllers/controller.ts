@@ -1,4 +1,4 @@
-import {injectable, decorate} from '@samizdatjs/tiamat';
+import {injectable, decorate} from '@ziggurat/tiamat';
 import {HookMeta, HookConfig} from './meta/decorators';
 import {Routine} from './routine';
 import {Pipeline, Hook, HookablePipe, HookablePipeline} from '../pipes';
@@ -16,7 +16,7 @@ export class Controller extends EventEmitter {
 
   protected addHooks(host: any): void {
     const hooks: HookMeta[] = Reflect.getMetadata(
-      'tashmetu:hook', host.constructor) || [];
+      'isimud:hook', host.constructor) || [];
 
     hooks.forEach((hook: HookMeta) => {
       const pipe = new Hook(host, hook.key);

@@ -1,4 +1,4 @@
-import {injectable} from '@samizdatjs/tiamat';
+import {injectable} from '@ziggurat/tiamat';
 import {Collection, Document} from '../interfaces';
 import {Pipeline, HookablePipeline, Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {Controller} from './controller';
@@ -13,8 +13,8 @@ export class DocumentController extends Controller implements Document {
 
   public constructor() {
     super();
-    this.config = Reflect.getOwnMetadata('tashmetu:document', this.constructor);
-    this.schemas = Reflect.getMetadata('tashmetu:schemas', this.constructor);
+    this.config = Reflect.getOwnMetadata('isimud:document', this.constructor);
+    this.schemas = Reflect.getMetadata('isimud:schemas', this.constructor);
 
     this.pipes['input'] = new HookablePipeline(true)
       .step('validate', new Validator(this.schemas))
@@ -58,7 +58,7 @@ export class DocumentController extends Controller implements Document {
       .catch((err: Error) => {
         let doc = {_id: this.config.name};
         let schemas = this.schemas.concat(Reflect.getMetadata(
-          'tashmetu:schemas', this.collection.constructor));
+          'isimud:schemas', this.collection.constructor));
         return new MergeDefaults(schemas).process(doc);
     });
   }

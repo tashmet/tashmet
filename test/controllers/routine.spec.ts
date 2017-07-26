@@ -1,7 +1,7 @@
 import {RoutineAggregator} from '../../src/controllers/routine';
 import {CollectionController} from '../../src/controllers/collection';
 import {routine, Routine} from '../../src/index';
-import {decorate, provider} from '@samizdatjs/tiamat';
+import {decorate, provider} from '@ziggurat/tiamat';
 import {expect} from 'chai';
 import 'mocha';
 

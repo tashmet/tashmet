@@ -1,4 +1,4 @@
-import {Injector} from '@samizdatjs/tiamat';
+import {Injector} from '@ziggurat/tiamat';
 import * as Promise from 'bluebird';
 
 /**

@@ -1,7 +1,7 @@
 {
-  "name": "@samizdatjs/tashmetu",
-  "version": "0.17.3",
-  "description": "Tashmetu is a document storage and processing platform",
+  "name": "@ziggurat/isimud",
+  "version": "0.18.0",
+  "description": "Isimud is an isomorphic document storage and processing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
   },
@@ -10,7 +10,7 @@
   "author": "Björn Andersson",
   "license": "MIT",
   "dependencies": {
-    "@samizdatjs/tiamat": "^0.4.2",
+    "@ziggurat/tiamat": "^0.5.0",
     "bluebird": "^3.5.0",
     "eventemitter3": "^2.0.2",
     "json-schema-defaults": "^0.3.0",

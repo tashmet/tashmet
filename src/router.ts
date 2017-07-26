@@ -1,4 +1,4 @@
-import {injectable, PropertyMeta} from '@samizdatjs/tiamat';
+import {injectable, PropertyMeta} from '@ziggurat/tiamat';
 import {RouteConfig} from './decorators';
 import * as path2re from 'path-to-regexp';
 
@@ -7,7 +7,7 @@ export class Router<T> {
   private routes: PropertyMeta<RouteConfig>[];
 
   public constructor() {
-    this.routes = Reflect.getMetadata('tashmetu:route', this.constructor) || [];
+    this.routes = Reflect.getMetadata('isimud:route', this.constructor) || [];
   }
 
   public get(path: string): Promise<T> {

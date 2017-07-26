@@ -1,4 +1,4 @@
-import {injectable} from '@samizdatjs/tiamat';
+import {injectable} from '@ziggurat/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
 import {QueryHashEvaluator} from '../database/cache/queryHash';
 import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
@@ -28,7 +28,7 @@ export class CollectionController extends Controller implements Collection {
   public constructor() {
     super();
     let config: CollectionConfig = this.getMetaData(this.constructor);
-    let schemas = Reflect.getMetadata('tashmetu:schemas', this.constructor);
+    let schemas = Reflect.getMetadata('isimud:schemas', this.constructor);
 
     this.pipes['source-upsert'] = new HookablePipeline(true)
       .step('validate', new Validator(schemas))
@@ -217,7 +217,7 @@ export class CollectionController extends Controller implements Collection {
   }
 
   private getMetaData(constructor: any): CollectionConfig {
-    return Reflect.getOwnMetadata('tashmetu:collection', constructor);
+    return Reflect.getOwnMetadata('isimud:collection', constructor);
   }
 
   private isCached(selector?: Object, options?: QueryOptions): boolean {

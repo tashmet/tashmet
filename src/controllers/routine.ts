@@ -1,16 +1,16 @@
-import {injectable, provider, activate} from '@samizdatjs/tiamat';
+import {injectable, provider, activate} from '@ziggurat/tiamat';
 import {Collection} from '../interfaces';
 import {RoutineConfig} from './meta/decorators';
 import {intersection} from 'lodash';
 
 @provider({
-  for: 'tashmetu.RoutineAggregator',
+  for: 'isimud.RoutineAggregator',
   singleton: true
 })
 export class RoutineAggregator {
   private routines: Routine<any>[] = [];
 
-  @activate('tashmetu.Routine')
+  @activate('isimud.Routine')
   public addRoutine(routine: Routine<any>): Routine<any> {
     this.routines.push(routine);
     return routine;
@@ -22,7 +22,7 @@ export class RoutineAggregator {
 
     this.routines.forEach((routine: any) => {
       let meta: RoutineConfig = Reflect.getOwnMetadata(
-        'tashmetu:routine', routine.constructor);
+        'isimud:routine', routine.constructor);
 
       if (intersection(tags, meta.appliesTo).length > 0) {
         result.push(routine);

@@ -1,4 +1,4 @@
-import {component} from '@samizdatjs/tiamat';
+import {component} from '@ziggurat/tiamat';
 
 export {CollectionController} from './controllers/collection';
 export {DocumentController} from './controllers/document';
@@ -25,4 +25,4 @@ import {MustacheRenderer} from './renderer';
     MustacheRenderer
   ]
 })
-export class Tashmetu {}
+export class Isimud {}

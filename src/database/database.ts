@@ -1,5 +1,5 @@
-import {inject, provider, activate} from '@samizdatjs/tiamat';
-import {Injector} from '@samizdatjs/tiamat';
+import {inject, provider, activate} from '@ziggurat/tiamat';
+import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, View, Filter, CacheEvaluator, QueryOptions} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
@@ -14,7 +14,7 @@ import {each, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
 @provider({
-  for: 'tashmetu.Database',
+  for: 'isimud.Database',
   singleton: true
 })
 export class DatabaseService extends EventEmitter implements Database
@@ -23,10 +23,10 @@ export class DatabaseService extends EventEmitter implements Database
   private viewManagers: {[name: string]: DynamicViewManager} = {};
   private syncedCount = 0;
 
-  @inject('tashmetu.DatabaseConfig') private dbConfig: DatabaseConfig;
-  @inject('tashmetu.LocalDatabase') private localDB: LocalDatabase;
-  @inject('tashmetu.RemoteDatabase') private remoteDB: RemoteDatabase;
-  @inject('tashmetu.RoutineAggregator') private routineAggregator: RoutineAggregator;
+  @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
+  @inject('isimud.LocalDatabase') private localDB: LocalDatabase;
+  @inject('isimud.RemoteDatabase') private remoteDB: RemoteDatabase;
+  @inject('isimud.RoutineAggregator') private routineAggregator: RoutineAggregator;
   @inject('tiamat.Injector') private injector: Injector;
 
   public collection(name: string): Collection {
@@ -37,19 +37,19 @@ export class DatabaseService extends EventEmitter implements Database
     return this.viewManagers[collection].getView(name, filters || []);
   }
 
-  @activate('tashmetu.Document')
+  @activate('isimud.Document')
   private activateDocumentController(document: DocumentController): DocumentController {
-    let meta = Reflect.getOwnMetadata('tashmetu:document', document.constructor);
+    let meta = Reflect.getOwnMetadata('isimud:document', document.constructor);
     let collection = this.injector.get<CollectionController>(meta.collection);
     collection.addDocumentController(document);
     document.setCollection(collection);
     return document;
   }
 
-  @activate('tashmetu.Collection')
+  @activate('isimud.Collection')
   private activateCollectionController(collection: CollectionController): CollectionController {
     let providerMeta = Reflect.getOwnMetadata('tiamat:provider', collection.constructor);
-    let meta = Reflect.getOwnMetadata('tashmetu:collection', collection.constructor);
+    let meta = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
 
     this.collections[meta.name] = collection;
     each(this.dbConfig.sources, (fact: Function, colName: string) => {

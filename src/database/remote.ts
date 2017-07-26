@@ -1,4 +1,4 @@
-import {provider, inject, Injector} from '@samizdatjs/tiamat';
+import {provider, inject, Injector} from '@ziggurat/tiamat';
 import {RemoteDatabase, Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import * as loki from 'lokijs';
@@ -7,13 +7,13 @@ import * as io from 'socket.io-client';
 
 export function remote(path: string, name: string): any {
   return function(injector: Injector): Collection {
-    let database = injector.get<RemoteDatabase>('tashmetu.RemoteDatabase');
+    let database = injector.get<RemoteDatabase>('isimud.RemoteDatabase');
     return database.createCollection(path, name);
   };
 }
 
 @provider({
-  for: 'tashmetu.RemoteDatabase',
+  for: 'isimud.RemoteDatabase',
   singleton: true
 })
 export class RemoteDB implements RemoteDatabase {

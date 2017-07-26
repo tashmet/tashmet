@@ -1,5 +1,5 @@
 import {classDecorator, propertyDecorator, PropertyMeta,
-  TaggedClassAnnotation} from '@samizdatjs/tiamat';
+  TaggedClassAnnotation} from '@ziggurat/tiamat';
 import {ControllerDecorator, HookDecorator} from './writers';
 
 /**
@@ -23,7 +23,7 @@ export interface CollectionConfig extends ControllerConfig {
 }
 
 export const collection = classDecorator<CollectionConfig>(
-  new ControllerDecorator('tashmetu:collection', ['tashmetu.Collection']), {
+  new ControllerDecorator('isimud:collection', ['isimud.Collection']), {
     populateAfter: []
   });
 
@@ -35,7 +35,7 @@ export interface DocumentConfig extends ControllerConfig {
 }
 
 export const document = classDecorator<DocumentConfig>(
-  new ControllerDecorator('tashmetu:document', ['tashmetu.Document']));
+  new ControllerDecorator('isimud:document', ['isimud.Document']));
 
 
 export interface RoutineConfig {
@@ -43,7 +43,7 @@ export interface RoutineConfig {
 }
 
 export const routine = classDecorator<RoutineConfig>(
-  new TaggedClassAnnotation('tashmetu:routine', ['tashmetu.Routine']));
+  new TaggedClassAnnotation('isimud:routine', ['isimud.Routine']));
 
 /**
  * Input for hook decorators (before, after and error).

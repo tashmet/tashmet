@@ -1,11 +1,11 @@
 import {LocalDatabase, Collection, QueryOptions} from '../interfaces';
-import {provider} from '@samizdatjs/tiamat';
+import {provider} from '@ziggurat/tiamat';
 import {EventEmitter} from 'eventemitter3';
 import * as loki from 'lokijs';
 import * as Promise from 'bluebird';
 
 @provider({
-  for: 'tashmetu.LocalDatabase',
+  for: 'isimud.LocalDatabase',
   singleton: true
 })
 export class LocalDB implements LocalDatabase {
