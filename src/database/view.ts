@@ -1,37 +1,39 @@
 import {View, QueryOptions, Filter} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {CollectionController} from '../controllers/collection';
-import {find, values} from 'lodash';
+import {each, find, values} from 'lodash';
 import * as Promise from 'bluebird';
 
 export class DynamicView extends EventEmitter implements View {
   public selector: any = {};
   public options: QueryOptions = {};
   public data: any[] = [];
+  private filters: {[name: string]: Filter} = {};
 
   public constructor(
     public name: string,
-    private filters: Filter[]
   ) {
     super();
-
-    filters.forEach((filter: Filter) => {
-      filter.setView(this);
-      filter.on('filter-changed', () => {
-        this.refresh();
-      });
-    });
 
     this.on('data-updated', (results: any[], totalCount: number) => {
       this.data = results;
     });
   }
 
+  public addFilter(name: string, filter: Filter): View {
+    filter.setView(this);
+    filter.on('filter-changed', () => {
+      this.refresh();
+    });
+    this.filters[name] = filter;
+    return this;
+  }
+
   public refresh(): View {
     this.selector = {};
     this.options = {};
 
-    this.filters.forEach((f: Filter) => {
+    each(this.filters, (f: Filter) => {
       f.apply(this.selector, this.options);
     });
     this.emit('refresh');
@@ -51,9 +53,9 @@ export class DynamicViewManager {
     });
   }
 
-  public getView(name: string, filters: Filter[]): View {
+  public getView(name: string): View {
     if (!this.views[name]) {
-      let view = new DynamicView(name, filters);
+      let view = new DynamicView(name);
       view.on('refresh', () => {
         this.collection.find(view.selector, view.options)
           .then((results: any[]) => {

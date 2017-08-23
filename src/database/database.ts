@@ -33,8 +33,8 @@ export class DatabaseService extends EventEmitter implements Database
     return this.collections[name];
   }
 
-  public view(name: string, collection: string, filters?: Filter[]): View {
-    return this.viewManagers[collection].getView(name, filters || []);
+  public view(name: string, collection: string): View {
+    return this.viewManagers[collection].getView(name);
   }
 
   @activate('isimud.Document')

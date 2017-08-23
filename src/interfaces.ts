@@ -7,7 +7,7 @@ import * as Promise from 'bluebird';
 export interface Database {
   collection(name: string): Collection;
 
-  view(name: string, collection: string, filters?: Filter[]): View;
+  view(name: string, collection: string): View;
 
   on(event: string, fn: any): void;
 }
@@ -34,6 +34,8 @@ export interface RemoteDatabase {
 }
 
 export interface View {
+  addFilter(name: string, filter: Filter): View;
+
   refresh(): View;
 
   on(event: 'data-updated', fn: (results: any[], totalCount: number) => void): View;
