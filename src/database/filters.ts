@@ -2,8 +2,10 @@ import {View, QueryOptions, Filter, FeedFilter, SelectorFilter} from '../interfa
 import {EventEmitter} from 'eventemitter3';
 import {extend} from 'lodash';
 
-export class BaseFilter implements Filter {
-  public constructor(protected view: View) {}
+export class BaseFilter extends EventEmitter implements Filter {
+  public constructor(protected view: View) {
+    super();
+  }
 
   public apply(selector: any, options: QueryOptions): void {
     return;
@@ -16,14 +18,14 @@ export function selectorFilter(selector: any) {
   };
 }
 
-class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
+export class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
   public constructor(protected selector: any, view: View) {
     super(view);
   }
 
   public set(selector: any): void {
     this.selector = selector;
-    this.view.refresh();
+    this.emit('filter-changed');
   }
 
   public get(): any {
@@ -35,13 +37,46 @@ class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
   }
 }
 
+export function valueSelectorFilter(selector: any, initial: any) {
+  return function (view: View): SelectorFilter {
+    return new ValueSelectorFilterImpl(selector, initial, view);
+  };
+}
+
+export class ValueSelectorFilterImpl extends BaseFilter implements SelectorFilter {
+  protected selector: any = {};
+
+  public constructor(protected template: any, initial: any, view: View) {
+    super(view);
+    this.updateSelector(initial);
+  }
+
+  public set(value: any): void {
+    this.updateSelector(value);
+    this.emit('filter-changed');
+  }
+
+  public get(): any {
+    return this.selector;
+  }
+
+  public apply(selector: any, options: QueryOptions): void {
+    extend(selector, this.selector);
+  }
+
+  private updateSelector(value: any): void {
+    this.selector = JSON.parse(
+      JSON.stringify(this.template).replace('$value', value));
+  }
+}
+
 export function feedFilter(limit: number, increment: number) {
   return function (view: View): FeedFilter {
     return new FeedFilterImpl(limit, increment, view);
   };
 }
 
-class FeedFilterImpl extends BaseFilter implements FeedFilter {
+export class FeedFilterImpl extends BaseFilter implements FeedFilter {
   private _hasMore = true;
 
   public constructor(
@@ -57,7 +92,7 @@ class FeedFilterImpl extends BaseFilter implements FeedFilter {
 
   public loadMore(): void {
     this.limit += this.loadCount;
-    this.view.refresh();
+    this.emit('filter-changed');
   }
 
   public hasMore(): boolean {

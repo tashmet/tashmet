@@ -22,6 +22,9 @@ export class DynamicView extends EventEmitter implements View {
 
   public addFilter(name: string, provider: Function): View {
     this.filters[name] = provider(this);
+    this.filters[name].on('filter-changed', () => {
+      this.refresh();
+    });
     return this;
   }
 

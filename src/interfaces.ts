@@ -43,6 +43,8 @@ export interface View {
 
 export interface Filter {
   apply(selector: any, options: QueryOptions): void;
+
+  on(event: 'filter-changed', fn: Function): Filter;
 }
 
 export interface FeedFilter extends Filter {
