@@ -8,7 +8,7 @@ export class DynamicView extends EventEmitter implements View {
   public selector: any = {};
   public options: QueryOptions = {};
   public data: any[] = [];
-  private filters: {[name: string]: Filter} = {};
+  private filters: {[name: string]: any} = {};
 
   public constructor(
     public name: string,
@@ -20,13 +20,13 @@ export class DynamicView extends EventEmitter implements View {
     });
   }
 
-  public addFilter(name: string, filter: Filter): View {
-    filter.setView(this);
-    filter.on('filter-changed', () => {
-      this.refresh();
-    });
-    this.filters[name] = filter;
+  public addFilter(name: string, provider: Function): View {
+    this.filters[name] = provider(this);
     return this;
+  }
+
+  public filter<T>(name: string): T {
+    return <T>(this.filters[name]);
   }
 
   public refresh(): View {

@@ -1,22 +1,33 @@
-import {View, QueryOptions, Filter} from '../interfaces';
+import {View, QueryOptions, Filter, FeedFilter, SelectorFilter} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {extend} from 'lodash';
 
-export class BaseFilter extends EventEmitter implements Filter {
-  protected view: View;
+export class BaseFilter implements Filter {
+  public constructor(protected view: View) {}
 
   public apply(selector: any, options: QueryOptions): void {
     return;
   }
-
-  public setView(view: View): void {
-    this.view = view;
-  }
 }
 
-export class SelectorFilter extends BaseFilter {
-  public constructor(protected selector: any) {
-    super();
+export function selectorFilter(selector: any) {
+  return function (view: View): SelectorFilter {
+    return new SelectorFilterImpl(selector, view);
+  };
+}
+
+class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
+  public constructor(protected selector: any, view: View) {
+    super(view);
+  }
+
+  public set(selector: any): void {
+    this.selector = selector;
+    this.view.refresh();
+  }
+
+  public get(): any {
+    return this.selector;
   }
 
   public apply(selector: any, options: QueryOptions): void {
@@ -24,60 +35,33 @@ export class SelectorFilter extends BaseFilter {
   }
 }
 
-export abstract class PropertyFilter<T> extends BaseFilter {
-  protected value: T | null;
-
-  public constructor(
-    protected property: string,
-    protected operator: string
-  ) {
-    super();
-  }
-
-  public set(value: T | null): void {
-    this.value = value;
-    this.emit('filter-changed');
-  }
-
-  public reset(): void {
-    this.set(null);
-  }
-
-  public get(): T | null {
-    return this.value;
-  }
-
-  public apply(selector: any, options: QueryOptions): void {
-    if (this.value) {
-      selector[this.property] = {};
-      selector[this.property][this.operator] = this.value;
-    }
-  }
+export function feedFilter(limit: number, increment: number) {
+  return function (view: View): FeedFilter {
+    return new FeedFilterImpl(limit, increment, view);
+  };
 }
 
-export class FeedFilter extends BaseFilter {
+class FeedFilterImpl extends BaseFilter implements FeedFilter {
   private _hasMore = true;
 
   public constructor(
     private limit: number,
-    private loadCount: number
+    private loadCount: number,
+    view: View
   ) {
-    super();
+    super(view);
+    view.on('data-updated', (result: any[], totalCount: number) => {
+      this._hasMore = result.length < totalCount;
+    });
   }
 
   public loadMore(): void {
     this.limit += this.loadCount;
-    this.emit('filter-changed');
+    this.view.refresh();
   }
 
   public hasMore(): boolean {
     return this._hasMore;
-  }
-
-  public setView(view: View): void {
-    view.on('data-updated', (result: any[], totalCount: number) => {
-      this._hasMore = result.length < totalCount;
-    });
   }
 
   public apply(selector: any, options: QueryOptions): void {
@@ -85,9 +69,15 @@ export class FeedFilter extends BaseFilter {
   }
 }
 
-export class SortFilter extends BaseFilter {
-  public constructor(private sort: any) {
-    super();
+export function sortFilter(sort: any) {
+  return function (view: View): Filter {
+    return new SortFilterImpl(sort, view);
+  };
+}
+
+export class SortFilterImpl extends BaseFilter {
+  public constructor(private sort: any, view: View) {
+    super(view);
   }
 
   public apply(selector: any, options: QueryOptions): void {

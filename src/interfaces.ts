@@ -34,7 +34,7 @@ export interface RemoteDatabase {
 }
 
 export interface View {
-  addFilter(name: string, filter: Filter): View;
+  addFilter(name: string, filter: Function): View;
 
   refresh(): View;
 
@@ -43,10 +43,18 @@ export interface View {
 
 export interface Filter {
   apply(selector: any, options: QueryOptions): void;
+}
 
-  on(event: 'filter-changed', fn: Function): Filter;
+export interface FeedFilter extends Filter {
+  loadMore(): void;
 
-  setView(view: View): void;
+  hasMore(): boolean;
+}
+
+export interface SelectorFilter extends Filter {
+  get(): any;
+
+  set(selector: any): void;
 }
 
 /**
