@@ -45,26 +45,28 @@ export function valueSelectorFilter(selector: any, initial: any) {
 
 export class ValueSelectorFilterImpl extends BaseFilter implements SelectorFilter {
   protected selector: any = {};
+  protected value: any;
 
   public constructor(protected template: any, initial: any, view: View) {
     super(view);
-    this.updateSelector(initial);
+    this.update(initial);
   }
 
   public set(value: any): void {
-    this.updateSelector(value);
+    this.update(value);
     this.emit('filter-changed');
   }
 
   public get(): any {
-    return this.selector;
+    return this.value;
   }
 
   public apply(selector: any, options: QueryOptions): void {
     extend(selector, this.selector);
   }
 
-  private updateSelector(value: any): void {
+  private update(value: any): void {
+    this.value = value;
     this.selector = JSON.parse(
       JSON.stringify(this.template).replace('$value', value));
   }

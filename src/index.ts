@@ -5,7 +5,7 @@ export {DocumentController} from './controllers/document';
 export {Routine} from './controllers/routine';
 export {Router} from './router';
 export {remote} from './database/remote';
-export {selectorFilter, feedFilter, sortFilter} from './database/filters';
+export {selectorFilter, feedFilter, sortFilter, valueSelectorFilter} from './database/filters';
 export * from './interfaces';
 export * from './decorators';
 export * from './controllers/meta/decorators';
