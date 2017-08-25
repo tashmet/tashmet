@@ -56,7 +56,15 @@ export interface FeedFilter extends Filter {
 export interface SelectorFilter extends Filter {
   get(): any;
 
-  set(selector: any): void;
+  set(value: any): void;
+}
+
+export interface SelectorFilterConfig {
+  value?: any;
+
+  template?: any;
+
+  disabled?: boolean;
 }
 
 /**

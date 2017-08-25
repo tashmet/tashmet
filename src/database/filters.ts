@@ -1,4 +1,4 @@
-import {View, QueryOptions, Filter, FeedFilter, SelectorFilter} from '../interfaces';
+import {View, QueryOptions, Filter, FeedFilter, SelectorFilter, SelectorFilterConfig} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {extend} from 'lodash';
 
@@ -12,63 +12,43 @@ export class BaseFilter extends EventEmitter implements Filter {
   }
 }
 
-export function selectorFilter(selector: any) {
+export function selectorFilter(config: SelectorFilterConfig) {
   return function (view: View): SelectorFilter {
-    return new SelectorFilterImpl(selector, view);
+    return new SelectorFilterImpl(config, view);
   };
 }
 
 export class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
-  public constructor(protected selector: any, view: View) {
+  public constructor(protected config: SelectorFilterConfig, view: View) {
     super(view);
-  }
-
-  public set(selector: any): void {
-    this.selector = selector;
-    this.emit('filter-changed');
-  }
-
-  public get(): any {
-    return this.selector;
-  }
-
-  public apply(selector: any, options: QueryOptions): void {
-    extend(selector, this.selector);
-  }
-}
-
-export function valueSelectorFilter(selector: any, initial: any) {
-  return function (view: View): SelectorFilter {
-    return new ValueSelectorFilterImpl(selector, initial, view);
-  };
-}
-
-export class ValueSelectorFilterImpl extends BaseFilter implements SelectorFilter {
-  protected selector: any = {};
-  protected value: any;
-
-  public constructor(protected template: any, initial: any, view: View) {
-    super(view);
-    this.update(initial);
   }
 
   public set(value: any): void {
-    this.update(value);
+    this.config.value = value;
+    this.config.disabled = false;
     this.emit('filter-changed');
   }
 
   public get(): any {
-    return this.value;
+    return this.config.value;
+  }
+
+  public disable(): void {
+    this.config.disabled = true;
+    this.emit('filter-changed');
   }
 
   public apply(selector: any, options: QueryOptions): void {
-    extend(selector, this.selector);
-  }
-
-  private update(value: any): void {
-    this.value = value;
-    this.selector = JSON.parse(
-      JSON.stringify(this.template).replace('$value', value));
+    if (this.config.disabled) {
+      return;
+    }
+    if (this.config.template) {
+      let computed = JSON.parse(
+        JSON.stringify(this.config.template).replace('?', this.config.value));
+      extend(selector, computed);
+    } else {
+      extend(selector, this.config.value);
+    }
   }
 }
 
