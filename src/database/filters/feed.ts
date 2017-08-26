@@ -1,17 +1,17 @@
-import {View, QueryOptions, Filter, FeedFilter, FeedFilterConfig} from '../../interfaces';
+import {View, QueryOptions, Filter, Feed, FeedConfig} from '../../interfaces';
 import {BaseFilter} from './base';
 
-export function feedFilter(config: FeedFilterConfig) {
-  return function (view: View): FeedFilter {
-    return new FeedFilterImpl(config, view);
+export function feed(config: FeedConfig) {
+  return function (view: View): Feed {
+    return new FeedFilter(config, view);
   };
 }
 
-export class FeedFilterImpl extends BaseFilter implements FeedFilter {
+export class FeedFilter extends BaseFilter implements Feed {
   private _hasMore = true;
 
   public constructor(
-    private config: FeedFilterConfig,
+    private config: FeedConfig,
     view: View
   ) {
     super(view);

@@ -1,15 +1,15 @@
-import {View, QueryOptions, Filter, SelectorFilter, SelectorFilterConfig} from '../../interfaces';
+import {View, QueryOptions, Filter, Selector} from '../../interfaces';
 import {BaseFilter} from './base';
 import {extend} from 'lodash';
 
-export function selectorFilter(config: SelectorFilterConfig) {
-  return function (view: View): SelectorFilter {
-    return new SelectorFilterImpl(config, view);
+export function selector(config: Selector) {
+  return function (view: View): Filter {
+    return new SelectorFilter(config, view);
   };
 }
 
-export class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
-  public constructor(protected config: SelectorFilterConfig, view: View) {
+export class SelectorFilter extends BaseFilter implements Selector {
+  public constructor(protected config: Selector, view: View) {
     super(view);
   }
 
@@ -40,16 +40,16 @@ export class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
     this.emit('filter-changed');
   }
 
-  public apply(selector: any, options: QueryOptions): void {
+  public apply(sel: any, options: QueryOptions): void {
     if (this.config.value === this.config.disableOn) {
       return;
     }
     if (this.config.template) {
       let computed = JSON.parse(
         JSON.stringify(this.config.template).replace('?', this.config.value));
-      extend(selector, computed);
+      extend(sel, computed);
     } else {
-      extend(selector, this.config.value);
+      extend(sel, this.config.value);
     }
   }
 }

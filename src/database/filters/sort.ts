@@ -1,13 +1,13 @@
 import {View, QueryOptions, Filter, Sorting, SortingOrder} from '../../interfaces';
 import {BaseFilter} from './base';
 
-export function sortFilter(config: Sorting) {
+export function sorting(config: Sorting) {
   return function (view: View): Filter {
-    return new SortFilterImpl(config, view);
+    return new SortingFilter(config, view);
   };
 }
 
-export class SortFilterImpl extends BaseFilter implements Sorting {
+export class SortingFilter extends BaseFilter implements Sorting {
   public constructor(private config: Sorting, view: View) {
     super(view);
   }

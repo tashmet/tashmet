@@ -47,27 +47,25 @@ export interface Filter {
   on(event: 'filter-changed', fn: Function): Filter;
 }
 
-export interface FeedFilterConfig {
+export interface FeedConfig {
   limit: number;
 
   increment: number;
 }
 
-export interface FeedFilter extends FeedFilterConfig, Filter {
+export interface Feed extends FeedConfig {
   loadMore(): void;
 
   hasMore(): boolean;
 }
 
-export interface SelectorFilterConfig {
+export interface Selector {
   value?: any;
 
   template?: any;
 
   disableOn?: any;
 }
-
-export interface SelectorFilter extends SelectorFilterConfig, Filter {}
 
 export enum SortingOrder {
     Ascending = 0,
