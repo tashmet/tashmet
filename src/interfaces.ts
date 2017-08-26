@@ -59,12 +59,6 @@ export interface FeedFilter extends FeedFilterConfig, Filter {
   hasMore(): boolean;
 }
 
-export interface SelectorFilter extends Filter {
-  get(): any;
-
-  set(value: any): void;
-}
-
 export interface SelectorFilterConfig {
   value?: any;
 
@@ -72,6 +66,8 @@ export interface SelectorFilterConfig {
 
   disabled?: boolean;
 }
+
+export interface SelectorFilter extends SelectorFilterConfig, Filter {}
 
 export enum SortingOrder {
     Ascending = 0,

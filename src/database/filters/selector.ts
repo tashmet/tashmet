@@ -13,18 +13,31 @@ export class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
     super(view);
   }
 
-  public set(value: any): void {
-    this.config.value = value;
+  public get value(): any {
+    return this.config.value;
+  }
+
+  public set value(v: any) {
+    this.config.value = v;
     this.config.disabled = false;
     this.emit('filter-changed');
   }
 
-  public get(): any {
-    return this.config.value;
+  public get template(): any {
+    return this.config.template;
   }
 
-  public disable(): void {
-    this.config.disabled = true;
+  public set template(t: any) {
+    this.config.template = t;
+    this.emit('filter-changed');
+  }
+
+  public get disabled(): boolean {
+    return this.config.disabled || false;
+  }
+
+  public set disabled(d: boolean) {
+    this.config.disabled = d;
     this.emit('filter-changed');
   }
 
