@@ -47,7 +47,13 @@ export interface Filter {
   on(event: 'filter-changed', fn: Function): Filter;
 }
 
-export interface FeedFilter extends Filter {
+export interface FeedFilterConfig {
+  limit: number;
+
+  increment: number;
+}
+
+export interface FeedFilter extends FeedFilterConfig, Filter {
   loadMore(): void;
 
   hasMore(): boolean;

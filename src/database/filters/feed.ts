@@ -1,9 +1,9 @@
-import {View, QueryOptions, Filter, FeedFilter} from '../../interfaces';
+import {View, QueryOptions, Filter, FeedFilter, FeedFilterConfig} from '../../interfaces';
 import {BaseFilter} from './base';
 
-export function feedFilter(limit: number, increment: number) {
+export function feedFilter(config: FeedFilterConfig) {
   return function (view: View): FeedFilter {
-    return new FeedFilterImpl(limit, increment, view);
+    return new FeedFilterImpl(config, view);
   };
 }
 
@@ -11,8 +11,7 @@ export class FeedFilterImpl extends BaseFilter implements FeedFilter {
   private _hasMore = true;
 
   public constructor(
-    private limit: number,
-    private loadCount: number,
+    private config: FeedFilterConfig,
     view: View
   ) {
     super(view);
@@ -21,9 +20,25 @@ export class FeedFilterImpl extends BaseFilter implements FeedFilter {
     });
   }
 
-  public loadMore(): void {
-    this.limit += this.loadCount;
+  public get limit(): number {
+    return this.config.limit;
+  }
+
+  public set limit(l: number) {
+    this.config.limit = l;
     this.emit('filter-changed');
+  }
+
+  public get increment(): number {
+    return this.config.increment;
+  }
+
+  public set increment(i: number) {
+    this.config.increment = i;
+  }
+
+  public loadMore(): void {
+    this.limit += this.config.increment;
   }
 
   public hasMore(): boolean {
