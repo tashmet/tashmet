@@ -1,6 +1,7 @@
-import {LocalDatabase, Collection, QueryOptions} from '../interfaces';
+import {LocalDatabase, Collection, QueryOptions, Sorting, SortingOrder} from '../interfaces';
 import {provider} from '@ziggurat/tiamat';
 import {EventEmitter} from 'eventemitter3';
+import {map} from 'lodash';
 import * as loki from 'lokijs';
 import * as Promise from 'bluebird';
 
@@ -31,7 +32,10 @@ class MemoryCollection extends EventEmitter implements Collection {
       let rset = this.collection.chain().find(selector || {});
       if (options) {
         if (options.sort) {
-          rset = rset.compoundsort(options.sort);
+          let sort = map(options.sort, function(s: Sorting) {
+            return [s.key, s.order === SortingOrder.Descending];
+          });
+          rset = rset.compoundsort(sort);
         }
         if (options.offset) {
           rset = rset.offset(options.offset);

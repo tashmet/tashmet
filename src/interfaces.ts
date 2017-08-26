@@ -67,6 +67,17 @@ export interface SelectorFilterConfig {
   disabled?: boolean;
 }
 
+export enum SortingOrder {
+    Ascending = 0,
+    Descending
+}
+
+export interface Sorting {
+  key: string;
+
+  order: SortingOrder;
+}
+
 /**
  *
  */
@@ -74,7 +85,7 @@ export interface QueryOptions {
   /**
    * Sort by one or more properties in ascending or descending order.
    */
-  sort?: any[];
+  sort?: Sorting[];
 
   /**
    * Skip the first number of documents from the results.
