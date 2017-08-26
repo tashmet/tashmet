@@ -64,7 +64,7 @@ export interface SelectorFilterConfig {
 
   template?: any;
 
-  disabled?: boolean;
+  disableOn?: any;
 }
 
 export interface SelectorFilter extends SelectorFilterConfig, Filter {}

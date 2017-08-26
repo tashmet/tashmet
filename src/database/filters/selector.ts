@@ -19,7 +19,6 @@ export class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
 
   public set value(v: any) {
     this.config.value = v;
-    this.config.disabled = false;
     this.emit('filter-changed');
   }
 
@@ -32,17 +31,17 @@ export class SelectorFilterImpl extends BaseFilter implements SelectorFilter {
     this.emit('filter-changed');
   }
 
-  public get disabled(): boolean {
-    return this.config.disabled || false;
+  public get disableOn(): any {
+    return this.config.disableOn;
   }
 
-  public set disabled(d: boolean) {
-    this.config.disabled = d;
+  public set disableOn(d: any) {
+    this.config.disableOn = d;
     this.emit('filter-changed');
   }
 
   public apply(selector: any, options: QueryOptions): void {
-    if (this.config.disabled) {
+    if (this.config.value === this.config.disableOn) {
       return;
     }
     if (this.config.template) {
