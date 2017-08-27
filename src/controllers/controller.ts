@@ -4,7 +4,9 @@ import {Routine} from './routine';
 import {Pipeline, Hook, HookablePipe, HookablePipeline} from '../pipes';
 import {EventEmitter} from 'eventemitter3';
 
-decorate(injectable(), EventEmitter);
+if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
+  decorate(injectable(), EventEmitter);
+}
 
 @injectable()
 export class Controller extends EventEmitter {
