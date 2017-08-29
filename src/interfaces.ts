@@ -34,11 +34,26 @@ export interface RemoteDatabase {
 }
 
 export interface View {
+  readonly selector: any;
+
+  readonly options: QueryOptions;
+
   addFilter(name: string, filter: Function): View;
 
   refresh(): View;
 
   on(event: 'data-updated', fn: (results: any[], totalCount: number) => void): View;
+  on(event: 'refresh', fn: Function): View;
+
+  emit(event: 'data-updated', results: any[], totalCount: number): boolean;
+}
+
+export interface ViewConfig {
+  name: string;
+
+  collection: string;
+
+  filters: {[name: string]: FilterProvider};
 }
 
 export interface Filter {
@@ -46,6 +61,8 @@ export interface Filter {
 
   on(event: 'filter-changed', fn: Function): Filter;
 }
+
+export type FilterProvider = (view: View) => Filter;
 
 export interface FeedConfig {
   limit: number;

@@ -1,7 +1,7 @@
-import {View, QueryOptions, Filter, Sorting, SortingOrder} from '../../interfaces';
+import {View, QueryOptions, Filter, FilterProvider, Sorting, SortingOrder} from '../../interfaces';
 import {BaseFilter} from './base';
 
-export function sorting(config: Sorting) {
+export function sorting(config: Sorting): FilterProvider {
   return function (view: View): Filter {
     return new SortingFilter(config, view);
   };

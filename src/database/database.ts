@@ -1,7 +1,7 @@
 import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
-  CollectionMapping, View, Filter, CacheEvaluator, QueryOptions} from '../interfaces';
+  CollectionMapping, View, Filter, CacheEvaluator, QueryOptions, ViewConfig} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
@@ -9,7 +9,7 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
-import {DynamicView, DynamicViewManager} from './view';
+import {ViewManager} from './view';
 import {each, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
@@ -20,7 +20,7 @@ import * as Promise from 'bluebird';
 export class DatabaseService extends EventEmitter implements Database
 {
   private collections: {[name: string]: CollectionController} = {};
-  private viewManagers: {[name: string]: DynamicViewManager} = {};
+  private viewManagers: {[name: string]: ViewManager} = {};
   private syncedCount = 0;
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
@@ -34,7 +34,7 @@ export class DatabaseService extends EventEmitter implements Database
   }
 
   public view(name: string, collection: string): View {
-    return this.viewManagers[collection].getView(name);
+    return this.viewManagers[collection].view(name);
   }
 
   @activate('isimud.Document')
@@ -69,11 +69,11 @@ export class DatabaseService extends EventEmitter implements Database
     collection.addCacheEvaluator(new QueryHashEvaluator());
     collection.addCacheEvaluator(new DocumentIdEvaluator());
     collection.addCacheEvaluator(new RangeEvaluator());
-    this.viewManagers[meta.name] = new DynamicViewManager(collection);
+    this.viewManagers[meta.name] = new ViewManager(collection);
 
     if (this.isServer()) {
       if (meta.populateAfter.length > 0) {
-        let promises = transform(meta.populateAfter, (result, depName: string) => {
+        let promises = transform(meta.populateAfter, (result: any, depName: string) => {
           result.push(this.injector.get<CollectionController>(depName).populate());
         });
         Promise.all(promises).then(deps => {
@@ -102,6 +102,13 @@ export class DatabaseService extends EventEmitter implements Database
     });
 
     return collection;
+  }
+
+  @activate('isimud.View')
+  private activateView(view: View) {
+    let config: ViewConfig = Reflect.getOwnMetadata('isimud:view', view.constructor);
+    this.viewManagers[config.collection].addView(view);
+    return view;
   }
 
   private isServer() {

@@ -1,8 +1,8 @@
-import {View, QueryOptions, Filter, Selector} from '../../interfaces';
+import {View, QueryOptions, Filter, FilterProvider, Selector} from '../../interfaces';
 import {BaseFilter} from './base';
 import {extend} from 'lodash';
 
-export function selector(config: Selector) {
+export function selector(config: Selector): FilterProvider {
   return function (view: View): Filter {
     return new SelectorFilter(config, view);
   };
