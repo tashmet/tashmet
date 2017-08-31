@@ -124,17 +124,17 @@ export interface Collection {
    * will be updated.
    * A promise for the upserted document is returned.
    */
-  upsert(obj: any): Promise<any>;
+  upsert<T>(obj: T): Promise<T>;
 
   /**
    * Find documents in the collection.
    */
-  find(selector?: Object, options?: QueryOptions): Promise<any[]>;
+  find<T>(selector?: Object, options?: QueryOptions): Promise<T[]>;
 
   /**
    * Find a single document in the collection.
    */
-  findOne(selector: Object): Promise<any>;
+  findOne<T>(selector: Object): Promise<T>;
 
   /**
    * Get the number of documents in the collection that matches a given selector.
