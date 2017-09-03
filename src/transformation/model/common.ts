@@ -1,8 +1,8 @@
 import {PropertyDecorator} from '@ziggurat/tiamat';
 import {Expose} from 'class-transformer';
-import {ModelPropertyConfig} from '../interfaces';
+import {PropertyModelConfig} from '../interfaces';
 
-export class ModelPropertyDecorator extends PropertyDecorator<ModelPropertyConfig> {
+export class PropertyModelDecorator extends PropertyDecorator<PropertyModelConfig> {
   private decorators: any[] = [];
 
   protected pushDecorator(d: any) {
@@ -10,7 +10,7 @@ export class ModelPropertyDecorator extends PropertyDecorator<ModelPropertyConfi
   }
 
   public decorate(
-    data: ModelPropertyConfig, target: any, key: string)
+    data: PropertyModelConfig, target: any, key: string)
   {
     let groups = [];
     if (data.relay) {

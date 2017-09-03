@@ -17,10 +17,10 @@ export interface Transformer {
   toPlain<T>(instance: T, mode: string): Promise<any>;
 }
 
-export interface ModelPropertyConfig {
+export interface PropertyModelConfig {
   persist?: boolean;
 
   relay?: boolean;
 }
 
-export interface StringConfig extends ModelPropertyConfig {}
+export interface StringModelConfig extends PropertyModelConfig {}
