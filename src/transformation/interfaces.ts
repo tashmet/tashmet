@@ -16,3 +16,9 @@ export interface Transformer {
    */
   toPlain<T>(instance: T, mode: string): Promise<any>;
 }
+
+export interface ModelPropertyConfig {
+  persist?: boolean;
+
+  relay?: boolean;
+}
