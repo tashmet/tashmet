@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/isimud",
-  "version": "0.19.3",
+  "version": "0.19.4",
   "description": "Isimud is an isomorphic document storage and processing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -12,6 +12,9 @@
   "dependencies": {
     "@ziggurat/tiamat": "^0.5.0",
     "bluebird": "^3.5.0",
+    "class-transformer": "^0.1.7",
+    "class-transformer-validator": "^0.3.0",
+    "class-validator": "^0.7.2",
     "eventemitter3": "^2.0.2",
     "json-schema-defaults": "^0.3.0",
     "jsonschema": "^1.1.1",
