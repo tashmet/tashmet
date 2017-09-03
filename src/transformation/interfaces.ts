@@ -22,3 +22,5 @@ export interface ModelPropertyConfig {
 
   relay?: boolean;
 }
+
+export interface StringConfig extends ModelPropertyConfig {}
