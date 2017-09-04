@@ -128,5 +128,29 @@ describe('string', () => {
         });
       });
     });
+
+    describe('ipv6', () => {
+
+      @model('test.IPv6')
+      class IPv6 {
+        @string({format: 'ipv6'})
+        public foo: string;
+      }
+      const ts = new TransformerService([IPv6]);
+
+      it('should fail validation of a string that is not a valid IPv6 address', () => {
+        const plain = {foo: '127.0.0.1', _model: 'test.IPv6'};
+
+        expect(ts.toInstance(plain, 'persist')).to.be.rejected;
+      });
+
+      it('should pass validation of a string that is a valid IPv6 address', () => {
+        const plain = {foo: '2001:0db8:85a3:0000:0000:8a2e:0370:7334', _model: 'test.IPv6'};
+
+        return ts.toInstance(plain, 'persist').then((obj: IPv6) => {
+          expect(obj.foo).to.eql('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
+        });
+      });
+    });
   });
 });

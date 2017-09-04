@@ -27,6 +27,9 @@ export class StringModelDecorator extends PropertyModelDecorator {
       case 'ipv4':
         decorators.push(IsIP('4'));
         break;
+      case 'ipv6':
+        decorators.push(IsIP('6'));
+        break;
     }
 
     Reflect.decorate(decorators, target, key);
