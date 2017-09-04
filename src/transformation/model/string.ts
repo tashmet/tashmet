@@ -1,6 +1,6 @@
 import {StringModelConfig} from '../interfaces';
 import {PropertyModelDecorator} from './common';
-import {IsString, MinLength, MaxLength} from 'class-validator';
+import {IsString, MinLength, MaxLength, Matches} from 'class-validator';
 
 export class StringModelDecorator extends PropertyModelDecorator {
   public decorate(
@@ -13,6 +13,9 @@ export class StringModelDecorator extends PropertyModelDecorator {
     }
     if (data.maxLength) {
       decorators.push(MaxLength(data.maxLength));
+    }
+    if (data.pattern) {
+      decorators.push(Matches(data.pattern));
     }
 
     Reflect.decorate(decorators, target, key);

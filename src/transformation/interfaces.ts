@@ -27,4 +27,6 @@ export interface StringModelConfig extends PropertyModelConfig {
   minLength?: number;
 
   maxLength?: number;
+
+  pattern?: RegExp;
 }
