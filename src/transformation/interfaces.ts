@@ -23,4 +23,8 @@ export interface PropertyModelConfig {
   relay?: boolean;
 }
 
-export interface StringModelConfig extends PropertyModelConfig {}
+export interface StringModelConfig extends PropertyModelConfig {
+  minLength?: number;
+
+  maxLength?: number;
+}
