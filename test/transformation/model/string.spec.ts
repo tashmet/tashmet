@@ -104,5 +104,29 @@ describe('string', () => {
         });
       });
     });
+
+    describe('ipv4', () => {
+
+      @model('test.IPv4')
+      class IPv4 {
+        @string({format: 'ipv4'})
+        public foo: string;
+      }
+      const ts = new TransformerService([IPv4]);
+
+      it('should fail validation of a string that is not a valid IPv4 address', () => {
+        const plain = {foo: '545.34.2.4', _model: 'test.IPv4'};
+
+        expect(ts.toInstance(plain, 'persist')).to.be.rejected;
+      });
+
+      it('should pass validation of a string that is a valid IPv4 address', () => {
+        const plain = {foo: '127.0.0.1', _model: 'test.IPv4'};
+
+        return ts.toInstance(plain, 'persist').then((obj: IPv4) => {
+          expect(obj.foo).to.eql('127.0.0.1');
+        });
+      });
+    });
   });
 });

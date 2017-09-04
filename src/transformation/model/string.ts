@@ -1,6 +1,6 @@
 import {StringModelConfig} from '../interfaces';
 import {PropertyModelDecorator} from './common';
-import {IsString, MinLength, MaxLength, Matches, IsDateString, IsEmail} from 'class-validator';
+import {IsString, MinLength, MaxLength, Matches, IsDateString, IsEmail, IsIP} from 'class-validator';
 
 export class StringModelDecorator extends PropertyModelDecorator {
   public decorate(
@@ -23,6 +23,9 @@ export class StringModelDecorator extends PropertyModelDecorator {
         break;
       case 'email':
         decorators.push(IsEmail());
+        break;
+      case 'ipv4':
+        decorators.push(IsIP('4'));
         break;
     }
 
