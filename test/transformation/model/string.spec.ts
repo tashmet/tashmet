@@ -34,7 +34,7 @@ describe('string', () => {
   
   describe('maxLength', () => {
 
-    @model('test.MinLength')
+    @model('test.MaxLength')
     class MaxLength {
       @string({maxLength: 5})
       public foo: string;
@@ -42,13 +42,13 @@ describe('string', () => {
     const ts = new TransformerService([MaxLength]);
 
     it('should fail validation of a string with longer length', () => {
-      const plain = {foo: 'too long', _model: 'test.MinLength'};
+      const plain = {foo: 'too long', _model: 'test.MaxLength'};
 
       expect(ts.toInstance(plain, 'persist')).to.be.rejected;
     });
 
     it('should pass validation of a string with equal length', () => {
-      const plain = {foo: 'right', _model: 'test.MinLength'};
+      const plain = {foo: 'right', _model: 'test.MaxLength'};
 
       return ts.toInstance(plain, 'persist').then((obj: MaxLength) => {
         expect(obj.foo).to.eql('right');
@@ -58,6 +58,7 @@ describe('string', () => {
 
   describe('formats', () => {
     describe('email', () => {
+
       @model('test.Email')
       class Email {
         @string({format: 'email'})
