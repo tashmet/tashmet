@@ -57,6 +57,30 @@ describe('string', () => {
   });
 
   describe('formats', () => {
+    describe('date-time', () => {
+
+      @model('test.DateTime')
+      class DateTime {
+        @string({format: 'date-time'})
+        public foo: string;
+      }
+      const ts = new TransformerService([DateTime]);
+
+      it('should fail validation of a string that is not a valid date', () => {
+        const plain = {foo: 'Not a date', _model: 'test.DateTime'};
+
+        expect(ts.toInstance(plain, 'persist')).to.be.rejected;
+      });
+
+      it('should pass validation of a string that is a valid date', () => {
+        const plain = {foo: '2017-09-04T19:21:51.700Z', _model: 'test.DateTime'};
+
+        return ts.toInstance(plain, 'persist').then((obj: DateTime) => {
+          expect(obj.foo).to.eql('2017-09-04T19:21:51.700Z');
+        });
+      });
+    });
+
     describe('email', () => {
 
       @model('test.Email')

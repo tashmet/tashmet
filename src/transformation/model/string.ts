@@ -1,6 +1,6 @@
 import {StringModelConfig} from '../interfaces';
 import {PropertyModelDecorator} from './common';
-import {IsString, MinLength, MaxLength, Matches, IsEmail} from 'class-validator';
+import {IsString, MinLength, MaxLength, Matches, IsDateString, IsEmail} from 'class-validator';
 
 export class StringModelDecorator extends PropertyModelDecorator {
   public decorate(
@@ -17,8 +17,13 @@ export class StringModelDecorator extends PropertyModelDecorator {
     if (data.pattern) {
       decorators.push(Matches(data.pattern));
     }
-    if (data.format === 'email') {
-      decorators.push(IsEmail());
+    switch (data.format) {
+      case 'date-time':
+        decorators.push(IsDateString());
+        break;
+      case 'email':
+        decorators.push(IsEmail());
+        break;
     }
 
     Reflect.decorate(decorators, target, key);
