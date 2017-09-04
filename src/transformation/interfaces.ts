@@ -29,4 +29,6 @@ export interface StringModelConfig extends PropertyModelConfig {
   maxLength?: number;
 
   pattern?: RegExp;
+
+  format?: 'date-time' | 'email' | 'hostname' | 'ipv4' | 'ipv6' | 'uri';
 }

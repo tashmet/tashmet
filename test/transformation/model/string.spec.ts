@@ -55,4 +55,29 @@ describe('string', () => {
       });
     });
   });
+
+  describe('formats', () => {
+    describe('email', () => {
+      @model('test.Email')
+      class Email {
+        @string({format: 'email'})
+        public foo: string;
+      }
+      const ts = new TransformerService([Email]);
+
+      it('should fail validation of a string that is not a valid email address', () => {
+        const plain = {foo: 'Not an email', _model: 'test.Email'};
+
+        expect(ts.toInstance(plain, 'persist')).to.be.rejected;
+      });
+
+      it('should pass validation of a string that is a valid email address', () => {
+        const plain = {foo: 'john.doe@example.com', _model: 'test.Email'};
+
+        return ts.toInstance(plain, 'persist').then((obj: Email) => {
+          expect(obj.foo).to.eql('john.doe@example.com');
+        });
+      });
+    });
+  });
 });
