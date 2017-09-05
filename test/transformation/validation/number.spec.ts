@@ -1,5 +1,5 @@
 import {TransformerService} from '../../../src/transformation/transformer';
-import {model, number} from '../../../src/transformation/decorators';
+import {number} from '../../../src/transformation/decorators';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
