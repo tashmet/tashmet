@@ -1,5 +1,6 @@
 import {classDecorator, propertyDecorator, ClassAnnotation} from '@ziggurat/tiamat';
-import {ExposeConfig, StringModelConfig} from './interfaces';
+import {ExposeConfig, NumberModelConfig, StringModelConfig} from './interfaces';
+import {NumberModelDecorator} from './validation/number';
 import {StringModelDecorator} from './validation/string';
 import {ExposeDecorator} from './expose';
 
@@ -12,6 +13,9 @@ export const expose = propertyDecorator<ExposeConfig>(
     relay: true
   }
 );
+
+export const number = propertyDecorator<NumberModelConfig>(
+  new NumberModelDecorator());
 
 export const string = propertyDecorator<StringModelConfig>(
   new StringModelDecorator());
