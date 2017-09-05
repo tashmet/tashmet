@@ -25,6 +25,8 @@ export interface ExposeConfig {
 
 export interface NumberModelConfig {
   multipleOf?: number;
+
+  minimum?: number;
 }
 
 export interface StringModelConfig {
