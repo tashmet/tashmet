@@ -45,4 +45,23 @@ describe('number', () => {
       expect(ts.validate(obj)).to.eventually.have.lengthOf(0);
     });
   });
+
+  describe('maximum', () => {
+    class Maximum {
+      @number({maximum: 2.7})
+      public foo: number;
+    }
+    const ts = new TransformerService([]);
+    let obj = new Maximum();
+
+    it('should fail validation of a number that is higher than maximum', () => {
+      obj.foo = 2.8;
+      expect(ts.validate(obj)).to.eventually.have.lengthOf(1);
+    });
+
+    it('should pass validation of a number that is equal to maximum', () => {
+      obj.foo = 2.7;
+      expect(ts.validate(obj)).to.eventually.have.lengthOf(0);
+    });
+  });
 });

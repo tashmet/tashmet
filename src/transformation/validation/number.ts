@@ -1,6 +1,6 @@
 import {PropertyDecorator} from '@ziggurat/tiamat';
 import {NumberModelConfig} from '../interfaces';
-import {IsNumber, IsDivisibleBy, Min} from 'class-validator';
+import {IsNumber, IsDivisibleBy, Min, Max} from 'class-validator';
 
 export class NumberModelDecorator extends PropertyDecorator<NumberModelConfig> {
   public decorate(
@@ -13,6 +13,9 @@ export class NumberModelDecorator extends PropertyDecorator<NumberModelConfig> {
     }
     if (data.minimum) {
       decorators.push(Min(data.minimum));
+    }
+    if (data.maximum) {
+      decorators.push(Max(data.maximum));
     }
 
     Reflect.decorate(decorators, target, key);

@@ -27,6 +27,8 @@ export interface NumberModelConfig {
   multipleOf?: number;
 
   minimum?: number;
+
+  maximum?: number;
 }
 
 export interface StringModelConfig {
