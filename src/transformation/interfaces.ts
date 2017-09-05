@@ -23,7 +23,9 @@ export interface ExposeConfig {
   relay?: boolean;
 }
 
-export interface NumberModelConfig {}
+export interface NumberModelConfig {
+  multipleOf?: number;
+}
 
 export interface StringModelConfig {
   minLength?: number;
