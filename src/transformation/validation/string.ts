@@ -1,8 +1,8 @@
+import {PropertyDecorator} from '@ziggurat/tiamat';
 import {StringModelConfig} from '../interfaces';
-import {PropertyModelDecorator} from './common';
 import {IsString, MinLength, MaxLength, Matches, IsDateString, IsEmail, IsIP} from 'class-validator';
 
-export class StringModelDecorator extends PropertyModelDecorator {
+export class StringModelDecorator extends PropertyDecorator<StringModelConfig> {
   public decorate(
     data: StringModelConfig, target: any, key: string)
   {
@@ -33,7 +33,5 @@ export class StringModelDecorator extends PropertyModelDecorator {
     }
 
     Reflect.decorate(decorators, target, key);
-
-    super.decorate(data, target, key);
   }
 }

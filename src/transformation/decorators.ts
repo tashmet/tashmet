@@ -1,14 +1,17 @@
 import {classDecorator, propertyDecorator, ClassAnnotation} from '@ziggurat/tiamat';
-import {PropertyModelConfig, StringModelConfig} from './interfaces';
-import {StringModelDecorator} from './model/string';
-
-const defaultPropertyModelConfig: PropertyModelConfig = {
-  persist: true,
-  relay: true
-};
+import {ExposeConfig, StringModelConfig} from './interfaces';
+import {StringModelDecorator} from './validation/string';
+import {ExposeDecorator} from './expose';
 
 export const model = classDecorator<string>(
   new ClassAnnotation('isimud:model'));
 
+export const expose = propertyDecorator<ExposeConfig>(
+  new ExposeDecorator(), {
+    persist: true,
+    relay: true
+  }
+);
+
 export const string = propertyDecorator<StringModelConfig>(
-  new StringModelDecorator(), defaultPropertyModelConfig);
+  new StringModelDecorator());

@@ -1,10 +1,10 @@
 import {PropertyDecorator} from '@ziggurat/tiamat';
 import {Expose} from 'class-transformer';
-import {PropertyModelConfig} from '../interfaces';
+import {ExposeConfig} from './interfaces';
 
-export class PropertyModelDecorator extends PropertyDecorator<PropertyModelConfig> {
+export class ExposeDecorator extends PropertyDecorator<ExposeConfig> {
   public decorate(
-    data: PropertyModelConfig, target: any, key: string)
+    data: ExposeConfig, target: any, key: string)
   {
     let groups = [];
     if (data.relay) {

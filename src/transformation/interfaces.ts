@@ -17,13 +17,13 @@ export interface Transformer {
   toPlain<T>(instance: T, mode: string): Promise<any>;
 }
 
-export interface PropertyModelConfig {
+export interface ExposeConfig {
   persist?: boolean;
 
   relay?: boolean;
 }
 
-export interface StringModelConfig extends PropertyModelConfig {
+export interface StringModelConfig {
   minLength?: number;
 
   maxLength?: number;
