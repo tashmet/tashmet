@@ -1,6 +1,7 @@
 import {classDecorator, propertyDecorator, propertyDecoratorOptional,
   propertyDecoratorVoid, ClassAnnotation} from '@ziggurat/tiamat';
 import {ExposeConfig, NumberModelConfig, StringModelConfig} from './interfaces';
+import {BooleanModelDecorator} from './validation/boolean';
 import {IntegerModelDecorator} from './validation/integer';
 import {NumberModelDecorator} from './validation/number';
 import {StringModelDecorator} from './validation/string';
@@ -15,6 +16,9 @@ export const expose = propertyDecoratorOptional<ExposeConfig>(
     relay: true
   }
 );
+
+export const boolean = propertyDecoratorVoid(
+  new BooleanModelDecorator());
 
 export const number = propertyDecoratorOptional<NumberModelConfig>(
   new NumberModelDecorator());
