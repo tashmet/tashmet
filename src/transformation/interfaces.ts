@@ -23,6 +23,8 @@ export interface ExposeConfig {
   relay?: boolean;
 }
 
+export interface ArrayModelConfig {}
+
 export interface NumberModelConfig {
   multipleOf?: number;
 
