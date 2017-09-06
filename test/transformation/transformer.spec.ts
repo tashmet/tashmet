@@ -12,7 +12,7 @@ describe('TransformerService', () => {
 
     @model('test.TestModel')
     class TestModel {
-      @expose({})
+      @expose()
       public foo: string;
     }
 

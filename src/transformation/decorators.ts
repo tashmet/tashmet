@@ -1,4 +1,5 @@
-import {classDecorator, propertyDecorator, ClassAnnotation} from '@ziggurat/tiamat';
+import {classDecorator, propertyDecorator, propertyDecoratorOptional,
+  propertyDecoratorVoid, ClassAnnotation} from '@ziggurat/tiamat';
 import {ExposeConfig, NumberModelConfig, StringModelConfig} from './interfaces';
 import {IntegerModelDecorator} from './validation/integer';
 import {NumberModelDecorator} from './validation/number';
@@ -8,18 +9,18 @@ import {ExposeDecorator} from './expose';
 export const model = classDecorator<string>(
   new ClassAnnotation('isimud:model'));
 
-export const expose = propertyDecorator<ExposeConfig>(
+export const expose = propertyDecoratorOptional<ExposeConfig>(
   new ExposeDecorator(), {
     persist: true,
     relay: true
   }
 );
 
-export const number = propertyDecorator<NumberModelConfig>(
+export const number = propertyDecoratorOptional<NumberModelConfig>(
   new NumberModelDecorator());
 
-export const integer = propertyDecorator<NumberModelConfig>(
+export const integer = propertyDecoratorOptional<NumberModelConfig>(
   new IntegerModelDecorator());
 
-export const string = propertyDecorator<StringModelConfig>(
+export const string = propertyDecoratorOptional<StringModelConfig>(
   new StringModelDecorator());

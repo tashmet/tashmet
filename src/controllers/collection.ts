@@ -1,9 +1,8 @@
 import {injectable} from '@ziggurat/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
 import {QueryHashEvaluator} from '../database/cache/queryHash';
-import {Pipeline, DocumentPipe, HookablePipeline, UpsertPipe,
-  RevisionUpsertPipe, Validator, MergeDefaults, StripDefaults} from '../pipes';
-import {DocumentController} from './document';
+import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
+  Validator, MergeDefaults, StripDefaults} from '../pipes';
 import {Controller} from './controller';
 import {CollectionConfig} from './meta/decorators';
 import {clone, map, pull, some} from 'lodash';
@@ -16,8 +15,6 @@ export class CollectionController extends Controller implements Collection {
   protected _source: Collection;
   private cachePipe: RevisionUpsertPipe = new RevisionUpsertPipe();
   private persistPipe: UpsertPipe = new UpsertPipe();
-  private documentInputPipe: DocumentPipe = new DocumentPipe('input');
-  private documentOutputPipe: DocumentPipe = new DocumentPipe('output');
   private synced = false;
   private populating = false;
   private upsertQueue: string[] = [];
@@ -33,7 +30,6 @@ export class CollectionController extends Controller implements Collection {
     this.pipes['source-upsert'] = new HookablePipeline(true)
       .step('validate', new Validator(schemas))
       .step('merge',    new MergeDefaults(schemas))
-      .push(this.documentInputPipe)
       .step('cache',    this.cachePipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
@@ -42,10 +38,8 @@ export class CollectionController extends Controller implements Collection {
     this.pipes['upsert'] = new HookablePipeline(true)
       .step('validate', new Validator(schemas))
       .step('merge',    new MergeDefaults(schemas))
-      .push(this.documentInputPipe)
       .step('cache',    this.cachePipe)
       .step('strip',    new StripDefaults(schemas))
-      .push(this.documentOutputPipe)
       .step('persist',  this.persistPipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
@@ -54,7 +48,6 @@ export class CollectionController extends Controller implements Collection {
     this.pipes['populate-pre-buffer'] = new HookablePipeline(true)
       .step('validate', new Validator(schemas))
       .step('merge',    new MergeDefaults(schemas))
-      .push(this.documentInputPipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
       });
@@ -136,11 +129,6 @@ export class CollectionController extends Controller implements Collection {
       });
     }
     return this.populatePromise;
-  }
-
-  public addDocumentController(doc: DocumentController): void {
-    this.documentInputPipe.addController(doc);
-    this.documentOutputPipe.addController(doc);
   }
 
   public addCacheEvaluator(evaluator: CacheEvaluator): void {

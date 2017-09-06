@@ -3,7 +3,6 @@ import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, View, Filter, CacheEvaluator, QueryOptions, ViewConfig} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
-import {DocumentController} from '../controllers/document';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
@@ -35,15 +34,6 @@ export class DatabaseService extends EventEmitter implements Database
 
   public view(name: string, collection: string): View {
     return this.viewManagers[collection].view(name);
-  }
-
-  @activate('isimud.Document')
-  private activateDocumentController(document: DocumentController): DocumentController {
-    let meta = Reflect.getOwnMetadata('isimud:document', document.constructor);
-    let collection = this.injector.get<CollectionController>(meta.collection);
-    collection.addDocumentController(document);
-    document.setCollection(collection);
-    return document;
   }
 
   @activate('isimud.Collection')

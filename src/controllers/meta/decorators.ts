@@ -27,17 +27,6 @@ export const collection = classDecorator<CollectionConfig>(
     populateAfter: []
   });
 
-export interface DocumentConfig extends ControllerConfig {
-  /**
-   * The provider id of the collection that this document belongs to.
-   */
-  collection: string;
-}
-
-export const document = classDecorator<DocumentConfig>(
-  new ControllerDecorator('isimud:document', ['isimud.Document']));
-
-
 export interface RoutineConfig {
   appliesTo: string[];
 }
