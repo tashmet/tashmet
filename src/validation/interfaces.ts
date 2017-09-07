@@ -6,6 +6,10 @@ export interface Validator {
 
 export interface ArrayModelConfig {
   items?: {type: Function};
+
+  minItems?: number;
+
+  maxItems?: number;
 }
 
 export interface NumberModelConfig {
