@@ -5,7 +5,7 @@ export interface Validator {
 }
 
 export interface ArrayModelConfig {
-  items: {type: Function};
+  items?: {type: Function};
 }
 
 export interface NumberModelConfig {
