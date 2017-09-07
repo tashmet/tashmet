@@ -1,4 +1,5 @@
 import {Injector} from '@ziggurat/tiamat';
+import {Document} from './models/document';
 import * as Promise from 'bluebird';
 
 /**
@@ -124,17 +125,17 @@ export interface Collection {
    * will be updated.
    * A promise for the upserted document is returned.
    */
-  upsert<T>(obj: T): Promise<T>;
+  upsert<T extends Document>(obj: T): Promise<T>;
 
   /**
    * Find documents in the collection.
    */
-  find<T>(selector?: Object, options?: QueryOptions): Promise<T[]>;
+  find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]>;
 
   /**
    * Find a single document in the collection.
    */
-  findOne<T>(selector: Object): Promise<T>;
+  findOne<T extends Document>(selector: Object): Promise<T>;
 
   /**
    * Get the number of documents in the collection that matches a given selector.
