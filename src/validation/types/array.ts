@@ -1,6 +1,6 @@
 import {PropertyDecorator} from '@ziggurat/tiamat';
 import {ArrayModelConfig} from '../interfaces';
-import {IsArray, ArrayMinSize, ArrayMaxSize} from 'class-validator';
+import {IsArray, ArrayMinSize, ArrayMaxSize, ArrayUnique} from 'class-validator';
 
 export class ArrayModelDecorator extends PropertyDecorator<ArrayModelConfig> {
   public decorate(data: ArrayModelConfig, target: any, key: string) {
@@ -17,6 +17,9 @@ export class ArrayModelDecorator extends PropertyDecorator<ArrayModelConfig> {
       }
       if (data.maxItems) {
         decorators.push(ArrayMaxSize(data.maxItems));
+      }
+      if (data.uniqueItems) {
+        decorators.push(ArrayUnique());
       }
     }
 

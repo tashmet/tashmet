@@ -10,6 +10,8 @@ export interface ArrayModelConfig {
   minItems?: number;
 
   maxItems?: number;
+
+  uniqueItems?: boolean;
 }
 
 export interface NumberModelConfig {

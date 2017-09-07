@@ -66,4 +66,28 @@ describe('array', () => {
       expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
   });
+
+  describe('uniqueness', () => {
+    class ArrayUniqueness {
+      @array({uniqueItems: true})
+      public foo: any;
+    }
+    const vs = new ValidatorService();
+    let obj = new ArrayUniqueness();
+
+    it('should pass validation of array with unique items', () => {
+      obj.foo = [1, 2, 3, 4, 5];
+      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    });
+
+    it('should fail validation of array with duplicates', () => {
+      obj.foo = [1, 2, 3, 3, 4];
+      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+    });
+
+    it('should pass validation of empty array', () => {
+      obj.foo = [];
+      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    });
+  });
 });
