@@ -7,6 +7,7 @@ export {remote} from './database/remote';
 export {feed} from './database/filters/feed';
 export {sorting} from './database/filters/sort';
 export {selector} from './database/filters/selector';
+export {Document} from './models/document';
 export * from './interfaces';
 export * from './controllers/meta/decorators';
 export * from './database/decorators';
