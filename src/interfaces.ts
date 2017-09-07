@@ -198,39 +198,6 @@ export class DocumentError extends Error {
   }
 }
 
-export interface Document {
-  /**
-   * Get the content of the document as an object.
-   *
-   * If a copy of the document does not exist in its collection a new one will
-   * be created and returned with the default values from the schema.
-   */
-  get(): Promise<any>;
-
-  /**
-   * Set the content of the document.
-   */
-  set(obj: any): Promise<any>;
-
-  /**
-   * Listen for when the document has been added or changed.
-   * The callback supplies the document.
-   */
-  on(event: 'document-upserted', fn: (obj: any) => void): Document;
-
-  /**
-   * Listen for when the document has been removed.
-   * The callback supplies the removed document.
-   */
-  on(event: 'document-removed', fn: (obj: any) => void): Document;
-
-  /**
-   * Listen for when an error was generated when loading or saving the document.
-   * The callback supplies the document error.
-   */
-  on(event: 'document-error', fn: (err: DocumentError) => void): Document;
-}
-
 /**
  * A pipe processes a single document and provides the result through a callback.
  * Multiple pipes can be chained together to form a pipeline.
