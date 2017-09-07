@@ -1,5 +1,5 @@
 import {ValidatorService} from '../../src/validation/validator';
-import {array} from '../../src/validation/decorators';
+import {array, string} from '../../src/validation/decorators';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -88,6 +88,29 @@ describe('array', () => {
     it('should pass validation of empty array', () => {
       obj.foo = [];
       expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    });
+  });
+
+  describe('item type', () => {
+    class ArrayItemType {
+      @array({
+        items: {
+          type: string()
+        }
+      })
+      public foo: any;
+    }
+    const vs = new ValidatorService();
+    let obj = new ArrayItemType();
+
+    it('should pass validation of array with items of specified type', () => {
+      obj.foo = ['1', '2'];
+      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    });
+
+    it('should fail validation of array with items of other type', () => {
+      obj.foo = [1, 2];
+      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
   });
 });
