@@ -1,5 +1,5 @@
 import {model, expose} from '../transformation/decorators';
-import {string} from '../validation/decorators';
+import {number, string} from '../validation/decorators';
 
 @model('isimud.Document')
 export class Document {
@@ -14,4 +14,7 @@ export class Document {
   @string()
   @expose()
   public _model = 'isimud.Document';
+
+  @number()
+  public _revision: number;
 }

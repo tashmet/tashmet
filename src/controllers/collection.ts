@@ -1,5 +1,6 @@
 import {injectable} from '@ziggurat/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
+import {Document} from '../models/document';
 import {QueryHashEvaluator} from '../database/cache/queryHash';
 import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
   Validator, MergeDefaults, StripDefaults} from '../pipes';
@@ -20,7 +21,7 @@ export class CollectionController extends Controller implements Collection {
   private upsertQueue: string[] = [];
   private cacheEvaluators: CacheEvaluator[] = [];
   private countCacheEvaluator: CacheEvaluator = new QueryHashEvaluator();
-  private populatePromise: Promise<Collection>;
+  private populatePromise: Promise<void>;
 
   public constructor() {
     super();
@@ -78,11 +79,11 @@ export class CollectionController extends Controller implements Collection {
   }
 
   public setCache(cache: Collection): void {
-    cache.on('document-upserted', (obj: any) => {
-      this.emit('document-upserted', obj);
+    cache.on('document-upserted', (doc: Document) => {
+      this.emit('document-upserted', doc);
     });
-    cache.on('document-removed', (obj: any) => {
-      this.emit('document-removed', obj);
+    cache.on('document-removed', (doc: Document) => {
+      this.emit('document-removed', doc);
     });
 
     this._cache = cache;
@@ -93,7 +94,7 @@ export class CollectionController extends Controller implements Collection {
     this._source = source;
     this.persistPipe.setCollection(source);
 
-    source.on('document-upserted', (doc: any) => {
+    source.on('document-upserted', (doc: Document) => {
       doc._collection = this.name();
       if (this.upsertQueue.indexOf(doc._id) < 0) {
         this.pipes['source-upsert'].process(doc);
@@ -104,19 +105,19 @@ export class CollectionController extends Controller implements Collection {
     });
   }
 
-  public populate(): Promise<Collection> {
+  public populate(): Promise<void> {
     if (!this.populatePromise && this._source) {
       this.populating = true;
-      this.populatePromise = new Promise<Collection>((resolve) => {
+      this.populatePromise = new Promise<void>((resolve) => {
         this._source.find()
-          .then((docs: any[]) => {
+          .then((docs: Document[]) => {
             return this.populateBuffer(docs);
           })
           .then(() => {
             return this._buffer.find();
           })
-          .then((bufferedDocs: any[]) => {
-            return Promise.each(bufferedDocs, (doc: any) => {
+          .then((bufferedDocs: Document[]) => {
+            return Promise.each(bufferedDocs, (doc: Document) => {
               return this.pipes['populate-post-buffer'].process(doc);
             });
           })
@@ -124,7 +125,7 @@ export class CollectionController extends Controller implements Collection {
             this.synced = true;
             this.populating = false;
             this.emit('ready');
-            resolve(this);
+            resolve();
           });
       });
     }
@@ -135,14 +136,14 @@ export class CollectionController extends Controller implements Collection {
     this.cacheEvaluators.push(evaluator);
   }
 
-  public find(selector?: Object, options?: QueryOptions): Promise<any> {
+  public find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]> {
     if (this.isCached(selector, options)) {
       return this._cache.find(selector, options);
     }
     let optQuery = this.optimizeQuery(selector, options);
     return this._source.find(optQuery.selector, optQuery.options)
-      .then((documents: any[]) => {
-        let cachePromises = map(documents, (doc: any) => {
+      .then((documents: Document[]) => {
+        let cachePromises = map(documents, (doc: Document) => {
           return this.upsertCache(doc);
         });
         return Promise.all(cachePromises);
@@ -153,9 +154,9 @@ export class CollectionController extends Controller implements Collection {
       });
   }
 
-  public findOne(selector: Object): Promise<any> {
-    return this._cache.findOne(selector)
-      .then((cachedDoc: any) => {
+  public findOne<T extends Document>(selector: Object): Promise<T> {
+    return this._cache.findOne<T>(selector)
+      .then((cachedDoc: T) => {
         return Promise.resolve(cachedDoc);
       })
       .catch((error: any) => {
@@ -164,21 +165,21 @@ export class CollectionController extends Controller implements Collection {
         }
         return Promise.reject(error);
       })
-      .then((doc: any) => {
+      .then((doc: T) => {
         this.upsertCache(doc);
         return Promise.resolve(doc);
       });
   }
 
-  public upsert(obj: any): Promise<any> {
-    let copy = clone(obj);
-    copy._revision = obj._revision ? obj._revision + 1 : 1;
+  public upsert<T extends Document>(doc: T): Promise<T> {
+    let copy = clone(doc);
+    copy._revision = doc._revision ? doc._revision + 1 : 1;
     copy._collection = this.name();
 
     this.upsertQueue.push(copy._id);
 
     return this.pipes['upsert'].process(copy)
-      .then((output: any) => {
+      .then((output: Document) => {
         pull(this.upsertQueue, copy._id);
         return Promise.resolve(copy);
       });
@@ -195,8 +196,8 @@ export class CollectionController extends Controller implements Collection {
     return this._cache.name();
   }
 
-  private upsertCache(doc: any): Promise<any> {
-    return this.cachePipe.process(doc).then((cachedDoc: any) => {
+  private upsertCache(doc: Document): Promise<Document> {
+    return this.cachePipe.process(doc).then((cachedDoc: Document) => {
       this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
         ce.add(cachedDoc);
       });
@@ -230,11 +231,11 @@ export class CollectionController extends Controller implements Collection {
     return query;
   }
 
-  private populateBuffer(docs: any[]): Promise<any> {
-    return Promise.each(docs, (doc: any) => {
+  private populateBuffer(docs: Document[]): Promise<any> {
+    return Promise.each(docs, (doc: Document) => {
       doc._collection = this.name();
       return this.pipes['populate-pre-buffer'].process(doc)
-        .then((output: any) => {
+        .then((output: Document) => {
           return this._buffer.upsert(output);
         })
         .catch((err: Error) => {
