@@ -12,6 +12,8 @@ export * from './controllers/meta/decorators';
 export * from './database/decorators';
 export * from './transformation/decorators';
 export * from './transformation/interfaces';
+export * from './validation/decorators';
+export * from './validation/interfaces';
 
 import {RoutineAggregator} from './controllers/routine';
 import {DatabaseService} from './database/database';
