@@ -14,14 +14,16 @@ export class NumberModelDecorator extends PropertyDecorator<NumberModelConfig> {
 
     let decorators: any[] = [IsNumber(options)];
 
-    if (data.multipleOf) {
-      decorators.push(IsDivisibleBy(data.multipleOf, options));
-    }
-    if (data.minimum) {
-      decorators.push(Min(data.minimum, options));
-    }
-    if (data.maximum) {
-      decorators.push(Max(data.maximum, options));
+    if (data) {
+      if (data.multipleOf) {
+        decorators.push(IsDivisibleBy(data.multipleOf, options));
+      }
+      if (data.minimum) {
+        decorators.push(Min(data.minimum, options));
+      }
+      if (data.maximum) {
+        decorators.push(Max(data.maximum, options));
+      }
     }
 
     Reflect.decorate(decorators, target, key);

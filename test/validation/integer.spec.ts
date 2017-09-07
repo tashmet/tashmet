@@ -9,7 +9,7 @@ chai.use(chaiAsPromised);
 
 describe('integer', () => {
   class Integer {
-    @integer({})
+    @integer()
     public foo: number;
   }
   const vs = new ValidatorService();
