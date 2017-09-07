@@ -8,6 +8,34 @@ import 'mocha';
 chai.use(chaiAsPromised);
 
 describe('number', () => {
+  class Number {
+    @number()
+    public foo: any;
+  }
+  const vs = new ValidatorService();
+  let obj = new Number();
+
+  it('should fail validation of a value that is not numeric', () => {
+    obj.foo = '432';
+    expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+  });
+
+  it('should pass validation of a value that is numeric', () => {
+    obj.foo = 432;
+    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+  });
+
+  it('should pass validation of a number that is floating point', () => {
+    obj.foo = 5.2;
+    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+  });
+
+  it('should pass validation of a number with exponential notation', () => {
+    obj.foo = 2.99792458e8;
+    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+  });
+
+
   describe('multipleOf', () => {
     class MultipleOf {
       @number({multipleOf: 10})
