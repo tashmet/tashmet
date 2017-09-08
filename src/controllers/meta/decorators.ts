@@ -10,6 +10,8 @@ export interface ControllerConfig {
    * The name of the controller.
    */
   name: string;
+
+  model?: string;
 }
 
 export interface CollectionConfig extends ControllerConfig {
@@ -18,6 +20,7 @@ export interface CollectionConfig extends ControllerConfig {
 
 export const collection = classDecorator<CollectionConfig>(
   new ControllerDecorator('isimud:collection', ['isimud.Collection']), {
+    model: 'isimud.Document',
     populateAfter: []
   });
 

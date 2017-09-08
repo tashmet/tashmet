@@ -54,7 +54,7 @@ export class DatabaseService extends EventEmitter implements Database
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(collection);
 
-    let processor = new Processor(source, cache, this.transformer, this.validator);
+    let processor = new Processor(source, cache, this.transformer, this.validator, meta.model);
 
     collection.setSource(source);
     collection.setCache(cache);

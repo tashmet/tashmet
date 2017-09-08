@@ -9,11 +9,12 @@ import * as Promise from 'bluebird';
 export class InstancePipe implements Pipe {
   public constructor(
     private transformer: Transformer,
-    private mode: string
+    private mode: string,
+    private model: string
   ) {}
 
   public process(input: any): Promise<any> {
-    return this.transformer.toInstance(input, this.mode);
+    return this.transformer.toInstance(input, this.mode, this.model);
   }
 }
 

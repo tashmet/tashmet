@@ -22,6 +22,7 @@ describe('TransformerService', () => {
     it('should transform a plain object', () => {
       const plain = {foo: 'bar', _model: 'test.TestModel'};
       return ts.toInstance(plain, 'persist').then((obj: TestModel) => {
+        expect(obj._model).to.eql('test.TestModel');
         expect(obj.foo).to.eql('bar');
       });
     });
@@ -34,6 +35,7 @@ describe('TransformerService', () => {
     it('should transform a plain object with default model', () => {
       const plain = {foo: 'bar'};
       return ts.toInstance(plain, 'persist', 'test.TestModel').then((obj: TestModel) => {
+        expect(obj._model).to.eql('test.TestModel');
         expect(obj.foo).to.eql('bar');
       });
     });
@@ -46,6 +48,7 @@ describe('TransformerService', () => {
     it('should transform a plain object to isimud.Document when no model specified', () => {
       const plain = {foo: 'bar'};
       return ts.toInstance(plain, 'persist').then((obj: Document) => {
+        expect(obj._model).to.eql('isimud.Document');
         expect(obj).to.not.haveOwnProperty('foo');
       });
     });

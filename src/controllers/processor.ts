@@ -17,13 +17,14 @@ export class Processor extends EventEmitter {
     source: Collection,
     cache: Collection,
     transformer: Transformer,
-    validator: Validator
+    validator: Validator,
+    model: string
   ) {
     super();
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(validator);
-    let instancePipe = new InstancePipe(transformer, 'persist');
+    let instancePipe = new InstancePipe(transformer, 'persist', model);
 
     this.pipes['source-upsert'] = new HookablePipeline(true)
       .step('transform', instancePipe)

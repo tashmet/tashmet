@@ -23,9 +23,9 @@ export class TransformerService implements Transformer {
   public toInstance<T extends Document>(
     plain: any, mode: string, defaultModel = 'isimud.Document'): Promise<T>
   {
-    return new Promise<T>((resolve, reject) => {
-      let model = plain._model;
+    let model = plain._model;
 
+    return new Promise<T>((resolve, reject) => {
       if (!plain._model || plain._model.length === 0) {
         model = defaultModel;
       }
@@ -43,6 +43,9 @@ export class TransformerService implements Transformer {
       } else {
         resolve(instance);
       }
+    }).then((instance: T) => {
+      instance._model = instance._model || model;
+      return instance;
     });
   }
 
