@@ -1,6 +1,7 @@
 import {provider, inject} from '@ziggurat/tiamat';
 import {classToPlain, plainToClass} from 'class-transformer';
 import {Transformer} from './interfaces';
+import {Document} from '../models/document';
 import * as Promise from 'bluebird';
 
 @provider({
@@ -19,13 +20,21 @@ export class TransformerService implements Transformer {
     });
   }
 
-  public toInstance<T extends object>(plain: any, mode: string): Promise<T> {
+  public toInstance<T extends Document>(
+    plain: any, mode: string, defaultModel = 'isimud.Document'): Promise<T>
+  {
     return new Promise<T>((resolve, reject) => {
-      if (!this.models[plain._model]) {
-        return reject(new Error(`No such model: ${plain._model}`));
+      let model = plain._model;
+
+      if (!plain._model || plain._model.length === 0) {
+        model = defaultModel;
       }
 
-      const instance = plainToClass(this.models[plain._model], plain, {
+      if (!this.models[model]) {
+        return reject(new Error(`No such model: ${model}`));
+      }
+
+      const instance = plainToClass(this.models[model], plain, {
         strategy: 'excludeAll',
         groups: [mode]
       });
@@ -37,7 +46,7 @@ export class TransformerService implements Transformer {
     });
   }
 
-  public toPlain<T extends object>(instance: T, mode: string): Promise<any> {
+  public toPlain<T extends Document>(instance: T, mode: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       resolve(classToPlain(instance, {strategy: 'excludeAll', groups: [mode]}));
     });
