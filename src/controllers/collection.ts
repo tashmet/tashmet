@@ -1,21 +1,22 @@
-import {injectable} from '@ziggurat/tiamat';
-import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
+import {injectable, decorate} from '@ziggurat/tiamat';
+import {Collection, DocumentError, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {QueryHashEvaluator} from '../database/cache/queryHash';
-import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
-  Validator, MergeDefaults, StripDefaults} from '../pipes';
-import {Controller} from './controller';
-import {CollectionConfig} from './meta/decorators';
+import {Processor} from './processor';
+import {EventEmitter} from 'eventemitter3';
 import {clone, map, pull, some} from 'lodash';
 import * as Promise from 'bluebird';
 
+if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
+  decorate(injectable(), EventEmitter);
+}
+
 @injectable()
-export class CollectionController extends Controller implements Collection {
+export class CollectionController extends EventEmitter implements Collection {
   protected _cache: Collection;
   protected _buffer: Collection;
   protected _source: Collection;
-  private cachePipe: RevisionUpsertPipe = new RevisionUpsertPipe();
-  private persistPipe: UpsertPipe = new UpsertPipe();
+  private processor: Processor;
   private synced = false;
   private populating = false;
   private upsertQueue: string[] = [];
@@ -25,41 +26,6 @@ export class CollectionController extends Controller implements Collection {
 
   public constructor() {
     super();
-    let config: CollectionConfig = this.getMetaData(this.constructor);
-    let schemas = Reflect.getMetadata('isimud:schemas', this.constructor);
-
-    this.pipes['source-upsert'] = new HookablePipeline(true)
-      .step('validate', new Validator(schemas))
-      .step('merge',    new MergeDefaults(schemas))
-      .step('cache',    this.cachePipe)
-      .on('document-error', (err: DocumentError) => {
-        this.emit('document-error', err);
-      });
-
-    this.pipes['upsert'] = new HookablePipeline(true)
-      .step('validate', new Validator(schemas))
-      .step('merge',    new MergeDefaults(schemas))
-      .step('cache',    this.cachePipe)
-      .step('strip',    new StripDefaults(schemas))
-      .step('persist',  this.persistPipe)
-      .on('document-error', (err: DocumentError) => {
-        this.emit('document-error', err);
-      });
-
-    this.pipes['populate-pre-buffer'] = new HookablePipeline(true)
-      .step('validate', new Validator(schemas))
-      .step('merge',    new MergeDefaults(schemas))
-      .on('document-error', (err: DocumentError) => {
-        this.emit('document-error', err);
-      });
-
-    this.pipes['populate-post-buffer'] = new HookablePipeline(true)
-      .step('cache',    this.cachePipe)
-      .on('document-error', (err: DocumentError) => {
-        this.emit('document-error', err);
-      });
-
-    this.addHooks(this);
   }
 
   get buffer(): Collection {
@@ -87,22 +53,24 @@ export class CollectionController extends Controller implements Collection {
     });
 
     this._cache = cache;
-    this.cachePipe.setCollection(cache);
   }
 
   public setSource(source: Collection): void {
     this._source = source;
-    this.persistPipe.setCollection(source);
 
     source.on('document-upserted', (doc: Document) => {
       doc._collection = this.name();
       if (this.upsertQueue.indexOf(doc._id) < 0) {
-        this.pipes['source-upsert'].process(doc);
+        this.processor.process(doc, 'source-upsert');
       }
     });
     source.on('document-removed', (id: string) => {
       // TODO: Remove document from collection.
     });
+  }
+
+  public setProcessor(processor: Processor) {
+    this.processor = processor;
   }
 
   public populate(): Promise<void> {
@@ -118,7 +86,7 @@ export class CollectionController extends Controller implements Collection {
           })
           .then((bufferedDocs: Document[]) => {
             return Promise.each(bufferedDocs, (doc: Document) => {
-              return this.pipes['populate-post-buffer'].process(doc);
+              return this.processor.process(doc, 'populate-post-buffer');
             });
           })
           .then(() => {
@@ -178,7 +146,7 @@ export class CollectionController extends Controller implements Collection {
 
     this.upsertQueue.push(copy._id);
 
-    return this.pipes['upsert'].process(copy)
+    return this.processor.process(copy, 'upsert')
       .then((output: Document) => {
         pull(this.upsertQueue, copy._id);
         return Promise.resolve(copy);
@@ -197,16 +165,12 @@ export class CollectionController extends Controller implements Collection {
   }
 
   private upsertCache(doc: Document): Promise<Document> {
-    return this.cachePipe.process(doc).then((cachedDoc: Document) => {
+    return this.processor.process(doc, 'cache').then((cachedDoc: Document) => {
       this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
         ce.add(cachedDoc);
       });
       return Promise.resolve(cachedDoc);
     });
-  }
-
-  private getMetaData(constructor: any): CollectionConfig {
-    return Reflect.getOwnMetadata('isimud:collection', constructor);
   }
 
   private isCached(selector?: Object, options?: QueryOptions): boolean {
@@ -234,7 +198,7 @@ export class CollectionController extends Controller implements Collection {
   private populateBuffer(docs: Document[]): Promise<any> {
     return Promise.each(docs, (doc: Document) => {
       doc._collection = this.name();
-      return this.pipes['populate-pre-buffer'].process(doc)
+      return this.processor.process(doc, 'populate-pre-buffer')
         .then((output: Document) => {
           return this._buffer.upsert(output);
         })

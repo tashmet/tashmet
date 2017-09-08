@@ -3,6 +3,7 @@ import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, View, Filter, CacheEvaluator, QueryOptions, ViewConfig} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
+import {Processor} from '../controllers/processor';
 import {RoutineAggregator} from '../controllers/routine';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
@@ -40,21 +41,25 @@ export class DatabaseService extends EventEmitter implements Database
   private activateCollectionController(collection: CollectionController): CollectionController {
     let providerMeta = Reflect.getOwnMetadata('tiamat:provider', collection.constructor);
     let meta = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
+    let schemas = Reflect.getMetadata('isimud:schemas', collection.constructor);
 
     this.collections[meta.name] = collection;
-    each(this.dbConfig.sources, (fact: Function, colName: string) => {
-      if (colName === providerMeta.for) {
-        collection.setSource(fact(this.injector));
-      }
-    });
+
+    // TODO: Support collections without source.
+    let source = this.dbConfig.sources[providerMeta.for](this.injector);
     let cache = this.localDB.createCollection(meta.name);
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(collection);
+
+    let processor = new Processor(source, cache, meta, schemas);
+
+    collection.setSource(source);
     collection.setCache(cache);
     collection.setBuffer(buffer);
+    collection.setProcessor(processor);
     routines.forEach((routine: any) => {
       routine.setController(collection);
-      collection.addRoutine(routine);
+      processor.addRoutine(routine);
     });
     collection.addCacheEvaluator(new QueryHashEvaluator());
     collection.addCacheEvaluator(new DocumentIdEvaluator());

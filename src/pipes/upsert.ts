@@ -2,11 +2,9 @@ import {Pipe, Collection} from '../interfaces';
 import * as Promise from 'bluebird';
 
 export class UpsertPipe implements Pipe {
-  private collection: Collection;
-
-  public setCollection(collection: Collection): void {
-    this.collection = collection;
-  }
+  constructor(
+    private collection: Collection
+  ) {}
 
   public process(input: any): Promise<any> {
     return this.collection.upsert(input);
@@ -14,11 +12,9 @@ export class UpsertPipe implements Pipe {
 }
 
 export class RevisionUpsertPipe implements Pipe {
-  private collection: Collection;
-
-  public setCollection(collection: Collection): void {
-    this.collection = collection;
-  }
+  constructor(
+    private collection: Collection
+  ) {}
 
   public process(doc: any): Promise<any> {
     return this.collection.findOne({_id: doc._id})
