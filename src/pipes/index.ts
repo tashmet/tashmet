@@ -3,3 +3,4 @@ export {UpsertPipe, RevisionUpsertPipe} from './upsert';
 export {Pipeline} from './pipeline';
 export {Validator} from './validator';
 export {MergeDefaults, StripDefaults} from './defaults';
+export {InstancePipe, PlainPipe} from './transformation';
