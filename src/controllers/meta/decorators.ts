@@ -10,12 +10,6 @@ export interface ControllerConfig {
    * The name of the controller.
    */
   name: string;
-
-  /**
-   * An optional json schema that will be used for validating and providing
-   * default values to documents managed by this controller.
-   */
-  schema?: any;
 }
 
 export interface CollectionConfig extends ControllerConfig {

@@ -2,8 +2,7 @@ import {injectable} from '@ziggurat/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
-  ValidationPipe, MergeDefaults, StripDefaults, Hook, HookablePipe,
-  InstancePipe} from '../pipes';
+  ValidationPipe, Hook, HookablePipe, InstancePipe} from '../pipes';
 import {Transformer} from '../transformation/interfaces';
 import {Validator} from '../validation/interfaces';
 import {CollectionConfig} from './meta/decorators';
@@ -27,14 +26,11 @@ export class Processor extends EventEmitter {
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(validator);
-    let mergePipe = new MergeDefaults(schemas);
-    let stripPipe = new StripDefaults(schemas);
     let instancePipe = new InstancePipe(transformer, 'persist');
 
     this.pipes['source-upsert'] = new HookablePipeline(true)
       .step('transform', instancePipe)
       .step('validate', validationPipe)
-      .step('merge',    mergePipe)
       .step('cache',    cachePipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
@@ -42,9 +38,7 @@ export class Processor extends EventEmitter {
 
     this.pipes['upsert'] = new HookablePipeline(true)
       .step('validate', validationPipe)
-      .step('merge',    mergePipe)
       .step('cache',    cachePipe)
-      .step('strip',    stripPipe)
       .step('persist',  persistPipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
@@ -53,7 +47,6 @@ export class Processor extends EventEmitter {
     this.pipes['populate-pre-buffer'] = new HookablePipeline(true)
       .step('transform', instancePipe)
       .step('validate', validationPipe)
-      .step('merge',    mergePipe)
       .on('document-error', (err: DocumentError) => {
         this.emit('document-error', err);
       });

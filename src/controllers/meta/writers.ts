@@ -13,15 +13,6 @@ export class ControllerDecorator extends TaggedClassAnnotation<CollectionConfig>
       }
     }
 
-    if (data.schema) {
-      let parentSchemas = Reflect.getMetadata('isimud:schemas', target) || [];
-      let schemas = parentSchemas.slice();
-      schemas.push(data.schema);
-      Reflect.defineMetadata('isimud:schemas', schemas, target);
-    } else {
-      Reflect.defineMetadata('isimud:schemas', [], target);
-    }
-
     super.decorate(data, target);
   }
 }
