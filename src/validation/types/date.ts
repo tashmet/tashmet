@@ -1,6 +1,6 @@
 import {PropertyDecorator} from '@ziggurat/tiamat';
 import {DateModelConfig} from '../interfaces';
-import {IsDate} from 'class-validator';
+import {IsDate, MinDate, MaxDate} from 'class-validator';
 
 export class DateModelDecorator extends PropertyDecorator<DateModelConfig> {
   public decorate(data: DateModelConfig, target: any, key: string) {
@@ -13,6 +13,15 @@ export class DateModelDecorator extends PropertyDecorator<DateModelConfig> {
     }
 
     let decorators: any[] = [IsDate(options)];
+
+    if (data) {
+      if (data.min) {
+        decorators.push(MinDate(data.min, options));
+      }
+      if (data.max) {
+        decorators.push(MaxDate(data.max, options));
+      }
+    }
 
     Reflect.decorate(decorators, target, key);
   }

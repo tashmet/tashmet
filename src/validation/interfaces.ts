@@ -32,4 +32,8 @@ export interface StringModelConfig {
   format?: 'date-time' | 'email' | 'hostname' | 'ipv4' | 'ipv6' | 'uri';
 }
 
-export interface DateModelConfig {}
+export interface DateModelConfig {
+  min?: Date;
+
+  max?: Date;
+}
