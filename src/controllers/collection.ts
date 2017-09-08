@@ -71,6 +71,9 @@ export class CollectionController extends EventEmitter implements Collection {
 
   public setProcessor(processor: Processor) {
     this.processor = processor;
+    this.processor.on('document-error', (err) => {
+      this.emit('document-error', err);
+    });
   }
 
   public populate(): Promise<void> {
