@@ -4,7 +4,7 @@ import {number, string} from '../validation/decorators';
 @model('isimud.Document')
 export class Document {
   @string()
-  @expose({persist: false})
+  @expose()
   public _id = '';
 
   @string()
