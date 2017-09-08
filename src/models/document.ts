@@ -16,5 +16,5 @@ export class Document {
   public _model = 'isimud.Document';
 
   @number()
-  public _revision = 1;
+  public _revision = 0;
 }
