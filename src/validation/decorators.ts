@@ -1,11 +1,13 @@
 import {propertyDecoratorOptional, propertyDecoratorVoid} from '@ziggurat/tiamat';
-import {ArrayModelConfig, NumberModelConfig, StringModelConfig} from './interfaces';
+import {ArrayModelConfig, NumberModelConfig, StringModelConfig,
+  DateModelConfig} from './interfaces';
 import {ArrayModelDecorator} from './types/array';
 import {BooleanModelDecorator} from './types/boolean';
 import {IntegerModelDecorator} from './types/integer';
 import {NumberModelDecorator} from './types/number';
 import {NestedModelDecorator} from './types/nested';
 import {StringModelDecorator} from './types/string';
+import {DateModelDecorator} from './types/date';
 
 export const array = propertyDecoratorOptional<ArrayModelConfig>(
   new ArrayModelDecorator());
@@ -24,3 +26,6 @@ export const nested = propertyDecoratorVoid(
 
 export const string = propertyDecoratorOptional<StringModelConfig>(
   new StringModelDecorator());
+
+export const date = propertyDecoratorOptional<DateModelConfig>(
+  new DateModelDecorator());
