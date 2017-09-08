@@ -15,7 +15,8 @@ export class ValidationPipe implements Pipe {
     return new Promise<any>((resolve, reject) => {
       this.validator.validate(input).then(result => {
         if (result.length > 0) {
-          reject(new DocumentError(input, 'Validation failed'));
+          const c = result[0].constraints;
+          reject(new DocumentError(input, c[Object.keys(c)[0]]));
         } else {
           resolve(input);
         }
