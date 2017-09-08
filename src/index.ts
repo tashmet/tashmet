@@ -21,6 +21,7 @@ import {DatabaseService} from './database/database';
 import {LocalDB} from './database/local';
 import {RemoteDB} from './database/remote';
 import {TransformerService} from './transformation/transformer';
+import {ValidatorService} from './validation/validator';
 
 @component({
   providers: [
@@ -28,7 +29,8 @@ import {TransformerService} from './transformation/transformer';
     RemoteDB,
     DatabaseService,
     RoutineAggregator,
-    TransformerService
+    TransformerService,
+    ValidatorService
   ]
 })
 export class Isimud {}

@@ -2,9 +2,10 @@ import {injectable} from '@ziggurat/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
-  Validator, MergeDefaults, StripDefaults, Hook, HookablePipe,
+  ValidationPipe, MergeDefaults, StripDefaults, Hook, HookablePipe,
   InstancePipe} from '../pipes';
 import {Transformer} from '../transformation/interfaces';
+import {Validator} from '../validation/interfaces';
 import {CollectionConfig} from './meta/decorators';
 import {HookMeta, HookConfig} from './meta/decorators';
 import {Routine} from './routine';
@@ -18,13 +19,14 @@ export class Processor extends EventEmitter {
     source: Collection,
     cache: Collection,
     transformer: Transformer,
+    validator: Validator,
     config: CollectionConfig,
     schemas: any[])
   {
     super();
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
-    let validationPipe = new Validator(schemas);
+    let validationPipe = new ValidationPipe(validator);
     let mergePipe = new MergeDefaults(schemas);
     let stripPipe = new StripDefaults(schemas);
     let instancePipe = new InstancePipe(transformer, 'persist');

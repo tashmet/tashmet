@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/isimud",
-  "version": "0.20.20",
+  "version": "0.20.21",
   "description": "Isimud is an isomorphic document storage and processing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
