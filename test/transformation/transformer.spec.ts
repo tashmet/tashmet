@@ -9,16 +9,15 @@ import 'mocha';
 chai.use(chaiAsPromised);
 
 describe('TransformerService', () => {
+  @model('test.TestModel')
+  class TestModel extends Document {
+    @expose()
+    public foo: string;
+  }
+
+  const ts = new TransformerService([TestModel, Document]);
+
   describe('toInstance', () => {
-
-    @model('test.TestModel')
-    class TestModel extends Document {
-      @expose()
-      public foo: string;
-    }
-
-    const ts = new TransformerService([TestModel, Document]);
-
     it('should transform a plain object', () => {
       const plain = {foo: 'bar', _model: 'test.TestModel'};
       return ts.toInstance(plain, 'persist').then((obj: TestModel) => {
@@ -51,6 +50,16 @@ describe('TransformerService', () => {
         expect(obj._model).to.eql('isimud.Document');
         expect(obj).to.not.haveOwnProperty('foo');
       });
+    });
+  });
+
+  describe('toPlain', () => {
+    const instance = new TestModel();
+    instance.foo = 'bar';
+
+    ts.toPlain(instance, 'persist').then((obj: any) => {
+      expect(obj.foo).to.eql('bar');
+      expect(obj._model).to.eql('test.TestModel');
     });
   });
 });

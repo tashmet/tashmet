@@ -43,15 +43,14 @@ export class TransformerService implements Transformer {
       } else {
         resolve(instance);
       }
-    }).then((instance: T) => {
-      instance._model = instance._model || model;
-      return instance;
     });
   }
 
   public toPlain<T extends Document>(instance: T, mode: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      resolve(classToPlain(instance, {strategy: 'excludeAll', groups: [mode]}));
+      let obj = <any>classToPlain(instance, {strategy: 'excludeAll', groups: [mode]});
+      obj._model = instance._model;
+      resolve(obj);
     });
   }
 }

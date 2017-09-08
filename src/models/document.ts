@@ -11,10 +11,10 @@ export class Document {
   @expose({persist: false})
   public _collection = '';
 
-  @string()
-  @expose()
-  public _model = 'isimud.Document';
-
   @number()
   public _revision = 0;
+
+  get _model(): string {
+    return Reflect.getOwnMetadata('isimud:model', this.constructor);
+  }
 }
