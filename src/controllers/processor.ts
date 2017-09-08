@@ -2,7 +2,9 @@ import {injectable} from '@ziggurat/tiamat';
 import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
-  Validator, MergeDefaults, StripDefaults, Hook, HookablePipe} from '../pipes';
+  Validator, MergeDefaults, StripDefaults, Hook, HookablePipe,
+  InstancePipe} from '../pipes';
+import {Transformer} from '../transformation/interfaces';
 import {CollectionConfig} from './meta/decorators';
 import {HookMeta, HookConfig} from './meta/decorators';
 import {Routine} from './routine';
@@ -15,6 +17,7 @@ export class Processor extends EventEmitter {
   public constructor(
     source: Collection,
     cache: Collection,
+    transformer: Transformer,
     config: CollectionConfig,
     schemas: any[])
   {
@@ -24,8 +27,10 @@ export class Processor extends EventEmitter {
     let validationPipe = new Validator(schemas);
     let mergePipe = new MergeDefaults(schemas);
     let stripPipe = new StripDefaults(schemas);
+    let instancePipe = new InstancePipe(transformer, 'persist');
 
     this.pipes['source-upsert'] = new HookablePipeline(true)
+      .step('transform', instancePipe)
       .step('validate', validationPipe)
       .step('merge',    mergePipe)
       .step('cache',    cachePipe)
@@ -44,6 +49,7 @@ export class Processor extends EventEmitter {
       });
 
     this.pipes['populate-pre-buffer'] = new HookablePipeline(true)
+      .step('transform', instancePipe)
       .step('validate', validationPipe)
       .step('merge',    mergePipe)
       .on('document-error', (err: DocumentError) => {

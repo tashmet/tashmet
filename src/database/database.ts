@@ -5,6 +5,7 @@ import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
 import {CollectionController} from '../controllers/collection';
 import {Processor} from '../controllers/processor';
 import {RoutineAggregator} from '../controllers/routine';
+import {Transformer} from '../transformation/interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
@@ -27,6 +28,7 @@ export class DatabaseService extends EventEmitter implements Database
   @inject('isimud.LocalDatabase') private localDB: LocalDatabase;
   @inject('isimud.RemoteDatabase') private remoteDB: RemoteDatabase;
   @inject('isimud.RoutineAggregator') private routineAggregator: RoutineAggregator;
+  @inject('isimud.Transformer') private transformer: Transformer;
   @inject('tiamat.Injector') private injector: Injector;
 
   public collection(name: string): Collection {
@@ -51,7 +53,7 @@ export class DatabaseService extends EventEmitter implements Database
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(collection);
 
-    let processor = new Processor(source, cache, meta, schemas);
+    let processor = new Processor(source, cache, this.transformer, meta, schemas);
 
     collection.setSource(source);
     collection.setCache(cache);
