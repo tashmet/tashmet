@@ -105,6 +105,14 @@ export class CollectionController extends EventEmitter implements Collection {
   }
 
   public find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]> {
+    if (this.populating) {
+      return new Promise<T[]>((resolve, reject) => {
+        this.populatePromise.then(() => {
+          resolve(this._cache.find(selector, options));
+        });
+      });
+    }
+
     if (this.isCached(selector, options)) {
       return this._cache.find(selector, options);
     }
