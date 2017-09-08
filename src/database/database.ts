@@ -45,7 +45,6 @@ export class DatabaseService extends EventEmitter implements Database
   private activateCollectionController(collection: CollectionController): CollectionController {
     let providerMeta = Reflect.getOwnMetadata('tiamat:provider', collection.constructor);
     let meta = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
-    let schemas = Reflect.getMetadata('isimud:schemas', collection.constructor);
 
     this.collections[meta.name] = collection;
 
@@ -55,7 +54,7 @@ export class DatabaseService extends EventEmitter implements Database
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(collection);
 
-    let processor = new Processor(source, cache, this.transformer, this.validator, meta, schemas);
+    let processor = new Processor(source, cache, this.transformer, this.validator);
 
     collection.setSource(source);
     collection.setCache(cache);

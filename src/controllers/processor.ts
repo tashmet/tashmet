@@ -5,7 +5,6 @@ import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
   ValidationPipe, Hook, HookablePipe, InstancePipe} from '../pipes';
 import {Transformer} from '../transformation/interfaces';
 import {Validator} from '../validation/interfaces';
-import {CollectionConfig} from './meta/decorators';
 import {HookMeta, HookConfig} from './meta/decorators';
 import {Routine} from './routine';
 import {EventEmitter} from 'eventemitter3';
@@ -18,10 +17,8 @@ export class Processor extends EventEmitter {
     source: Collection,
     cache: Collection,
     transformer: Transformer,
-    validator: Validator,
-    config: CollectionConfig,
-    schemas: any[])
-  {
+    validator: Validator
+  ) {
     super();
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
@@ -63,7 +60,7 @@ export class Processor extends EventEmitter {
         this.emit('document-error', err);
       });
 
-    // this.addHooks(this);
+    // TODO: Support hooks on collection itself?
   }
 
   public process(doc: any, pipe: string): Promise<any> {
