@@ -1,7 +1,7 @@
-import {ModelPropertyDecorator} from './common';
+import {TypeDecorator} from './common';
 import {IsBoolean} from 'class-validator';
 
-export class BooleanModelDecorator extends ModelPropertyDecorator<undefined> {
+export class BooleanTypeDecorator extends TypeDecorator<undefined> {
   public decorate(data: undefined, target: any, key: string) {
     let options: any = {};
 

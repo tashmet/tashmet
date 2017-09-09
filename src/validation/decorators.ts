@@ -1,36 +1,36 @@
 import {propertyDecoratorOptional, propertyDecoratorVoid} from '@ziggurat/tiamat';
-import {ArrayModelConfig, NumberModelConfig, StringModelConfig,
-  DateModelConfig} from './interfaces';
-import {ModelPropertyDecorator} from './types/common';
-import {AnyModelDecorator} from './types/any';
-import {ArrayModelDecorator} from './types/array';
-import {BooleanModelDecorator} from './types/boolean';
-import {IntegerModelDecorator} from './types/integer';
-import {NumberModelDecorator} from './types/number';
-import {NestedModelDecorator} from './types/nested';
-import {StringModelDecorator} from './types/string';
-import {DateModelDecorator} from './types/date';
+import {ArrayTypeConfig, NumberTypeConfig, StringTypeConfig,
+  DateTypeConfig} from './interfaces';
+import {TypeDecorator} from './types/common';
+import {AnyTypeDecorator} from './types/any';
+import {ArrayTypeDecorator} from './types/array';
+import {BooleanTypeDecorator} from './types/boolean';
+import {IntegerTypeDecorator} from './types/integer';
+import {NumberTypeDecorator} from './types/number';
+import {NestedTypeDecorator} from './types/nested';
+import {StringTypeDecorator} from './types/string';
+import {DateTypeDecorator} from './types/date';
 
 export const any = propertyDecoratorVoid(
-  new AnyModelDecorator());
+  new AnyTypeDecorator());
 
-export const array = propertyDecoratorOptional<ArrayModelConfig>(
-  new ArrayModelDecorator());
+export const array = propertyDecoratorOptional<ArrayTypeConfig>(
+  new ArrayTypeDecorator());
 
 export const boolean = propertyDecoratorVoid(
-  new BooleanModelDecorator());
+  new BooleanTypeDecorator());
 
-export const number = propertyDecoratorOptional<NumberModelConfig>(
-  new NumberModelDecorator());
+export const number = propertyDecoratorOptional<NumberTypeConfig>(
+  new NumberTypeDecorator());
 
-export const integer = propertyDecoratorOptional<NumberModelConfig>(
-  new IntegerModelDecorator());
+export const integer = propertyDecoratorOptional<NumberTypeConfig>(
+  new IntegerTypeDecorator());
 
 export const nested = propertyDecoratorVoid(
-  new NestedModelDecorator());
+  new NestedTypeDecorator());
 
-export const string = propertyDecoratorOptional<StringModelConfig>(
-  new StringModelDecorator());
+export const string = propertyDecoratorOptional<StringTypeConfig>(
+  new StringTypeDecorator());
 
-export const date = propertyDecoratorOptional<DateModelConfig>(
-  new DateModelDecorator());
+export const date = propertyDecoratorOptional<DateTypeConfig>(
+  new DateTypeDecorator());

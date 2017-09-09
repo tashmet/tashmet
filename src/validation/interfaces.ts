@@ -4,7 +4,7 @@ export interface Validator {
   validate(instance: any): Promise<any>;
 }
 
-export interface ArrayModelConfig {
+export interface ArrayTypeConfig {
   items?: {type: Function};
 
   minItems?: number;
@@ -14,7 +14,7 @@ export interface ArrayModelConfig {
   uniqueItems?: boolean;
 }
 
-export interface NumberModelConfig {
+export interface NumberTypeConfig {
   multipleOf?: number;
 
   minimum?: number;
@@ -22,7 +22,7 @@ export interface NumberModelConfig {
   maximum?: number;
 }
 
-export interface StringModelConfig {
+export interface StringTypeConfig {
   minLength?: number;
 
   maxLength?: number;
@@ -32,7 +32,7 @@ export interface StringModelConfig {
   format?: 'date-time' | 'email' | 'hostname' | 'ipv4' | 'ipv6' | 'uri';
 }
 
-export interface DateModelConfig {
+export interface DateTypeConfig {
   min?: Date;
 
   max?: Date;

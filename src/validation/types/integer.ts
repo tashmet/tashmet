@@ -1,9 +1,9 @@
-import {NumberModelDecorator} from './number';
-import {NumberModelConfig} from '../interfaces';
+import {NumberTypeDecorator} from './number';
+import {NumberTypeConfig} from '../interfaces';
 import {IsInt} from 'class-validator';
 
-export class IntegerModelDecorator extends NumberModelDecorator {
-  public decorate(data: NumberModelConfig, target: any, key: string) {
+export class IntegerTypeDecorator extends NumberTypeDecorator {
+  public decorate(data: NumberTypeConfig, target: any, key: string) {
     super.decorate(data, target, key);
 
     let options: any = {};

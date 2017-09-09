@@ -1,9 +1,9 @@
-import {NumberModelConfig} from '../interfaces';
-import {ModelPropertyDecorator} from './common';
+import {NumberTypeConfig} from '../interfaces';
+import {TypeDecorator} from './common';
 import {IsNumber, IsDivisibleBy, Min, Max} from 'class-validator';
 
-export class NumberModelDecorator extends ModelPropertyDecorator<NumberModelConfig> {
-  public decorate(data: NumberModelConfig, target: any, key: string) {
+export class NumberTypeDecorator extends TypeDecorator<NumberTypeConfig> {
+  public decorate(data: NumberTypeConfig, target: any, key: string) {
     let options: any = {};
 
     if (Reflect.getOwnMetadata('isimud:type', target, key) === 'array') {

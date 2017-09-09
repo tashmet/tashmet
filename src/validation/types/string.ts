@@ -1,9 +1,9 @@
-import {StringModelConfig} from '../interfaces';
-import {ModelPropertyDecorator} from './common';
+import {StringTypeConfig} from '../interfaces';
+import {TypeDecorator} from './common';
 import {IsString, MinLength, MaxLength, Matches, IsDateString, IsEmail, IsIP} from 'class-validator';
 
-export class StringModelDecorator extends ModelPropertyDecorator<StringModelConfig> {
-  public decorate(data: StringModelConfig, target: any, key: string) {
+export class StringTypeDecorator extends TypeDecorator<StringTypeConfig> {
+  public decorate(data: StringTypeConfig, target: any, key: string) {
     let options: any = {};
 
     if (Reflect.getOwnMetadata('isimud:type', target, key) === 'array') {

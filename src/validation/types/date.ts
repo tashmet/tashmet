@@ -1,10 +1,10 @@
-import {ModelPropertyDecorator} from './common';
-import {DateModelConfig} from '../interfaces';
+import {TypeDecorator} from './common';
+import {DateTypeConfig} from '../interfaces';
 import {IsDate, MinDate, MaxDate} from 'class-validator';
 import {Type} from 'class-transformer';
 
-export class DateModelDecorator extends ModelPropertyDecorator<DateModelConfig> {
-  public decorate(data: DateModelConfig, target: any, key: string) {
+export class DateTypeDecorator extends TypeDecorator<DateTypeConfig> {
+  public decorate(data: DateTypeConfig, target: any, key: string) {
     let options: any = {};
 
     if (Reflect.getOwnMetadata('isimud:type', target, key) === 'array') {

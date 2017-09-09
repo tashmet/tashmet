@@ -1,7 +1,7 @@
-import {ModelPropertyDecorator} from './common';
+import {TypeDecorator} from './common';
 import {ValidateNested} from 'class-validator';
 
-export class NestedModelDecorator extends ModelPropertyDecorator<undefined> {
+export class NestedTypeDecorator extends TypeDecorator<undefined> {
   public decorate(data: undefined, target: any, key: string) {
     let options: any = {};
 
