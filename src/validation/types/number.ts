@@ -1,8 +1,8 @@
-import {PropertyDecorator} from '@ziggurat/tiamat';
 import {NumberModelConfig} from '../interfaces';
+import {ModelPropertyDecorator} from './common';
 import {IsNumber, IsDivisibleBy, Min, Max} from 'class-validator';
 
-export class NumberModelDecorator extends PropertyDecorator<NumberModelConfig> {
+export class NumberModelDecorator extends ModelPropertyDecorator<NumberModelConfig> {
   public decorate(data: NumberModelConfig, target: any, key: string) {
     let options: any = {};
 
@@ -10,6 +10,7 @@ export class NumberModelDecorator extends PropertyDecorator<NumberModelConfig> {
       options.each = true;
     } else {
       Reflect.defineMetadata('isimud:type', 'number', target, key);
+      super.decorate(data, target, key);
     }
 
     let decorators: any[] = [IsNumber(options)];

@@ -1,5 +1,6 @@
 import {TransformerService} from '../../src/transformation/transformer';
-import {model, expose} from '../../src/transformation/decorators';
+import {model} from '../../src/transformation/decorators';
+import {string} from '../../src/validation/decorators';
 import {Document} from '../../src/models/document';
 import {expect} from 'chai';
 import * as chai from 'chai';
@@ -9,9 +10,11 @@ import 'mocha';
 chai.use(chaiAsPromised);
 
 describe('TransformerService', () => {
-  @model('test.TestModel')
+  @model({
+    name: 'test.TestModel'
+  })
   class TestModel extends Document {
-    @expose()
+    @string()
     public foo: string;
   }
 

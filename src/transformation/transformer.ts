@@ -1,6 +1,6 @@
 import {provider, inject} from '@ziggurat/tiamat';
 import {classToPlain, plainToClass} from 'class-transformer';
-import {Transformer} from './interfaces';
+import {Transformer, ModelConfig} from './interfaces';
 import {Document} from '../models/document';
 import * as Promise from 'bluebird';
 
@@ -15,8 +15,8 @@ export class TransformerService implements Transformer {
     @inject('isimud.Models') models: any[]
   ) {
     models.forEach(m => {
-      let name = Reflect.getOwnMetadata('isimud:model', m);
-      this.models[name] = m;
+      let config: ModelConfig = Reflect.getOwnMetadata('isimud:model', m);
+      this.models[config.name] = m;
     });
   }
 

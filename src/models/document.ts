@@ -1,20 +1,21 @@
-import {model, expose} from '../transformation/decorators';
+import {model} from '../transformation/decorators';
 import {number, string} from '../validation/decorators';
 
-@model('isimud.Document')
+@model({
+  name: 'isimud.Document'
+})
 export class Document {
-  @string()
-  @expose()
-  public _id = '';
+  @string() public _id = '';
 
-  @string()
-  @expose({persist: false})
-  public _collection = '';
+  @string() public _collection = '';
 
-  @number()
-  public _revision = 0;
+  @number() public _revision = 0;
+
+  public constructor(id = '') {
+    this._id = id;
+  }
 
   get _model(): string {
-    return Reflect.getOwnMetadata('isimud:model', this.constructor);
+    return Reflect.getOwnMetadata('isimud:model', this.constructor).name;
   }
 }

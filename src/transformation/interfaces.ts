@@ -13,8 +13,8 @@ export interface Transformer {
   toPlain<T extends Document>(instance: T, mode: string): Promise<any>;
 }
 
-export interface ExposeConfig {
-  persist?: boolean;
+export interface ModelConfig {
+  name: string;
 
-  relay?: boolean;
+  exclude?: {[property: string]: 'persist' | 'relay' | 'always'};
 }

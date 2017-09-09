@@ -4,6 +4,8 @@ import {IsInt} from 'class-validator';
 
 export class IntegerModelDecorator extends NumberModelDecorator {
   public decorate(data: NumberModelConfig, target: any, key: string) {
+    super.decorate(data, target, key);
+
     let options: any = {};
 
     if (Reflect.getOwnMetadata('isimud:type', target, key) === 'array') {
@@ -14,6 +16,5 @@ export class IntegerModelDecorator extends NumberModelDecorator {
 
     let decorators: any[] = [IsInt(options)];
     Reflect.decorate(decorators, target, key);
-    super.decorate(data, target, key);
   }
 }

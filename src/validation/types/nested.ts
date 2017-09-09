@@ -1,7 +1,7 @@
-import {PropertyDecorator} from '@ziggurat/tiamat';
+import {ModelPropertyDecorator} from './common';
 import {ValidateNested} from 'class-validator';
 
-export class NestedModelDecorator extends PropertyDecorator<undefined> {
+export class NestedModelDecorator extends ModelPropertyDecorator<undefined> {
   public decorate(data: undefined, target: any, key: string) {
     let options: any = {};
 
@@ -9,6 +9,7 @@ export class NestedModelDecorator extends PropertyDecorator<undefined> {
       options.each = true;
     } else {
       Reflect.defineMetadata('isimud:type', 'nested', target, key);
+      super.decorate(data, target, key);
     }
 
     let decorators: any[] = [ValidateNested(options)];

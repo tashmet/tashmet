@@ -1,8 +1,8 @@
-import {PropertyDecorator} from '@ziggurat/tiamat';
 import {StringModelConfig} from '../interfaces';
+import {ModelPropertyDecorator} from './common';
 import {IsString, MinLength, MaxLength, Matches, IsDateString, IsEmail, IsIP} from 'class-validator';
 
-export class StringModelDecorator extends PropertyDecorator<StringModelConfig> {
+export class StringModelDecorator extends ModelPropertyDecorator<StringModelConfig> {
   public decorate(data: StringModelConfig, target: any, key: string) {
     let options: any = {};
 
@@ -10,6 +10,7 @@ export class StringModelDecorator extends PropertyDecorator<StringModelConfig> {
       options.each = true;
     } else {
       Reflect.defineMetadata('isimud:type', 'string', target, key);
+      super.decorate(data, target, key);
     }
 
     let decorators: any[] = [IsString(options)];

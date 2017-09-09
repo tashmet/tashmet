@@ -1,9 +1,11 @@
-import {PropertyDecorator} from '@ziggurat/tiamat';
+import {ModelPropertyDecorator} from './common';
 import {ArrayModelConfig} from '../interfaces';
 import {IsArray, ArrayMinSize, ArrayMaxSize, ArrayUnique} from 'class-validator';
 
-export class ArrayModelDecorator extends PropertyDecorator<ArrayModelConfig> {
+export class ArrayModelDecorator extends ModelPropertyDecorator<ArrayModelConfig> {
   public decorate(data: ArrayModelConfig, target: any, key: string) {
+    super.decorate(data, target, key);
+
     Reflect.defineMetadata('isimud:type', 'array', target, key);
 
     let decorators: any[] = [IsArray()];

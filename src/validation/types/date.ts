@@ -1,8 +1,8 @@
-import {PropertyDecorator} from '@ziggurat/tiamat';
+import {ModelPropertyDecorator} from './common';
 import {DateModelConfig} from '../interfaces';
 import {IsDate, MinDate, MaxDate} from 'class-validator';
 
-export class DateModelDecorator extends PropertyDecorator<DateModelConfig> {
+export class DateModelDecorator extends ModelPropertyDecorator<DateModelConfig> {
   public decorate(data: DateModelConfig, target: any, key: string) {
     let options: any = {};
 
@@ -10,6 +10,7 @@ export class DateModelDecorator extends PropertyDecorator<DateModelConfig> {
       options.each = true;
     } else {
       Reflect.defineMetadata('isimud:type', 'date', target, key);
+      super.decorate(data, target, key);
     }
 
     let decorators: any[] = [IsDate(options)];
