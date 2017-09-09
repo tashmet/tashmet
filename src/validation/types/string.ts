@@ -25,22 +25,20 @@ export class StringModelDecorator extends ModelPropertyDecorator<StringModelConf
       if (data.pattern) {
         decorators.push(Matches(data.pattern, options));
       }
-      switch (data.format) {
-        case 'date-time':
-          decorators.push(IsDateString(options));
-          break;
-        case 'email':
-          decorators.push(IsEmail({}, options));
-          break;
-        case 'ipv4':
-          decorators.push(IsIP('4', options));
-          break;
-        case 'ipv6':
-          decorators.push(IsIP('6', options));
-          break;
+      if (data.format) {
+        decorators.push(this.getFormatDecorator(data.format, options));
       }
     }
 
     Reflect.decorate(decorators, target, key);
+  }
+
+  private getFormatDecorator(format: string, options: any): any {
+    switch (format) {
+      case 'date-time': return IsDateString(options);
+      case 'email': return IsEmail({}, options);
+      case 'ipv4': return IsIP('4', options);
+      case 'ipv6': return IsIP('6', options);
+    }
   }
 }
