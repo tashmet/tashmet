@@ -1,6 +1,6 @@
 import {TransformerService} from '../../src/transformation/transformer';
 import {model} from '../../src/transformation/decorators';
-import {string} from '../../src/validation/decorators';
+import {any} from '../../src/validation/decorators';
 import {Document} from '../../src/models/document';
 import {expect} from 'chai';
 import * as chai from 'chai';
@@ -14,7 +14,7 @@ describe('TransformerService', () => {
     name: 'test.TestModel'
   })
   class TestModel extends Document {
-    @string()
+    @any()
     public foo: string;
   }
 
