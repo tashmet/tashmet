@@ -1,6 +1,7 @@
 import {ModelPropertyDecorator} from './common';
 import {DateModelConfig} from '../interfaces';
 import {IsDate, MinDate, MaxDate} from 'class-validator';
+import {Type} from 'class-transformer';
 
 export class DateModelDecorator extends ModelPropertyDecorator<DateModelConfig> {
   public decorate(data: DateModelConfig, target: any, key: string) {
@@ -13,7 +14,7 @@ export class DateModelDecorator extends ModelPropertyDecorator<DateModelConfig> 
       super.decorate(data, target, key);
     }
 
-    let decorators: any[] = [IsDate(options)];
+    let decorators: any[] = [IsDate(options), Type(() => Date)];
 
     if (data) {
       if (data.min) {
