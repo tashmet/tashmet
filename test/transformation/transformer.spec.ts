@@ -15,7 +15,7 @@ describe('TransformerService', () => {
   })
   class TestModel extends Document {
     @any()
-    public foo: string;
+    public foo = 'DefaultValue'
   }
 
   const ts = new TransformerService([TestModel, Document]);
@@ -26,6 +26,20 @@ describe('TransformerService', () => {
       return ts.toInstance(plain, 'persist').then((obj: TestModel) => {
         expect(obj._model).to.eql('test.TestModel');
         expect(obj.foo).to.eql('bar');
+      });
+    });
+
+    it('should have default values set', () => {
+      const plain = {_model: 'test.TestModel'};
+      return ts.toInstance(plain, 'persist').then((obj: TestModel) => {
+        expect(obj.foo).to.eql('DefaultValue');
+      });
+    });
+
+    it('should have default values of parent model set', () => {
+      const plain = {foo: 'bar', _model: 'test.TestModel'};
+      return ts.toInstance(plain, 'persist').then((obj: TestModel) => {
+        expect(obj._revision).to.eql(0);
       });
     });
 

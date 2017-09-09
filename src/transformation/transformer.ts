@@ -2,6 +2,7 @@ import {provider, inject} from '@ziggurat/tiamat';
 import {classToPlain, plainToClass} from 'class-transformer';
 import {Transformer, ModelConfig} from './interfaces';
 import {Document} from '../models/document';
+import {each} from 'lodash';
 import * as Promise from 'bluebird';
 
 @provider({
@@ -34,13 +35,20 @@ export class TransformerService implements Transformer {
         return reject(new Error(`No such model: ${model}`));
       }
 
-      const instance = plainToClass(this.models[model], plain, {
+      let instance = plainToClass(this.models[model], plain, {
         strategy: 'excludeAll',
         groups: [mode]
       });
       if (Array.isArray(instance)) {
         reject(new Error());
       } else {
+        let defaults: any = new this.models[model]();
+
+        each(defaults, (value, key) => {
+          if ((<any>instance)[key] === undefined) {
+            (<any>instance)[key] = value;
+          }
+        });
         resolve(instance);
       }
     });
