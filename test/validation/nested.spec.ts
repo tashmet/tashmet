@@ -24,11 +24,11 @@ describe('nested', () => {
 
   it('should pass validation of parent when child passes validation', () => {
     child.bar = 1;
-    expect(vs.validate(parent)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(parent)).to.eventually.have.lengthOf(0);
   });
 
   it('should fail validation of parent when child fails validation', () => {
     child.bar = 3.14;
-    expect(vs.validate(parent)).to.eventually.have.lengthOf(1);
+    return expect(vs.validate(parent)).to.eventually.have.lengthOf(1);
   });
 });

@@ -17,11 +17,11 @@ describe('integer', () => {
 
   it('should fail validation of a number that is not an integer', () => {
     obj.foo = 3.1415926;
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
   });
 
   it('should pass validation of a number that is an integer', () => {
     obj.foo = 5;
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 });

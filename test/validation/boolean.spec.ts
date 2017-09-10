@@ -17,21 +17,21 @@ describe('boolean', () => {
 
   it('should pass validation of a value that is true', () => {
     obj.foo = true
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 
   it('should pass validation of a value that is false', () => {
     obj.foo = false
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 
   it('should fail validation of a value that is not a boolean', () => {
     obj.foo = 'true';
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
   });
 
   it('should fail validation of a value that is not a boolean but evaluates to one', () => {
     obj.foo = 0;
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
   });
 });

@@ -17,22 +17,22 @@ describe('number', () => {
 
   it('should fail validation of a value that is not numeric', () => {
     obj.foo = '432';
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
   });
 
   it('should pass validation of a value that is numeric', () => {
     obj.foo = 432;
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 
   it('should pass validation of a number that is floating point', () => {
     obj.foo = 5.2;
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 
   it('should pass validation of a number with exponential notation', () => {
     obj.foo = 2.99792458e8;
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 
 
@@ -46,12 +46,12 @@ describe('number', () => {
 
     it('should fail validation of a number that is not a multiple of given value', () => {
       obj.foo = 15;
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
 
     it('should pass validation of a number that is a multiple of given value', () => {
       obj.foo = 20;
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
   });
 
@@ -65,12 +65,12 @@ describe('number', () => {
 
     it('should fail validation of a number that is lower than minimum', () => {
       obj.foo = 2.6;
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
 
     it('should pass validation of a number that is equal to minimum', () => {
       obj.foo = 2.7;
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
   });
 
@@ -84,12 +84,12 @@ describe('number', () => {
 
     it('should fail validation of a number that is higher than maximum', () => {
       obj.foo = 2.8;
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
 
     it('should pass validation of a number that is equal to maximum', () => {
       obj.foo = 2.7;
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
   });
 });

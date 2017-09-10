@@ -17,17 +17,17 @@ describe('array', () => {
 
   it('should fail validation of value that is not an array', () => {
     obj.foo = {"Not": "an array"};
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
   });
 
   it('should pass validation of a value that is an array', () => {
     obj.foo = [1, 2, 3, 4, 5];
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 
   it('should pass validation of a value that is an array of different types', () => {
     obj.foo = [3, "different", { "types" : "of values" }];
-    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+    return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
   });
 
   describe('length constraints', () => {
@@ -43,27 +43,27 @@ describe('array', () => {
 
     it('should fail validation of empty array', () => {
       obj.foo = [];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
 
     it('should fail validation of array below minimum length', () => {
       obj.foo = [1];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
 
     it('should pass validation of array with minimum length', () => {
       obj.foo = [1, 2];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
 
     it('should pass validation of array with maximum length', () => {
       obj.foo = [1, 2, 3];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
 
     it('should fail validation of array above maximum length', () => {
       obj.foo = [1, 2, 3, 4];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
   });
 
@@ -77,17 +77,17 @@ describe('array', () => {
 
     it('should pass validation of array with unique items', () => {
       obj.foo = [1, 2, 3, 4, 5];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
 
     it('should fail validation of array with duplicates', () => {
       obj.foo = [1, 2, 3, 3, 4];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
 
     it('should pass validation of empty array', () => {
       obj.foo = [];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
   });
 
@@ -105,12 +105,12 @@ describe('array', () => {
 
     it('should pass validation of array with items of specified type', () => {
       obj.foo = ['1', '2'];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
     });
 
     it('should fail validation of array with items of other type', () => {
       obj.foo = [1, 2];
-      expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+      return expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
     });
   });
 });
