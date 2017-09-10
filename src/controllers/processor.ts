@@ -3,8 +3,7 @@ import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../
 import {Document} from '../models/document';
 import {Pipeline, HookablePipeline, UpsertPipe, RevisionUpsertPipe,
   ValidationPipe, Hook, HookablePipe, InstancePipe} from '../pipes';
-import {Transformer} from '../transformation/interfaces';
-import {Validator} from '../validation/interfaces';
+import {Transformer, Validator} from '../schema/interfaces';
 import {HookMeta, HookConfig} from './meta/decorators';
 import {Routine} from './routine';
 import {EventEmitter} from 'eventemitter3';

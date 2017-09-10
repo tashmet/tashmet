@@ -5,8 +5,7 @@ import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
 import {CollectionController} from '../controllers/collection';
 import {Processor} from '../controllers/processor';
 import {RoutineAggregator} from '../controllers/routine';
-import {Transformer} from '../transformation/interfaces';
-import {Validator} from '../validation/interfaces';
+import {Transformer, Validator} from '../schema/interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';

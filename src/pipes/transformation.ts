@@ -1,6 +1,6 @@
 import {Pipe} from '../interfaces';
 import {DocumentError} from '../index';
-import {Transformer} from '../transformation/interfaces';
+import {Transformer} from '../schema/interfaces';
 import * as Promise from 'bluebird';
 
 /**

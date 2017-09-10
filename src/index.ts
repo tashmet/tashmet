@@ -11,17 +11,15 @@ export {Document} from './models/document';
 export * from './interfaces';
 export * from './controllers/meta/decorators';
 export * from './database/decorators';
-export * from './transformation/decorators';
-export * from './transformation/interfaces';
-export * from './validation/decorators';
-export * from './validation/interfaces';
+export * from './schema/decorators';
+export * from './schema/interfaces';
 
 import {RoutineAggregator} from './controllers/routine';
 import {DatabaseService} from './database/database';
 import {LocalDB} from './database/local';
 import {RemoteDB} from './database/remote';
-import {TransformerService} from './transformation/transformer';
-import {ValidatorService} from './validation/validator';
+import {TransformerService} from './schema/transformer';
+import {ValidatorService} from './schema/validator';
 
 @component({
   providers: [

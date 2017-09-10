@@ -1,5 +1,4 @@
-import {model} from '../transformation/decorators';
-import {number, string} from '../validation/decorators';
+import {model, number, string} from '../schema/decorators';
 
 @model({
   name: 'isimud.Document'

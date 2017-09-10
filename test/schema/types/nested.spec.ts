@@ -1,5 +1,5 @@
-import {ValidatorService} from '../../src/validation/validator';
-import {nested, integer} from '../../src/validation/decorators';
+import {ValidatorService} from '../../../src/schema/validator';
+import {nested, integer} from '../../../src/schema/decorators';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';

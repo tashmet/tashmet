@@ -1,6 +1,6 @@
-import {TransformerService} from '../../src/transformation/transformer';
-import {model} from '../../src/transformation/decorators';
-import {any} from '../../src/validation/decorators';
+import {TransformerService} from '../../src/schema/transformer';
+import {model} from '../../src/schema/decorators';
+import {any} from '../../src/schema/decorators';
 import {Document} from '../../src/models/document';
 import {expect} from 'chai';
 import * as chai from 'chai';

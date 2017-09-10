@@ -1,4 +1,6 @@
-import {propertyDecoratorOptional, propertyDecoratorVoid} from '@ziggurat/tiamat';
+import {classDecorator, propertyDecoratorOptional, propertyDecoratorVoid} from '@ziggurat/tiamat';
+import {ModelConfig} from './interfaces';
+import {ModelDecorator} from './model';
 import {ArrayTypeConfig, NumberTypeConfig, StringTypeConfig,
   DateTypeConfig} from './interfaces';
 import {TypeDecorator} from './types/common';
@@ -10,6 +12,11 @@ import {NumberTypeDecorator} from './types/number';
 import {NestedTypeDecorator} from './types/nested';
 import {StringTypeDecorator} from './types/string';
 import {DateTypeDecorator} from './types/date';
+
+export const model = classDecorator<ModelConfig>(
+  new ModelDecorator('isimud:model'), {
+    exclude: {}
+  });
 
 export const any = propertyDecoratorVoid(
   new AnyTypeDecorator());
