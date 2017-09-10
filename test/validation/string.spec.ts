@@ -8,12 +8,29 @@ import 'mocha';
 chai.use(chaiAsPromised);
 
 describe('string', () => {
+  const vs = new ValidatorService();
+
+  class String {
+    @string()
+    public foo: any;
+  }
+  let obj = new String();
+
+  it('should pass validation of a string', () => {
+    obj.foo = 'This is a string';
+    expect(vs.validate(obj)).to.eventually.have.lengthOf(0);
+  });
+
+  it('should fail validation of a number', () => {
+    obj.foo = 72;
+    expect(vs.validate(obj)).to.eventually.have.lengthOf(1);
+  });
+
   describe('minLength', () => {
     class MinLength {
       @string({minLength: 10})
       public foo: string;
     }
-    const vs = new ValidatorService();
     let obj = new MinLength();
 
     it('should fail validation of a string with shorter length', () => {
@@ -32,7 +49,6 @@ describe('string', () => {
       @string({maxLength: 5})
       public foo: string;
     }
-    const vs = new ValidatorService();
     let obj = new MaxLength();
 
     it('should fail validation of a string with longer length', () => {
@@ -52,7 +68,6 @@ describe('string', () => {
         @string({format: 'date-time'})
         public foo: string;
       }
-      const vs = new ValidatorService();
       let obj = new DateTime();
 
       it('should fail validation of a string that is not a valid date', () => {
@@ -71,7 +86,6 @@ describe('string', () => {
         @string({format: 'email'})
         public foo: string;
       }
-      const vs = new ValidatorService();
       let obj = new Email();
 
       it('should fail validation of a string that is not a valid email address', () => {
@@ -90,7 +104,6 @@ describe('string', () => {
         @string({format: 'ipv4'})
         public foo: string;
       }
-      const vs = new ValidatorService();
       let obj = new IPv4();
 
       it('should fail validation of a string that is not a valid IPv4 address', () => {
@@ -109,7 +122,6 @@ describe('string', () => {
         @string({format: 'ipv6'})
         public foo: string;
       }
-      const vs = new ValidatorService();
       let obj = new IPv6();
 
       it('should fail validation of a string that is not a valid IPv6 address', () => {
