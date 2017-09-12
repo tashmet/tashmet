@@ -1,4 +1,5 @@
-import {QueryOptions, Filter, FilterProvider, Sorting, SortingOrder} from '../../interfaces';
+import {QueryOptions, Sorting, SortingOrder} from '../../interfaces';
+import {Filter, FilterProvider} from '../interfaces';
 import {View} from '../view';
 import {BaseFilter} from './base';
 

@@ -1,4 +1,5 @@
-import {QueryOptions, Filter, FilterProvider, Selector} from '../../interfaces';
+import {QueryOptions} from '../../interfaces';
+import {Filter, FilterProvider, Selector} from '../interfaces';
 import {BaseFilter} from './base';
 import {View} from '../view';
 import {extend} from 'lodash';

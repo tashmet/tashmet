@@ -12,6 +12,7 @@ export {inline} from './sources/inline';
 export * from './interfaces';
 export * from './controllers/meta/decorators';
 export * from './view/decorators';
+export * from './view/interfaces';
 export * from './schema/decorators';
 export * from './schema/interfaces';
 

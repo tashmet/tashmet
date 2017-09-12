@@ -1,4 +1,5 @@
-import {QueryOptions, Filter} from '../../interfaces';
+import {QueryOptions} from '../../interfaces';
+import {Filter} from '../interfaces';
 import {View} from '../view';
 import {EventEmitter} from 'eventemitter3';
 import {extend} from 'lodash';

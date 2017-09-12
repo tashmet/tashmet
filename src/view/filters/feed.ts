@@ -1,4 +1,5 @@
-import {QueryOptions, Filter, FilterProvider, Feed, FeedConfig} from '../../interfaces';
+import {QueryOptions} from '../../interfaces';
+import {Filter, FilterProvider, Feed, FeedConfig} from '../interfaces';
 import {BaseFilter} from './base';
 import {View} from '../view';
 

@@ -1,5 +1,6 @@
 import {injectable} from '@ziggurat/tiamat';
-import {ViewConfig, QueryOptions, Filter, FilterProvider} from '../interfaces';
+import {QueryOptions} from '../interfaces';
+import {ViewConfig, Filter, FilterProvider} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {Document} from '../models/document';
 import {CollectionController} from '../controllers/collection';
