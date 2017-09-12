@@ -10,7 +10,7 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
-import {ViewManager} from './view';
+import {ViewManager} from '../view/view';
 import {each, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
