@@ -11,7 +11,8 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
-import {View, ViewManager} from '../view/view';
+import {View} from '../view/view';
+import {ViewManager} from '../view/viewManager';
 import {each, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
