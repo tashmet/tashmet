@@ -1,5 +1,6 @@
-import {View, QueryOptions, Filter, FilterProvider, Feed, FeedConfig} from '../../interfaces';
+import {QueryOptions, Filter, FilterProvider, Feed, FeedConfig} from '../../interfaces';
 import {BaseFilter} from './base';
+import {View} from '../view';
 
 export function feed(config: FeedConfig): FilterProvider {
   return function (view: View): Filter {

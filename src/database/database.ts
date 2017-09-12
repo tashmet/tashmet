@@ -1,7 +1,7 @@
 import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
-  CollectionMapping, View, Filter, CacheEvaluator, QueryOptions, ViewConfig} from '../interfaces';
+  CollectionMapping, Filter, CacheEvaluator, QueryOptions, ViewConfig} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
 import {Processor} from '../controllers/processor';
 import {RoutineAggregator} from '../controllers/routine';
@@ -10,7 +10,7 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
-import {ViewManager} from '../view/view';
+import {View, ViewManager} from '../view/view';
 import {each, transform} from 'lodash';
 import * as Promise from 'bluebird';
 

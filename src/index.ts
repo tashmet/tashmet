@@ -2,7 +2,7 @@ import {component} from '@ziggurat/tiamat';
 
 export {CollectionController} from './controllers/collection';
 export {Routine} from './controllers/routine';
-export {ViewBase} from './view/view';
+export {View} from './view/view';
 export {remote} from './database/remote';
 export {feed} from './view/filters/feed';
 export {sorting} from './view/filters/sort';

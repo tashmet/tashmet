@@ -1,23 +1,35 @@
 import {injectable} from '@ziggurat/tiamat';
-import {View, ViewConfig, QueryOptions, Filter, FilterProvider} from '../interfaces';
+import {ViewConfig, QueryOptions, Filter, FilterProvider} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {CollectionController} from '../controllers/collection';
 import {each, find, values} from 'lodash';
 import * as Promise from 'bluebird';
 
 @injectable()
-export class ViewBase extends EventEmitter implements View {
-  public selector: any = {};
-  public options: QueryOptions = {};
-  public data: any[] = [];
+export class View extends EventEmitter {
+  private _selector: any = {};
+  private _options: QueryOptions = {};
+  private _data: any[] = [];
   private filters: {[name: string]: any} = {};
 
   public constructor() {
     super();
 
     this.on('data-updated', (results: any[], totalCount: number) => {
-      this.data = results;
+      this._data = results;
     });
+  }
+
+  public get selector(): any {
+    return this._selector;
+  }
+
+  public get options(): QueryOptions {
+    return this._options;
+  }
+
+  public get data(): any[] {
+    return this._data;
   }
 
   public addFilter(name: string, provider: Function): View {
@@ -33,8 +45,8 @@ export class ViewBase extends EventEmitter implements View {
   }
 
   public refresh(): View {
-    this.selector = {};
-    this.options = {};
+    this._selector = {};
+    this._options = {};
 
     each(this.filters, (f: Filter) => {
       f.apply(this.selector, this.options);

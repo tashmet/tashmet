@@ -1,5 +1,6 @@
 import {Injector} from '@ziggurat/tiamat';
 import {Document} from './models/document';
+import {View} from './view/view';
 import * as Promise from 'bluebird';
 
 /**
@@ -32,21 +33,6 @@ export interface RemoteDatabase {
    * Create a new collection given a name.
    */
   createCollection(path: string, name: string): Collection;
-}
-
-export interface View {
-  readonly selector: any;
-
-  readonly options: QueryOptions;
-
-  addFilter(name: string, filter: Function): View;
-
-  refresh(): View;
-
-  on(event: 'data-updated', fn: (results: any[], totalCount: number) => void): View;
-  on(event: 'refresh', fn: Function): View;
-
-  emit(event: 'data-updated', results: any[], totalCount: number): boolean;
 }
 
 export interface ViewConfig {
