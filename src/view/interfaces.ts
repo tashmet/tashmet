@@ -4,8 +4,6 @@ import {View} from './view';
 import * as Promise from 'bluebird';
 
 export interface ViewConfig {
-  name: string;
-
   collection: string;
 
   filters: {[name: string]: FilterProvider};

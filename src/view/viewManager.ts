@@ -1,4 +1,4 @@
-import {activate, provider} from '@ziggurat/tiamat';
+import {activate, provider, ProviderConfig} from '@ziggurat/tiamat';
 import {ViewConfig, FilterProvider} from './interfaces';
 import {View} from './view';
 import {Document} from '../models/document';
@@ -20,7 +20,10 @@ export class ViewManager {
 
   @activate('isimud.View')
   private activateView(view: View) {
-    let config: ViewConfig = Reflect.getOwnMetadata('isimud:view', view.constructor);
+    const config: ViewConfig = Reflect.getOwnMetadata('isimud:view', view.constructor);
+    const providerConfig: ProviderConfig = Reflect.getOwnMetadata(
+      'tiamat:provider', view.constructor);
+
     each(config.filters, (fp: FilterProvider, name: string) => {
       view.addFilter(name, fp);
     });
@@ -36,7 +39,7 @@ export class ViewManager {
             });
         });
     });
-    this.views[config.name] = view;
+    this.views[providerConfig.for] = view;
     return view;
   }
 
