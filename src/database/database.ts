@@ -2,7 +2,6 @@ import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
-import {ViewConfig} from '../view/interfaces';
 import {CollectionController} from '../controllers/collection';
 import {Processor} from '../controllers/processor';
 import {RoutineAggregator} from '../controllers/routine';
@@ -11,8 +10,6 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
-import {View} from '../view/view';
-import {ViewManager} from '../view/viewManager';
 import {each, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
@@ -23,7 +20,6 @@ import * as Promise from 'bluebird';
 export class DatabaseService extends EventEmitter implements Database
 {
   private collections: {[name: string]: CollectionController} = {};
-  private viewManagers: {[name: string]: ViewManager} = {};
   private syncedCount = 0;
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
@@ -36,10 +32,6 @@ export class DatabaseService extends EventEmitter implements Database
 
   public collection(name: string): Collection {
     return this.collections[name];
-  }
-
-  public view(name: string, collection: string): View {
-    return this.viewManagers[collection].view(name);
   }
 
   @activate('isimud.Collection')
@@ -68,7 +60,6 @@ export class DatabaseService extends EventEmitter implements Database
     collection.addCacheEvaluator(new QueryHashEvaluator());
     collection.addCacheEvaluator(new DocumentIdEvaluator());
     collection.addCacheEvaluator(new RangeEvaluator());
-    this.viewManagers[meta.name] = new ViewManager(collection);
 
     if (this.isServer()) {
       if (meta.populateAfter.length > 0) {
@@ -101,13 +92,6 @@ export class DatabaseService extends EventEmitter implements Database
     });
 
     return collection;
-  }
-
-  @activate('isimud.View')
-  private activateView(view: View) {
-    let config: ViewConfig = Reflect.getOwnMetadata('isimud:view', view.constructor);
-    this.viewManagers[config.collection].addView(view);
-    return view;
   }
 
   private isServer() {

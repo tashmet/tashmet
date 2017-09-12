@@ -22,6 +22,7 @@ import {LocalDB} from './database/local';
 import {RemoteDB} from './database/remote';
 import {TransformerService} from './schema/transformer';
 import {ValidatorService} from './schema/validator';
+import {ViewManager} from './view/viewManager';
 
 @component({
   providers: [
@@ -30,7 +31,9 @@ import {ValidatorService} from './schema/validator';
     DatabaseService,
     RoutineAggregator,
     TransformerService,
-    ValidatorService
-  ]
+    ValidatorService,
+    ViewManager
+  ],
+  autoCreate: ['isimud.ViewManager']
 })
 export class Isimud {}

@@ -1,6 +1,5 @@
 import {Injector} from '@ziggurat/tiamat';
 import {Document} from './models/document';
-import {View} from './view/view';
 import * as Promise from 'bluebird';
 
 /**
@@ -8,8 +7,6 @@ import * as Promise from 'bluebird';
  */
 export interface Database {
   collection(name: string): Collection;
-
-  view(name: string, collection: string): View;
 
   on(event: string, fn: any): void;
 }
