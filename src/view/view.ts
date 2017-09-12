@@ -1,21 +1,22 @@
 import {injectable} from '@ziggurat/tiamat';
 import {ViewConfig, QueryOptions, Filter, FilterProvider} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
+import {Document} from '../models/document';
 import {CollectionController} from '../controllers/collection';
 import {each, find, values} from 'lodash';
 import * as Promise from 'bluebird';
 
 @injectable()
-export class View extends EventEmitter {
+export class View<T extends Document = Document> extends EventEmitter {
   private _selector: any = {};
   private _options: QueryOptions = {};
-  private _data: any[] = [];
+  private _data: T[] = [];
   private filters: {[name: string]: any} = {};
 
   public constructor() {
     super();
 
-    this.on('data-updated', (results: any[], totalCount: number) => {
+    this.on('data-updated', (results: T[], totalCount: number) => {
       this._data = results;
     });
   }
@@ -28,11 +29,11 @@ export class View extends EventEmitter {
     return this._options;
   }
 
-  public get data(): any[] {
+  public get data(): T[] {
     return this._data;
   }
 
-  public addFilter(name: string, provider: Function): View {
+  public addFilter(name: string, provider: Function): View<T> {
     this.filters[name] = provider(this);
     this.filters[name].on('filter-changed', () => {
       this.refresh();
@@ -40,11 +41,11 @@ export class View extends EventEmitter {
     return this;
   }
 
-  public filter<T>(name: string): T {
-    return <T>(this.filters[name]);
+  public filter<U>(name: string): U {
+    return <U>(this.filters[name]);
   }
 
-  public refresh(): View {
+  public refresh(): View<T> {
     this._selector = {};
     this._options = {};
 
@@ -76,7 +77,7 @@ export class ViewManager {
 
     view.on('refresh', () => {
       this.collection.find(view.selector, view.options)
-        .then((results: any[]) => {
+        .then((results: Document[]) => {
           this.collection.count(view.selector).then((totalCount: number) => {
             view.emit('data-updated', results, totalCount);
           });
