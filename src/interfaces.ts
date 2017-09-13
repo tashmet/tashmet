@@ -33,8 +33,8 @@ export interface RemoteDatabase {
 }
 
 export enum SortingOrder {
-    Ascending = 0,
-    Descending
+    Ascending = 'asc',
+    Descending = 'desc'
 }
 
 export interface Sorting {
