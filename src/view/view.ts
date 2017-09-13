@@ -38,6 +38,7 @@ export class View<T extends Document = Document> extends EventEmitter {
     this.filters[name].on('filter-changed', () => {
       this.refresh();
     });
+    this.applyFilters();
     return this;
   }
 
@@ -46,13 +47,17 @@ export class View<T extends Document = Document> extends EventEmitter {
   }
 
   public refresh(): View<T> {
+    this.applyFilters();
+    this.emit('refresh');
+    return this;
+  }
+
+  private applyFilters() {
     this._selector = {};
     this._options = {};
 
     each(this.filters, (f: Filter) => {
       f.apply(this.selector, this.options);
     });
-    this.emit('refresh');
-    return this;
   }
 }
