@@ -8,6 +8,7 @@ export {feed} from './view/filters/feed';
 export {sorting} from './view/filters/sort';
 export {selector} from './view/filters/selector';
 export {Document} from './models/document';
+export {json} from './serializers/json';
 export {inline} from './sources/inline';
 export * from './interfaces';
 export * from './controllers/meta/decorators';

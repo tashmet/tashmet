@@ -162,7 +162,9 @@ export interface Pipe {
  *
  */
 export interface Serializer {
-  parse(data: string): Object;
+  deserialize(data: string): Promise<Object>;
 
-  serialize(data: any): string;
+  serialize(data: Object): Promise<string>;
 }
+
+export type SerializerProvider = (injector: Injector) => Serializer;
