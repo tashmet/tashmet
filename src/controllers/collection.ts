@@ -59,9 +59,11 @@ export class CollectionController extends EventEmitter implements Collection {
     this._source = source;
 
     source.on('document-upserted', (doc: Document) => {
-      doc._collection = this.name();
-      if (this.upsertQueue.indexOf(doc._id) < 0) {
-        this.processor.process(doc, 'source-upsert');
+      if (!this.populating) {
+        doc._collection = this.name();
+        if (this.upsertQueue.indexOf(doc._id) < 0) {
+          this.processor.process(doc, 'source-upsert');
+        }
       }
     });
     source.on('document-removed', (id: string) => {
