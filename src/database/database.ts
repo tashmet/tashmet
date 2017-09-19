@@ -6,6 +6,7 @@ import {CollectionController} from '../controllers/collection';
 import {Processor} from '../controllers/processor';
 import {RoutineAggregator} from '../controllers/routine';
 import {Transformer, Validator} from '../schema/interfaces';
+import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../pipes';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
@@ -47,7 +48,31 @@ export class DatabaseService extends EventEmitter implements Database
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
     let routines = this.routineAggregator.getRoutines(collection);
 
-    let processor = new Processor(source, cache, this.transformer, this.validator, meta.model);
+    let cachePipe = new RevisionUpsertPipe(cache);
+    let persistPipe = new UpsertPipe(source);
+    let validationPipe = new ValidationPipe(this.validator);
+    let instancePipe = new InstancePipe(this.transformer, 'persist', meta.model);
+    let processor = new Processor()
+      .pipe('populate-pre-buffer', 'populate', {
+        'transform': instancePipe,
+        'validate': validationPipe
+      })
+      .pipe('populate-post-buffer', 'populate', {
+        'cache': cachePipe
+      })
+      .pipe('source-upsert', true, {
+        'transform': instancePipe,
+        'validate': validationPipe,
+        'cache': cachePipe
+      })
+      .pipe('upsert', true, {
+        'validate': validationPipe,
+        'cache': cachePipe,
+        'persist': persistPipe
+      })
+      .pipe('cache', false, {
+        'cache': cachePipe
+      });
 
     collection.setSource(source);
     collection.setCache(cache);
@@ -55,7 +80,7 @@ export class DatabaseService extends EventEmitter implements Database
     collection.setProcessor(processor);
     routines.forEach((routine: any) => {
       routine.setController(collection);
-      processor.addRoutine(routine);
+      processor.addHooks(routine);
     });
     collection.addCacheEvaluator(new QueryHashEvaluator());
     collection.addCacheEvaluator(new DocumentIdEvaluator());

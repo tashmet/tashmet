@@ -1,5 +1,6 @@
 import {Pipe} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
+import {slice} from 'lodash';
 import * as Promise from 'bluebird';
 
 /**
