@@ -1,10 +1,9 @@
 import {injectable} from '@ziggurat/tiamat';
-import {Collection, DocumentError, Pipe, QueryOptions, CacheEvaluator} from '../interfaces';
+import {Collection, DocumentError} from '../interfaces';
 import {Document} from '../models/document';
-import {HookablePipeline, Hook, HookablePipe} from '../pipes';
+import {HookablePipeline, Hook, HookablePipe} from './pipes';
 import {Transformer, Validator} from '../schema/interfaces';
-import {HookMeta, HookConfig} from './meta/decorators';
-import {Routine} from './routine';
+import {Pipe, HookMeta, HookConfig} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {each, isString} from 'lodash';
 import * as Promise from 'bluebird';

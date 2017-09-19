@@ -2,7 +2,7 @@ import {injectable, decorate} from '@ziggurat/tiamat';
 import {Collection, DocumentError, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {QueryHashEvaluator} from '../database/cache/queryHash';
-import {Processor} from './processor';
+import {Processor} from '../processing/processor';
 import {EventEmitter} from 'eventemitter3';
 import {clone, map, pull, some} from 'lodash';
 import * as Promise from 'bluebird';

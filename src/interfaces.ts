@@ -147,18 +147,6 @@ export class DocumentError extends Error {
 }
 
 /**
- * A pipe processes a single document and provides the result through a callback.
- * Multiple pipes can be chained together to form a pipeline.
- */
-export interface Pipe {
-  /**
-   * Processes the input and passes the result to the 'next'-callback.
-   * If an error occurs, it can be passed to the callback instead.
-   */
-  process(input: any): Promise<any>;
-}
-
-/**
  *
  */
 export interface Serializer {

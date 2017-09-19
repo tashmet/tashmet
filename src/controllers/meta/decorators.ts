@@ -1,6 +1,5 @@
-import {classDecorator, propertyDecorator, PropertyMeta,
-  TaggedClassAnnotation} from '@ziggurat/tiamat';
-import {ControllerDecorator, HookDecorator} from './writers';
+import {classDecorator, TaggedClassAnnotation} from '@ziggurat/tiamat';
+import {ControllerDecorator} from './writers';
 
 /**
  *
@@ -30,28 +29,3 @@ export interface RoutineConfig {
 
 export const routine = classDecorator<RoutineConfig>(
   new TaggedClassAnnotation('isimud:routine', ['isimud.Routine']));
-
-/**
- * Input for hook decorators (before, after and error).
- */
-export interface HookConfig {
-  /**
-   * The name of the step that the hook applies to.
-   */
-  step: string;
-
-  /**
-   * The name of the pipe that the hook applies to.
-   */
-  pipe?: string;
-}
-
-export interface HookMeta extends PropertyMeta<HookConfig> {
-  type: string;
-}
-
-export const before = propertyDecorator<HookConfig>(new HookDecorator('before'));
-
-export const after = propertyDecorator<HookConfig>(new HookDecorator('after'));
-
-export const error = propertyDecorator<HookConfig>(new HookDecorator('error'));

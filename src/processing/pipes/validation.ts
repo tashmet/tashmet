@@ -1,6 +1,6 @@
 import {Pipe} from '../interfaces';
-import {DocumentError} from '../index';
-import {Validator} from '../schema/interfaces';
+import {DocumentError} from '../../interfaces';
+import {Validator} from '../../schema/interfaces';
 import * as Promise from 'bluebird';
 
 /**

@@ -3,10 +3,10 @@ import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
 import {CollectionController} from '../controllers/collection';
-import {Processor} from '../controllers/processor';
+import {Processor} from '../processing/processor';
+import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../processing/pipes';
 import {RoutineAggregator} from '../controllers/routine';
 import {Transformer, Validator} from '../schema/interfaces';
-import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../pipes';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
