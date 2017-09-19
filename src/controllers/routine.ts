@@ -1,6 +1,6 @@
 import {injectable, provider, activate} from '@ziggurat/tiamat';
 import {Collection} from '../interfaces';
-import {RoutineConfig} from './meta/decorators';
+import {RoutineConfig} from './interfaces';
 import {intersection} from 'lodash';
 
 @provider({
