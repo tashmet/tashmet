@@ -4,6 +4,7 @@ import {LocalDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
 import {RoutineProvider} from '../controllers/interfaces';
 import {Controller} from '../controllers/controller';
+import {createRoutines} from '../controllers/routine';
 import {Routine} from '../processing/interfaces';
 import {Processor} from '../processing/processor';
 import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../processing/pipes';
@@ -45,7 +46,7 @@ export class DatabaseService extends EventEmitter implements Database
     let source = this.dbConfig.sources[providerMeta.for](this.injector);
     let cache = this.localDB.createCollection(meta.name);
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
-    let routines = this.createRoutines(collection);
+    let routines = createRoutines(this.dbConfig.routines || [], collection, this.injector);
 
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
@@ -116,22 +117,6 @@ export class DatabaseService extends EventEmitter implements Database
     });
 
     return collection;
-  }
-
-  private createRoutines(controller: Controller): Routine[] {
-    if (!this.dbConfig.routines) {
-      return [];
-    }
-
-    let routines: Routine[] = [];
-
-    each(this.dbConfig.routines, routineProvider => {
-      const routine = routineProvider(this.injector, controller);
-      if (routine) {
-        routines.push(routine);
-      }
-    });
-    return routines;
   }
 
   private isServer() {

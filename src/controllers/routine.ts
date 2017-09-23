@@ -3,6 +3,7 @@ import {RoutineProvider, RoutineConfig, RoutineFactory} from './interfaces';
 import {Controller} from './controller';
 import {ClassType} from '../interfaces';
 import {Routine} from '../processing/interfaces';
+import {transform} from 'lodash';
 import * as Promise from 'bluebird';
 
 export function controllerRoutine<
@@ -19,4 +20,15 @@ export function controllerRoutine<
       }
     };
   };
+}
+
+export function createRoutines(
+  providers: RoutineProvider[], controller: Controller, injector: Injector): Routine[]
+{
+  return transform(providers, (routines: Routine[], provider) => {
+    const routine = provider(injector, controller);
+    if (routine) {
+      routines.push(routine);
+    }
+  }, []);
 }
