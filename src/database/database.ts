@@ -2,16 +2,16 @@ import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
+import {RoutineProvider} from '../controllers/interfaces';
 import {CollectionController} from '../controllers/collection';
 import {Processor} from '../processing/processor';
 import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../processing/pipes';
-import {RoutineAggregator} from '../controllers/routine';
 import {Transformer, Validator} from '../schema/interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
-import {each, transform} from 'lodash';
+import {each, intersection, isArray, map, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
 @provider({
@@ -26,7 +26,6 @@ export class DatabaseService extends EventEmitter implements Database
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
   @inject('isimud.LocalDatabase') private localDB: LocalDatabase;
   @inject('isimud.RemoteDatabase') private remoteDB: RemoteDatabase;
-  @inject('isimud.RoutineAggregator') private routineAggregator: RoutineAggregator;
   @inject('isimud.Transformer') private transformer: Transformer;
   @inject('isimud.Validator') private validator: Validator;
   @inject('tiamat.Injector') private injector: Injector;
@@ -46,7 +45,6 @@ export class DatabaseService extends EventEmitter implements Database
     let source = this.dbConfig.sources[providerMeta.for](this.injector);
     let cache = this.localDB.createCollection(meta.name);
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
-    let routines = this.routineAggregator.getRoutines(collection);
 
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
@@ -74,14 +72,16 @@ export class DatabaseService extends EventEmitter implements Database
         'cache': cachePipe
       });
 
+    this.createRoutines(collection).then((routines: any[]) => {
+      each(routines, routine => {
+        processor.addHooks(routine);
+      });
+    });
+
     collection.setSource(source);
     collection.setCache(cache);
     collection.setBuffer(buffer);
     collection.setProcessor(processor);
-    routines.forEach((routine: any) => {
-      routine.setController(collection);
-      processor.addHooks(routine);
-    });
     collection.addCacheEvaluator(new QueryHashEvaluator());
     collection.addCacheEvaluator(new DocumentIdEvaluator());
     collection.addCacheEvaluator(new RangeEvaluator());
@@ -117,6 +117,20 @@ export class DatabaseService extends EventEmitter implements Database
     });
 
     return collection;
+  }
+
+  private createRoutines(controller: CollectionController): Promise<any[]> {
+    if (!this.dbConfig.routines) {
+      return Promise.resolve([]);
+    }
+
+    let result: any[] = [];
+    let tags = Reflect.getMetadata('tiamat:tags', controller.constructor) || [];
+
+    let promises = map(this.dbConfig.routines, (routineProvider: RoutineProvider) => {
+      return routineProvider(this.injector, controller);
+    });
+    return Promise.all(promises);
   }
 
   private isServer() {

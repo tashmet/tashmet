@@ -1,6 +1,10 @@
 import {Injector} from '@ziggurat/tiamat';
+import {RoutineProvider} from './controllers/interfaces';
 import {Document} from './models/document';
+import {Pipe} from './processing/interfaces';
 import * as Promise from 'bluebird';
+
+export type ClassType<T> = { new (...args: any[]): T; };
 
 /**
  *
@@ -11,8 +15,11 @@ export interface Database {
   on(event: string, fn: any): void;
 }
 
+
 export interface DatabaseConfig {
   sources: {[name: string]: Function};
+
+  routines?: RoutineProvider[];
 }
 
 /**

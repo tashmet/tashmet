@@ -1,7 +1,7 @@
 import {component} from '@ziggurat/tiamat';
 
 export {CollectionController} from './controllers/collection';
-export {Routine} from './controllers/routine';
+export {routine} from './controllers/routine';
 export {View} from './view/view';
 export {remote} from './database/remote';
 export {feed} from './view/filters/feed';
@@ -13,12 +13,13 @@ export {inline} from './sources/inline';
 export * from './interfaces';
 export * from './controllers/decorators';
 export * from './controllers/interfaces';
+export * from './processing/decorators';
+export * from './processing/interfaces';
 export * from './view/decorators';
 export * from './view/interfaces';
 export * from './schema/decorators';
 export * from './schema/interfaces';
 
-import {RoutineAggregator} from './controllers/routine';
 import {DatabaseService} from './database/database';
 import {LocalDB} from './database/local';
 import {RemoteDB} from './database/remote';
@@ -31,7 +32,6 @@ import {ViewManager} from './view/viewManager';
     LocalDB,
     RemoteDB,
     DatabaseService,
-    RoutineAggregator,
     TransformerService,
     ValidatorService,
     ViewManager

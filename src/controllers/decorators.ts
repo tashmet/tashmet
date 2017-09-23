@@ -1,5 +1,5 @@
 import {classDecorator, TaggedClassAnnotation, PropertyMeta} from '@ziggurat/tiamat';
-import {CollectionConfig, RoutineConfig} from './interfaces';
+import {CollectionConfig} from './interfaces';
 import {uniq} from 'lodash';
 
 class ControllerDecorator extends TaggedClassAnnotation<CollectionConfig> {
@@ -20,7 +20,3 @@ export const collection = classDecorator<CollectionConfig>(
     model: 'isimud.Document',
     populateAfter: []
   });
-
-
-export const routine = classDecorator<RoutineConfig>(
-  new TaggedClassAnnotation('isimud:routine', ['isimud.Routine']));
