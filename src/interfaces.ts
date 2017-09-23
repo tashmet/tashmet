@@ -1,36 +1,9 @@
 import {Injector} from '@ziggurat/tiamat';
-import {RoutineProvider} from './database/interfaces';
 import {Document} from './models/document';
 import {Pipe} from './processing/interfaces';
 import * as Promise from 'bluebird';
 
 export type ClassType<T> = { new (...args: any[]): T; };
-
-/**
- *
- */
-export interface Database {
-  collection(name: string): Collection;
-
-  on(event: string, fn: any): void;
-}
-
-
-export interface DatabaseConfig {
-  sources: {[name: string]: Function};
-
-  routines?: RoutineProvider[];
-
-  /**
-   * Specify if collections should be automatically populated from their sources on creation.
-   *
-   * When set to true all of them are populated. If this attribute is a list of IDs,
-   * then only those collections are affected.
-   *
-   * default: false
-   */
-  populate?: boolean | string[];
-}
 
 /**
  * Generic interface for creating collections.

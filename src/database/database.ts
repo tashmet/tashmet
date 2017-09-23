@@ -1,8 +1,8 @@
 import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
-import {CollectionFactory, Collection, MemoryCollectionConfig, Database, DatabaseConfig,
+import {CollectionFactory, Collection, MemoryCollectionConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
-import {RoutineProvider} from './interfaces';
+import {Database, DatabaseConfig, RoutineProvider} from './interfaces';
 import {Controller} from './controller';
 import {createRoutines} from './routine';
 import {Routine} from '../processing/interfaces';
