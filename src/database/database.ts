@@ -1,7 +1,7 @@
 import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, Collection, Database, DatabaseConfig,
-  CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
+  CacheEvaluator, QueryOptions} from '../interfaces';
 import {RoutineProvider} from '../controllers/interfaces';
 import {Controller} from '../controllers/controller';
 import {createRoutines} from '../controllers/routine';

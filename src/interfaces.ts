@@ -137,14 +137,6 @@ export interface Collection {
   emit(event: string, ...args: any[]): void;
 }
 
-export type CollectionProvider = (injector: Injector) => Collection;
-
-export interface CollectionMapping {
-  name: string;
-
-  source: string | CollectionProvider;
-}
-
 export interface CacheEvaluator {
   isCached(selector: any, options: QueryOptions): boolean;
 
