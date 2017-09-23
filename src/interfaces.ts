@@ -20,6 +20,16 @@ export interface DatabaseConfig {
   sources: {[name: string]: Function};
 
   routines?: RoutineProvider[];
+
+  /**
+   * Specify if collections should be automatically populated from their sources on creation.
+   *
+   * When set to true all of them are populated. If this attribute is a list of IDs,
+   * then only those collections are affected.
+   *
+   * default: false
+   */
+  populate?: boolean | string[];
 }
 
 /**

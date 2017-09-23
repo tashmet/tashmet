@@ -13,7 +13,7 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from './cache/documentId';
 import {QueryHashEvaluator} from './cache/queryHash';
 import {RangeEvaluator} from './cache/range';
-import {each, intersection, isArray, map, transform} from 'lodash';
+import {each, includes, isArray, map, transform} from 'lodash';
 import * as Promise from 'bluebird';
 
 @provider({
@@ -88,22 +88,17 @@ export class DatabaseService extends EventEmitter implements Database
     collection.addCacheEvaluator(new DocumentIdEvaluator());
     collection.addCacheEvaluator(new RangeEvaluator());
 
-    if (this.isServer()) {
-      if (meta.populateAfter.length > 0) {
-        let promises = transform(meta.populateAfter, (result: any, depName: string) => {
-          result.push(this.injector.get<Controller>(depName).populate());
-        });
-        Promise.all(promises).then(deps => {
+    const populate = this.dbConfig.populate;
+    if (populate === true || (isArray(populate) && includes(populate, providerMeta.for))) {
+      Promise.all(transform(meta.populateAfter, (result: any, depName: string) => {
+        result.push(this.injector.get<Controller>(depName).populate());
+      }))
+        .then(() => {
           return collection.populate();
         })
         .then(() => {
           collection.locked = false;
         });
-      } else {
-        collection.populate().then(() => {
-          collection.locked = false;
-        });
-      }
     }
 
     collection.on('ready', () => {
@@ -124,9 +119,5 @@ export class DatabaseService extends EventEmitter implements Database
     });
 
     return collection;
-  }
-
-  private isServer() {
-     return ! (typeof window !== 'undefined' && window.document);
   }
 }
