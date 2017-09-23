@@ -33,21 +33,23 @@ export interface DatabaseConfig {
 }
 
 /**
- * The cache holds collections of documents in memory.
+ * Generic interface for creating collections.
  */
-export interface LocalDatabase {
+export interface CollectionFactory<T> {
   /**
-   * Create a new collection given a name.
+   * Create a new collection given a name and configuration.
    */
-  createCollection(name: string): Collection;
+  createCollection(name: string, config: T): Collection;
 }
 
-export interface RemoteDatabase {
-  /**
-   * Create a new collection given a name.
-   */
-  createCollection(path: string, name: string): Collection;
+export interface MemoryCollectionConfig {
+  indices?: string[];
 }
+
+export interface RemoteCollectionConfig {
+  path: string;
+}
+
 
 export enum SortingOrder {
     Ascending = 'asc',

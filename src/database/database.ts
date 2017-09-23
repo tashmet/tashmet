@@ -1,6 +1,6 @@
 import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
-import {LocalDatabase, Collection, Database, DatabaseConfig,
+import {CollectionFactory, Collection, MemoryCollectionConfig, Database, DatabaseConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
 import {RoutineProvider} from '../controllers/interfaces';
 import {Controller} from '../controllers/controller';
@@ -26,7 +26,7 @@ export class DatabaseService extends EventEmitter implements Database
   private syncedCount = 0;
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
-  @inject('isimud.LocalDatabase') private localDB: LocalDatabase;
+  @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory<MemoryCollectionConfig>;
   @inject('isimud.Transformer') private transformer: Transformer;
   @inject('isimud.Validator') private validator: Validator;
   @inject('tiamat.Injector') private injector: Injector;
@@ -46,8 +46,8 @@ export class DatabaseService extends EventEmitter implements Database
 
     // TODO: Support collections without source.
     let source = this.dbConfig.sources[providerMeta.for](this.injector);
-    let cache = this.localDB.createCollection(meta.name);
-    let buffer = this.localDB.createCollection(meta.name + ':buffer');
+    let cache = this.memory.createCollection(meta.name, {indices: ['_id']});
+    let buffer = this.memory.createCollection(meta.name + ':buffer', {indices: ['_id']});
     let routines = createRoutines(this.dbConfig.routines || [], collection, this.injector);
 
     let cachePipe = new RevisionUpsertPipe(cache);

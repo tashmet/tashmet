@@ -1,24 +1,16 @@
-import {provider, inject, Injector} from '@ziggurat/tiamat';
-import {RemoteDatabase, Collection, QueryOptions} from '../interfaces';
+import {provider} from '@ziggurat/tiamat';
+import {Collection, CollectionFactory, RemoteCollectionConfig, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import * as loki from 'lokijs';
 import * as Promise from 'bluebird';
 import * as io from 'socket.io-client';
 
-export function remote(path: string, name: string): any {
-  return function(injector: Injector): Collection {
-    let database = injector.get<RemoteDatabase>('isimud.RemoteDatabase');
-    return database.createCollection(path, name);
-  };
-}
-
 @provider({
-  for: 'isimud.RemoteDatabase',
+  for: 'isimud.RemoteCollectionFactory',
   singleton: true
 })
-export class RemoteDB implements RemoteDatabase {
+export class RemoteCollectionFactory implements CollectionFactory<RemoteCollectionConfig> {
   private socket: any;
-  private collections: {[index: string]: Collection} = {};
 
   public constructor() {
     if (typeof window !== 'undefined' && window.document) {
@@ -26,10 +18,8 @@ export class RemoteDB implements RemoteDatabase {
     }
   }
 
-  public createCollection(path: string, name: string): Collection {
-    let collection = new RemoteCollection(path, name, this.socket);
-    this.collections[path] = collection;
-    return collection;
+  public createCollection(name: string, config: RemoteCollectionConfig): Collection {
+    return new RemoteCollection(config.path, name, this.socket);
   }
 }
 

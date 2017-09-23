@@ -1,24 +1,22 @@
-import {LocalDatabase, Collection, QueryOptions, Sorting, SortingOrder} from '../interfaces';
 import {provider} from '@ziggurat/tiamat';
+import {Collection, CollectionFactory, MemoryCollectionConfig, QueryOptions,
+  Sorting, SortingOrder} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {map} from 'lodash';
 import * as loki from 'lokijs';
 import * as Promise from 'bluebird';
 
 @provider({
-  for: 'isimud.LocalDatabase',
+  for: 'isimud.MemoryCollectionFactory',
   singleton: true
 })
-export class LocalDB implements LocalDatabase {
+export class MemoryCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
   private db: any = new loki('local');
-  private collections: {[index: string]: Collection} = {};
 
-  public createCollection(name: string): Collection {
-    let collection = new MemoryCollection(
-      this.db.addCollection(name, {indices: '_id'}), name
+  public createCollection(name: string, config: MemoryCollectionConfig): Collection {
+    return new MemoryCollection(
+      this.db.addCollection(name, config), name
     );
-    this.collections[name] = collection;
-    return collection;
   }
 }
 
