@@ -42,6 +42,8 @@ export class DatabaseService extends EventEmitter implements Database
 
     this.collections[meta.name] = collection;
 
+    collection.locked = true;
+
     // TODO: Support collections without source.
     let source = this.dbConfig.sources[providerMeta.for](this.injector);
     let cache = this.localDB.createCollection(meta.name);
@@ -92,10 +94,15 @@ export class DatabaseService extends EventEmitter implements Database
           result.push(this.injector.get<Controller>(depName).populate());
         });
         Promise.all(promises).then(deps => {
-          collection.populate();
+          return collection.populate();
+        })
+        .then(() => {
+          collection.locked = false;
         });
       } else {
-        collection.populate();
+        collection.populate().then(() => {
+          collection.locked = false;
+        });
       }
     }
 

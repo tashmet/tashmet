@@ -13,6 +13,7 @@ if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
 
 @injectable()
 export class Controller extends EventEmitter implements Collection {
+  public locked = false;
   protected _cache: Collection;
   protected _buffer: Collection;
   protected _source: Collection;
@@ -59,7 +60,7 @@ export class Controller extends EventEmitter implements Collection {
     this._source = source;
 
     source.on('document-upserted', (doc: Document) => {
-      if (!this.populating) {
+      if (!this.populating && !this.locked) {
         doc._collection = this.name();
         if (this.upsertQueue.indexOf(doc._id) < 0) {
           this.processor.process(doc, 'source-upsert');
@@ -153,6 +154,10 @@ export class Controller extends EventEmitter implements Collection {
   }
 
   public upsert<T extends Document>(doc: T): Promise<T> {
+    if (this.locked) {
+      return Promise.reject(new Error('Failed to upsert in locked controller'));
+    }
+
     let copy = clone(doc);
     copy._revision = doc._revision ? doc._revision + 1 : 1;
     copy._collection = this.name();
