@@ -1,7 +1,7 @@
 import {component} from '@ziggurat/tiamat';
 
 export {CollectionController} from './controllers/collection';
-export {routine} from './controllers/routine';
+export {controllerRoutine} from './controllers/routine';
 export {View} from './view/view';
 export {remote} from './database/remote';
 export {feed} from './view/filters/feed';

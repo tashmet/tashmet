@@ -4,6 +4,7 @@ import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
 import {RoutineProvider} from '../controllers/interfaces';
 import {CollectionController} from '../controllers/collection';
+import {Routine} from '../processing/interfaces';
 import {Processor} from '../processing/processor';
 import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../processing/pipes';
 import {Transformer, Validator} from '../schema/interfaces';
@@ -45,6 +46,7 @@ export class DatabaseService extends EventEmitter implements Database
     let source = this.dbConfig.sources[providerMeta.for](this.injector);
     let cache = this.localDB.createCollection(meta.name);
     let buffer = this.localDB.createCollection(meta.name + ':buffer');
+    let routines = this.createRoutines(collection);
 
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
@@ -72,10 +74,8 @@ export class DatabaseService extends EventEmitter implements Database
         'cache': cachePipe
       });
 
-    this.createRoutines(collection).then((routines: any[]) => {
-      each(routines, routine => {
-        processor.addHooks(routine);
-      });
+    each(routines, routine => {
+      processor.routine(routine);
     });
 
     collection.setSource(source);
@@ -119,18 +119,20 @@ export class DatabaseService extends EventEmitter implements Database
     return collection;
   }
 
-  private createRoutines(controller: CollectionController): Promise<any[]> {
+  private createRoutines(controller: CollectionController): Routine[] {
     if (!this.dbConfig.routines) {
-      return Promise.resolve([]);
+      return [];
     }
 
-    let result: any[] = [];
-    let tags = Reflect.getMetadata('tiamat:tags', controller.constructor) || [];
+    let routines: Routine[] = [];
 
-    let promises = map(this.dbConfig.routines, (routineProvider: RoutineProvider) => {
-      return routineProvider(this.injector, controller);
+    each(this.dbConfig.routines, routineProvider => {
+      const routine = routineProvider(this.injector, controller);
+      if (routine) {
+        routines.push(routine);
+      }
     });
-    return Promise.all(promises);
+    return routines;
   }
 
   private isServer() {

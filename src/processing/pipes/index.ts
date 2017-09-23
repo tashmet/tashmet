@@ -1,4 +1,5 @@
-export {Hook, HookablePipe, HookablePipeline} from './hook';
+export {HookablePipe, HookablePipeline} from './hook';
+export {MethodPipe} from './method';
 export {UpsertPipe, RevisionUpsertPipe} from './upsert';
 export {Pipeline} from './pipeline';
 export {ValidationPipe} from './validation';

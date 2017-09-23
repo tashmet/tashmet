@@ -1,9 +1,9 @@
 import {injectable} from '@ziggurat/tiamat';
 import {Collection, DocumentError} from '../interfaces';
 import {Document} from '../models/document';
-import {HookablePipeline, Hook, HookablePipe} from './pipes';
+import {HookablePipeline, MethodPipe, HookablePipe} from './pipes';
 import {Transformer, Validator} from '../schema/interfaces';
-import {Pipe, HookMeta, HookConfig} from './interfaces';
+import {Pipe, Routine, HookMeta, HookConfig} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {each, isString} from 'lodash';
 import * as Promise from 'bluebird';
@@ -36,26 +36,28 @@ export class Processor extends EventEmitter {
     return this;
   }
 
-  public process(doc: any, pipe: string): Promise<any> {
-    return this.pipes[pipe].process(doc);
+  public routine(routine: Routine): Processor {
+    each(routine.hooks, hook => {
+      this.hook(new MethodPipe(routine, hook.key), hook);
+    });
+    return this;
   }
 
-  public addHooks(host: any): void {
-    const hooks: HookMeta[] = Reflect.getMetadata(
-      'isimud:hook', host.constructor) || [];
+  public hook(pipe: Pipe, hook: HookMeta): Processor {
+    let steps = this.getMatchingSteps(hook.data);
 
-    hooks.forEach((hook: HookMeta) => {
-      const pipe = new Hook(host, hook.key);
-      let steps = this.getMatchingSteps(hook.data);
-
-      steps.forEach((step: HookablePipe) => {
-        switch (hook.type) {
-          case 'before': step.before(pipe); break;
-          case 'after':  step.after(pipe);  break;
-          case 'error':  step.error(pipe);  break;
-        }
-      });
+    steps.forEach((step: HookablePipe) => {
+      switch (hook.type) {
+        case 'before': step.before(pipe); break;
+        case 'after':  step.after(pipe);  break;
+        case 'error':  step.error(pipe);  break;
+      }
     });
+    return this;
+  }
+
+  public process(doc: any, pipe: string): Promise<any> {
+    return this.pipes[pipe].process(doc);
   }
 
   private getMatchingSteps(hook: HookConfig): HookablePipe[] {

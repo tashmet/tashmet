@@ -1,5 +1,6 @@
 import {Injector} from '@ziggurat/tiamat';
 import {CollectionController} from './collection';
+import {Routine} from '../processing/interfaces';
 import * as Promise from 'bluebird';
 
 /**
@@ -18,7 +19,7 @@ export interface CollectionConfig {
 
 export interface RoutineConfig {}
 
-export type RoutineProvider = (injector: Injector, controller: any) => Promise<any>;
+export type RoutineProvider = (injector: Injector, controller: any) => Routine | undefined;
 
 export interface RoutineFactory<
   T extends CollectionController = CollectionController,

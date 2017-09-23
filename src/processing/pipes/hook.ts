@@ -48,14 +48,3 @@ export class HookablePipeline extends Pipeline {
     return super.step(name, new HookablePipe(pipe));
   }
 }
-
-/**
- * Pipe that passes data through a hook defined as a method on a given controller.
- */
-export class Hook implements Pipe {
-  public constructor(private controller: any, private method: string) {}
-
-  public process(input: any): Promise<any> {
-    return this.controller[this.method].call(this.controller, input);
-  }
-}

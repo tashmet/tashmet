@@ -31,3 +31,9 @@ export interface HookConfig {
 export interface HookMeta extends PropertyMeta<HookConfig> {
   type: string;
 }
+
+export abstract class Routine {
+  public get hooks(): HookMeta[] {
+    return  Reflect.getMetadata('isimud:hook', this.constructor) || [];
+  }
+}
