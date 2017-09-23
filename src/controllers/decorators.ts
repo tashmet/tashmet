@@ -2,7 +2,7 @@ import {classDecorator, TaggedClassAnnotation, PropertyMeta} from '@ziggurat/tia
 import {CollectionConfig} from './interfaces';
 import {uniq} from 'lodash';
 
-class ControllerDecorator extends TaggedClassAnnotation<CollectionConfig> {
+class CollectionDecorator extends TaggedClassAnnotation<CollectionConfig> {
   public decorate(data: CollectionConfig, target: any) {
     let parentMeta = Reflect.getMetadata('isimud:collection', target);
     if (parentMeta) {
@@ -16,7 +16,7 @@ class ControllerDecorator extends TaggedClassAnnotation<CollectionConfig> {
 }
 
 export const collection = classDecorator<CollectionConfig>(
-  new ControllerDecorator('isimud:collection', ['isimud.Collection']), {
+  new CollectionDecorator('isimud:collection', ['isimud.Collection']), {
     model: 'isimud.Document',
     populateAfter: []
   });

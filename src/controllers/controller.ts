@@ -12,7 +12,7 @@ if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
 }
 
 @injectable()
-export class CollectionController extends EventEmitter implements Collection {
+export class Controller extends EventEmitter implements Collection {
   protected _cache: Collection;
   protected _buffer: Collection;
   protected _source: Collection;

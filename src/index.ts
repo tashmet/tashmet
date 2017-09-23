@@ -1,6 +1,6 @@
 import {component} from '@ziggurat/tiamat';
 
-export {CollectionController} from './controllers/collection';
+export {Controller} from './controllers/controller';
 export {controllerRoutine} from './controllers/routine';
 export {View} from './view/view';
 export {remote} from './database/remote';

@@ -3,7 +3,7 @@ import {Injector} from '@ziggurat/tiamat';
 import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
 import {RoutineProvider} from '../controllers/interfaces';
-import {CollectionController} from '../controllers/collection';
+import {Controller} from '../controllers/controller';
 import {Routine} from '../processing/interfaces';
 import {Processor} from '../processing/processor';
 import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../processing/pipes';
@@ -21,7 +21,7 @@ import * as Promise from 'bluebird';
 })
 export class DatabaseService extends EventEmitter implements Database
 {
-  private collections: {[name: string]: CollectionController} = {};
+  private collections: {[name: string]: Controller} = {};
   private syncedCount = 0;
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
@@ -36,7 +36,7 @@ export class DatabaseService extends EventEmitter implements Database
   }
 
   @activate('isimud.Collection')
-  private activateCollectionController(collection: CollectionController): CollectionController {
+  private activateController(collection: Controller): Controller {
     let providerMeta = Reflect.getOwnMetadata('tiamat:provider', collection.constructor);
     let meta = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
 
@@ -89,7 +89,7 @@ export class DatabaseService extends EventEmitter implements Database
     if (this.isServer()) {
       if (meta.populateAfter.length > 0) {
         let promises = transform(meta.populateAfter, (result: any, depName: string) => {
-          result.push(this.injector.get<CollectionController>(depName).populate());
+          result.push(this.injector.get<Controller>(depName).populate());
         });
         Promise.all(promises).then(deps => {
           collection.populate();
@@ -119,7 +119,7 @@ export class DatabaseService extends EventEmitter implements Database
     return collection;
   }
 
-  private createRoutines(controller: CollectionController): Routine[] {
+  private createRoutines(controller: Controller): Routine[] {
     if (!this.dbConfig.routines) {
       return [];
     }

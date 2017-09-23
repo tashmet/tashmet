@@ -1,12 +1,12 @@
 import {Injector} from '@ziggurat/tiamat';
 import {RoutineProvider, RoutineConfig, RoutineFactory} from './interfaces';
-import {CollectionController} from './collection';
+import {Controller} from './controller';
 import {ClassType} from '../interfaces';
 import {Routine} from '../processing/interfaces';
 import * as Promise from 'bluebird';
 
 export function controllerRoutine<
-  T extends CollectionController = CollectionController,
+  T extends Controller = Controller,
   U extends RoutineConfig = RoutineConfig> (
   factory: string, controllerClass: ClassType<T>
 ) {

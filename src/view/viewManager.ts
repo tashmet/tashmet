@@ -2,7 +2,7 @@ import {activate, provider, ProviderConfig} from '@ziggurat/tiamat';
 import {ViewConfig, FilterProvider} from './interfaces';
 import {View} from './view';
 import {Document} from '../models/document';
-import {CollectionController} from '../controllers/collection';
+import {Controller} from '../controllers/controller';
 import {each, find, values} from 'lodash';
 import * as Promise from 'bluebird';
 
@@ -12,7 +12,7 @@ import * as Promise from 'bluebird';
 })
 export class ViewManager {
   private views: {[name: string]: View} = {};
-  private collections: {[name: string]: CollectionController} = {};
+  private collections: {[name: string]: Controller} = {};
 
   public view(name: string): View {
     return this.views[name];
@@ -44,7 +44,7 @@ export class ViewManager {
   }
 
   @activate('isimud.Collection')
-  private activateCollectionController(collection: CollectionController): CollectionController {
+  private activateController(collection: Controller): Controller {
     let providerMeta = Reflect.getOwnMetadata('tiamat:provider', collection.constructor);
     this.collections[providerMeta.for] = collection;
 
@@ -58,7 +58,7 @@ export class ViewManager {
     return collection;
   }
 
-  private onDocumentUpdated(doc: any, collection: CollectionController) {
+  private onDocumentUpdated(doc: any, collection: Controller) {
     Promise.each(values(this.views), (view: View) => {
       return collection.cache.find(view.selector, view.options)
         .then((documents: any[]) => {
