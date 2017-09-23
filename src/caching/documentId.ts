@@ -1,4 +1,4 @@
-import {CacheEvaluator, QueryOptions} from '../../interfaces';
+import {CacheEvaluator, QueryOptions} from '../interfaces';
 import {isString} from 'lodash';
 
 export class DocumentIdEvaluator implements CacheEvaluator {

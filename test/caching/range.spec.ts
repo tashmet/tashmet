@@ -1,4 +1,4 @@
-import {Range, RangeSet, RangeEvaluator} from '../../../src/database/cache/range';
+import {Range, RangeSet, RangeEvaluator} from '../../src/caching/range';
 import {expect} from 'chai';
 import 'mocha';
 

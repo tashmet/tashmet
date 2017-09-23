@@ -2,17 +2,17 @@ import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
 import {CollectionFactory, Collection, MemoryCollectionConfig, Database, DatabaseConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
-import {RoutineProvider} from '../controllers/interfaces';
-import {Controller} from '../controllers/controller';
-import {createRoutines} from '../controllers/routine';
+import {RoutineProvider} from './interfaces';
+import {Controller} from './controller';
+import {createRoutines} from './routine';
 import {Routine} from '../processing/interfaces';
 import {Processor} from '../processing/processor';
 import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../processing/pipes';
 import {Transformer, Validator} from '../schema/interfaces';
 import {EventEmitter} from 'eventemitter3';
-import {DocumentIdEvaluator} from './cache/documentId';
-import {QueryHashEvaluator} from './cache/queryHash';
-import {RangeEvaluator} from './cache/range';
+import {DocumentIdEvaluator} from '../caching/documentId';
+import {QueryHashEvaluator} from '../caching/queryHash';
+import {RangeEvaluator} from '../caching/range';
 import {each, includes, isArray, map, transform} from 'lodash';
 import * as Promise from 'bluebird';
 

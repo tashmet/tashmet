@@ -1,4 +1,4 @@
-import {CacheEvaluator, QueryOptions} from '../../interfaces';
+import {CacheEvaluator, QueryOptions} from '../interfaces';
 
 export class QueryHashEvaluator implements CacheEvaluator {
   protected cachedQueries: {[query: string]: any} = {};

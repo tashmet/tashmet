@@ -2,7 +2,7 @@ import {activate, provider, ProviderConfig} from '@ziggurat/tiamat';
 import {ViewConfig, FilterProvider} from './interfaces';
 import {View} from './view';
 import {Document} from '../models/document';
-import {Controller} from '../controllers/controller';
+import {Controller} from '../database/controller';
 import {each, find, values} from 'lodash';
 import * as Promise from 'bluebird';
 

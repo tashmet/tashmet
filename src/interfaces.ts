@@ -1,5 +1,5 @@
 import {Injector} from '@ziggurat/tiamat';
-import {RoutineProvider} from './controllers/interfaces';
+import {RoutineProvider} from './database/interfaces';
 import {Document} from './models/document';
 import {Pipe} from './processing/interfaces';
 import * as Promise from 'bluebird';

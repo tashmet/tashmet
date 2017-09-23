@@ -1,4 +1,4 @@
-import {QueryOptions} from '../../interfaces';
+import {QueryOptions} from '../interfaces';
 import {QueryHashEvaluator} from './queryHash';
 import {cloneDeep, some} from 'lodash';
 
