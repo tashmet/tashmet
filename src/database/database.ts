@@ -1,6 +1,6 @@
 import {inject, provider, activate} from '@ziggurat/tiamat';
 import {Injector} from '@ziggurat/tiamat';
-import {LocalDatabase, RemoteDatabase, Collection, Database, DatabaseConfig,
+import {LocalDatabase, Collection, Database, DatabaseConfig,
   CollectionMapping, CacheEvaluator, QueryOptions} from '../interfaces';
 import {RoutineProvider} from '../controllers/interfaces';
 import {Controller} from '../controllers/controller';
@@ -26,7 +26,6 @@ export class DatabaseService extends EventEmitter implements Database
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
   @inject('isimud.LocalDatabase') private localDB: LocalDatabase;
-  @inject('isimud.RemoteDatabase') private remoteDB: RemoteDatabase;
   @inject('isimud.Transformer') private transformer: Transformer;
   @inject('isimud.Validator') private validator: Validator;
   @inject('tiamat.Injector') private injector: Injector;
