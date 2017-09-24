@@ -7,7 +7,8 @@ import {Controller} from './controller';
 import {createRoutines} from './routine';
 import {Routine} from '../processing/interfaces';
 import {Processor} from '../processing/processor';
-import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe} from '../processing/pipes';
+import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe,
+  PlainPipe} from '../processing/pipes';
 import {Transformer, Validator} from '../schema/interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from '../caching/documentId';
@@ -54,6 +55,7 @@ export class DatabaseService extends EventEmitter implements Database
     let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(this.validator);
     let instancePipe = new InstancePipe(this.transformer, 'persist', meta.model);
+    let plainPipe = new PlainPipe(this.transformer, 'persist');
     let processor = new Processor()
       .pipe('populate-pre-buffer', 'populate', {
         'transform': instancePipe,
@@ -70,6 +72,7 @@ export class DatabaseService extends EventEmitter implements Database
       .pipe('upsert', true, {
         'validate': validationPipe,
         'cache': cachePipe,
+        'transform': plainPipe,
         'persist': persistPipe
       })
       .pipe('cache', false, {
