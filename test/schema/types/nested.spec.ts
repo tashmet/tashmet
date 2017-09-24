@@ -14,7 +14,7 @@ describe('nested', () => {
   }
 
   class Parent {
-    @nested()
+    @nested(Child)
     public foo: Child;
   }
   const vs = new ValidatorService();

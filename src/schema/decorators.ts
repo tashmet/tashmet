@@ -1,4 +1,5 @@
-import {classDecorator, propertyDecoratorOptional, propertyDecoratorVoid} from '@ziggurat/tiamat';
+import {classDecorator, propertyDecorator, propertyDecoratorOptional,
+  propertyDecoratorVoid} from '@ziggurat/tiamat';
 import {ModelConfig} from './interfaces';
 import {ModelDecorator} from './model';
 import {ArrayTypeConfig, NumberTypeConfig, StringTypeConfig,
@@ -33,7 +34,7 @@ export const number = propertyDecoratorOptional<NumberTypeConfig>(
 export const integer = propertyDecoratorOptional<NumberTypeConfig>(
   new IntegerTypeDecorator());
 
-export const nested = propertyDecoratorVoid(
+export const nested = propertyDecorator<any>(
   new NestedTypeDecorator());
 
 export const string = propertyDecoratorOptional<StringTypeConfig>(
