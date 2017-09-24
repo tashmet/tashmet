@@ -5,7 +5,7 @@ import {Routine} from '../processing/interfaces';
 import * as Promise from 'bluebird';
 
 /**
- *
+ * Configuration for the collection decorator.
  */
 export interface CollectionConfig {
   /**
@@ -13,8 +13,19 @@ export interface CollectionConfig {
    */
   name: string;
 
+  /**
+   * Base model that the collection will use for its documents.
+   *
+   * All documents in the collection must conform to this model or any other model that
+   * inherits from it.
+   *
+   * default: isimud.Document
+   */
   model?: string;
 
+  /**
+   * A list of collections that must be populated before this one is.
+   */
   populateAfter?: string[];
 }
 
