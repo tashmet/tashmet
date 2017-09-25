@@ -1,8 +1,8 @@
 import {injectable, decorate} from '@ziggurat/tiamat';
+import {Processor} from '@ziggurat/ningal';
 import {Collection, DocumentError, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {QueryHashEvaluator} from '../caching/queryHash';
-import {Processor} from '../processing/interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {clone, map, pull, some} from 'lodash';
 import * as Promise from 'bluebird';
@@ -74,7 +74,7 @@ export class Controller extends EventEmitter implements Collection {
 
   public setProcessor(processor: Processor) {
     this.processor = processor;
-    this.processor.on('document-error', (err) => {
+    this.processor.on('processing-error', (err) => {
       this.emit('document-error', err);
     });
   }

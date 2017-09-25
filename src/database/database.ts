@@ -1,14 +1,13 @@
-import {inject, provider, activate} from '@ziggurat/tiamat';
-import {Injector} from '@ziggurat/tiamat';
+import {inject, provider, activate, Injector} from '@ziggurat/tiamat';
+import {Processor, ProcessorFactory, Routine} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
 import {Database, DatabaseConfig, RoutineProvider} from './interfaces';
 import {Controller} from './controller';
 import {createRoutines} from './routine';
-import {Routine} from '../processing/interfaces';
-import {Processor, ProcessorFactory} from '../processing/interfaces';
-import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe,
-  PlainPipe} from '../processing/pipes';
+import {InstancePipe, PlainPipe} from '../pipes/transformation';
+import {UpsertPipe, RevisionUpsertPipe} from '../pipes/upsert';
+import {ValidationPipe} from '../pipes/validation';
 import {Transformer, Validator} from '../schema/interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from '../caching/documentId';
@@ -28,9 +27,9 @@ export class DatabaseService extends EventEmitter implements Database
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
   @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory<MemoryCollectionConfig>;
-  @inject('isimud.ProcessorFactory') private processorFactory: ProcessorFactory;
   @inject('isimud.Transformer') private transformer: Transformer;
   @inject('isimud.Validator') private validator: Validator;
+  @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory;
   @inject('tiamat.Injector') private injector: Injector;
 
   public collection(name: string): Collection {

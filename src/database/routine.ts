@@ -1,8 +1,8 @@
 import {Injector} from '@ziggurat/tiamat';
+import {Routine} from '@ziggurat/ningal';
 import {RoutineProvider, RoutineConfig, RoutineFactory} from './interfaces';
 import {Controller} from './controller';
 import {ClassType} from '../interfaces';
-import {Routine} from '../processing/interfaces';
 import {transform} from 'lodash';
 import * as Promise from 'bluebird';
 

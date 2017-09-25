@@ -1,7 +1,7 @@
 import {Injector} from '@ziggurat/tiamat';
+import {Routine} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
-import {Routine} from '../processing/interfaces';
 import * as Promise from 'bluebird';
 
 /**
