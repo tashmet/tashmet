@@ -23,6 +23,7 @@ export * from './schema/interfaces';
 import {DatabaseService} from './database/database';
 import {MemoryCollectionFactory} from './collections/local';
 import {RemoteCollectionFactory} from './collections/remote';
+import {ProcessorFactory} from './processing/processor';
 import {TransformerService} from './schema/transformer';
 import {ValidatorService} from './schema/validator';
 import {ViewManager} from './view/viewManager';

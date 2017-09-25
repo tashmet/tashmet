@@ -1,14 +1,24 @@
-import {injectable} from '@ziggurat/tiamat';
+import {provider} from '@ziggurat/tiamat';
 import {Collection, DocumentError} from '../interfaces';
 import {Document} from '../models/document';
 import {HookablePipeline, MethodPipe, HookablePipe} from './pipes';
 import {Transformer, Validator} from '../schema/interfaces';
-import {Pipe, Routine, HookMeta, HookConfig} from './interfaces';
+import {Pipe, Processor, Routine, HookMeta, HookConfig} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {each, isString} from 'lodash';
 import * as Promise from 'bluebird';
 
-export class Processor extends EventEmitter {
+@provider({
+  for: 'isimud.ProcessorFactory',
+  singleton: true
+})
+export class ProcessorFactory {
+  public createProcessor(): Processor {
+    return new ProcessorService();
+  }
+}
+
+export class ProcessorService extends EventEmitter implements Processor {
   private pipes: {[name: string]: HookablePipeline} = {};
   private externals: {[name: string]: HookablePipeline[]} = {};
 

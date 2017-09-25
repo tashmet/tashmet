@@ -6,7 +6,7 @@ import {Database, DatabaseConfig, RoutineProvider} from './interfaces';
 import {Controller} from './controller';
 import {createRoutines} from './routine';
 import {Routine} from '../processing/interfaces';
-import {Processor} from '../processing/processor';
+import {Processor, ProcessorFactory} from '../processing/interfaces';
 import {UpsertPipe, RevisionUpsertPipe, ValidationPipe, InstancePipe,
   PlainPipe} from '../processing/pipes';
 import {Transformer, Validator} from '../schema/interfaces';
@@ -28,6 +28,7 @@ export class DatabaseService extends EventEmitter implements Database
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
   @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory<MemoryCollectionConfig>;
+  @inject('isimud.ProcessorFactory') private processorFactory: ProcessorFactory;
   @inject('isimud.Transformer') private transformer: Transformer;
   @inject('isimud.Validator') private validator: Validator;
   @inject('tiamat.Injector') private injector: Injector;
@@ -56,7 +57,7 @@ export class DatabaseService extends EventEmitter implements Database
     let validationPipe = new ValidationPipe(this.validator);
     let instancePipe = new InstancePipe(this.transformer, 'persist', meta.model);
     let plainPipe = new PlainPipe(this.transformer, 'persist');
-    let processor = new Processor()
+    let processor = this.processorFactory.createProcessor()
       .pipe('populate-pre-buffer', 'populate', {
         'transform': instancePipe,
         'validate': validationPipe
