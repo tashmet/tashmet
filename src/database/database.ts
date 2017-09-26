@@ -5,6 +5,7 @@ import {CollectionFactory, Collection, MemoryCollectionConfig,
 import {Database, DatabaseConfig, RoutineProvider} from './interfaces';
 import {Controller} from './controller';
 import {createRoutines} from './routine';
+import {NullCollection} from '../collections/null';
 import {InstancePipe, PlainPipe} from '../pipes/transformation';
 import {UpsertPipe, RevisionUpsertPipe} from '../pipes/upsert';
 import {ValidationPipe, ReferenceValidationPipe} from '../pipes/validation';
@@ -45,8 +46,13 @@ export class DatabaseService extends EventEmitter implements Database
 
     collection.locked = true;
 
-    // TODO: Support collections without source.
-    let source = this.dbConfig.sources[providerMeta.for](this.injector);
+    let source: Collection;
+    if (this.dbConfig.sources[providerMeta.for]) {
+      source = this.dbConfig.sources[providerMeta.for](this.injector);
+    } else {
+      source = new NullCollection(providerMeta.for + ':source');
+    }
+
     let cache = this.memory.createCollection(meta.name, {indices: ['_id']});
     let buffer = this.memory.createCollection(meta.name + ':buffer', {indices: ['_id']});
     let routines = createRoutines(this.dbConfig.routines || [], collection, this.injector);
