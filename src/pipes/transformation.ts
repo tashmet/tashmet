@@ -1,5 +1,5 @@
 import {Pipe} from '@ziggurat/ningal';
-import {Transformer} from '../schema/interfaces';
+import {Transformer} from '@ziggurat/mushdamma';
 import * as Promise from 'bluebird';
 
 /**

@@ -1,4 +1,4 @@
-import {model, number, string} from '../schema/decorators';
+import {model, number, string} from '@ziggurat/mushdamma';
 
 @model({
   name: 'isimud.Document'
@@ -15,6 +15,6 @@ export class Document {
   }
 
   get _model(): string {
-    return Reflect.getOwnMetadata('isimud:model', this.constructor).name;
+    return Reflect.getOwnMetadata('mushdamma:model', this.constructor).name;
   }
 }

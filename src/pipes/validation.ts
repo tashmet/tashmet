@@ -1,7 +1,7 @@
 import {Injector, PropertyMeta} from '@ziggurat/tiamat';
+import {Validator, ModelConfig} from '@ziggurat/mushdamma';
 import {Pipe} from '@ziggurat/ningal';
 import {DocumentError, Collection} from '../interfaces';
-import {Validator, ModelConfig} from '../schema/interfaces';
 import {each} from 'lodash';
 import * as Promise from 'bluebird';
 
@@ -33,8 +33,8 @@ export class ReferenceValidationPipe implements Pipe {
   public constructor(
     private injector: Injector
   ) {
-    each(injector.get('isimud.Models'), m => {
-      let config: ModelConfig = Reflect.getOwnMetadata('isimud:model', m);
+    each(injector.get('mushdamma.Models'), m => {
+      let config: ModelConfig = Reflect.getOwnMetadata('mushdamma:model', m);
       this.models[config.name] = m;
     });
   }

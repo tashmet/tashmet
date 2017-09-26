@@ -1,5 +1,5 @@
 import {propertyDecorator, PropertyAnnotation} from '@ziggurat/tiamat';
-import {string} from '../decorators';
+import {string} from '@ziggurat/mushdamma';
 
 export class ReferenceTypeDecorator extends PropertyAnnotation<string> {
   public constructor() {
@@ -13,3 +13,6 @@ export class ReferenceTypeDecorator extends PropertyAnnotation<string> {
     Reflect.decorate(decorators, target, key);
   }
 }
+
+export const reference = propertyDecorator<string>(
+  new ReferenceTypeDecorator());
