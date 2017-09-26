@@ -13,6 +13,7 @@ import {NumberTypeDecorator} from './types/number';
 import {NestedTypeDecorator} from './types/nested';
 import {StringTypeDecorator} from './types/string';
 import {DateTypeDecorator} from './types/date';
+import {ReferenceTypeDecorator} from './types/reference';
 
 export const model = classDecorator<ModelConfig>(
   new ModelDecorator('isimud:model'), {
@@ -42,3 +43,6 @@ export const string = propertyDecoratorOptional<StringTypeConfig>(
 
 export const date = propertyDecoratorOptional<DateTypeConfig>(
   new DateTypeDecorator());
+
+export const reference = propertyDecorator<string>(
+  new ReferenceTypeDecorator());

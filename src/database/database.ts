@@ -7,7 +7,7 @@ import {Controller} from './controller';
 import {createRoutines} from './routine';
 import {InstancePipe, PlainPipe} from '../pipes/transformation';
 import {UpsertPipe, RevisionUpsertPipe} from '../pipes/upsert';
-import {ValidationPipe} from '../pipes/validation';
+import {ValidationPipe, ReferenceValidationPipe} from '../pipes/validation';
 import {Transformer, Validator} from '../schema/interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from '../caching/documentId';
@@ -54,12 +54,14 @@ export class DatabaseService extends EventEmitter implements Database
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(this.validator);
+    let referencePipe = new ReferenceValidationPipe(this.injector);
     let instancePipe = new InstancePipe(this.transformer, 'persist', meta.model);
     let plainPipe = new PlainPipe(this.transformer, 'persist');
     let processor = this.processorFactory.createProcessor()
       .pipe('populate-pre-buffer', 'populate', {
         'transform': instancePipe,
-        'validate': validationPipe
+        'validate': validationPipe,
+        'validate-references': referencePipe
       })
       .pipe('populate-post-buffer', 'populate', {
         'cache': cachePipe
@@ -67,10 +69,12 @@ export class DatabaseService extends EventEmitter implements Database
       .pipe('source-upsert', true, {
         'transform': instancePipe,
         'validate': validationPipe,
+        'validate-references': referencePipe,
         'cache': cachePipe
       })
       .pipe('upsert', true, {
         'validate': validationPipe,
+        'validate-references': referencePipe,
         'cache': cachePipe,
         'transform': plainPipe,
         'persist': persistPipe
