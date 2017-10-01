@@ -1,15 +1,13 @@
 import {SortingFilter} from '../../../src/view/filters/sort';
-import {View} from '../../../src/view/view';
 import {SortingOrder, QueryOptions} from '../../../src/interfaces';
 import {expect} from 'chai';
 import 'mocha';
 
 describe('SortingFilter', () => {
-  let view = new View()
   let filter = new SortingFilter({
     key: 'foo',
     order: SortingOrder.Ascending
-  }, view);
+  });
 
   it('should not modify selector', () => {
     let selector = {};
@@ -51,7 +49,7 @@ describe('SortingFilter', () => {
     let filter2 = new SortingFilter({
       key: 'other',
       order: SortingOrder.Ascending
-    }, view);
+    });
 
     let options: QueryOptions = {};
     filter.apply({}, options);

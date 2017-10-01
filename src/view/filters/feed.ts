@@ -1,22 +1,16 @@
 import {QueryOptions} from '../../interfaces';
-import {Filter, FilterProvider, Feed, FeedConfig} from '../interfaces';
-import {BaseFilter} from './base';
+import {Filter, FeedConfig} from '../interfaces';
 import {View} from '../view';
+import {EventEmitter} from 'eventemitter3';
 
-export function feed(config: FeedConfig): FilterProvider {
-  return function (view: View): Filter {
-    return new FeedFilter(config, view);
-  };
-}
-
-export class FeedFilter extends BaseFilter implements Feed {
+export class FeedFilter extends EventEmitter implements Filter {
   private _hasMore = true;
 
   public constructor(
-    private config: FeedConfig,
-    view: View
+    view: View,
+    private config: FeedConfig
   ) {
-    super(view);
+    super();
     view.on('data-updated', (result: any[], totalCount: number) => {
       this._hasMore = result.length < totalCount;
     });

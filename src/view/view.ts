@@ -2,8 +2,9 @@ import {injectable} from '@ziggurat/tiamat';
 import {QueryOptions} from '../interfaces';
 import {Filter} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
+import {Controller} from '../database/controller';
 import {Document} from '../models/document';
-import {each} from 'lodash';
+import {each, find} from 'lodash';
 import * as Promise from 'bluebird';
 
 @injectable()
@@ -11,14 +12,32 @@ export class View<T extends Document = Document> extends EventEmitter {
   private _selector: any = {};
   private _options: QueryOptions = {};
   private _data: T[] = [];
-  private filters: {[name: string]: any} = {};
+  private filters: Filter[] = [];
 
-  public constructor() {
+  public constructor(
+    private controller: Controller
+  ) {
     super();
 
     this.on('data-updated', (results: T[], totalCount: number) => {
       this._data = results;
     });
+
+    controller.on('document-upserted', (doc: any) => {
+      this.onDocumentUpdated(doc);
+    });
+    controller.on('document-removed', (doc: any) => {
+      this.onDocumentUpdated(doc);
+    });
+  }
+
+  public addFilter(filter: Filter): View<T> {
+    this.filters.push(filter);
+    filter.on('filter-changed', () => {
+      this.refresh();
+    });
+    this.applyFilters();
+    return this;
   }
 
   public get selector(): any {
@@ -33,22 +52,16 @@ export class View<T extends Document = Document> extends EventEmitter {
     return this._data;
   }
 
-  public addFilter(name: string, provider: Function): View<T> {
-    this.filters[name] = provider(this);
-    this.filters[name].on('filter-changed', () => {
-      this.refresh();
-    });
-    this.applyFilters();
-    return this;
-  }
-
-  public filter<U>(name: string): U {
-    return <U>(this.filters[name]);
-  }
-
   public refresh(): View<T> {
     this.applyFilters();
-    this.emit('refresh');
+
+    this.controller.find(this.selector, this.options)
+      .then((results: T[]) => {
+        this.controller.count(this.selector)
+          .then((totalCount: number) => {
+            this.emit('data-updated', results, totalCount);
+          });
+      });
     return this;
   }
 
@@ -59,5 +72,14 @@ export class View<T extends Document = Document> extends EventEmitter {
     each(this.filters, (f: Filter) => {
       f.apply(this.selector, this.options);
     });
+  }
+
+  private onDocumentUpdated(doc: T) {
+    this.controller.cache.find(this.selector, this.options)
+      .then((documents: any[]) => {
+        if (find(documents, ['_id', doc._id])) {
+          this.emit('data-updated', documents, 1);
+        }
+      });
   }
 }

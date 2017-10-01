@@ -1,18 +1,9 @@
 import {QueryOptions, Sorting, SortingOrder} from '../../interfaces';
-import {Filter, FilterProvider} from '../interfaces';
-import {View} from '../view';
-import {BaseFilter} from './base';
+import {Filter} from '../interfaces';
+import {EventEmitter} from 'eventemitter3';
 
-export function sorting(config: Sorting): FilterProvider {
-  return function (view: View): Filter {
-    return new SortingFilter(config, view);
-  };
-}
-
-export class SortingFilter extends BaseFilter implements Sorting {
-  public constructor(private config: Sorting, view: View) {
-    super(view);
-  }
+export class SortingFilter extends EventEmitter implements Filter {
+  public constructor(private config: Sorting) { super(); }
 
   public get key(): string {
     return this.config.key;

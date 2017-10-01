@@ -22,7 +22,6 @@ export interface RemoteCollectionConfig {
   path: string;
 }
 
-
 export enum SortingOrder {
     Ascending = 'asc',
     Descending = 'desc'

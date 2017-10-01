@@ -1,18 +1,11 @@
 import {QueryOptions} from '../../interfaces';
-import {Filter, FilterProvider, Selector} from '../interfaces';
-import {BaseFilter} from './base';
-import {View} from '../view';
+import {Filter, SelectorConfig} from '../interfaces';
 import {extend} from 'lodash';
+import {EventEmitter} from 'eventemitter3';
 
-export function selector(config: Selector): FilterProvider {
-  return function (view: View): Filter {
-    return new SelectorFilter(config, view);
-  };
-}
-
-export class SelectorFilter extends BaseFilter implements Selector {
-  public constructor(protected config: Selector, view: View) {
-    super(view);
+export class SelectorFilter extends EventEmitter implements Filter {
+  public constructor(protected config: SelectorConfig) {
+    super();
   }
 
   public get value(): any {
