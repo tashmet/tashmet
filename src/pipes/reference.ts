@@ -1,24 +1,18 @@
 import {Injector, PropertyMeta} from '@ziggurat/tiamat';
-import {ModelConfig} from '@ziggurat/mushdamma';
+import {ModelConfig, ModelRegistry} from '@ziggurat/mushdamma';
 import {Pipe} from '@ziggurat/ningal';
 import {Collection} from '../interfaces';
 import {each} from 'lodash';
 import * as Promise from 'bluebird';
 
 export class ReferenceValidationPipe implements Pipe {
-  private models: {[name: string]: any} = {};
-
   public constructor(
-    private injector: Injector
-  ) {
-    each(injector.get('mushdamma.Models'), m => {
-      let config: ModelConfig = Reflect.getOwnMetadata('mushdamma:model', m);
-      this.models[config.name] = m;
-    });
-  }
+    private injector: Injector,
+    private models: ModelRegistry
+  ) {}
 
   public process(input: any): Promise<any> {
-    const model = this.models[input._model];
+    const model = this.models.get(input._model);
 
     const references: PropertyMeta<string>[] = Reflect.getMetadata(
       'isimud:reference', model) || [];

@@ -1,5 +1,5 @@
 import {inject, provider, activate, Injector} from '@ziggurat/tiamat';
-import {Transformer, Validator} from '@ziggurat/mushdamma';
+import {ModelRegistry, Transformer, Validator} from '@ziggurat/mushdamma';
 import {Processor, ProcessorFactory, Routine} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
@@ -29,6 +29,7 @@ export class DatabaseService extends EventEmitter implements Database
 
   @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
   @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory<MemoryCollectionConfig>;
+  @inject('mushdamma.ModelRegistry') private models: ModelRegistry;
   @inject('mushdamma.Transformer') private transformer: Transformer;
   @inject('mushdamma.Validator') private validator: Validator;
   @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory;
@@ -61,7 +62,7 @@ export class DatabaseService extends EventEmitter implements Database
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(this.validator);
-    let referencePipe = new ReferenceValidationPipe(this.injector);
+    let referencePipe = new ReferenceValidationPipe(this.injector, this.models);
     let instancePipe = new InstancePipe(this.transformer, 'persist', meta.model);
     let plainPipe = new PlainPipe(this.transformer, 'persist');
     let processor = this.processorFactory.createProcessor()
