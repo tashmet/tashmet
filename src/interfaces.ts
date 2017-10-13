@@ -1,6 +1,5 @@
 import {Injector} from '@ziggurat/tiamat';
 import {Document} from './models/document';
-import * as Promise from 'bluebird';
 
 export type ClassType<T> = { new (...args: any[]): T; };
 

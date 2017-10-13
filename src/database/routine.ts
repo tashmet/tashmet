@@ -4,7 +4,6 @@ import {RoutineProvider, RoutineConfig, RoutineFactory} from './interfaces';
 import {Controller} from './controller';
 import {ClassType} from '../interfaces';
 import {transform} from 'lodash';
-import * as Promise from 'bluebird';
 
 export function controllerRoutine<
   T extends Controller = Controller,

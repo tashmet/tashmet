@@ -16,7 +16,6 @@ import {DocumentIdEvaluator} from '../caching/documentId';
 import {QueryHashEvaluator} from '../caching/queryHash';
 import {RangeEvaluator} from '../caching/range';
 import {each, includes, isArray, map, transform} from 'lodash';
-import * as Promise from 'bluebird';
 
 @provider({
   for: 'isimud.Database',

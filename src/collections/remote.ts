@@ -1,7 +1,6 @@
 import {provider} from '@ziggurat/tiamat';
 import {Collection, CollectionFactory, RemoteCollectionConfig, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
-import * as Promise from 'bluebird';
 import * as io from 'socket.io-client';
 
 @provider({

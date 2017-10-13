@@ -1,6 +1,5 @@
 import {Pipe} from '@ziggurat/ningal';
 import {Transformer} from '@ziggurat/mushdamma';
-import * as Promise from 'bluebird';
 
 /**
  * Pipe that turns plain objects into instances of the model they reference.

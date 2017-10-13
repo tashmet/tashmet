@@ -2,7 +2,6 @@ import {PropertyMeta} from '@ziggurat/tiamat';
 import {Validator, ModelConfig} from '@ziggurat/mushdamma';
 import {Pipe} from '@ziggurat/ningal';
 import {DocumentError} from '../interfaces';
-import * as Promise from 'bluebird';
 
 /**
  * Pipe that validates the input document against its model's constraints.

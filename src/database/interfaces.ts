@@ -2,7 +2,6 @@ import {Injector} from '@ziggurat/tiamat';
 import {Routine} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
-import * as Promise from 'bluebird';
 
 /**
  * Configuration for the collection decorator.

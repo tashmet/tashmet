@@ -5,7 +5,6 @@ import {EventEmitter} from 'eventemitter3';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 import {each, find} from 'lodash';
-import * as Promise from 'bluebird';
 
 @injectable()
 export class View<T extends Document = Document> extends EventEmitter {

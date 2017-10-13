@@ -1,6 +1,5 @@
 import {Pipe} from '@ziggurat/ningal';
 import {Collection} from '../interfaces';
-import * as Promise from 'bluebird';
 
 export class UpsertPipe implements Pipe {
   constructor(

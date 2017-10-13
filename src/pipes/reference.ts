@@ -3,7 +3,6 @@ import {ModelConfig, ModelRegistry} from '@ziggurat/mushdamma';
 import {Pipe} from '@ziggurat/ningal';
 import {Collection} from '../interfaces';
 import {each} from 'lodash';
-import * as Promise from 'bluebird';
 
 export class ReferenceValidationPipe implements Pipe {
   public constructor(
@@ -11,21 +10,19 @@ export class ReferenceValidationPipe implements Pipe {
     private models: ModelRegistry
   ) {}
 
-  public process(input: any): Promise<any> {
+  public async process(input: any): Promise<any> {
     const model = this.models.get(input._model);
 
     const references: PropertyMeta<string>[] = Reflect.getMetadata(
       'isimud:reference', model) || [];
 
-    return Promise.each(references, ref => {
-      return this.injector.get<Collection>(ref.data).findOne({_id: input[ref.key]})
-        .catch(err => {
-          return Promise.reject(
-             new Error(`Reference to '${input[ref.key]}' not found in ${ref.data}`));
-        });
-    })
-      .then(() => {
-        return Promise.resolve(input);
-      });
+    for (let ref of references) {
+      try {
+        await this.injector.get<Collection>(ref.data).findOne({_id: input[ref.key]});
+      } catch (err) {
+        throw new Error(`Reference to '${input[ref.key]}' not found in ${ref.data}`);
+      }
+    }
+    return Promise.resolve(input);
   }
 }

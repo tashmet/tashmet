@@ -1,6 +1,5 @@
 import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
-import * as Promise from 'bluebird';
 
 export class NullCollection extends EventEmitter implements Collection {
   public constructor(private _name: string) {

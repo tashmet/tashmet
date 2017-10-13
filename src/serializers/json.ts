@@ -1,6 +1,5 @@
 import {Injector} from '@ziggurat/tiamat';
 import {Serializer, SerializerProvider} from '../interfaces';
-import * as Promise from 'bluebird';
 
 export function json(): SerializerProvider {
   return (injector: Injector): Serializer => {
