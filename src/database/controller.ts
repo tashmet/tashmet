@@ -63,8 +63,8 @@ export class Controller extends EventEmitter implements Collection {
         }
       }
     });
-    source.on('document-removed', (id: string) => {
-      // TODO: Remove document from collection.
+    source.on('document-removed', (doc: Document) => {
+      this._cache.remove({_id: doc._id});
     });
   }
 

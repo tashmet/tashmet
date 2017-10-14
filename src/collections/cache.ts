@@ -58,7 +58,7 @@ export class CacheCollection extends EventEmitter implements Collection {
       evaluator.invalidate();
     }
     this.countEvaluator.invalidate();
-    return this.collection.remove({});
+    return this.collection.remove(selector);
   }
 
   public count(selector?: Object): Promise<number> {

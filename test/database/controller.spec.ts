@@ -64,7 +64,9 @@ class MockCollection extends EventEmitter implements Collection {
     if (selector._id) {
       const i = findIndex(this.docs, function(o) { return o._id == selector._id; });
       if (i >= 0) {
+        let doc = this.docs[i];
         this.docs.splice(i, 1);
+        this.emit('document-removed', doc);
       }
     } else {
       this.docs = [];
@@ -237,6 +239,27 @@ describe('Controller', () => {
 
     it('should upsert the document to the cache', () => {
       return expect(controller.cache.count()).to.eventually.equal(1);
+    });
+  });
+
+  describe('source remove', () => {
+    before(() => {
+      return controller.remove({}).then(() => {
+        return source.upsert(new Document('doc1'));
+      });
+    });
+
+    it('should trigger document-removed in controller', (done) => {
+      controller.on('document-removed', (doc: Document) => {
+        controller.removeAllListeners();
+        done();
+      });
+
+      source.remove({_id: 'doc1'});
+    });
+
+    it('should remove the document from the cache', () => {
+      return expect(controller.cache.count()).to.eventually.equal(0);
     });
   });
 });
