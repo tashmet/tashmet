@@ -144,6 +144,13 @@ export class Controller extends EventEmitter implements Collection {
   }
 
   public async remove(selector: Object): Promise<void> {
+    if (this.populating) {
+      await this.populatePromise;
+    }
+    for (let ce of this.cacheEvaluators) {
+      ce.invalidate();
+    }
+    this.countCacheEvaluator.invalidate();
     await this._source.remove(selector);
     return this._cache.remove(selector);
   }

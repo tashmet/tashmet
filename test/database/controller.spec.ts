@@ -26,6 +26,7 @@ export class MockCollectionFactory implements CollectionFactory<MemoryCollection
 class MockCollection extends EventEmitter implements Collection {
   public docs: Document[] = [];
   public callCount = {
+    find: 0,
     findOne: 0
   }
 
@@ -34,6 +35,7 @@ class MockCollection extends EventEmitter implements Collection {
   }
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
+    this.callCount['find'] += 1;
     return Promise.resolve(this.docs);
   }
 
@@ -105,25 +107,13 @@ describe('Controller', () => {
     });
   });
 
-  describe('upserting in source', () => {
-    before(() => {
-      return controller.populate().then(() => {
-        return source.upsert(new Document('foo'));
-      });
-    });
-
-    it('should store the document in cache of controller', () => {
-      expect(controller.cache.count()).to.eventually.equal(1);
-    });
-  });
-
   describe('findOne', () => {
     before(() => {
       return controller.remove({});
     });
 
     it('should fail if document does not exist in source', () => {
-      expect(controller.findOne({_id: 'bar'})).to.eventually.be.rejected;
+      return expect(controller.findOne({_id: 'bar'})).to.eventually.be.rejected;
     });
 
     it('should read uncached document from source and cache it', () => {
@@ -141,6 +131,31 @@ describe('Controller', () => {
       return controller.findOne({_id: 'foo'}).then((doc: Document) => {
         expect(doc).to.include({_id: 'foo', _revision: 1});
         expect(source.callCount['findOne']).to.equal(0);
+      });
+    });
+  });
+
+  describe('find', () => {
+    before(() => {
+      return controller.remove({});
+    });
+
+    it('should read uncached documents from source and cache them', () => {
+      source.callCount['find'] = 0;
+      source.docs.push(new Document('foo'));
+      source.docs.push(new Document('bar'));
+      return controller.find().then((docs: Document[]) => {
+        expect(docs).to.have.lengthOf(2);
+        expect(source.callCount['find']).to.equal(1);
+        expect(controller.cache.count()).to.eventually.equal(2);
+      });
+    });
+
+    it('should read cached documents from cache', () => {
+      source.callCount['find'] = 0;
+      return controller.find().then((docs: Document[]) => {
+        expect(docs).to.have.lengthOf(2);
+        expect(source.callCount['find']).to.equal(0);
       });
     });
   });

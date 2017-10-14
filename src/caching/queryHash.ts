@@ -17,6 +17,10 @@ export class QueryHashEvaluator implements CacheEvaluator {
     return {selector: selector, options: options};
   }
 
+  public invalidate(): void {
+    this.cachedQueries = {};
+  }
+
   protected hash(selector: Object, options?: QueryOptions): string {
     return JSON.stringify(selector) + JSON.stringify(options || {});
   }

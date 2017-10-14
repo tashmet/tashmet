@@ -122,6 +122,8 @@ export interface CacheEvaluator {
   add(doc: any): void;
 
   optimizeQuery(selector: any, options: QueryOptions): any;
+
+  invalidate(): void;
 }
 
 export class DocumentError extends Error {
