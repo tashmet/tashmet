@@ -74,6 +74,11 @@ export interface Collection {
   findOne<T extends Document>(selector: Object): Promise<T>;
 
   /**
+   * Remove all documents matching selector from collection.
+   */
+  remove(selector: Object): Promise<void>;
+
+  /**
    * Get the number of documents in the collection that matches a given selector.
    */
   count(selector?: Object): Promise<number>;

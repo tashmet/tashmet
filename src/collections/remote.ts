@@ -86,6 +86,10 @@ class RemoteCollection extends EventEmitter implements Collection {
     });
   }
 
+  public remove(): Promise<void> {
+    return Promise.reject(new Error('remove() not implemented for remote collection'));
+  }
+
   public name(): string {
     return this._path;
   }

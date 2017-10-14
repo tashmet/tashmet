@@ -58,6 +58,11 @@ class MockCollection extends EventEmitter implements Collection {
     return Promise.resolve(doc);
   }
 
+  public remove(selector: Object): Promise<void> {
+    this.docs = [];
+    return Promise.resolve();
+  }
+
   public count(selector?: Object): Promise<number> {
     return Promise.resolve(this.docs.length);
   }
@@ -101,14 +106,9 @@ describe('Controller', () => {
   });
 
   describe('upserting in source', () => {
-    it('should trigger event in controller', (done) => {
-      controller.on('document-upserted', doc => {
-        expect(doc).to.include({_id: 'foo', _revision: 1});
-        done();
-      });
-
-      controller.populate().then(() => {
-        source.upsert(new Document('foo'));
+    before(() => {
+      return controller.populate().then(() => {
+        return source.upsert(new Document('foo'));
       });
     });
 
@@ -118,11 +118,25 @@ describe('Controller', () => {
   });
 
   describe('findOne', () => {
+    before(() => {
+      return controller.remove({});
+    });
+
     it('should fail if document does not exist in source', () => {
       expect(controller.findOne({_id: 'bar'})).to.eventually.be.rejected;
     });
 
-    it('should read existing document from cache', () => {
+    it('should read uncached document from source and cache it', () => {
+      source.callCount['findOne'] = 0;
+      source.docs.push(new Document('foo'));
+      return controller.findOne({_id: 'foo'}).then((doc: Document) => {
+        expect(doc).to.include({_id: 'foo', _revision: 1});
+        expect(source.callCount['findOne']).to.equal(1);
+        expect(controller.cache.count()).to.eventually.equal(1);
+      });
+    });
+
+    it('should read cached document from cache', () => {
       source.callCount['findOne'] = 0;
       return controller.findOne({_id: 'foo'}).then((doc: Document) => {
         expect(doc).to.include({_id: 'foo', _revision: 1});
