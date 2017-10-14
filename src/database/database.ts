@@ -6,6 +6,7 @@ import {CollectionFactory, Collection, MemoryCollectionConfig,
 import {Database, DatabaseConfig, RoutineProvider} from './interfaces';
 import {Controller} from './controller';
 import {createRoutines} from './routine';
+import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
 import {ReferenceValidationPipe} from '../pipes/reference';
 import {InstancePipe, PlainPipe} from '../pipes/transformation';
@@ -95,12 +96,13 @@ export class DatabaseService extends EventEmitter implements Database
     });
 
     collection.setSource(source);
-    collection.setCache(cache);
+    collection.setCache(new CacheCollection(cache, [
+      new QueryHashEvaluator(),
+      new DocumentIdEvaluator(),
+      new RangeEvaluator()
+    ]));
     collection.setBuffer(buffer);
     collection.setProcessor(processor);
-    collection.addCacheEvaluator(new QueryHashEvaluator());
-    collection.addCacheEvaluator(new DocumentIdEvaluator());
-    collection.addCacheEvaluator(new RangeEvaluator());
 
     const populate = this.dbConfig.populate;
     if (populate === true || (isArray(populate) && includes(populate, providerMeta.for))) {

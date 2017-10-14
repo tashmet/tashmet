@@ -1,6 +1,7 @@
 import {injectable, decorate} from '@ziggurat/tiamat';
 import {Processor} from '@ziggurat/ningal';
 import {Collection, DocumentError, QueryOptions, CacheEvaluator} from '../interfaces';
+import {CacheCollection} from '../collections/cache';
 import {Document} from '../models/document';
 import {QueryHashEvaluator} from '../caching/queryHash';
 import {EventEmitter} from 'eventemitter3';
@@ -13,15 +14,12 @@ if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
 @injectable()
 export class Controller extends EventEmitter implements Collection {
   public locked = false;
-  protected _cache: Collection;
+  protected _cache: CacheCollection;
   protected _buffer: Collection;
   protected _source: Collection;
   private processor: Processor;
-  private synced = false;
   private populating = false;
   private upsertQueue: string[] = [];
-  private cacheEvaluators: CacheEvaluator[] = [];
-  private countCacheEvaluator: CacheEvaluator = new QueryHashEvaluator();
   private populatePromise: Promise<void>;
 
   public constructor() {
@@ -33,7 +31,7 @@ export class Controller extends EventEmitter implements Collection {
   }
 
   get cache(): Collection {
-    return this._cache;
+    return this._cache.collection;
   }
 
   get source(): Collection {
@@ -44,7 +42,7 @@ export class Controller extends EventEmitter implements Collection {
     this._buffer = buffer;
   }
 
-  public setCache(cache: Collection): void {
+  public setCache(cache: CacheCollection): void {
     cache.on('document-upserted', (doc: Document) => {
       this.emit('document-upserted', doc);
     });
@@ -75,20 +73,6 @@ export class Controller extends EventEmitter implements Collection {
     this.processor = processor;
   }
 
-  public async _populate(): Promise<void> {
-    for (let doc of await this.populateBuffer(await this._source.find())) {
-      try {
-        await this.processor.process(doc, 'populate-post-buffer');
-      } catch (err) {
-        this.emit('document-error', err);
-      }
-    }
-    this.synced = true;
-    this.populating = false;
-    this.locked = false;
-    this.emit('ready');
-  }
-
   public populate(): Promise<void> {
     if (!this.populatePromise && this._source) {
       this.populating = true;
@@ -97,32 +81,30 @@ export class Controller extends EventEmitter implements Collection {
     return this.populatePromise;
   }
 
-  public addCacheEvaluator(evaluator: CacheEvaluator): void {
-    this.cacheEvaluators.push(evaluator);
-  }
-
   public async find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]> {
     if (this.populating) {
       await this.populatePromise;
-    } else if (!this.isCached(selector, options)) {
-      let optQuery = this.optimizeQuery(selector, options);
-
-      for (let doc of await this._source.find<T>(optQuery.selector, optQuery.options)) {
-        await this.upsertCache<T>(doc);
-      }
-      this.setCached(selector, options);
     }
-    return this._cache.find<T>(selector, options);
+    try {
+      return await this._cache.find<T>(selector, options);
+    } catch (err) {
+      let cachedDocs = [];
+      for (let doc of await this._source.find<T>(err.selector, err.options)) {
+        cachedDocs.push(await this.processor.process(doc, 'cache'));
+      }
+      this._cache.setCached(selector, options);
+      return cachedDocs;
+    }
   }
 
   public async findOne<T extends Document>(selector: Object): Promise<T> {
     try {
       return await this._cache.findOne<T>(selector);
     } catch (err) {
-      if (!this.populating) {
-        return this.upsertCache<T>(await this._source.findOne<T>(selector));
-      } else {
+      if (this.populating) {
         throw err;
+      } else {
+        return this.processor.process(await this._source.findOne<T>(selector), 'cache');
       }
     }
   }
@@ -147,53 +129,33 @@ export class Controller extends EventEmitter implements Collection {
     if (this.populating) {
       await this.populatePromise;
     }
-    for (let ce of this.cacheEvaluators) {
-      ce.invalidate();
-    }
-    this.countCacheEvaluator.invalidate();
     await this._source.remove(selector);
     return this._cache.remove(selector);
   }
 
-  public count(selector?: Object): Promise<number> {
-    if (this.isCached(selector) || this.countCacheEvaluator.isCached(selector, {})) {
-      return this._cache.count(selector);
+  public async count(selector?: Object): Promise<number> {
+    try {
+      return await this._cache.count();
+    } catch (err) {
+      return this._source.count();
     }
-    return this._source.count(selector);
   }
 
   public name(): string {
     return this._cache.name();
   }
 
-  private async upsertCache<T extends Document>(doc: T): Promise<T> {
-    let cachedDoc = await this.processor.process(doc, 'cache');
-    this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
-      ce.add(cachedDoc);
-    });
-    return cachedDoc;
-  }
-
-  private isCached(selector?: Object, options?: QueryOptions): boolean {
-    return this.synced || some(this.cacheEvaluators, (ce: CacheEvaluator) => {
-      return ce.isCached(selector || {}, options || {});
-    });
-  }
-
-  private setCached(selector?: Object, options?: QueryOptions) {
-    this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
-      ce.setCached(selector || {}, options || {});
-    });
-    this.countCacheEvaluator.setCached(selector, {});
-  }
-
-  private optimizeQuery(selector?: Object, options?: QueryOptions): any {
-    let query = {selector: selector, options: options};
-
-    this.cacheEvaluators.forEach((ce: CacheEvaluator) => {
-      query = ce.optimizeQuery(query.selector || {}, query.options || {});
-    });
-    return query;
+  private async _populate(): Promise<void> {
+    for (let doc of await this.populateBuffer(await this._source.find())) {
+      try {
+        await this.processor.process(doc, 'populate-post-buffer');
+      } catch (err) {
+        this.emit('document-error', err);
+      }
+    }
+    this.populating = false;
+    this.locked = false;
+    this.emit('ready');
   }
 
   private async populateBuffer(docs: Document[]): Promise<Document[]> {
