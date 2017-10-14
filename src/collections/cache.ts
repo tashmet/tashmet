@@ -33,8 +33,12 @@ export class CacheCollection extends EventEmitter implements Collection {
     if (this.isCached(selector, options)) {
       return this.collection.find(selector, options);
     } else {
-      let optQuery = this.optimizeQuery(selector, options);
-      return Promise.reject(new CacheFindError(optQuery.selector, optQuery.options));
+      selector = selector || {};
+      options = options || {};
+      for (let evaluator of this.evaluators) {
+        evaluator.optimizeQuery(selector, options);
+      }
+      return Promise.reject(new CacheFindError(selector, options));
     }
   }
 
@@ -80,14 +84,5 @@ export class CacheCollection extends EventEmitter implements Collection {
     return some(this.evaluators, (evaluator: CacheEvaluator) => {
       return evaluator.isCached(selector || {}, options || {});
     });
-  }
-
-  private optimizeQuery(selector?: Object, options?: QueryOptions): any {
-    let query = {selector: selector, options: options};
-
-    this.evaluators.forEach((ce: CacheEvaluator) => {
-      query = ce.optimizeQuery(query.selector || {}, query.options || {});
-    });
-    return query;
   }
 }

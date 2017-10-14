@@ -13,8 +13,8 @@ export class QueryHashEvaluator implements CacheEvaluator {
 
   public add(doc: any) { return; }
 
-  public optimizeQuery(selector: any, options: QueryOptions): any {
-    return {selector: selector, options: options};
+  public optimizeQuery(selector: any, options: QueryOptions): void {
+    return;
   }
 
   public invalidate(): void {

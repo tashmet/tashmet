@@ -95,18 +95,15 @@ export class RangeEvaluator extends QueryHashEvaluator {
       let range = this.createRange(options);
       let overlapRange = matchingRanges.findLargestOverlap(range);
       if (overlapRange) {
-        let optionsOut = cloneDeep(options);
         if (overlapRange.start <= range.start) {
-          optionsOut.offset = overlapRange.end;
-          optionsOut.limit = range.end - overlapRange.end;
+          options.offset = overlapRange.end;
+          options.limit = range.end - overlapRange.end;
         } else {
-          optionsOut.offset = range.start;
-          optionsOut.limit = overlapRange.start - range.start;
+          options.offset = range.start;
+          options.limit = overlapRange.start - range.start;
         }
-        return {selector: selector, options: optionsOut};
       }
     }
-    return {selector: selector, options: options};
   }
 
   protected hash(selector: any, options: QueryOptions): string {

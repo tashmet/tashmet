@@ -121,7 +121,7 @@ export interface CacheEvaluator {
 
   add(doc: any): void;
 
-  optimizeQuery(selector: any, options: QueryOptions): any;
+  optimizeQuery(selector: any, options: QueryOptions): void;
 
   invalidate(): void;
 }

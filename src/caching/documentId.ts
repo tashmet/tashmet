@@ -14,8 +14,8 @@ export class DocumentIdEvaluator implements CacheEvaluator {
     this.ids[doc._id] = true;
   }
 
-  public optimizeQuery(selector: any, options: QueryOptions): any {
-    return {selector: selector, options: options};
+  public optimizeQuery(selector: any, options: QueryOptions): void {
+    return;
   }
 
   public invalidate(): void {

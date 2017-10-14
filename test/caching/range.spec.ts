@@ -196,12 +196,12 @@ describe('RangeEvaluator', () => {
     expect(evaluator.isCached({}, {offset: 1, limit: 1})).to.equal(true);
   });
   it('should optimize queries', () => {
-    expect(evaluator.optimizeQuery({}, {offset: 1, limit: 3})).to.deep.equal({
-      selector: {},
-      options: {
-        offset: 2,
-        limit: 2
-      }
-    });
+    let selector = {};
+    let options = {offset: 1, limit: 3};
+
+    evaluator.optimizeQuery(selector, options);
+
+    expect(selector).to.eql({});
+    expect(options).to.eql({offset: 2, limit: 2});
   });
 });
