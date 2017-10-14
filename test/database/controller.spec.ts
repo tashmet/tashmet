@@ -25,6 +25,9 @@ export class MockCollectionFactory implements CollectionFactory<MemoryCollection
 
 class MockCollection extends EventEmitter implements Collection {
   public docs: Document[] = [];
+  public callCount = {
+    findOne: 0
+  }
 
   public constructor() {
     super();
@@ -35,11 +38,12 @@ class MockCollection extends EventEmitter implements Collection {
   }
 
   public findOne(selector: Object): Promise<any> {
+    this.callCount['findOne'] += 1;
     let doc = find(this.docs, {_id: (<any>selector)._id});
     if (doc) {
       return Promise.resolve(doc);
     } else {
-      return Promise.reject(new Error());
+      return Promise.reject(new Error('Document not found'));
     }
   }
 
@@ -110,6 +114,20 @@ describe('Controller', () => {
 
     it('should store the document in cache of controller', () => {
       expect(controller.cache.count()).to.eventually.equal(1);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should fail if document does not exist in source', () => {
+      expect(controller.findOne({_id: 'bar'})).to.eventually.be.rejected;
+    });
+
+    it('should read existing document from cache', () => {
+      source.callCount['findOne'] = 0;
+      return controller.findOne({_id: 'foo'}).then((doc: Document) => {
+        expect(doc).to.include({_id: 'foo', _revision: 1});
+        expect(source.callCount['findOne']).to.equal(0);
+      });
     });
   });
 });
