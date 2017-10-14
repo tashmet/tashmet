@@ -200,9 +200,24 @@ describe('Controller', () => {
         return expect(controller.count()).to.eventually.equal(1);
       });
     });
-    
+
     it('should remove the document from the source', () => {
       return expect(controller.source.count()).to.eventually.equal(1);
+    });
+  });
+
+  describe('populate', () => {
+    before(() => {
+      return controller.remove({});
+    });
+
+    it('should load all documents from source', () => {
+      source.docs.push(new Document('foo'));
+      source.docs.push(new Document('bar'));
+
+      return controller.populate().then(() => {
+        return expect(controller.count()).to.eventually.equal(2);
+      });
     });
   });
 });
