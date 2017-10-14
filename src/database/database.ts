@@ -109,9 +109,6 @@ export class DatabaseService extends EventEmitter implements Database
       }))
         .then(() => {
           return collection.populate();
-        })
-        .then(() => {
-          collection.locked = false;
         });
     }
 

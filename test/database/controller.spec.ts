@@ -5,7 +5,7 @@ import {Collection, CollectionFactory, MemoryCollectionConfig, QueryOptions} fro
 import {Document} from '../../src/models/document';
 import {Controller} from '../../src/database/controller';
 import {EventEmitter} from 'eventemitter3';
-import {find} from 'lodash';
+import {find, findIndex} from 'lodash';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -44,6 +44,13 @@ class MockCollection extends EventEmitter implements Collection {
   }
 
   public upsert(doc: any): Promise<any> {
+    const i = findIndex(this.docs, function(o) { return o._id == doc._id; });
+    if (i > 0) {
+      this.docs[i] = doc;
+    } else {
+      this.docs.push(doc);
+    }
+    this.emit('document-upserted', doc);
     return Promise.resolve(doc);
   }
 
@@ -71,7 +78,7 @@ describe('Controller', () => {
     dependencies: [Isimud],
     providers: [TestController, MockCollectionFactory],
     definitions: {
-      'mushdamma.Models': [],
+      'mushdamma.Models': [Document],
       'isimud.DatabaseConfig': {
         sources: {
           'test.Controller': (injector: Injector) => { return source; }
@@ -86,6 +93,23 @@ describe('Controller', () => {
   it('should initially have no documents', () => {
     return controller.find().then((docs: Document[]) => {
       expect(docs).to.have.lengthOf(0);
+    });
+  });
+
+  describe('upserting in source', () => {
+    it('should trigger event in controller', (done) => {
+      controller.on('document-upserted', doc => {
+        expect(doc).to.include({_id: 'foo', _revision: 1});
+        done();
+      });
+
+      controller.populate().then(() => {
+        source.upsert(new Document('foo'));
+      });
+    });
+
+    it('should store the document in cache of controller', () => {
+      expect(controller.cache.count()).to.eventually.equal(1);
     });
   });
 });

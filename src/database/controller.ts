@@ -85,6 +85,7 @@ export class Controller extends EventEmitter implements Collection {
     }
     this.synced = true;
     this.populating = false;
+    this.locked = false;
     this.emit('ready');
   }
 
