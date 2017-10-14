@@ -220,4 +220,23 @@ describe('Controller', () => {
       });
     });
   });
+
+  describe('source upsert', () => {
+    before(() => {
+      return controller.remove({});
+    });
+
+    it('should trigger document-upserted in controller', (done) => {
+      controller.on('document-upserted', (doc: Document) => {
+        controller.removeAllListeners();
+        done();
+      });
+
+      source.upsert(new Document('doc1'));
+    });
+
+    it('should upsert the document to the cache', () => {
+      return expect(controller.cache.count()).to.eventually.equal(1);
+    });
+  });
 });
