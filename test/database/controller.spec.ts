@@ -51,7 +51,7 @@ class MockCollection extends EventEmitter implements Collection {
 
   public upsert(doc: any): Promise<any> {
     const i = findIndex(this.docs, function(o) { return o._id == doc._id; });
-    if (i > 0) {
+    if (i >= 0) {
       this.docs[i] = doc;
     } else {
       this.docs.push(doc);
@@ -60,8 +60,15 @@ class MockCollection extends EventEmitter implements Collection {
     return Promise.resolve(doc);
   }
 
-  public remove(selector: Object): Promise<void> {
-    this.docs = [];
+  public remove(selector: any): Promise<void> {
+    if (selector._id) {
+      const i = findIndex(this.docs, function(o) { return o._id == selector._id; });
+      if (i >= 0) {
+        delete this.docs[i];
+      }
+    } else {
+      this.docs = [];
+    }
     return Promise.resolve();
   }
 
@@ -157,6 +164,26 @@ describe('Controller', () => {
         expect(docs).to.have.lengthOf(2);
         expect(source.callCount['find']).to.equal(0);
       });
+    });
+  });
+
+  describe('upsert', () => {
+    before(() => {
+      return controller.remove({});
+    });
+
+    it('should add and return the document', () => {
+      return controller.upsert(new Document('foo')).then((doc: Document) => {
+        expect(doc).to.include({_id: 'foo', _revision: 1});
+      });
+    });
+
+    it('should upsert the document to the cache', () => {
+      return expect(controller.cache.count()).to.eventually.equal(1);
+    });
+
+    it('should upsert the document to the source', () => {
+      return expect(controller.source.count()).to.eventually.equal(1);
     });
   });
 });

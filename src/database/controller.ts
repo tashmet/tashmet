@@ -13,12 +13,11 @@ if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
 
 @injectable()
 export class Controller extends EventEmitter implements Collection {
-  public locked = false;
+  public locked = true;
   protected _cache: CacheCollection;
   protected _buffer: Collection;
   protected _source: Collection;
   private processor: Processor;
-  private populating = false;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<void>;
 
@@ -57,7 +56,7 @@ export class Controller extends EventEmitter implements Collection {
     this._source = source;
 
     source.on('document-upserted', (doc: Document) => {
-      if (!this.populating && !this.locked) {
+      if (!this.locked) {
         doc._collection = this.name();
         if (this.upsertQueue.indexOf(doc._id) < 0) {
           this.processor.process(doc, 'source-upsert');
@@ -75,14 +74,14 @@ export class Controller extends EventEmitter implements Collection {
 
   public populate(): Promise<void> {
     if (!this.populatePromise && this._source) {
-      this.populating = true;
+      this.locked = true;
       this.populatePromise = this._populate();
     }
     return this.populatePromise;
   }
 
   public async find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]> {
-    if (this.populating) {
+    if (this.locked) {
       await this.populatePromise;
     }
     try {
@@ -101,7 +100,7 @@ export class Controller extends EventEmitter implements Collection {
     try {
       return await this._cache.findOne<T>(selector);
     } catch (err) {
-      if (this.populating) {
+      if (this.locked) {
         throw err;
       } else {
         return this.processor.process(await this._source.findOne<T>(selector), 'cache');
@@ -111,7 +110,7 @@ export class Controller extends EventEmitter implements Collection {
 
   public async upsert<T extends Document>(doc: T): Promise<T> {
     if (this.locked) {
-      throw new Error('Failed to upsert in locked controller');
+      throw new Error('Cannot upsert while populating collection');
     }
 
     let copy = clone(doc);
@@ -126,7 +125,7 @@ export class Controller extends EventEmitter implements Collection {
   }
 
   public async remove(selector: Object): Promise<void> {
-    if (this.populating) {
+    if (this.locked) {
       await this.populatePromise;
     }
     await this._source.remove(selector);
@@ -153,7 +152,6 @@ export class Controller extends EventEmitter implements Collection {
         this.emit('document-error', err);
       }
     }
-    this.populating = false;
     this.locked = false;
     this.emit('ready');
   }

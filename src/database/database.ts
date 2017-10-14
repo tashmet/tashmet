@@ -46,8 +46,6 @@ export class DatabaseService extends EventEmitter implements Database
 
     this.collections[meta.name] = collection;
 
-    collection.locked = true;
-
     let source: Collection;
     if (this.dbConfig.sources[providerMeta.for]) {
       source = this.dbConfig.sources[providerMeta.for](this.injector);
@@ -112,6 +110,8 @@ export class DatabaseService extends EventEmitter implements Database
         .then(() => {
           return collection.populate();
         });
+    } else {
+      collection.locked = false;
     }
 
     collection.on('ready', () => {
