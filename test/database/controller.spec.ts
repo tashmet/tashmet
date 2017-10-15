@@ -221,6 +221,14 @@ describe('Controller', () => {
         return expect(controller.count()).to.eventually.equal(2);
       });
     });
+
+    it('should make all subsequent querries look only in the cache', () => {
+      source.callCount['find'] = 0;
+      return controller.find().then((docs: Document[]) => {
+        expect(docs).to.have.lengthOf(2);
+        expect(source.callCount['find']).to.equal(0);
+      });
+    })
   });
 
   describe('source upsert', () => {

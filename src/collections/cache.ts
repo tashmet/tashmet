@@ -14,6 +14,7 @@ export class CacheFindError extends Error {
 }
 
 export class CacheCollection extends EventEmitter implements Collection {
+  public synced = false;
   private countEvaluator: CacheEvaluator = new QueryHashEvaluator();
 
   public constructor(
@@ -81,7 +82,7 @@ export class CacheCollection extends EventEmitter implements Collection {
   }
 
   private isCached(selector?: Object, options?: QueryOptions): boolean {
-    return some(this.evaluators, (evaluator: CacheEvaluator) => {
+    return this.synced || some(this.evaluators, (evaluator: CacheEvaluator) => {
       return evaluator.isCached(selector || {}, options || {});
     });
   }
