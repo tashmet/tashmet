@@ -1,11 +1,10 @@
 import {bootstrap, component, provider, Injector} from '@ziggurat/tiamat';
 import {Isimud} from '../../src';
 import {collection} from '../../src/database/decorators';
-import {Collection, CollectionFactory, MemoryCollectionConfig, QueryOptions} from '../../src/interfaces';
+import {Collection, CollectionFactory, MemoryCollectionConfig} from '../../src/interfaces';
+import {MemoryCollection} from '../../src/collections/memory';
 import {Document} from '../../src/models/document';
 import {Controller} from '../../src/database/controller';
-import {EventEmitter} from 'eventemitter3';
-import {find, findIndex} from 'lodash';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -16,65 +15,10 @@ import * as sinonChai from 'sinon-chai';
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
-
-class MockCollection extends EventEmitter implements Collection {
-  public docs: Document[] = [];
-
-  public constructor() {
-    super();
-  }
-
-  public find(selector?: Object, options?: QueryOptions): Promise<any> {
-    return Promise.resolve(this.docs);
-  }
-
-  public findOne(selector: Object): Promise<any> {
-    let doc = find(this.docs, {_id: (<any>selector)._id});
-    if (doc) {
-      return Promise.resolve(doc);
-    } else {
-      return Promise.reject(new Error('Document not found'));
-    }
-  }
-
-  public upsert(doc: any): Promise<any> {
-    const i = findIndex(this.docs, function(o) { return o._id == doc._id; });
-    if (i >= 0) {
-      this.docs[i] = doc;
-    } else {
-      this.docs.push(doc);
-    }
-    this.emit('document-upserted', doc);
-    return Promise.resolve(doc);
-  }
-
-  public remove(selector: any): Promise<void> {
-    if (selector._id) {
-      const i = findIndex(this.docs, function(o) { return o._id == selector._id; });
-      if (i >= 0) {
-        let doc = this.docs[i];
-        this.docs.splice(i, 1);
-        this.emit('document-removed', doc);
-      }
-    } else {
-      this.docs = [];
-    }
-    return Promise.resolve();
-  }
-
-  public count(selector?: Object): Promise<number> {
-    return Promise.resolve(this.docs.length);
-  }
-
-  public name(): string {
-    return '';
-  }
-}
-
 describe('Controller', () => {
-  let cache  = new MockCollection();
-  let buffer = new MockCollection();
-  let source = new MockCollection();
+  let cache  = new MemoryCollection();
+  let buffer = new MemoryCollection();
+  let source = new MemoryCollection();
 
   @provider({
     for: 'isimud.MemoryCollectionFactory',

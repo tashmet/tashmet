@@ -2,6 +2,7 @@ import {component} from '@ziggurat/tiamat';
 import {Mushdamma} from '@ziggurat/mushdamma';
 import {Ningal} from '@ziggurat/ningal';
 
+export {MemoryCollection} from './collections/memory';
 export {Controller} from './database/controller';
 export {controllerRoutine} from './database/routine';
 export {View} from './view/view';
