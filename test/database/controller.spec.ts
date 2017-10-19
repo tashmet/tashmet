@@ -10,37 +10,25 @@ import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
 chai.use(chaiAsPromised);
+chai.use(sinonChai);
 
-@provider({
-  for: 'isimud.MemoryCollectionFactory',
-  singleton: true
-})
-export class MockCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
-  public createCollection(name: string, config: MemoryCollectionConfig): Collection {
-    return new MockCollection();
-  }
-}
 
 class MockCollection extends EventEmitter implements Collection {
   public docs: Document[] = [];
-  public callCount = {
-    find: 0,
-    findOne: 0
-  }
 
   public constructor() {
     super();
   }
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
-    this.callCount['find'] += 1;
     return Promise.resolve(this.docs);
   }
 
   public findOne(selector: Object): Promise<any> {
-    this.callCount['findOne'] += 1;
     let doc = find(this.docs, {_id: (<any>selector)._id});
     if (doc) {
       return Promise.resolve(doc);
@@ -84,7 +72,23 @@ class MockCollection extends EventEmitter implements Collection {
 }
 
 describe('Controller', () => {
+  let cache  = new MockCollection();
+  let buffer = new MockCollection();
   let source = new MockCollection();
+
+  @provider({
+    for: 'isimud.MemoryCollectionFactory',
+    singleton: true
+  })
+  class MockCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
+    public createCollection(name: string, config: MemoryCollectionConfig): Collection {
+      if (name == 'test') {
+        return cache;
+      } else {
+        return buffer;
+      }
+    }
+  }
 
   @provider({
     for: 'test.Controller'
@@ -110,124 +114,165 @@ describe('Controller', () => {
 
   let controller = bootstrap(TestComponent).get<Controller>('test.Controller');
 
-  it('should initially have no documents', () => {
-    return controller.find().then((docs: Document[]) => {
-      expect(docs).to.have.lengthOf(0);
-    });
-  });
-
   describe('findOne', () => {
+    const stub = sinon.stub(source, 'findOne');
+
     before(() => {
       return controller.remove({});
     });
 
-    it('should fail if document does not exist in source', () => {
+    afterEach(() => {
+      stub.reset();
+    });
+
+    it('should fail if document does not exist in source', async () => {
+      stub.returns(Promise.reject(new Error()));
+
       return expect(controller.findOne({_id: 'bar'})).to.eventually.be.rejected;
     });
 
-    it('should read uncached document from source and cache it', () => {
-      source.callCount['findOne'] = 0;
-      source.docs.push(new Document('foo'));
-      return controller.findOne({_id: 'foo'}).then((doc: Document) => {
-        expect(doc).to.include({_id: 'foo', _revision: 1});
-        expect(source.callCount['findOne']).to.equal(1);
-        expect(controller.cache.count()).to.eventually.equal(1);
-      });
+    it('should read uncached document from source and cache it', async () => {
+      stub.returns(Promise.resolve(new Document('foo')));
+
+      let doc = await controller.findOne({_id: 'foo'});
+
+      expect(doc).to.include({_id: 'foo', _revision: 1});
+      expect(cache.count()).to.eventually.equal(1);
     });
 
-    it('should read cached document from cache', () => {
-      source.callCount['findOne'] = 0;
-      return controller.findOne({_id: 'foo'}).then((doc: Document) => {
-        expect(doc).to.include({_id: 'foo', _revision: 1});
-        expect(source.callCount['findOne']).to.equal(0);
-      });
+    it('should read cached document from cache', async () => {
+      let doc = await controller.findOne({_id: 'foo'});
+
+      expect(doc).to.include({_id: 'foo', _revision: 1});
+      expect(stub).to.not.have.been.called;
     });
   });
 
   describe('find', () => {
+    let stub: any;
+
     before(() => {
+      stub = sinon.stub(source, 'find');
       return controller.remove({});
     });
 
-    it('should read uncached documents from source and cache them', () => {
-      source.callCount['find'] = 0;
-      source.docs.push(new Document('foo'));
-      source.docs.push(new Document('bar'));
-      return controller.find().then((docs: Document[]) => {
-        expect(docs).to.have.lengthOf(2);
-        expect(source.callCount['find']).to.equal(1);
-        expect(controller.cache.count()).to.eventually.equal(2);
-      });
+    afterEach(() => {
+      stub.reset();
     });
 
-    it('should read cached documents from cache', () => {
-      source.callCount['find'] = 0;
-      return controller.find().then((docs: Document[]) => {
-        expect(docs).to.have.lengthOf(2);
-        expect(source.callCount['find']).to.equal(0);
-      });
+    after(() => {
+      stub.restore();
+    });
+
+    it('should read uncached documents from source', async () => {
+      stub.returns([
+        new Document('foo'),
+        new Document('bar')
+      ]);
+
+      let docs = await controller.find();
+
+      expect(docs).to.have.lengthOf(2);
+    });
+
+    it('should have added the documents to the cache', async () => {
+      expect(await cache.count()).to.equal(2);
+    });
+
+    it('should read cached documents from cache', async () => {
+      let docs = await controller.find();
+
+      expect(docs).to.have.lengthOf(2);
+      expect(stub).to.not.have.been.called;
     });
   });
 
   describe('upsert', () => {
+    let stub: any;
+
     before(() => {
+      stub = sinon.stub(source, 'upsert');
       return controller.remove({});
     });
 
-    it('should add and return the document', () => {
-      return controller.upsert(new Document('foo')).then((doc: Document) => {
-        expect(doc).to.include({_id: 'foo', _revision: 1});
-      });
+    after(() => {
+      stub.reset();
+    });
+
+    after(() => {
+      stub.restore();
+    });
+
+    it('should add and return the document', async () => {
+      let doc = await controller.upsert(new Document('foo'));
+
+      expect(doc).to.include({_id: 'foo', _revision: 1});
     });
 
     it('should upsert the document to the cache', () => {
-      return expect(controller.cache.count()).to.eventually.equal(1);
+      return expect(cache.count()).to.eventually.equal(1);
     });
 
     it('should upsert the document to the source', () => {
-      return expect(controller.source.count()).to.eventually.equal(1);
+      return expect(stub).to.have.been.calledOnce;
     });
   });
-  
+
   describe('remove', () => {
-    before(() => {
-      return controller.remove({}).then(() => {
-        controller.upsert(new Document('doc1'));
-        controller.upsert(new Document('doc2'));
-      });
+    let stub: any;
+
+    before(async () => {
+      await controller.remove({});
+      await controller.upsert(new Document('doc1'));
+      await controller.upsert(new Document('doc2'));
+      stub = sinon.stub(source, 'remove');
     });
 
-    it('should remove a single document', () => {
-      return controller.remove({_id: 'doc1'}).then(() => {
-        return expect(controller.count()).to.eventually.equal(1);
-      });
+    after(() => {
+      stub.restore();
+    });
+
+    it('should remove a single document from the cache', async () => {
+      await controller.remove({_id: 'doc1'});
+      return expect(cache.count()).to.eventually.equal(1);
     });
 
     it('should remove the document from the source', () => {
-      return expect(controller.source.count()).to.eventually.equal(1);
+      return expect(stub).to.have.been.calledOnce;
     });
   });
 
   describe('populate', () => {
+    let stub: any;
+
     before(() => {
+      stub = sinon.stub(source, 'find');
       return controller.remove({});
     });
 
-    it('should load all documents from source', () => {
-      source.docs.push(new Document('foo'));
-      source.docs.push(new Document('bar'));
-
-      return controller.populate().then(() => {
-        return expect(controller.count()).to.eventually.equal(2);
-      });
+    afterEach(() => {
+      stub.reset();
     });
 
-    it('should make all subsequent querries look only in the cache', () => {
-      source.callCount['find'] = 0;
-      return controller.find().then((docs: Document[]) => {
-        expect(docs).to.have.lengthOf(2);
-        expect(source.callCount['find']).to.equal(0);
-      });
+    after(() => {
+      stub.restore();
+    });
+
+    it('should load all documents from source into cache', async () => {
+      stub.returns(Promise.resolve([
+        new Document('foo'),
+        new Document('bar')
+      ]));
+
+      await controller.populate();
+      return expect(cache.count()).to.eventually.equal(2);
+    });
+
+    it('should make all subsequent querries look only in the cache', async () => {
+      let docs = await controller.find();
+
+      expect(docs).to.have.lengthOf(2);
+      expect(stub).to.not.have.been.called;
     })
   });
 
@@ -251,10 +296,9 @@ describe('Controller', () => {
   });
 
   describe('source remove', () => {
-    before(() => {
-      return controller.remove({}).then(() => {
-        return source.upsert(new Document('doc1'));
-      });
+    before(async () => {
+      await controller.remove({});
+      await source.upsert(new Document('doc1'));
     });
 
     it('should trigger document-removed in controller', (done) => {
@@ -267,7 +311,7 @@ describe('Controller', () => {
     });
 
     it('should remove the document from the cache', () => {
-      return expect(controller.cache.count()).to.eventually.equal(0);
+      return expect(cache.count()).to.eventually.equal(0);
     });
   });
 });
