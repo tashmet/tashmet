@@ -1,7 +1,12 @@
 import {model, number, string} from '@ziggurat/mushdamma';
 
 @model({
-  name: 'isimud.Document'
+  name: 'isimud.Document',
+  exclude: {
+    _id: 'persist',
+    _collection: 'persist',
+    _revision: 'persist'
+  }
 })
 export class Document {
   @string() public _id = '';
