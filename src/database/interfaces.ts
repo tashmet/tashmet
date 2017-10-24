@@ -37,9 +37,10 @@ export interface Database {
   on(event: string, fn: any): void;
 }
 
+export type SourceProvider = (injector: Injector, model: string) => Collection;
 
 export interface DatabaseConfig {
-  sources: {[name: string]: Function};
+  sources: {[name: string]: SourceProvider};
 
   routines?: RoutineProvider[];
 

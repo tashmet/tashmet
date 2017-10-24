@@ -9,7 +9,6 @@ import {createRoutines} from './routine';
 import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
 import {ReferenceValidationPipe} from '../pipes/reference';
-import {InstancePipe, PlainPipe} from '../pipes/transformation';
 import {UpsertPipe, RevisionUpsertPipe} from '../pipes/upsert';
 import {ValidationPipe} from '../pipes/validation';
 import {EventEmitter} from 'eventemitter3';
@@ -48,7 +47,7 @@ export class DatabaseService extends EventEmitter implements Database
 
     let source: Collection;
     if (this.dbConfig.sources[providerMeta.for]) {
-      source = this.dbConfig.sources[providerMeta.for](this.injector);
+      source = this.dbConfig.sources[providerMeta.for](this.injector, meta.model);
     } else {
       source = new NullCollection(providerMeta.for + ':source');
     }
@@ -61,11 +60,8 @@ export class DatabaseService extends EventEmitter implements Database
     let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(this.validator);
     let referencePipe = new ReferenceValidationPipe(this.injector, this.models);
-    let instancePipe = new InstancePipe(this.transformer, 'persist', meta.model);
-    let plainPipe = new PlainPipe(this.transformer, 'persist');
     let processor = this.processorFactory.createProcessor()
       .pipe('populate-pre-buffer', 'populate', {
-        'transform': instancePipe,
         'validate': validationPipe,
         'validate-references': referencePipe
       })
@@ -73,7 +69,6 @@ export class DatabaseService extends EventEmitter implements Database
         'cache': cachePipe
       })
       .pipe('source-upsert', true, {
-        'transform': instancePipe,
         'validate': validationPipe,
         'validate-references': referencePipe,
         'cache': cachePipe
@@ -82,7 +77,6 @@ export class DatabaseService extends EventEmitter implements Database
         'validate': validationPipe,
         'validate-references': referencePipe,
         'cache': cachePipe,
-        'transform': plainPipe,
         'persist': persistPipe
       })
       .pipe('cache', false, {
