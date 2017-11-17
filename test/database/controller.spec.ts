@@ -21,8 +21,7 @@ describe('Controller', () => {
   let source = new MemoryCollection();
 
   @provider({
-    for: 'isimud.MemoryCollectionFactory',
-    singleton: true
+    key: 'isimud.MemoryCollectionFactory'
   })
   class MockCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
     public createCollection(name: string, config: MemoryCollectionConfig): Collection {
@@ -35,7 +34,7 @@ describe('Controller', () => {
   }
 
   @provider({
-    for: 'test.Controller'
+    key: 'test.Controller'
   })
   @collection({
     name: 'test'

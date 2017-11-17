@@ -18,11 +18,9 @@ import {RangeEvaluator} from '../caching/range';
 import {each, includes, isArray, map, transform} from 'lodash';
 
 @provider({
-  for: 'isimud.Database',
-  singleton: true
+  key: 'isimud.Database'
 })
-export class DatabaseService extends EventEmitter implements Database
-{
+export class DatabaseService extends EventEmitter implements Database {
   private collections: {[name: string]: Controller} = {};
   private syncedCount = 0;
 
@@ -40,20 +38,20 @@ export class DatabaseService extends EventEmitter implements Database
 
   @activate('isimud.Collection')
   private activateController(collection: Controller): Controller {
-    let providerMeta = Reflect.getOwnMetadata('tiamat:provider', collection.constructor);
-    let meta = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
+    const key = Reflect.getOwnMetadata('tiamat:key', collection.constructor);
+    const config = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
 
-    this.collections[meta.name] = collection;
+    this.collections[config.name] = collection;
 
     let source: Collection;
-    if (this.dbConfig.sources[providerMeta.for]) {
-      source = this.dbConfig.sources[providerMeta.for](this.injector, meta.model);
+    if (this.dbConfig.sources[key]) {
+      source = this.dbConfig.sources[key](this.injector, config.model);
     } else {
-      source = new NullCollection(providerMeta.for + ':source');
+      source = new NullCollection(key + ':source');
     }
 
-    let cache = this.memory.createCollection(meta.name, {indices: ['_id']});
-    let buffer = this.memory.createCollection(meta.name + ':buffer', {indices: ['_id']});
+    let cache = this.memory.createCollection(config.name, {indices: ['_id']});
+    let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
     let routines = createRoutines(this.dbConfig.routines || [], collection, this.injector);
 
     let cachePipe = new RevisionUpsertPipe(cache);
@@ -97,8 +95,8 @@ export class DatabaseService extends EventEmitter implements Database
     collection.setProcessor(processor);
 
     const populate = this.dbConfig.populate;
-    if (populate === true || (isArray(populate) && includes(populate, providerMeta.for))) {
-      Promise.all(transform(meta.populateAfter, (result: any, depName: string) => {
+    if (populate === true || (isArray(populate) && includes(populate, key))) {
+      Promise.all(transform(config.populateAfter, (result: any, depName: string) => {
         result.push(this.injector.get<Controller>(depName).populate());
       }))
         .then(() => {

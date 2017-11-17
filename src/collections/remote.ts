@@ -4,8 +4,7 @@ import {EventEmitter} from 'eventemitter3';
 import * as io from 'socket.io-client';
 
 @provider({
-  for: 'isimud.RemoteCollectionFactory',
-  singleton: true
+  key: 'isimud.RemoteCollectionFactory'
 })
 export class RemoteCollectionFactory implements CollectionFactory<RemoteCollectionConfig> {
   private socket: any;
