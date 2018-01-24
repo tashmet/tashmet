@@ -12,10 +12,10 @@ export interface FeedConfig {
   increment: number;
 }
 
-export interface SelectorConfig {
-  value?: any;
+export interface SelectorConfig<T> {
+  value?: T;
 
-  template?: any;
+  compile?: (value?: T) => object;
 
-  disableOn?: any;
+  disableOn?: T;
 }

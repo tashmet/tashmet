@@ -3,8 +3,8 @@ import {Filter, SelectorConfig} from '../interfaces';
 import {extend} from 'lodash';
 import {EventEmitter} from 'eventemitter3';
 
-export class SelectorFilter extends EventEmitter implements Filter {
-  public constructor(protected config: SelectorConfig) {
+export class SelectorFilter<T> extends EventEmitter implements Filter {
+  public constructor(protected config: SelectorConfig<T>) {
     super();
   }
 
@@ -17,12 +17,12 @@ export class SelectorFilter extends EventEmitter implements Filter {
     this.emit('filter-changed');
   }
 
-  public get template(): any {
-    return this.config.template;
+  public get compile(): any {
+    return this.config.compile;
   }
 
-  public set template(t: any) {
-    this.config.template = t;
+  public set compile(c: any) {
+    this.config.compile = c;
     this.emit('filter-changed');
   }
 
@@ -39,10 +39,8 @@ export class SelectorFilter extends EventEmitter implements Filter {
     if (this.config.value === this.config.disableOn) {
       return;
     }
-    if (this.config.template) {
-      let computed = JSON.parse(
-        JSON.stringify(this.config.template).replace('?', this.config.value));
-      extend(sel, computed);
+    if (this.config.compile) {
+      extend(sel, this.config.compile(this.config.value));
     } else {
       extend(sel, this.config.value);
     }
