@@ -32,14 +32,14 @@ export class CacheCollection extends EventEmitter implements Collection {
 
   public find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]> {
     if (this.isCached(selector, options)) {
-      return this.collection.find(selector, options);
+      return this.collection.find<T>(selector, options);
     } else {
-      selector = selector || {};
-      options = options || {};
+      let selectorOpt = Object.assign({}, selector);
+      let optionsOpt = Object.assign({}, options);
       for (let evaluator of this.evaluators) {
-        evaluator.optimizeQuery(selector, options);
+        evaluator.optimizeQuery(selectorOpt, optionsOpt);
       }
-      return Promise.reject(new CacheFindError(selector, options));
+      return Promise.reject(new CacheFindError(selectorOpt, optionsOpt));
     }
   }
 

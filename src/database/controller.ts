@@ -87,12 +87,11 @@ export class Controller extends EventEmitter implements Collection {
     try {
       return await this._cache.find<T>(selector, options);
     } catch (err) {
-      let cachedDocs = [];
       for (let doc of await this._source.find<T>(err.selector, err.options)) {
-        cachedDocs.push(await this.processor.process(doc, 'cache'));
+        await this.processor.process(doc, 'cache');
       }
       this._cache.setCached(selector, options);
-      return cachedDocs;
+      return this._cache.find<T>(selector, options);
     }
   }
 
