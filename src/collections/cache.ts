@@ -1,5 +1,4 @@
 import {Collection, QueryOptions, CacheEvaluator} from '../interfaces';
-import {QueryHashEvaluator} from '../caching/queryHash';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
 import {some} from 'lodash';
@@ -15,7 +14,6 @@ export class CacheFindError extends Error {
 
 export class CacheCollection extends EventEmitter implements Collection {
   public synced = false;
-  private countEvaluator: CacheEvaluator = new QueryHashEvaluator();
 
   public constructor(
     public collection: Collection,
@@ -58,12 +56,11 @@ export class CacheCollection extends EventEmitter implements Collection {
     for (let evaluator of this.evaluators) {
       evaluator.invalidate();
     }
-    this.countEvaluator.invalidate();
     return this.collection.remove(selector);
   }
 
   public count(selector?: Object): Promise<number> {
-    if (this.isCached(selector) || this.countEvaluator.isCached(selector, {})) {
+    if (this.isCached(selector)) {
       return this.collection.count(selector);
     } else {
       return Promise.reject(new Error('Count is not cached'));
@@ -78,7 +75,6 @@ export class CacheCollection extends EventEmitter implements Collection {
     this.evaluators.forEach((ce: CacheEvaluator) => {
       ce.setCached(selector || {}, options || {});
     });
-    this.countEvaluator.setCached(selector, {});
   }
 
   private isCached(selector?: Object, options?: QueryOptions): boolean {
