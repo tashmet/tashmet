@@ -20,10 +20,10 @@ describe('DocumentIdEvaluator', () => {
     it('should consider empty list cached', () => {
       expect(evaluator.isCached({_id: {'$in': []}}, {})).to.equal(true);
     });
-    it('should list with only cached ids cached', () => {
+    it('should consider list with only cached ids cached', () => {
       expect(evaluator.isCached({_id: {'$in': ['foo']}}, {})).to.equal(true);
     });
-    it('should list with one or more uncached ids uncached', () => {
+    it('should consider list with one or more uncached ids uncached', () => {
       expect(evaluator.isCached({_id: {'$in': ['foo', 'bar']}}, {})).to.equal(false);
     });
   });
