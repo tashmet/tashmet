@@ -133,9 +133,9 @@ export class Controller extends EventEmitter implements Collection {
 
   public async count(selector?: Object): Promise<number> {
     try {
-      return await this._cache.count();
+      return await this._cache.count(selector);
     } catch (err) {
-      return this._source.count();
+      return this._source.count(selector);
     }
   }
 
