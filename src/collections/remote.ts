@@ -21,6 +21,8 @@ export class RemoteCollectionFactory implements CollectionFactory<RemoteCollecti
 }
 
 class RemoteCollection extends EventEmitter implements Collection {
+  private countCache: {[selector: string]: number} = {};
+
   public constructor(
     private _path: string,
     private _name: string,
@@ -44,9 +46,15 @@ class RemoteCollection extends EventEmitter implements Collection {
 
   public find(selector?: Object, options?: QueryOptions): Promise<any> {
     let xhttp = new XMLHttpRequest();
+    const self = this;
     return new Promise((resolve) => {
       xhttp.onreadystatechange = function() {
         if (this.readyState === 4 && this.status === 200) {
+          let totalCount = xhttp.getResponseHeader('X-total-count');
+          if (totalCount) {
+            const key = JSON.stringify(selector);
+            self.countCache[key] = parseInt(totalCount, 10);
+          }
           resolve(JSON.parse(xhttp.responseText));
         }
       };
@@ -68,8 +76,12 @@ class RemoteCollection extends EventEmitter implements Collection {
   }
 
   public count(selector?: Object): Promise<number> {
-    let xhttp = new XMLHttpRequest();
     return new Promise<number>((resolve, reject) => {
+      const key = JSON.stringify(selector);
+      if (key in this.countCache) {
+        return resolve(this.countCache[key]);
+      }
+      let xhttp = new XMLHttpRequest();
       xhttp.onreadystatechange = function() {
         if (this.readyState === 4 && this.status === 200) {
           let header = xhttp.getResponseHeader('X-total-count');
