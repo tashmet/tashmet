@@ -1,11 +1,25 @@
 import {CacheEvaluator, QueryOptions} from '../interfaces';
-import {isString} from 'lodash';
+import {isString, isObject, each} from 'lodash';
 
 export class DocumentIdEvaluator implements CacheEvaluator {
   private ids: {[id: string]: boolean} = {};
 
   public isCached(selector: any, options: QueryOptions): boolean {
-    return selector._id && isString(selector._id) && selector._id in this.ids;
+    if (!selector.hasOwnProperty('_id')) {
+      return false;
+    }
+    if (isString(selector._id)) {
+      return selector._id in this.ids;
+    }
+    if (isObject(selector._id) && selector._id.hasOwnProperty('$in')) {
+      for (let id of selector._id['$in']) {
+        if (!(id in this.ids)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   public setCached(selector: any, options: QueryOptions) { return; }
