@@ -37,7 +37,7 @@ export class FeedFilter extends EventEmitter implements Filter {
     this.limit += this.config.increment;
   }
 
-  public hasMore(): boolean {
+  public get hasMore(): boolean {
     return this._hasMore;
   }
 
