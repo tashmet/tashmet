@@ -5,6 +5,8 @@ import {EventEmitter} from 'eventemitter3';
 
 export class FeedFilter extends EventEmitter implements Filter {
   private _hasMore = true;
+  private pendingIncrement = 0;
+  private limits: {[selector: string]: number} = {};
 
   public constructor(
     view: View,
@@ -16,15 +18,6 @@ export class FeedFilter extends EventEmitter implements Filter {
     });
   }
 
-  public get limit(): number {
-    return this.config.limit;
-  }
-
-  public set limit(l: number) {
-    this.config.limit = l;
-    this.emit('filter-changed');
-  }
-
   public get increment(): number {
     return this.config.increment;
   }
@@ -34,7 +27,8 @@ export class FeedFilter extends EventEmitter implements Filter {
   }
 
   public loadMore(): void {
-    this.limit += this.config.increment;
+    this.pendingIncrement = this.config.increment;
+    this.emit('filter-changed');
   }
 
   public get hasMore(): boolean {
@@ -42,6 +36,11 @@ export class FeedFilter extends EventEmitter implements Filter {
   }
 
   public apply(selector: any, options: QueryOptions): void {
-    options.limit = this.limit;
+    const key = JSON.stringify(selector);
+    if (!(key in this.limits)) {
+      this.limits[key] = this.config.limit;
+    }
+    options.limit = this.limits[key] += this.pendingIncrement;
+    this.pendingIncrement = 0;
   }
 }
