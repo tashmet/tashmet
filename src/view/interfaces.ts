@@ -12,6 +12,12 @@ export interface FeedConfig {
   increment: number;
 }
 
+export interface RangeConfig {
+  offset?: number;
+
+  length: number;
+}
+
 export interface SelectorConfig<T> {
   value?: T;
 

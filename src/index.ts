@@ -7,6 +7,7 @@ export {Controller} from './database/controller';
 export {controllerRoutine} from './database/routine';
 export {View} from './view/view';
 export {FeedFilter} from './view/filters/feed';
+export {RangeFilter} from './view/filters/range';
 export {SortingFilter} from './view/filters/sort';
 export {SelectorFilter} from './view/filters/selector';
 export {Document} from './models/document';
