@@ -51,17 +51,13 @@ export class View<T extends Document = Document> extends EventEmitter {
     return this._data;
   }
 
-  public refresh(): View<T> {
+  public async refresh(): Promise<T[]> {
     this.applyFilters();
 
-    this.controller.find(this.selector, this.options)
-      .then((results: T[]) => {
-        this.controller.count(this.selector)
-          .then((totalCount: number) => {
-            this.emit('data-updated', results, totalCount);
-          });
-      });
-    return this;
+    let docs = await this.controller.find<T>(this.selector, this.options);
+    let totalCount = await this.controller.count(this.selector);
+    this.emit('data-updated', docs, totalCount);
+    return docs;
   }
 
   private applyFilters() {
