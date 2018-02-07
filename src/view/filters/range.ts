@@ -3,27 +3,16 @@ import {Filter, RangeConfig} from '../interfaces';
 import {View} from '../view';
 import {EventEmitter} from 'eventemitter3';
 
-export class RangeFilter extends EventEmitter implements Filter {
+export class RangeFilter extends Filter {
+  public offset: number;
+  public length: number;
+
   public constructor(
-    private config: RangeConfig
+    config: RangeConfig
   ) {
     super();
-  }
-
-  public get offset(): number {
-    return this.config.offset || 0;
-  }
-
-  public set offset(o: number) {
-    this.config.offset = o;
-  }
-
-  public get length(): number {
-    return this.config.length;
-  }
-
-  public set length(l: number) {
-    this.config.length = l;
+    this.offset = config.offset || 0;
+    this.length = config.length;
   }
 
   public apply(selector: any, options: QueryOptions): void {

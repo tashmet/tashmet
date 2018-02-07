@@ -1,9 +1,13 @@
 import {QueryOptions} from '../interfaces';
 
-export interface Filter {
-  apply(selector: any, options: QueryOptions): void;
+export interface FilterConfig {
+  observe: string[];
+}
 
-  on(event: 'filter-changed', fn: Function): Filter;
+export abstract class Filter {
+  public dirty = false;
+
+  public apply(selector: any, options: QueryOptions): void { return; }
 }
 
 export interface FeedConfig {

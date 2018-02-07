@@ -2,31 +2,20 @@ import {QueryOptions, Sorting, SortingOrder} from '../../interfaces';
 import {Filter} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 
-export class SortingFilter extends EventEmitter implements Filter {
-  public constructor(private config: Sorting) { super(); }
+export class SortingFilter extends Filter {
+  public key: string;
+  public order: SortingOrder;
 
-  public get key(): string {
-    return this.config.key;
-  }
-
-  public set key(k: string) {
-    this.config.key = k;
-    this.emit('filter-changed');
-  }
-
-  public get order(): SortingOrder {
-    return this.config.order;
-  }
-
-  public set order(o: SortingOrder) {
-    this.config.order = o;
-    this.emit('filter-changed');
+  public constructor(private config: Sorting) {
+    super();
+    this.key = config.key;
+    this.order = config.order;
   }
 
   public apply(selector: any, options: QueryOptions): void {
     if (!options.sort) {
       options.sort = [];
     }
-    options.sort.push(this.config);
+    options.sort.push({key: this.key, order: this.order});
   }
 }

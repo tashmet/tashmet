@@ -4,7 +4,7 @@ import {Filter} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
-import {each, find} from 'lodash';
+import {each, find, includes} from 'lodash';
 
 @injectable()
 export class View<T extends Document = Document> extends EventEmitter {
@@ -30,13 +30,19 @@ export class View<T extends Document = Document> extends EventEmitter {
     });
   }
 
-  public addFilter(filter: Filter): View<T> {
-    this.filters.push(filter);
-    filter.on('filter-changed', () => {
-      this.refresh();
+  public filter<F extends Filter>(filter: F, observe: string[] = []): F {
+    let proxy = new Proxy(filter, {
+      set: (target: any, key: PropertyKey, value: any, reciever: any): boolean => {
+        target[key] = value;
+        if (includes(observe, key) || (key === 'dirty' && value === true)) {
+          this.refresh();
+        }
+        return true;
+      }
     });
+    this.filters.push(proxy);
     this.applyFilters();
-    return this;
+    return proxy;
   }
 
   public get selector(): any {

@@ -17,6 +17,8 @@ import {QueryHashEvaluator} from '../caching/queryHash';
 import {RangeEvaluator} from '../caching/range';
 import {each, includes, isArray, map, transform} from 'lodash';
 
+import {View} from '../view/view';
+
 @provider({
   key: 'isimud.Database'
 })
@@ -36,7 +38,10 @@ export class DatabaseService extends EventEmitter implements Database {
     return this.collections[name];
   }
 
-  @activate('isimud.Collection')
+  @activate({
+    instanceOf: Controller,
+    taggedWith: 'isimud.Collection'
+  })
   private activateController(collection: Controller): Controller {
     const key = Reflect.getOwnMetadata('tiamat:key', collection.constructor);
     const config = Reflect.getOwnMetadata('isimud:collection', collection.constructor);

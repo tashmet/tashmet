@@ -3,40 +3,29 @@ import {Filter, FeedConfig} from '../interfaces';
 import {View} from '../view';
 import {EventEmitter} from 'eventemitter3';
 
-export class FeedFilter extends EventEmitter implements Filter {
+export class FeedFilter extends Filter {
+  public limit: number;
+  public increment: number;
+
   private _hasMore = true;
   private pendingIncrement = 0;
   private increments: {[selector: string]: number} = {};
 
   public constructor(
     view: View,
-    private config: FeedConfig
+    config: FeedConfig
   ) {
     super();
+    this.limit = config.limit;
+    this.increment = config.increment;
     view.on('data-updated', (result: any[], totalCount: number) => {
       this._hasMore = result.length < totalCount;
     });
   }
 
-  public get limit(): number {
-    return this.config.limit;
-  }
-
-  public set limit(l: number) {
-    this.config.limit = l;
-  }
-
-  public get increment(): number {
-    return this.config.increment;
-  }
-
-  public set increment(i: number) {
-    this.config.increment = i;
-  }
-
   public loadMore(): void {
-    this.pendingIncrement = this.config.increment;
-    this.emit('filter-changed');
+    this.pendingIncrement = this.increment;
+    this.dirty = true;
   }
 
   public get hasMore(): boolean {
@@ -48,7 +37,7 @@ export class FeedFilter extends EventEmitter implements Filter {
     if (!(key in this.increments)) {
       this.increments[key] = 0;
     }
-    options.limit = this.config.limit + (this.increments[key] += this.pendingIncrement);
+    options.limit = this.limit + (this.increments[key] += this.pendingIncrement);
     this.pendingIncrement = 0;
   }
 }
