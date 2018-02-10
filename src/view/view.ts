@@ -33,8 +33,9 @@ export class View<T extends Document = Document> extends EventEmitter {
   public filter<F extends Filter>(filter: F, observe: string[] = []): F {
     let proxy = new Proxy(filter, {
       set: (target: any, key: PropertyKey, value: any, reciever: any): boolean => {
+        let toggleDirty = key === 'dirty' && value === true && !filter.dirty;
         target[key] = value;
-        if (includes(observe, key) || (key === 'dirty' && value === true)) {
+        if (toggleDirty || includes(observe, key)) {
           this.refresh();
         }
         return true;
@@ -58,7 +59,7 @@ export class View<T extends Document = Document> extends EventEmitter {
   }
 
   public async refresh(): Promise<T[]> {
-    this.applyFilters();
+    this.applyFilters(true);
 
     let docs = await this.controller.find<T>(this.selector, this.options);
     let totalCount = await this.controller.count(this.selector);
@@ -66,12 +67,15 @@ export class View<T extends Document = Document> extends EventEmitter {
     return docs;
   }
 
-  private applyFilters() {
+  private applyFilters(resetDirty = false) {
     this._selector = {};
     this._options = {};
 
     each(this.filters, (f: Filter) => {
       f.apply(this.selector, this.options);
+      if (resetDirty) {
+        f.dirty = false;
+      }
     });
   }
 
