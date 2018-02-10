@@ -2,15 +2,16 @@ import {Injector, PropertyMeta} from '@ziggurat/tiamat';
 import {ModelConfig, ModelRegistry} from '@ziggurat/mushdamma';
 import {Pipe} from '@ziggurat/ningal';
 import {Collection} from '../interfaces';
+import {Document} from '../models/document';
 import {each} from 'lodash';
 
-export class ReferenceValidationPipe implements Pipe {
+export class ReferenceValidationPipe implements Pipe<Document> {
   public constructor(
     private injector: Injector,
     private models: ModelRegistry
   ) {}
 
-  public async process(input: any): Promise<any> {
+  public async process(input: Document): Promise<Document> {
     const model = this.models.get(input._model);
 
     if (!model) {
@@ -22,9 +23,11 @@ export class ReferenceValidationPipe implements Pipe {
 
     for (let ref of references) {
       try {
-        await this.injector.get<Collection>(ref.data).findOne({_id: input[ref.key]});
+        await this.injector.get<Collection>(ref.data).findOne({
+          _id: (<any>input)[ref.key]
+        });
       } catch (err) {
-        throw new Error(`Reference to '${input[ref.key]}' not found in ${ref.data}`);
+        throw new Error(`Reference to '${(<any>input)[ref.key]}' not found in ${ref.data}`);
       }
     }
     return Promise.resolve(input);

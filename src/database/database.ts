@@ -15,6 +15,7 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from '../caching/documentId';
 import {QueryHashEvaluator} from '../caching/queryHash';
 import {RangeEvaluator} from '../caching/range';
+import {Document} from '../models/document';
 import {each, includes, isArray, map, transform} from 'lodash';
 
 import {View} from '../view/view';
@@ -63,7 +64,7 @@ export class DatabaseService extends EventEmitter implements Database {
     let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(this.validator);
     let referencePipe = new ReferenceValidationPipe(this.injector, this.models);
-    let processor = this.processorFactory.createProcessor()
+    let processor = this.processorFactory.createProcessor<Document>()
       .pipe('populate-pre-buffer', 'populate', {
         'validate': validationPipe,
         'validate-references': referencePipe

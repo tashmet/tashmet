@@ -17,7 +17,7 @@ export class Controller extends EventEmitter implements Collection {
   protected _cache: CacheCollection;
   protected _buffer: Collection;
   protected _source: Collection;
-  private processor: Processor;
+  private processor: Processor<Document>;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<void>;
 
@@ -68,7 +68,7 @@ export class Controller extends EventEmitter implements Collection {
     });
   }
 
-  public setProcessor(processor: Processor) {
+  public setProcessor(processor: Processor<Document>) {
     this.processor = processor;
   }
 
@@ -102,7 +102,7 @@ export class Controller extends EventEmitter implements Collection {
       if (this.locked) {
         throw err;
       } else {
-        return this.processor.process(await this._source.findOne<T>(selector), 'cache');
+        return <Promise<T>>this.processor.process(await this._source.findOne<T>(selector), 'cache');
       }
     }
   }
