@@ -44,57 +44,34 @@ class RemoteCollection extends EventEmitter implements Collection {
     }
   }
 
-  public find(selector?: Object, options?: QueryOptions): Promise<any> {
-    let xhttp = new XMLHttpRequest();
-    const self = this;
-    return new Promise((resolve) => {
-      xhttp.onreadystatechange = function() {
-        if (this.readyState === 4 && this.status === 200) {
-          let totalCount = xhttp.getResponseHeader('X-total-count');
-          if (totalCount) {
-            const key = JSON.stringify(selector);
-            self.countCache[key] = parseInt(totalCount, 10);
-          }
-          resolve(JSON.parse(xhttp.responseText));
-        }
-      };
-      xhttp.open('GET', this.createQuery(selector, options), true);
-      xhttp.send();
-    });
+  public async find(selector?: object, options?: QueryOptions): Promise<any[]> {
+    let resp = await fetch(this.createQuery(selector, options));
+    if (!resp.ok) {
+      throw new Error('Failed to contact server');
+    }
+    this.updateTotalCount(selector || {}, resp);
+    return resp.json();
   }
 
-  public findOne(selector: Object): Promise<any> {
-    return new Promise((resolve) => {
-      this.find(selector).then((result: any[]) => {
-        resolve(result[0]);
-      });
-    });
+  public async findOne(selector: object): Promise<any> {
+    let docs = await this.find(selector, {limit: 1});
+    if (docs.length === 0) {
+      throw new Error('Document not found');
+    }
+    return docs[0];
   }
 
   public upsert(obj: any): Promise<any> {
     return Promise.resolve(obj);
   }
 
-  public count(selector?: Object): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      const key = JSON.stringify(selector);
-      if (key in this.countCache) {
-        return resolve(this.countCache[key]);
-      }
-      let xhttp = new XMLHttpRequest();
-      xhttp.onreadystatechange = function() {
-        if (this.readyState === 4 && this.status === 200) {
-          let header = xhttp.getResponseHeader('X-total-count');
-          if (header) {
-            resolve(parseInt(header, 10));
-          } else {
-            reject(new Error('Failed to get "X-total-count" header'));
-          }
-        }
-      };
-      xhttp.open('HEAD', this.createQuery(selector), true);
-      xhttp.send();
-    });
+  public async count(selector?: object): Promise<number> {
+    let totalCount = this.countCache[JSON.stringify(selector)];
+    if (!totalCount) {
+      let resp = await fetch(this.createQuery(selector), {method: 'HEAD'});
+      totalCount = this.updateTotalCount(selector || {}, resp);
+    }
+    return totalCount;
   }
 
   public remove(): Promise<void> {
@@ -103,6 +80,14 @@ class RemoteCollection extends EventEmitter implements Collection {
 
   public name(): string {
     return this._path;
+  }
+
+  private updateTotalCount(selector: object, resp: Response): number {
+    let totalCount = resp.headers.get('x-total-count');
+    if (!totalCount) {
+      throw new Error('Failed to get "x-total-count" header');
+    }
+    return this.countCache[JSON.stringify(selector)] = parseInt(totalCount, 10);
   }
 
   private createQuery(selector?: Object, options?: QueryOptions): string {
