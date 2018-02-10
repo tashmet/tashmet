@@ -23,10 +23,10 @@ export class View<T extends Document = Document> extends EventEmitter {
     });
 
     controller.on('document-upserted', (doc: any) => {
-      this.onDocumentUpdated(doc);
+      this.documentUpdated(doc);
     });
     controller.on('document-removed', (doc: any) => {
-      this.onDocumentUpdated(doc);
+      this.documentUpdated(doc);
     });
   }
 
@@ -75,12 +75,10 @@ export class View<T extends Document = Document> extends EventEmitter {
     });
   }
 
-  private onDocumentUpdated(doc: T) {
-    this.controller.cache.find(this.selector, this.options)
-      .then((documents: any[]) => {
-        if (find(documents, ['_id', doc._id])) {
-          this.emit('data-updated', documents, 1);
-        }
-      });
+  private async documentUpdated(doc: T) {
+    let docs = await this.controller.cache.find<any>(this.selector, this.options);
+    if (find(docs, ['_id', doc._id])) {
+      this.emit('data-updated', docs, 1);
+    }
   }
 }
