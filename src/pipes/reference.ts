@@ -13,6 +13,10 @@ export class ReferenceValidationPipe implements Pipe {
   public async process(input: any): Promise<any> {
     const model = this.models.get(input._model);
 
+    if (!model) {
+      throw new Error(`Failed to find model '${input._model}' in registry`);
+    }
+
     const references: PropertyMeta<string>[] = Reflect.getMetadata(
       'isimud:reference', model) || [];
 
