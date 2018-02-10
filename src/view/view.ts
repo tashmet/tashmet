@@ -79,6 +79,7 @@ export class View<T extends Document = Document> extends EventEmitter {
     if (doc._collection !== this.controller.name()) {
       return;
     }
+    this.applyFilters();
     let docs = await this.controller.cache.find<any>(this.selector, this.options);
     if (find(docs, ['_id', doc._id])) {
       this.emit('data-updated', docs);
