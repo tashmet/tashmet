@@ -1,5 +1,5 @@
 import {CacheEvaluator, QueryOptions} from '../interfaces';
-import {isString, isObject, each} from 'lodash';
+import {isString, isObject, each, filter, every} from 'lodash';
 
 export class DocumentIdEvaluator implements CacheEvaluator {
   private ids: {[id: string]: boolean} = {};
@@ -12,12 +12,9 @@ export class DocumentIdEvaluator implements CacheEvaluator {
       return selector._id in this.ids;
     }
     if (isObject(selector._id) && selector._id.hasOwnProperty('$in')) {
-      for (let id of selector._id['$in']) {
-        if (!(id in this.ids)) {
-          return false;
-        }
-      }
-      return true;
+      return every(selector._id['$in'], (id: string) => {
+        return id in this.ids;
+      });
     }
     return false;
   }
@@ -29,7 +26,11 @@ export class DocumentIdEvaluator implements CacheEvaluator {
   }
 
   public optimizeQuery(selector: any, options: QueryOptions): void {
-    return;
+    if (isObject(selector._id) && selector._id.hasOwnProperty('$in')) {
+      selector._id['$in'] = filter(selector._id['$in'], (id: string) => {
+        return !(id in this.ids);
+      });
+    }
   }
 
   public invalidate(): void {
