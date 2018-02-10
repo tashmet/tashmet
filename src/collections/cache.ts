@@ -1,7 +1,7 @@
 import {Collection, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
-import {some} from 'lodash';
+import {each, some} from 'lodash';
 
 export class CacheFindError extends Error {
   public constructor(
@@ -21,6 +21,7 @@ export class CacheCollection extends EventEmitter implements Collection {
   ) {
     super();
     collection.on('document-upserted', (doc: Document) => {
+      each(this.evaluators, e => e.add(doc));
       this.emit('document-upserted', doc);
     });
     collection.on('document-removed', (doc: Document) => {
@@ -34,9 +35,7 @@ export class CacheCollection extends EventEmitter implements Collection {
     } else {
       let selectorOpt = Object.assign({}, selector);
       let optionsOpt = Object.assign({}, options);
-      for (let evaluator of this.evaluators) {
-        evaluator.optimizeQuery(selectorOpt, optionsOpt);
-      }
+      each(this.evaluators, e => e.optimizeQuery(selectorOpt, optionsOpt));
       return Promise.reject(new CacheFindError(selectorOpt, optionsOpt));
     }
   }
@@ -46,16 +45,11 @@ export class CacheCollection extends EventEmitter implements Collection {
   }
 
   public upsert<T extends Document>(doc: T): Promise<T> {
-    for (let evaluator of this.evaluators) {
-      evaluator.add(doc);
-    }
     return this.collection.upsert(doc);
   }
 
   public remove(selector: Object): Promise<void> {
-    for (let evaluator of this.evaluators) {
-      evaluator.invalidate();
-    }
+    each(this.evaluators, e => e.invalidate());
     return this.collection.remove(selector);
   }
 
@@ -72,14 +66,12 @@ export class CacheCollection extends EventEmitter implements Collection {
   }
 
   public setCached(selector?: Object, options?: QueryOptions) {
-    this.evaluators.forEach((ce: CacheEvaluator) => {
-      ce.setCached(selector || {}, options || {});
-    });
+    each(this.evaluators, e => e.setCached(selector || {}, options || {}));
   }
 
   private isCached(selector?: Object, options?: QueryOptions): boolean {
-    return this.synced || some(this.evaluators, (evaluator: CacheEvaluator) => {
-      return evaluator.isCached(selector || {}, options || {});
+    return this.synced || some(this.evaluators, e => {
+      return e.isCached(selector || {}, options || {});
     });
   }
 }
