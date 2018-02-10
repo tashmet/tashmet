@@ -18,8 +18,10 @@ export class FeedFilter extends Filter {
     super();
     this.limit = config.limit;
     this.increment = config.increment;
-    view.on('data-updated', (result: any[], totalCount: number) => {
-      this._hasMore = result.length < totalCount;
+    view.on('data-updated', (result: any[], totalCount: number | undefined) => {
+      if (typeof totalCount !== 'undefined') {
+        this._hasMore = result.length < totalCount;
+      }
     });
   }
 

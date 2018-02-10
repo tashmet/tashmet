@@ -18,7 +18,7 @@ export class View<T extends Document = Document> extends EventEmitter {
   ) {
     super();
 
-    this.on('data-updated', (results: T[], totalCount: number) => {
+    this.on('data-updated', (results: T[]) => {
       this._data = results;
     });
 
@@ -81,7 +81,7 @@ export class View<T extends Document = Document> extends EventEmitter {
     }
     let docs = await this.controller.cache.find<any>(this.selector, this.options);
     if (find(docs, ['_id', doc._id])) {
-      this.emit('data-updated', docs, 1);
+      this.emit('data-updated', docs);
     }
   }
 }
