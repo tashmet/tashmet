@@ -1,7 +1,7 @@
 import {Collection, QueryOptions, CacheEvaluator} from '../interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
-import {each, some} from 'lodash';
+import {cloneDeep, each, some} from 'lodash';
 
 export class CacheFindError extends Error {
   public constructor(
@@ -33,8 +33,8 @@ export class CacheCollection extends EventEmitter implements Collection {
     if (this.isCached(selector, options)) {
       return this.collection.find<T>(selector, options);
     } else {
-      let selectorOpt = Object.assign({}, selector);
-      let optionsOpt = Object.assign({}, options);
+      let selectorOpt = cloneDeep(selector || {});
+      let optionsOpt = cloneDeep(options || {});
       each(this.evaluators, e => e.optimizeQuery(selectorOpt, optionsOpt));
       return Promise.reject(new CacheFindError(selectorOpt, optionsOpt));
     }
