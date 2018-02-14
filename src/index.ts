@@ -11,6 +11,7 @@ export {RangeFilter} from './view/filters/range';
 export {SortingFilter} from './view/filters/sort';
 export {SelectorFilter} from './view/filters/selector';
 export {Document} from './models/document';
+export {relationships, ComparatorList} from './routines/relationships';
 export {json} from './serializers/json';
 export {reference} from './schema/reference';
 export {inline} from './sources/inline';
