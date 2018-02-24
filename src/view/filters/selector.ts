@@ -7,7 +7,7 @@ export class SelectorFilter<T> extends Filter {
   public value: T | undefined;
 
   public constructor(protected config: SelectorConfig<T>) {
-    super();
+    super(config);
     this.value = config.value;
   }
 

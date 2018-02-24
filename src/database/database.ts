@@ -19,6 +19,7 @@ import {Document} from '../models/document';
 import {each, includes, isArray, map, transform} from 'lodash';
 
 import {View} from '../view/view';
+import {Filter} from '../view/interfaces';
 
 @provider({
   key: 'isimud.Database'
@@ -39,6 +40,15 @@ export class DatabaseService extends EventEmitter implements Database {
     return this.collections[name];
   }
 
+  private controllerViews(controllerKey: string): View[] {
+    if (!this.dbConfig.views) {
+      return [];
+    }
+    return map(this.dbConfig.views[controllerKey] || [], (key) => {
+      return this.injector.get<View>(key);
+    });
+  }
+
   @activate({
     instanceOf: Controller,
     taggedWith: 'isimud.Collection'
@@ -54,6 +64,17 @@ export class DatabaseService extends EventEmitter implements Database {
       source = this.dbConfig.sources[key](this.injector, config.model);
     } else {
       source = new NullCollection(key + ':source');
+    }
+
+    for (let view of this.controllerViews(key)) {
+      view.setCollection(collection);
+
+      for (let viewProp of Object.keys(view)) {
+        if ((<any>view)[viewProp] instanceof Filter) {
+          const filter: Filter = (<any>view)[viewProp];
+          (<any>view)[viewProp] = view.filter(filter);
+        }
+      }
     }
 
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});

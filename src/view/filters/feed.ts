@@ -15,7 +15,7 @@ export class FeedFilter extends Filter {
     view: View,
     config: FeedConfig
   ) {
-    super();
+    super(config);
     this.limit = config.limit;
     this.increment = config.increment;
     view.on('data-updated', (result: any[], totalCount: number | undefined) => {

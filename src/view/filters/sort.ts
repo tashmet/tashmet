@@ -1,13 +1,13 @@
-import {QueryOptions, Sorting, SortingOrder} from '../../interfaces';
-import {Filter} from '../interfaces';
+import {QueryOptions, SortingOrder} from '../../interfaces';
+import {Filter, SortingConfig} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 
 export class SortingFilter extends Filter {
   public key: string;
   public order: SortingOrder;
 
-  public constructor(private config: Sorting) {
-    super();
+  public constructor(private config: SortingConfig) {
+    super(config);
     this.key = config.key;
     this.order = config.order;
   }

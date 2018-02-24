@@ -8,34 +8,18 @@ import {each, find, includes} from 'lodash';
 
 @injectable()
 export class View<T extends Document = Document> extends EventEmitter {
+  private controller: Controller;
   private _selector: any = {};
   private _options: QueryOptions = {};
   private _data: T[] = [];
   private filters: Filter[] = [];
 
-  public constructor(
-    private controller: Controller
-  ) {
-    super();
-
-    this.on('data-updated', (results: T[]) => {
-      this._data = results;
-    });
-
-    controller.on('document-upserted', (doc: any) => {
-      this.documentUpdated(doc);
-    });
-    controller.on('document-removed', (doc: any) => {
-      this.documentUpdated(doc);
-    });
-  }
-
-  public filter<F extends Filter>(filter: F, observe: string[] = []): F {
+  public filter<F extends Filter>(filter: F): F {
     let proxy = new Proxy(filter, {
       set: (target: any, key: PropertyKey, value: any, reciever: any): boolean => {
         let toggleDirty = key === 'dirty' && value === true && !filter.dirty;
         target[key] = value;
-        if (toggleDirty || includes(observe, key)) {
+        if (toggleDirty || includes(filter.observe, key)) {
           this.refresh();
         }
         return true;
@@ -65,6 +49,20 @@ export class View<T extends Document = Document> extends EventEmitter {
     let totalCount = await this.controller.count(this.selector);
     this.emit('data-updated', docs, totalCount);
     return docs;
+  }
+
+  public setCollection(controller: Controller) {
+    this.controller = controller;
+    this.on('data-updated', (results: T[]) => {
+      this._data = results;
+    });
+
+    controller.on('document-upserted', (doc: any) => {
+      this.documentUpdated(doc);
+    });
+    controller.on('document-removed', (doc: any) => {
+      this.documentUpdated(doc);
+    });
   }
 
   private applyFilters(resetDirty = false) {

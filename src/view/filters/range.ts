@@ -10,7 +10,7 @@ export class RangeFilter extends Filter {
   public constructor(
     config: RangeConfig
   ) {
-    super();
+    super(config);
     this.offset = config.offset || 0;
     this.length = config.length;
   }

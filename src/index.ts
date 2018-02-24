@@ -19,12 +19,10 @@ export {remote} from './sources/remote';
 export * from './interfaces';
 export * from './database/decorators';
 export * from './database/interfaces';
-export {filter} from './view/decorators';
 export * from './view/interfaces';
 
 import {DatabaseService} from './database/database';
 import {RemoteCollectionFactory} from './collections/remote';
-import {FilterDecoratorActivator} from './view/decorators';
 
 @component({
   dependencies: [
@@ -34,7 +32,6 @@ import {FilterDecoratorActivator} from './view/decorators';
   providers: [
     RemoteCollectionFactory,
     DatabaseService,
-    FilterDecoratorActivator
   ],
   autoCreate: []
 })

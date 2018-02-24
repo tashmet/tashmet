@@ -42,6 +42,8 @@ export type SourceProvider = (injector: Injector, model: string) => Collection;
 export interface DatabaseConfig {
   sources: {[name: string]: SourceProvider};
 
+  views?: {[name: string]: any[]};
+
   routines?: RoutineProvider[];
 
   /**
