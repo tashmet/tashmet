@@ -1,5 +1,5 @@
 import {Injector} from '@ziggurat/tiamat';
-import {Routine} from '@ziggurat/ningal';
+import {Middleware} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
 
@@ -44,7 +44,7 @@ export interface DatabaseConfig {
 
   views?: {[name: string]: any[]};
 
-  routines?: RoutineProvider[];
+  middleware?: MiddlewareProvider[];
 
   /**
    * Specify if collections should be automatically populated from their sources on creation.
@@ -57,13 +57,4 @@ export interface DatabaseConfig {
   populate?: boolean | string[];
 }
 
-export interface RoutineConfig {}
-
-export type RoutineProvider = (injector: Injector, controller: any) => Routine | undefined;
-
-export interface RoutineFactory<
-  T extends Controller = Controller,
-  U extends RoutineConfig = RoutineConfig>
-{
-  createRoutine(controller: T, config: U): any;
-}
+export type MiddlewareProvider = (injector: Injector, controller: any) => Middleware | undefined;

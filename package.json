@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/isimud",
-  "version": "0.25.30",
+  "version": "0.26.0",
   "description": "Isimud is an isomorphic document storage and processing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@ziggurat/mushdamma": "^0.2.4",
-    "@ziggurat/ningal": "^0.2.2",
+    "@ziggurat/ningal": "^0.2.9",
     "eventemitter3": "^2.0.2",
     "lodash": "^4.17.4",
     "reflect-metadata": "^0.1.10",

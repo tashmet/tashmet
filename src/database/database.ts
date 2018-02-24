@@ -1,11 +1,10 @@
 import {inject, provider, activate, Injector} from '@ziggurat/tiamat';
 import {ModelRegistry, Transformer, Validator} from '@ziggurat/mushdamma';
-import {Processor, ProcessorFactory, Routine} from '@ziggurat/ningal';
+import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
-import {Database, DatabaseConfig, RoutineProvider} from './interfaces';
+import {Database, DatabaseConfig, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
-import {createRoutines} from './routine';
 import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
 import {ReferenceValidationPipe} from '../pipes/reference';
@@ -79,7 +78,6 @@ export class DatabaseService extends EventEmitter implements Database {
 
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});
     let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
-    let routines = createRoutines(this.dbConfig.routines || [], collection, this.injector);
 
     let cachePipe = new RevisionUpsertPipe(cache);
     let persistPipe = new UpsertPipe(source);
@@ -108,9 +106,12 @@ export class DatabaseService extends EventEmitter implements Database {
         'cache': cachePipe
       });
 
-    each(routines, routine => {
-      processor.routine(routine);
-    });
+    for (let middlewareProvider of this.dbConfig.middleware || []) {
+      const middleware = middlewareProvider(this.injector, collection);
+      if (middleware) {
+        processor.middleware(middleware);
+      }
+    }
 
     collection.setSource(source);
     collection.setCache(new CacheCollection(cache, [

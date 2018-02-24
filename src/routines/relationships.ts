@@ -1,5 +1,5 @@
 import {provider, Injector} from '@ziggurat/tiamat';
-import {before, after, Routine} from '@ziggurat/ningal';
+import {before, after, Middleware} from '@ziggurat/ningal';
 import {map, orderBy, remove, transform} from 'lodash';
 import {Collection, ClassType} from '../interfaces';
 import {Controller} from '../database/controller';
@@ -14,9 +14,9 @@ export interface RelationshipsConfig {
 }
 
 export const relationships = (config: RelationshipsConfig) => {
-  return (injector: Injector, controller: any): Routine | undefined => {
+  return (injector: Injector, controller: any): Middleware | undefined => {
     if (controller instanceof config.controller) {
-      return new RelationshipsRoutine(controller, config);
+      return new RelationshipsMiddleware(controller, config);
     } else {
       return undefined;
     }
@@ -40,7 +40,7 @@ export class ComparatorList {
   }
 }
 
-export class RelationshipsRoutine extends Routine {
+export class RelationshipsMiddleware extends Middleware {
   private comparators = new ComparatorList();
 
   public constructor(

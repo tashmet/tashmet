@@ -4,7 +4,6 @@ import {Ningal} from '@ziggurat/ningal';
 
 export {MemoryCollection} from './collections/memory';
 export {Controller} from './database/controller';
-export {controllerRoutine} from './database/routine';
 export {View} from './view/view';
 export {FeedFilter} from './view/filters/feed';
 export {RangeFilter} from './view/filters/range';
