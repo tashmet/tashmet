@@ -1,7 +1,7 @@
 import {provider, Injector} from '@ziggurat/tiamat';
 import {before, after, Middleware} from '@ziggurat/ningal';
 import {map, orderBy, remove, transform} from 'lodash';
-import {Collection, ClassType} from '../interfaces';
+import {Collection, ClassType, Pipe, Step} from '../interfaces';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 
@@ -52,8 +52,8 @@ export class RelationshipsMiddleware extends Middleware {
   }
 
   @before({
-    step: 'cache',
-    pipe: 'populate',
+    step: Step.Cache,
+    pipe: Pipe.Populate
   })
   private async addRelationshipsOnPopulate(doc: Document): Promise<Document> {
     const related = await this.findRelated(doc, this.controller.buffer);
@@ -62,8 +62,8 @@ export class RelationshipsMiddleware extends Middleware {
   }
 
   @after({
-    step: 'validate',
-    pipe: 'upsert'
+    step: Step.Validate,
+    pipe: Pipe.Upsert
   })
   private async addRelationshipsOnUpsert(doc: Document): Promise<Document> {
     let related = await this.findRelated(doc, this.controller.cache);
@@ -76,8 +76,8 @@ export class RelationshipsMiddleware extends Middleware {
   }
 
   @after({
-    step: 'uncache',
-    pipe: 'remove'
+    step: Step.Uncache,
+    pipe: Pipe.Remove
   })
   private async removeRelationships(doc: Document): Promise<Document> {
     for (let other of await this.controller.cache.find({[this.config.key]: doc._id})) {

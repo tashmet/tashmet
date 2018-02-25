@@ -144,3 +144,75 @@ export interface Serializer {
 }
 
 export type SerializerProvider = (injector: Injector) => Serializer;
+
+/**
+ * An enumeration of the different pipes that can be hooked into by database middleware,
+ */
+export enum Pipe {
+  /**
+   * Population of collection from its source.
+   *
+   * steps: Validate -> Cache
+   */
+  Populate = 'populate',
+
+  /**
+   * Document being upserted to controller by upsert() method.
+   *
+   * steps: Validate -> Cache -> Persist
+   */
+  Upsert = 'upsert',
+
+  /**
+   * Document being removed from controller by remove() method.
+   *
+   * steps: Uncache -> Unpersist
+   */
+  Remove = 'remove',
+
+  /**
+   * Document being upserted to collection as a result of getting a 'document-upserted' event
+   * from the source collection.
+   *
+   * steps: Validate -> Cache
+   */
+  SourceUpsert = 'source-upsert',
+
+  /**
+   * Document being removed from collection as a result of getting a 'document-removed' event
+   * from the source collection.
+   *
+   * steps: Uncache
+   */
+  SourceRemove = 'source-remove',
+}
+
+/**
+ * An enumeration of the different steps that can be hooked into by database middleware,
+ */
+export enum Step {
+  /**
+   * Validation of document according to its model schema.
+   */
+  Validate = 'validate',
+
+  /**
+   * Upserting of document to cache collection.
+   */
+  Cache = 'cache',
+
+  /**
+   * Removal of document from cache collection.
+   */
+  Uncache = 'uncache',
+
+  /**
+   * Upserting of document to source collection.
+   */
+  Persist = 'persist',
+
+  /**
+   * Removal of document from source collection.
+   */
+  Unpersist = 'unpersist'
+}
