@@ -8,7 +8,7 @@ import {Controller} from './controller';
 import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
 import {ReferenceValidationPipe} from '../pipes/reference';
-import {UpsertPipe, RevisionUpsertPipe} from '../pipes/upsert';
+import {RevisionUpsertPipe} from '../pipes/upsert';
 import {ValidationPipe} from '../pipes/validation';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from '../caching/documentId';
@@ -80,7 +80,6 @@ export class DatabaseService extends EventEmitter implements Database {
     let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
 
     let cachePipe = new RevisionUpsertPipe(cache);
-    let persistPipe = new UpsertPipe(source);
     let validationPipe = new ValidationPipe(this.validator);
     let referencePipe = new ReferenceValidationPipe(this.injector, this.models);
     let processor = this.processorFactory.createProcessor<Document>()
@@ -100,7 +99,19 @@ export class DatabaseService extends EventEmitter implements Database {
         'validate': validationPipe,
         'validate-references': referencePipe,
         'cache': cachePipe,
-        'persist': persistPipe
+        'persist': doc => source.upsert(doc)
+      })
+      .pipe('unpersist', 'remove', {
+        'unpersist': async doc => {
+          await source.remove({_id: doc._id});
+          return doc;
+        }
+      })
+      .pipe('uncache', 'remove', {
+        'uncache': async doc => {
+          await cache.remove({_id: doc._id});
+          return doc;
+        },
       })
       .pipe('cache', false, {
         'cache': cachePipe

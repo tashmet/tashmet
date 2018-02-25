@@ -127,8 +127,12 @@ export class Controller extends EventEmitter implements Collection {
     if (this.locked) {
       await this.populatePromise;
     }
-    await this._source.remove(selector);
-    return this._cache.remove(selector);
+    for (let doc of await this._source.find(selector)) {
+      await this.processor.process(doc, 'unpersist');
+    }
+    for (let doc of await this._cache.collection.find(selector)) {
+      await this.processor.process(doc, 'uncache');
+    }
   }
 
   public async count(selector?: Object): Promise<number> {

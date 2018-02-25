@@ -2,16 +2,6 @@ import {Pipe} from '@ziggurat/ningal';
 import {Collection} from '../interfaces';
 import {Document} from '../models/document';
 
-export class UpsertPipe implements Pipe<Document> {
-  constructor(
-    private collection: Collection
-  ) {}
-
-  public process(input: Document): Promise<Document> {
-    return this.collection.upsert(input);
-  }
-}
-
 export class RevisionUpsertPipe implements Pipe<Document> {
   constructor(
     private collection: Collection

@@ -94,9 +94,9 @@ describe('Controller', () => {
   describe('find', () => {
     let stub: any;
 
-    before(() => {
+    before(async () => {
+      await controller.remove({});
       stub = sinon.stub(source, 'find');
-      return controller.remove({});
     });
 
     afterEach(() => {
@@ -188,9 +188,9 @@ describe('Controller', () => {
   describe('populate', () => {
     let stub: any;
 
-    before(() => {
+    before(async () => {
+      await controller.remove({});
       stub = sinon.stub(source, 'find');
-      return controller.remove({});
     });
 
     afterEach(() => {
