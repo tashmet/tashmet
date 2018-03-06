@@ -12,12 +12,14 @@ if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
 }
 
 @injectable()
-export class Controller extends EventEmitter implements Collection {
+export class Controller<U extends Document = Document>
+  extends EventEmitter implements Collection<U>
+{
   public locked = true;
   protected _cache: CacheCollection;
   protected _buffer: Collection;
   protected _source: Collection;
-  private processor: Processor<Document>;
+  private processor: Processor<U>;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<void>;
 
@@ -25,37 +27,37 @@ export class Controller extends EventEmitter implements Collection {
     super();
   }
 
-  get buffer(): Collection {
+  get buffer(): Collection<U> {
     return this._buffer;
   }
 
-  get cache(): Collection {
+  get cache(): Collection<U> {
     return this._cache.collection;
   }
 
-  get source(): Collection {
+  get source(): Collection<U> {
     return this._source;
   }
 
-  public setBuffer(buffer: Collection): void {
+  public setBuffer(buffer: Collection<U>): void {
     this._buffer = buffer;
   }
 
   public setCache(cache: CacheCollection): void {
-    cache.on('document-upserted', (doc: Document) => {
+    cache.on('document-upserted', (doc: U) => {
       this.emit('document-upserted', doc);
     });
-    cache.on('document-removed', (doc: Document) => {
+    cache.on('document-removed', (doc: U) => {
       this.emit('document-removed', doc);
     });
 
     this._cache = cache;
   }
 
-  public setSource(source: Collection): void {
+  public setSource(source: Collection<U>): void {
     this._source = source;
 
-    source.on('document-upserted', (doc: Document) => {
+    source.on('document-upserted', (doc: U) => {
       if (!this.locked) {
         doc._collection = this.name();
         if (this.upsertQueue.indexOf(doc._id) < 0) {
@@ -63,12 +65,12 @@ export class Controller extends EventEmitter implements Collection {
         }
       }
     });
-    source.on('document-removed', (doc: Document) => {
+    source.on('document-removed', (doc: U) => {
       this._cache.remove({_id: doc._id});
     });
   }
 
-  public setProcessor(processor: Processor<Document>) {
+  public setProcessor(processor: Processor<U>) {
     this.processor = processor;
   }
 
@@ -80,7 +82,7 @@ export class Controller extends EventEmitter implements Collection {
     return this.populatePromise;
   }
 
-  public async find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]> {
+  public async find<T extends U>(selector?: Object, options?: QueryOptions): Promise<T[]> {
     if (this.locked) {
       await this.populatePromise;
     }
@@ -95,7 +97,7 @@ export class Controller extends EventEmitter implements Collection {
     }
   }
 
-  public async findOne<T extends Document>(selector: Object): Promise<T> {
+  public async findOne<T extends U>(selector: Object): Promise<T> {
     try {
       return await this._cache.findOne<T>(selector);
     } catch (err) {
@@ -107,7 +109,7 @@ export class Controller extends EventEmitter implements Collection {
     }
   }
 
-  public async upsert<T extends Document>(doc: T): Promise<T> {
+  public async upsert<T extends U>(doc: T): Promise<T> {
     if (this.locked) {
       throw new Error('Cannot upsert while populating collection');
     }
@@ -127,10 +129,10 @@ export class Controller extends EventEmitter implements Collection {
     if (this.locked) {
       await this.populatePromise;
     }
-    for (let doc of await this._source.find(selector)) {
+    for (let doc of await this._source.find<U>(selector)) {
       await this.processor.process(doc, 'unpersist');
     }
-    for (let doc of await this._cache.collection.find(selector)) {
+    for (let doc of await this._cache.collection.find<U>(selector)) {
       await this.processor.process(doc, 'uncache');
     }
   }
@@ -148,7 +150,7 @@ export class Controller extends EventEmitter implements Collection {
   }
 
   private async _populate(): Promise<void> {
-    for (let doc of await this.populateBuffer(await this._source.find())) {
+    for (let doc of await this.populateBuffer(await this._source.find<U>())) {
       try {
         await this.processor.process(doc, 'populate-post-buffer');
       } catch (err) {
@@ -160,7 +162,7 @@ export class Controller extends EventEmitter implements Collection {
     this.emit('ready');
   }
 
-  private async populateBuffer(docs: Document[]): Promise<Document[]> {
+  private async populateBuffer(docs: U[]): Promise<U[]> {
     for (let doc of docs) {
       doc._collection = this.name();
       try {
@@ -169,6 +171,6 @@ export class Controller extends EventEmitter implements Collection {
         this.emit('document-error', err);
       }
     }
-    return this._buffer.find();
+    return this._buffer.find<U>();
   }
 }

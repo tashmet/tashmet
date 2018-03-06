@@ -6,11 +6,11 @@ export type ClassType<T> = { new (...args: any[]): T; };
 /**
  * Generic interface for creating collections.
  */
-export interface CollectionFactory<T> {
+export interface CollectionFactory<T, U extends Document = Document> {
   /**
    * Create a new collection given a name and configuration.
    */
-  createCollection(name: string, config: T): Collection;
+  createCollection(name: string, config: T): Collection<U>;
 }
 
 export interface MemoryCollectionConfig {
@@ -55,23 +55,23 @@ export interface QueryOptions {
 /**
  * A collection of documents.
  */
-export interface Collection {
+export interface Collection<U extends Document = Document> {
   /**
    * Insert a document into the collection. If the document already exists it
    * will be updated.
    * A promise for the upserted document is returned.
    */
-  upsert<T extends Document>(obj: T): Promise<T>;
+  upsert<T extends U>(obj: T): Promise<T>;
 
   /**
    * Find documents in the collection.
    */
-  find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]>;
+  find<T extends U>(selector?: Object, options?: QueryOptions): Promise<T[]>;
 
   /**
    * Find a single document in the collection.
    */
-  findOne<T extends Document>(selector: Object): Promise<T>;
+  findOne<T extends U>(selector: Object): Promise<T>;
 
   /**
    * Remove all documents matching selector from collection.
@@ -92,24 +92,24 @@ export interface Collection {
    * Listen for when a document in the collection has been added or changed.
    * The callback supplies the document.
    */
-  on(event: 'document-upserted', fn: (obj: any) => void): Collection;
+  on(event: 'document-upserted', fn: (obj: any) => void): Collection<U>;
 
   /**
    * Listen for when a document in the collection has been removed.
    * The callback supplies the removed document.
    */
-  on(event: 'document-removed', fn: (obj: any) => void): Collection;
+  on(event: 'document-removed', fn: (obj: any) => void): Collection<U>;
 
   /**
    * Listen for when an error was generated when loading or saving a document
    * in the collection. The callback supplies the document error.
    */
-  on(event: 'document-error', fn: (err: DocumentError) => void): Collection;
+  on(event: 'document-error', fn: (err: DocumentError) => void): Collection<U>;
 
   /**
    * Listen for when the collection has been synced.
    */
-  on(event: 'ready', fn: () => void): Collection;
+  on(event: 'ready', fn: () => void): Collection<U>;
 
   emit(event: string, ...args: any[]): void;
 }
