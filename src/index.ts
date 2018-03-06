@@ -18,10 +18,12 @@ export {remote} from './sources/remote';
 export * from './interfaces';
 export * from './database/decorators';
 export * from './database/interfaces';
+export * from './view/decorators';
 export * from './view/interfaces';
 
 import {DatabaseService} from './database/database';
 import {RemoteCollectionFactory} from './collections/remote';
+import {ViewActivator} from './view/view';
 
 @component({
   dependencies: [
@@ -31,6 +33,7 @@ import {RemoteCollectionFactory} from './collections/remote';
   providers: [
     RemoteCollectionFactory,
     DatabaseService,
+    ViewActivator
   ],
   autoCreate: []
 })

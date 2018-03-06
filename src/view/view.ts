@@ -1,4 +1,4 @@
-import {injectable} from '@ziggurat/tiamat';
+import {activate, injectable, inject, Injector} from '@ziggurat/tiamat';
 import {QueryOptions} from '../interfaces';
 import {Filter} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
@@ -85,6 +85,28 @@ export class View<T extends Document = Document> extends EventEmitter {
     let docs = await this.controller.cache.find<any>(this.selector, this.options);
     if (find(docs, ['_id', doc._id])) {
       this.emit('data-updated', docs);
+    }
+  }
+}
+
+
+export class ViewActivator {
+  public constructor(
+    @inject('tiamat.Injector') private injector: Injector
+  ) {}
+
+  @activate({
+    instanceOf: View
+  })
+  private activateView(view: View) {
+    const collectionKey = Reflect.getOwnMetadata('isimud:viewOf', view.constructor);
+    view.setCollection(this.injector.get<Controller>(collectionKey));
+
+    for (let viewProp of Object.keys(view)) {
+      if ((<any>view)[viewProp] instanceof Filter) {
+        const filter: Filter = (<any>view)[viewProp];
+        (<any>view)[viewProp] = view.filter(filter);
+      }
     }
   }
 }
