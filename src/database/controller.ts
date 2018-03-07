@@ -1,4 +1,4 @@
-import {injectable, decorate} from '@ziggurat/tiamat';
+import {injectable, decorate, Newable} from '@ziggurat/tiamat';
 import {Processor} from '@ziggurat/ningal';
 import {Collection, DocumentError, QueryOptions, CacheEvaluator} from '../interfaces';
 import {CacheCollection} from '../collections/cache';
@@ -25,6 +25,10 @@ export class Controller<U extends Document = Document>
 
   public constructor() {
     super();
+  }
+
+  get model(): Newable<U> {
+    return Reflect.getMetadata('isimud:collection', this.constructor).model;
   }
 
   get buffer(): Collection<U> {

@@ -41,11 +41,12 @@ export class DatabaseService extends EventEmitter implements Database {
   private activateController(collection: Controller): Controller {
     const key = Reflect.getOwnMetadata('tiamat:key', collection.constructor);
     const config = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
+    const modelName = Reflect.getOwnMetadata('mushdamma:model', config.model).name;
 
     this.collections[config.name] = collection;
 
     let source = config.source
-      ? config.source(this.injector, config.model)
+      ? config.source(this.injector, modelName)
       : new NullCollection(key + ':source');
 
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});

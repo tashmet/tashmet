@@ -1,7 +1,8 @@
-import {Injector} from '@ziggurat/tiamat';
+import {Injector, Newable} from '@ziggurat/tiamat';
 import {Middleware} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
+import {Document} from '../models/document';
 
 /**
  * Configuration for the collection decorator.
@@ -18,9 +19,9 @@ export interface CollectionConfig {
    * All documents in the collection must conform to this model or any other model that
    * inherits from it.
    *
-   * default: isimud.Document
+   * default: Document
    */
-  model?: string;
+  model?: Newable<Document>;
 
   source?: SourceProvider;
 
