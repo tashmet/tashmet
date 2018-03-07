@@ -6,20 +6,14 @@ import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 
 export interface RelationshipsConfig {
-  controller: any;
-
   setup: Function;
 
   key: string;
 }
 
 export const relationships = (config: RelationshipsConfig) => {
-  return (injector: Injector, controller: any): Middleware | undefined => {
-    if (controller instanceof config.controller) {
-      return new RelationshipsMiddleware(controller, config);
-    } else {
-      return undefined;
-    }
+  return (injector: Injector, controller: Controller): Middleware  => {
+    return new RelationshipsMiddleware(controller, config);
   };
 };
 

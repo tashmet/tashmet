@@ -37,7 +37,8 @@ describe('Controller', () => {
     key: 'test.Controller'
   })
   @collection({
-    name: 'test'
+    name: 'test',
+    source: injector => source
   })
   class TestController extends Controller {}
 
@@ -45,12 +46,7 @@ describe('Controller', () => {
     dependencies: [Isimud],
     providers: [TestController, MockCollectionFactory],
     definitions: {
-      'mushdamma.Models': [Document],
-      'isimud.DatabaseConfig': {
-        sources: {
-          'test.Controller': (injector: Injector) => { return source; }
-        }
-      }
+      'mushdamma.Models': [Document]
     }
   })
   class TestComponent {}

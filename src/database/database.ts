@@ -3,7 +3,7 @@ import {ModelRegistry, Transformer, Validator} from '@ziggurat/mushdamma';
 import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
-import {Database, DatabaseConfig, MiddlewareProvider} from './interfaces';
+import {Database, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
 import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
@@ -17,9 +17,6 @@ import {RangeEvaluator} from '../caching/range';
 import {Document} from '../models/document';
 import {each, includes, isArray, map, transform} from 'lodash';
 
-import {View} from '../view/view';
-import {Filter} from '../view/interfaces';
-
 @provider({
   key: 'isimud.Database'
 })
@@ -27,7 +24,6 @@ export class DatabaseService extends EventEmitter implements Database {
   private collections: {[name: string]: Controller} = {};
   private syncedCount = 0;
 
-  @inject('isimud.DatabaseConfig') private dbConfig: DatabaseConfig;
   @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory<MemoryCollectionConfig>;
   @inject('mushdamma.ModelRegistry') private models: ModelRegistry;
   @inject('mushdamma.Transformer') private transformer: Transformer;
@@ -39,18 +35,8 @@ export class DatabaseService extends EventEmitter implements Database {
     return this.collections[name];
   }
 
-  private controllerViews(controllerKey: string): View[] {
-    if (!this.dbConfig.views) {
-      return [];
-    }
-    return map(this.dbConfig.views[controllerKey] || [], (key) => {
-      return this.injector.get<View>(key);
-    });
-  }
-
   @activate({
-    instanceOf: Controller,
-    taggedWith: 'isimud.Collection'
+    instanceOf: Controller
   })
   private activateController(collection: Controller): Controller {
     const key = Reflect.getOwnMetadata('tiamat:key', collection.constructor);
@@ -58,23 +44,9 @@ export class DatabaseService extends EventEmitter implements Database {
 
     this.collections[config.name] = collection;
 
-    let source: Collection;
-    if (this.dbConfig.sources[key]) {
-      source = this.dbConfig.sources[key](this.injector, config.model);
-    } else {
-      source = new NullCollection(key + ':source');
-    }
-
-    for (let view of this.controllerViews(key)) {
-      view.setCollection(collection);
-
-      for (let viewProp of Object.keys(view)) {
-        if ((<any>view)[viewProp] instanceof Filter) {
-          const filter: Filter = (<any>view)[viewProp];
-          (<any>view)[viewProp] = view.filter(filter);
-        }
-      }
-    }
+    let source = config.source
+      ? config.source(this.injector, config.model)
+      : new NullCollection(key + ':source');
 
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});
     let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
@@ -117,11 +89,8 @@ export class DatabaseService extends EventEmitter implements Database {
         'cache': cachePipe
       });
 
-    for (let middlewareProvider of this.dbConfig.middleware || []) {
-      const middleware = middlewareProvider(this.injector, collection);
-      if (middleware) {
-        processor.middleware(middleware);
-      }
+    for (let middlewareProvider of config.middleware || []) {
+      processor.middleware(middlewareProvider(this.injector, collection));
     }
 
     collection.setSource(source);
@@ -133,8 +102,7 @@ export class DatabaseService extends EventEmitter implements Database {
     collection.setBuffer(buffer);
     collection.setProcessor(processor);
 
-    const populate = this.dbConfig.populate;
-    if (populate === true || (isArray(populate) && includes(populate, key))) {
+    if (config.populate) {
       Promise.all(transform(config.populateAfter, (result: any, depName: string) => {
         result.push(this.injector.get<Controller>(depName).populate());
       }))

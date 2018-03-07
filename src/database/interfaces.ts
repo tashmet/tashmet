@@ -22,6 +22,17 @@ export interface CollectionConfig {
    */
   model?: string;
 
+  source?: SourceProvider;
+
+  middleware?: MiddlewareProvider[];
+
+  /**
+   * Specify if the collection should be automatically populated from its source on creation.
+   *
+   * default: false
+   */
+  populate?: boolean;
+
   /**
    * A list of collections that must be populated before this one is.
    */
@@ -39,22 +50,4 @@ export interface Database {
 
 export type SourceProvider = (injector: Injector, model: string) => Collection;
 
-export interface DatabaseConfig {
-  sources: {[name: string]: SourceProvider};
-
-  views?: {[name: string]: any[]};
-
-  middleware?: MiddlewareProvider[];
-
-  /**
-   * Specify if collections should be automatically populated from their sources on creation.
-   *
-   * When set to true all of them are populated. If this attribute is a list of IDs,
-   * then only those collections are affected.
-   *
-   * default: false
-   */
-  populate?: boolean | string[];
-}
-
-export type MiddlewareProvider = (injector: Injector, controller: any) => Middleware | undefined;
+export type MiddlewareProvider = (injector: Injector, controller: Controller) => Middleware;
