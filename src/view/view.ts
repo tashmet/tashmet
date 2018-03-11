@@ -30,6 +30,10 @@ export class View<T extends Document = Document> extends EventEmitter {
     return proxy;
   }
 
+  public get collection(): Controller {
+    return this.controller;
+  }
+
   public get selector(): any {
     return this._selector;
   }
