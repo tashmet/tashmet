@@ -75,8 +75,10 @@ export interface Collection<U extends Document = Document> {
 
   /**
    * Remove all documents matching selector from collection.
+   *
+   * Returns a list of all the documents that were removed.
    */
-  remove(selector: Object): Promise<void>;
+  remove<T extends U>(selector: Object): Promise<T[]>;
 
   /**
    * Get the number of documents in the collection that matches a given selector.

@@ -85,7 +85,7 @@ class RemoteCollection extends EventEmitter implements Collection {
     return totalCount;
   }
 
-  public remove(): Promise<void> {
+  public remove(): Promise<any[]> {
     return Promise.reject(new Error('remove() not implemented for remote collection'));
   }
 

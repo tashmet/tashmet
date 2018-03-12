@@ -34,11 +34,12 @@ export class MemoryCollection extends EventEmitter implements Collection {
     return Promise.resolve(doc);
   }
 
-  public remove(selector: any): Promise<void> {
-    for (let doc of remove(this.docs, selector)) {
+  public remove<T extends Document>(selector: any): Promise<T[]> {
+    let removed = remove(this.docs, selector);
+    for (let doc of removed) {
       this.emit('document-removed', doc);
     }
-    return Promise.resolve();
+    return Promise.resolve(<T[]>removed);
   }
 
   public async count(selector?: object): Promise<number> {

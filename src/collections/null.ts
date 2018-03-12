@@ -18,8 +18,8 @@ export class NullCollection extends EventEmitter implements Collection {
     return Promise.resolve(obj);
   }
 
-  public remove(selector: Object): Promise<void> {
-    return Promise.resolve();
+  public remove(selector: Object): Promise<any[]> {
+    return Promise.resolve([]);
   }
 
   public count(selector?: Object): Promise<number> {

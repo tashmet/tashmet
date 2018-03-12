@@ -48,7 +48,7 @@ export class CacheCollection extends EventEmitter implements Collection {
     return this.collection.upsert(doc);
   }
 
-  public remove(selector: Object): Promise<void> {
+  public remove<T extends Document>(selector: Object): Promise<T[]> {
     each(this.evaluators, e => e.invalidate());
     return this.collection.remove(selector);
   }

@@ -129,16 +129,18 @@ export class Controller<U extends Document = Document>
     return Promise.resolve(copy);
   }
 
-  public async remove(selector: Object): Promise<void> {
+  public async remove<T extends U>(selector: Object): Promise<T[]> {
     if (this.locked) {
       await this.populatePromise;
     }
-    for (let doc of await this._source.find<U>(selector)) {
+    let affected = await this._source.find<T>(selector);
+    for (let doc of affected) {
       await this.processor.process(doc, 'unpersist');
     }
-    for (let doc of await this._cache.collection.find<U>(selector)) {
+    for (let doc of await this._cache.collection.find<T>(selector)) {
       await this.processor.process(doc, 'uncache');
     }
+    return affected;
   }
 
   public async count(selector?: Object): Promise<number> {
