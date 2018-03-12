@@ -61,8 +61,19 @@ class RemoteCollection extends EventEmitter implements Collection {
     return docs[0];
   }
 
-  public upsert(obj: any): Promise<any> {
-    return Promise.resolve(obj);
+  public async upsert(obj: any): Promise<any> {
+    let resp = await fetch(this._path, {
+      body: JSON.stringify(obj),
+      headers: {
+        'content-type': 'application/json'
+      },
+      method: 'POST'
+    });
+    if (resp.ok) {
+      return obj;
+    } else {
+      throw new Error('Failed to upsert');
+    }
   }
 
   public async count(selector?: object): Promise<number> {
