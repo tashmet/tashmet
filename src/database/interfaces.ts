@@ -1,4 +1,4 @@
-import {Injector, Newable} from '@ziggurat/tiamat';
+import {Injector, Newable, ServiceIdentifier} from '@ziggurat/tiamat';
 import {Middleware} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
@@ -57,6 +57,12 @@ export interface CollectionConfig {
  */
 export interface Database {
   collection(name: string): Collection;
+
+  /**
+   * Create a collection.
+   */
+  createCollection<C extends Controller<any>>(
+    key: ServiceIdentifier<C>, config: CollectionConfig): C;
 
   on(event: string, fn: any): void;
 }

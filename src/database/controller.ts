@@ -22,17 +22,19 @@ export class Controller<U extends Document = Document>
   private processor: Processor<U>;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<void>;
+  private _name: string;
+  private _model: Newable<U>;
 
   public constructor() {
     super();
   }
 
   get model(): Newable<U> {
-    return Reflect.getMetadata('isimud:collection', this.constructor).model;
+    return this._model;
   }
 
   get name(): string {
-    return Reflect.getMetadata('isimud:collection', this.constructor).name;
+    return this._name;
   }
 
   get buffer(): Collection<U> {
@@ -47,23 +49,22 @@ export class Controller<U extends Document = Document>
     return this._source;
   }
 
-  public setBuffer(buffer: Collection<U>): void {
+  public initialize(name: string, model: Newable<U>,
+    source: Collection, cache: CacheCollection, buffer: Collection, processor: Processor<U>)
+  {
+    this._name = name;
+    this._model = model;
+    this._source = source;
+    this._cache = cache;
     this._buffer = buffer;
-  }
+    this.processor = processor;
 
-  public setCache(cache: CacheCollection): void {
     cache.on('document-upserted', (doc: U) => {
       this.emit('document-upserted', doc);
     });
     cache.on('document-removed', (doc: U) => {
       this.emit('document-removed', doc);
     });
-
-    this._cache = cache;
-  }
-
-  public setSource(source: Collection<U>): void {
-    this._source = source;
 
     source.on('document-upserted', (doc: U) => {
       if (!this.locked) {
@@ -76,10 +77,6 @@ export class Controller<U extends Document = Document>
     source.on('document-removed', (doc: U) => {
       this._cache.remove({_id: doc._id});
     });
-  }
-
-  public setProcessor(processor: Processor<U>) {
-    this.processor = processor;
   }
 
   public populate(): Promise<void> {

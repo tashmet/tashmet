@@ -1,9 +1,9 @@
-import {inject, provider, activate, Injector} from '@ziggurat/tiamat';
+import {inject, provider, activate, Injector, ServiceIdentifier, Newable} from '@ziggurat/tiamat';
 import {ModelRegistry, Transformer, Validator} from '@ziggurat/mushdamma';
 import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
-import {Database, MiddlewareProvider} from './interfaces';
+import {CollectionConfig, Database, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
 import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
@@ -35,19 +35,34 @@ export class DatabaseService extends EventEmitter implements Database {
     return this.collections[name];
   }
 
+  public createCollection<C extends Controller<any>>(
+    key: ServiceIdentifier<C>, config: CollectionConfig): C
+  {
+    let controller = this.injector.get<C>(key);
+    this.initializeController(controller, config);
+    return controller;
+  }
+
   @activate({
     instanceOf: Controller
   })
-  private activateController(collection: Controller): Controller {
-    const key = Reflect.getOwnMetadata('tiamat:key', collection.constructor);
-    const config = Reflect.getOwnMetadata('isimud:collection', collection.constructor);
-    const modelName = Reflect.getOwnMetadata('mushdamma:model', config.model).name;
+  private activateController(controller: Controller): Controller {
+    const config = Reflect.getOwnMetadata('isimud:collection', controller.constructor);
+    if (config) {
+      this.initializeController(controller, config);
+    }
+    return controller;
+  }
 
-    this.collections[config.name] = collection;
+  private initializeController(controller: Controller, config: CollectionConfig) {
+    const model = config.model || Document;
+    const modelName = Reflect.getOwnMetadata('mushdamma:model', model).name;
+
+    this.collections[config.name] = controller;
 
     let source = config.source
       ? config.source(this.injector, modelName)
-      : new NullCollection(key + ':source');
+      : new NullCollection(config.name + ':source');
 
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});
     let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
@@ -91,46 +106,43 @@ export class DatabaseService extends EventEmitter implements Database {
       });
 
     for (let middlewareProvider of config.middleware || []) {
-      processor.middleware(middlewareProvider(this.injector, collection));
+      processor.middleware(middlewareProvider(this.injector, controller));
     }
 
-    collection.setSource(source);
-    collection.setCache(new CacheCollection(cache, [
+    controller.initialize(config.name, model, source, new CacheCollection(cache, [
       new QueryHashEvaluator(),
       new DocumentIdEvaluator(),
       new RangeEvaluator()
-    ]));
-    collection.setBuffer(buffer);
-    collection.setProcessor(processor);
+    ]), buffer, processor);
 
     if (config.populate) {
-      Promise.all(transform(config.populateAfter, (result: any, depName: string) => {
+      Promise.all(transform(config.populateAfter || [], (result: any, depName: string) => {
         result.push(this.injector.get<Controller>(depName).populate());
       }))
         .then(() => {
-          return collection.populate();
+          return controller.populate();
         });
     } else {
-      collection.locked = false;
+      controller.locked = false;
     }
 
-    collection.on('ready', () => {
+    controller.on('ready', () => {
       this.syncedCount += 1;
       if (this.syncedCount === Object.keys(this.collections).length) {
         this.emit('database-synced');
       }
     });
 
-    collection.on('document-upserted', (doc: any) => {
-      this.emit('document-upserted', doc, collection);
+    controller.on('document-upserted', (doc: any) => {
+      this.emit('document-upserted', doc, controller);
     });
-    collection.on('document-removed', (doc: any) => {
-      this.emit('document-removed', doc, collection);
+    controller.on('document-removed', (doc: any) => {
+      this.emit('document-removed', doc, controller);
     });
-    collection.on('document-error', (err: any) => {
-      this.emit('document-error', err, collection);
+    controller.on('document-error', (err: any) => {
+      this.emit('document-error', err, controller);
     });
 
-    return collection;
+    return controller;
   }
 }
