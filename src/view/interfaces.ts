@@ -13,7 +13,7 @@ export abstract class Filter {
     this.observe = config.observe || [];
   }
 
-  public apply(selector: any, options: QueryOptions): void { return; }
+  public apply(selector: object, options: QueryOptions): void { return; }
 }
 
 export interface FeedConfig extends FilterConfig {

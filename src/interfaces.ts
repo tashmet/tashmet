@@ -22,8 +22,8 @@ export interface RemoteCollectionConfig {
 }
 
 export enum SortingOrder {
-    Ascending = 'asc',
-    Descending = 'desc'
+  Ascending = 'asc',
+  Descending = 'desc'
 }
 
 export interface Sorting {
@@ -62,33 +62,34 @@ export interface Collection<U extends Document = Document> {
   readonly name: string;
 
   /**
-   * Insert a document into the collection. If the document already exists it
-   * will be updated.
+   * Insert a document into the collection.
+   *
+   * If the document already exists it will be updated.
    * A promise for the upserted document is returned.
    */
-  upsert<T extends U>(obj: T): Promise<T>;
+  upsert<T extends U>(doc: T): Promise<T>;
 
   /**
    * Find documents in the collection.
    */
-  find<T extends U>(selector?: Object, options?: QueryOptions): Promise<T[]>;
+  find<T extends U>(selector?: object, options?: QueryOptions): Promise<T[]>;
 
   /**
    * Find a single document in the collection.
    */
-  findOne<T extends U>(selector: Object): Promise<T>;
+  findOne<T extends U>(selector: object): Promise<T>;
 
   /**
    * Remove all documents matching selector from collection.
    *
    * Returns a list of all the documents that were removed.
    */
-  remove<T extends U>(selector: Object): Promise<T[]>;
+  remove<T extends U>(selector: object): Promise<T[]>;
 
   /**
    * Get the number of documents in the collection that matches a given selector.
    */
-  count(selector?: Object): Promise<number>;
+  count(selector?: object): Promise<number>;
 
   /**
    * Listen for when a document in the collection has been added or changed.
@@ -117,13 +118,13 @@ export interface Collection<U extends Document = Document> {
 }
 
 export interface CacheEvaluator {
-  isCached(selector: any, options: QueryOptions): boolean;
+  isCached(selector: object, options: QueryOptions): boolean;
 
-  setCached(selector: any, options: QueryOptions): void;
+  setCached(selector: object, options: QueryOptions): void;
 
   add(doc: any): void;
 
-  optimizeQuery(selector: any, options: QueryOptions): void;
+  optimizeQuery(selector: object, options: QueryOptions): void;
 
   invalidate(): void;
 }
@@ -140,9 +141,9 @@ export class DocumentError extends Error {
  *
  */
 export interface Serializer {
-  deserialize(data: string): Promise<Object>;
+  deserialize(data: string): Promise<object>;
 
-  serialize(data: Object): Promise<string>;
+  serialize(data: object): Promise<string>;
 }
 
 export type SerializerProvider = (injector: Injector) => Serializer;
