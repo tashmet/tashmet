@@ -82,7 +82,7 @@ export class View<T extends Document = Document> extends EventEmitter {
   }
 
   private async documentUpdated(doc: T) {
-    if (doc._collection !== this.controller.name()) {
+    if (doc._collection !== this.controller.name) {
       return;
     }
     this.applyFilters();

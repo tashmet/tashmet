@@ -2,7 +2,7 @@ import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 
 export class NullCollection extends EventEmitter implements Collection {
-  public constructor(private _name: string) {
+  public constructor(public readonly name: string) {
     super();
   }
 
@@ -24,9 +24,5 @@ export class NullCollection extends EventEmitter implements Collection {
 
   public count(selector?: Object): Promise<number> {
     return Promise.resolve(0);
-  }
-
-  public name(): string {
-    return this._name;
   }
 }

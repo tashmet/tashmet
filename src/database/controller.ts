@@ -31,6 +31,10 @@ export class Controller<U extends Document = Document>
     return Reflect.getMetadata('isimud:collection', this.constructor).model;
   }
 
+  get name(): string {
+    return Reflect.getMetadata('isimud:collection', this.constructor).name;
+  }
+
   get buffer(): Collection<U> {
     return this._buffer;
   }
@@ -63,7 +67,7 @@ export class Controller<U extends Document = Document>
 
     source.on('document-upserted', (doc: U) => {
       if (!this.locked) {
-        doc._collection = this.name();
+        doc._collection = this.name;
         if (this.upsertQueue.indexOf(doc._id) < 0) {
           this.processor.process(doc, 'source-upsert');
         }
@@ -120,7 +124,7 @@ export class Controller<U extends Document = Document>
 
     let copy = clone(doc);
     copy._revision = doc._revision ? doc._revision + 1 : 1;
-    copy._collection = this.name();
+    copy._collection = this.name;
 
     this.upsertQueue.push(copy._id);
 
@@ -151,10 +155,6 @@ export class Controller<U extends Document = Document>
     }
   }
 
-  public name(): string {
-    return this._cache.name();
-  }
-
   private async _populate(): Promise<void> {
     for (let doc of await this.populateBuffer(await this._source.find<U>())) {
       try {
@@ -170,7 +170,7 @@ export class Controller<U extends Document = Document>
 
   private async populateBuffer(docs: U[]): Promise<U[]> {
     for (let doc of docs) {
-      doc._collection = this.name();
+      doc._collection = this.name;
       try {
         await this._buffer.upsert(await this.processor.process(doc, 'populate-pre-buffer'));
       } catch (err) {

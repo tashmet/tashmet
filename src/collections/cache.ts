@@ -29,6 +29,10 @@ export class CacheCollection extends EventEmitter implements Collection {
     });
   }
 
+  public get name(): string {
+    return this.collection.name;
+  }
+
   public find<T extends Document>(selector?: Object, options?: QueryOptions): Promise<T[]> {
     if (this.isCached(selector, options)) {
       return this.collection.find<T>(selector, options);
@@ -59,10 +63,6 @@ export class CacheCollection extends EventEmitter implements Collection {
     } else {
       return Promise.reject(new Error('Count is not cached'));
     }
-  }
-
-  public name(): string {
-    return this.collection.name();
   }
 
   public setCached(selector?: Object, options?: QueryOptions) {

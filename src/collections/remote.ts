@@ -25,19 +25,19 @@ class RemoteCollection extends EventEmitter implements Collection {
 
   public constructor(
     private _path: string,
-    private _name: string,
+    public readonly name: string,
     socket: any
   ) {
     super();
 
     if (socket) {
       socket.on('document-upserted', (doc: any) => {
-        if (doc._collection === this._name) {
+        if (doc._collection === this.name) {
           this.emit('document-upserted', doc);
         }
       });
       socket.on('document-removed', (doc: any) => {
-        if (doc._collection === this._name) {
+        if (doc._collection === this.name) {
           this.emit('document-removed', doc);
         }
       });
@@ -87,10 +87,6 @@ class RemoteCollection extends EventEmitter implements Collection {
 
   public remove(): Promise<any[]> {
     return Promise.reject(new Error('remove() not implemented for remote collection'));
-  }
-
-  public name(): string {
-    return this._path;
   }
 
   private updateTotalCount(selector: object, resp: Response): number {

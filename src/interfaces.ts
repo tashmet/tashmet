@@ -57,6 +57,11 @@ export interface QueryOptions {
  */
 export interface Collection<U extends Document = Document> {
   /**
+   * Name of the collection.
+   */
+  readonly name: string;
+
+  /**
    * Insert a document into the collection. If the document already exists it
    * will be updated.
    * A promise for the upserted document is returned.
@@ -84,11 +89,6 @@ export interface Collection<U extends Document = Document> {
    * Get the number of documents in the collection that matches a given selector.
    */
   count(selector?: Object): Promise<number>;
-
-  /**
-   * Get the name of the collection.
-   */
-  name(): string;
 
   /**
    * Listen for when a document in the collection has been added or changed.

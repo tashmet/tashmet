@@ -6,7 +6,7 @@ import {filter, find, findIndex, remove} from 'lodash';
 export class MemoryCollection extends EventEmitter implements Collection {
   public docs: Document[] = [];
 
-  public constructor() {
+  public constructor(public readonly name = '') {
     super();
   }
 
@@ -44,9 +44,5 @@ export class MemoryCollection extends EventEmitter implements Collection {
 
   public async count(selector?: object): Promise<number> {
     return (await this.find(selector)).length;
-  }
-
-  public name(): string {
-    return '';
   }
 }
