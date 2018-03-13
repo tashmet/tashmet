@@ -23,8 +23,20 @@ export interface CollectionConfig {
    */
   model?: Newable<Document>;
 
+  /**
+   * Provider of the source collection.
+   *
+   * The controller can have an optional source collection that documents are read from and
+   * writter to such as a file on disk when server-side or a remote rest interface when the
+   * controller operates in a browser.
+   *
+   * If no source provider is given, the controller will be a volatile memory collection.
+   */
   source?: SourceProvider;
 
+  /**
+   * A list of providers of processing pipeline midddleware.
+   */
   middleware?: MiddlewareProvider[];
 
   /**
