@@ -18,7 +18,6 @@ class CollectionDecorator extends TaggedClassAnnotation<CollectionConfig> {
 
 export const collection = classDecorator<CollectionConfig>(
   new CollectionDecorator('isimud:collection', ['isimud.Collection']), {
-    model: Document,
     middleware: [],
     populate: false,
     populateAfter: []

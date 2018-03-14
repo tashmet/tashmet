@@ -1,4 +1,4 @@
-import {Injector, Newable, ServiceIdentifier} from '@ziggurat/tiamat';
+import {Injector, ServiceIdentifier} from '@ziggurat/tiamat';
 import {Middleware} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
@@ -12,16 +12,6 @@ export interface CollectionConfig {
    * The name of the collection.
    */
   name: string;
-
-  /**
-   * Base model that the collection will use for its documents.
-   *
-   * All documents in the collection must conform to this model or any other model that
-   * inherits from it.
-   *
-   * default: Document
-   */
-  model?: Newable<Document>;
 
   /**
    * Provider of the source collection.
@@ -60,6 +50,10 @@ export interface Database {
 
   /**
    * Create a collection.
+   *
+   * This function will create a new instance given a provider and a configuration.
+   * The provider needs to be registered in transient scope with the injector prior to
+   * calling this function.
    */
   createCollection<C extends Controller<any>>(
     key: ServiceIdentifier<C>, config: CollectionConfig): C;

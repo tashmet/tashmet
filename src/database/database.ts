@@ -55,8 +55,7 @@ export class DatabaseService extends EventEmitter implements Database {
   }
 
   private initializeController(controller: Controller, config: CollectionConfig) {
-    const model = config.model || Document;
-    const modelName = Reflect.getOwnMetadata('mushdamma:model', model).name;
+    const modelName = Reflect.getOwnMetadata('mushdamma:model', controller.model).name;
 
     this.collections[config.name] = controller;
 
@@ -109,7 +108,7 @@ export class DatabaseService extends EventEmitter implements Database {
       processor.middleware(middlewareProvider(this.injector, controller));
     }
 
-    controller.initialize(config.name, model, source, new CacheCollection(cache, [
+    controller.initialize(config.name, source, new CacheCollection(cache, [
       new QueryHashEvaluator(),
       new DocumentIdEvaluator(),
       new RangeEvaluator()

@@ -15,6 +15,7 @@ if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
 export class Controller<U extends Document = Document>
   extends EventEmitter implements Collection<U>
 {
+  public readonly model: Newable<U>;
   public locked = true;
   protected _cache: CacheCollection;
   protected _buffer: Collection;
@@ -23,15 +24,6 @@ export class Controller<U extends Document = Document>
   private upsertQueue: string[] = [];
   private populatePromise: Promise<void>;
   private _name: string;
-  private _model: Newable<U>;
-
-  public constructor() {
-    super();
-  }
-
-  get model(): Newable<U> {
-    return this._model;
-  }
 
   get name(): string {
     return this._name;
@@ -49,11 +41,10 @@ export class Controller<U extends Document = Document>
     return this._source;
   }
 
-  public initialize(name: string, model: Newable<U>,
+  public initialize(name: string,
     source: Collection, cache: CacheCollection, buffer: Collection, processor: Processor<U>)
   {
     this._name = name;
-    this._model = model;
     this._source = source;
     this._cache = cache;
     this._buffer = buffer;

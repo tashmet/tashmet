@@ -40,7 +40,9 @@ describe('Controller', () => {
     name: 'test',
     source: injector => source
   })
-  class TestController extends Controller {}
+  class TestController extends Controller {
+    public model = Document;
+  }
 
   @component({
     dependencies: [Isimud],
