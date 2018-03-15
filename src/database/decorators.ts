@@ -1,9 +1,9 @@
-import {classDecorator, TaggedClassAnnotation, PropertyMeta} from '@ziggurat/tiamat';
+import {classDecorator, ClassAnnotation, PropertyMeta} from '@ziggurat/tiamat';
 import {CollectionConfig} from './interfaces';
 import {uniq} from 'lodash';
 import {Document} from '../models/document';
 
-class CollectionDecorator extends TaggedClassAnnotation<CollectionConfig> {
+class CollectionDecorator extends ClassAnnotation<CollectionConfig> {
   public decorate(data: CollectionConfig, target: any) {
     let parentMeta = Reflect.getMetadata('isimud:collection', target);
     if (parentMeta) {
@@ -17,7 +17,7 @@ class CollectionDecorator extends TaggedClassAnnotation<CollectionConfig> {
 }
 
 export const collection = classDecorator<CollectionConfig>(
-  new CollectionDecorator('isimud:collection', ['isimud.Collection']), {
+  new CollectionDecorator('isimud:collection'), {
     middleware: [],
     populate: false,
     populateAfter: []

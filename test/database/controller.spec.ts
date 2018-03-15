@@ -1,4 +1,4 @@
-import {bootstrap, component, provider, Injector} from '@ziggurat/tiamat';
+import {bootstrap, component, provider, inject, Injector} from '@ziggurat/tiamat';
 import {Isimud} from '../../src';
 import {collection} from '../../src/database/decorators';
 import {Collection, CollectionFactory, MemoryCollectionConfig} from '../../src/interfaces';
@@ -15,7 +15,7 @@ import * as sinonChai from 'sinon-chai';
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
-describe('Controller', () => {
+describe('Controller', async () => {
   let cache  = new MemoryCollection();
   let buffer = new MemoryCollection();
   let source = new MemoryCollection();
@@ -25,7 +25,7 @@ describe('Controller', () => {
   })
   class MockCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
     public createCollection(name: string, config: MemoryCollectionConfig): Collection {
-      if (name == 'test') {
+      if (name === 'test') {
         return cache;
       } else {
         return buffer;
@@ -51,9 +51,11 @@ describe('Controller', () => {
       'mushdamma.Models': [Document]
     }
   })
-  class TestComponent {}
+  class TestComponent {
+    @inject('test.Controller') public controller: TestController;
+  }
 
-  let controller = bootstrap(TestComponent).get<Controller>('test.Controller');
+  let controller = (await bootstrap(TestComponent)).controller;
 
   describe('findOne', () => {
     const stub = sinon.stub(source, 'findOne');

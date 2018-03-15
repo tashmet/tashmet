@@ -99,9 +99,7 @@ export class ViewActivator {
     @inject('tiamat.Injector') private injector: Injector
   ) {}
 
-  @activate({
-    instanceOf: View
-  })
+  @activate(o => o instanceof View)
   private activateView(view: View) {
     const collectionKey = Reflect.getOwnMetadata('isimud:viewOf', view.constructor);
     view.setCollection(this.injector.get<Controller>(collectionKey));

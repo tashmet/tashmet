@@ -43,9 +43,7 @@ export class DatabaseService extends EventEmitter implements Database {
     return controller;
   }
 
-  @activate({
-    instanceOf: Controller
-  })
+  @activate(o => o instanceof Controller)
   private activateController(controller: Controller): Controller {
     const config = Reflect.getOwnMetadata('isimud:collection', controller.constructor);
     if (config) {
