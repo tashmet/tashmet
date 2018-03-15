@@ -141,9 +141,9 @@ export class DocumentError extends Error {
  *
  */
 export interface Serializer {
-  deserialize(data: string): Promise<object>;
+  deserialize(buffer: Buffer): Promise<object>;
 
-  serialize(data: object): Promise<string>;
+  serialize(data: object): Promise<Buffer>;
 }
 
 export type SerializerProvider = (injector: Injector) => Serializer;
