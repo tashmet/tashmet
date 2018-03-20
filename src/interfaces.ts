@@ -1,8 +1,6 @@
 import {Injector} from '@ziggurat/tiamat';
 import {Document} from './models/document';
 
-export type ClassType<T> = { new (...args: any[]): T; };
-
 /**
  * Generic interface for creating collections.
  */

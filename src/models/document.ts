@@ -1,4 +1,5 @@
-import {model, number, string} from '@ziggurat/mushdamma';
+import {getType} from 'reflect-helper';
+import {model, number, string, ModelAnnotation} from '@ziggurat/mushdamma';
 
 @model({
   name: 'isimud.Document',
@@ -20,6 +21,6 @@ export class Document {
   }
 
   get _model(): string {
-    return Reflect.getOwnMetadata('mushdamma:model', this.constructor).name;
+    return getType(this.constructor).getAnnotations(ModelAnnotation)[0].name;
   }
 }

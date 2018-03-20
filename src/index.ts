@@ -12,7 +12,6 @@ export {SelectorFilter} from './view/filters/selector';
 export {Document} from './models/document';
 export {relationships, ComparatorList} from './middleware/relationships';
 export {json} from './serializers/json';
-export {reference} from './schema/reference';
 export {inline} from './sources/inline';
 export {remote} from './sources/remote';
 export * from './interfaces';

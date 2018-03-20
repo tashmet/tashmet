@@ -1,3 +1,4 @@
+import {getType} from 'reflect-helper';
 import {activate, injectable, inject, Injector} from '@ziggurat/tiamat';
 import {QueryOptions} from '../interfaces';
 import {Filter} from './interfaces';
@@ -5,6 +6,7 @@ import {EventEmitter} from 'eventemitter3';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 import {each, find, includes} from 'lodash';
+import {ViewOfAnnotation} from './decorators';
 
 @injectable()
 export class View<T extends Document = Document> extends EventEmitter {
@@ -101,8 +103,12 @@ export class ViewActivator {
 
   @activate(o => o instanceof View)
   private activateView(view: View) {
-    const collectionKey = Reflect.getOwnMetadata('isimud:viewOf', view.constructor);
-    view.setCollection(this.injector.get<Controller>(collectionKey));
+    const annotations = getType(view.constructor).getAnnotations(ViewOfAnnotation);
+    if (annotations.length === 0) {
+      return;
+    }
+
+    view.setCollection(this.injector.get<Controller>(annotations[0].key));
 
     for (let viewProp of Object.keys(view)) {
       if ((<any>view)[viewProp] instanceof Filter) {

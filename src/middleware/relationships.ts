@@ -1,7 +1,8 @@
+import {Newable} from '@ziggurat/meta';
 import {provider, Injector} from '@ziggurat/tiamat';
 import {before, after, Middleware} from '@ziggurat/ningal';
 import {map, orderBy, remove, transform} from 'lodash';
-import {Collection, ClassType, Pipe, Step} from '../interfaces';
+import {Collection, Pipe, Step} from '../interfaces';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 
@@ -20,7 +21,7 @@ export const relationships = (config: RelationshipsConfig) => {
 export class ComparatorList {
   private comparators: {model: any, fn: Function}[] = [];
 
-  public add<T>(model: ClassType<T>, fn: (o1: T, o2: T) => number) {
+  public add<T>(model: Newable<T>, fn: (o1: T, o2: T) => number) {
     this.comparators.push({model, fn});
   }
 

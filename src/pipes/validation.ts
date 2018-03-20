@@ -1,5 +1,4 @@
-import {PropertyMeta} from '@ziggurat/tiamat';
-import {Validator, ModelConfig} from '@ziggurat/mushdamma';
+import {Validator} from '@ziggurat/mushdamma';
 import {Pipe} from '@ziggurat/ningal';
 import {DocumentError} from '../interfaces';
 import {Document} from '../models/document';

@@ -1,5 +1,6 @@
-import {inject, provider, activate, Injector, ServiceIdentifier, Newable} from '@ziggurat/tiamat';
-import {ModelRegistry, Transformer, Validator} from '@ziggurat/mushdamma';
+import {getType} from 'reflect-helper';
+import {inject, provider, activate, Injector, ServiceIdentifier} from '@ziggurat/tiamat';
+import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
 import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   CacheEvaluator, QueryOptions} from '../interfaces';
@@ -7,7 +8,6 @@ import {CollectionConfig, Database, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
 import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
-import {ReferenceValidationPipe} from '../pipes/reference';
 import {RevisionUpsertPipe} from '../pipes/upsert';
 import {ValidationPipe} from '../pipes/validation';
 import {EventEmitter} from 'eventemitter3';
@@ -16,6 +16,7 @@ import {QueryHashEvaluator} from '../caching/queryHash';
 import {RangeEvaluator} from '../caching/range';
 import {Document} from '../models/document';
 import {each, includes, isArray, map, transform} from 'lodash';
+import {CollectionAnnotation} from './decorators';
 
 @provider({
   key: 'isimud.Database'
@@ -45,15 +46,16 @@ export class DatabaseService extends EventEmitter implements Database {
 
   @activate(o => o instanceof Controller)
   private activateController(controller: Controller): Controller {
-    const config = Reflect.getOwnMetadata('isimud:collection', controller.constructor);
-    if (config) {
-      this.initializeController(controller, config);
+    const annotations = getType(controller.constructor).getAnnotations(CollectionAnnotation);
+
+    if (annotations.length !== 0) {
+      this.initializeController(controller, annotations[0].config);
     }
     return controller;
   }
 
   private initializeController(controller: Controller, config: CollectionConfig) {
-    const modelName = Reflect.getOwnMetadata('mushdamma:model', controller.model).name;
+    const modelName = getType(controller.model).getAnnotations(ModelAnnotation)[0].name;
 
     this.collections[config.name] = controller;
 
@@ -66,23 +68,19 @@ export class DatabaseService extends EventEmitter implements Database {
 
     let cachePipe = new RevisionUpsertPipe(cache);
     let validationPipe = new ValidationPipe(this.validator);
-    let referencePipe = new ReferenceValidationPipe(this.injector, this.models);
     let processor = this.processorFactory.createProcessor<Document>()
       .pipe('populate-pre-buffer', 'populate', {
         'validate': validationPipe,
-        'validate-references': referencePipe
       })
       .pipe('populate-post-buffer', 'populate', {
         'cache': cachePipe
       })
       .pipe('source-upsert', true, {
         'validate': validationPipe,
-        'validate-references': referencePipe,
         'cache': cachePipe
       })
       .pipe('upsert', true, {
         'validate': validationPipe,
-        'validate-references': referencePipe,
         'cache': cachePipe,
         'persist': doc => source.upsert(doc)
       })

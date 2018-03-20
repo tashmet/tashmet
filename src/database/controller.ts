@@ -1,4 +1,5 @@
-import {injectable, decorate, Newable} from '@ziggurat/tiamat';
+import {Newable} from '@ziggurat/meta';
+import {injectable, decorate} from '@ziggurat/tiamat';
 import {Processor} from '@ziggurat/ningal';
 import {Collection, DocumentError, QueryOptions, CacheEvaluator} from '../interfaces';
 import {CacheCollection} from '../collections/cache';
