@@ -22,7 +22,6 @@ export * from './view/interfaces';
 
 import {DatabaseService} from './database/database';
 import {RemoteCollectionFactory} from './collections/remote';
-import {ViewActivator} from './view/view';
 
 @component({
   dependencies: [
@@ -32,7 +31,6 @@ import {ViewActivator} from './view/view';
   providers: [
     RemoteCollectionFactory,
     DatabaseService,
-    ViewActivator
   ],
   autoCreate: []
 })

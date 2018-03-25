@@ -94,27 +94,3 @@ export class View<T extends Document = Document> extends EventEmitter {
     }
   }
 }
-
-
-export class ViewActivator {
-  public constructor(
-    @inject('tiamat.Injector') private injector: Injector
-  ) {}
-
-  @activate(o => o instanceof View)
-  private activateView(view: View) {
-    const annotations = getType(view.constructor).getAnnotations(ViewOfAnnotation);
-    if (annotations.length === 0) {
-      return;
-    }
-
-    view.setCollection(this.injector.get<Controller>(annotations[0].key));
-
-    for (let viewProp of Object.keys(view)) {
-      if ((<any>view)[viewProp] instanceof Filter) {
-        const filter: Filter = (<any>view)[viewProp];
-        (<any>view)[viewProp] = view.filter(filter);
-      }
-    }
-  }
-}
