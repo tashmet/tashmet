@@ -1,5 +1,6 @@
 import {getType} from 'reflect-helper';
-import {inject, provider, activate, Injector, ServiceIdentifier} from '@ziggurat/tiamat';
+import {inject, optional, provider, activate, Injector,
+  ServiceIdentifier} from '@ziggurat/tiamat';
 import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
 import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
@@ -25,12 +26,19 @@ export class DatabaseService extends EventEmitter implements Database {
   private collections: {[name: string]: Controller} = {};
   private syncedCount = 0;
 
-  @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory<MemoryCollectionConfig>;
-  @inject('mushdamma.ModelRegistry') private models: ModelRegistry;
-  @inject('mushdamma.Transformer') private transformer: Transformer;
-  @inject('mushdamma.Validator') private validator: Validator;
-  @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory;
-  @inject('tiamat.Injector') private injector: Injector;
+  public constructor(
+    @inject('isimud.MemoryCollectionFactory')
+    private memory: CollectionFactory<MemoryCollectionConfig>,
+    @inject('isimud.Middleware') @optional()
+    private middleware: MiddlewareProvider[] = [],
+    @inject('mushdamma.ModelRegistry') private models: ModelRegistry,
+    @inject('mushdamma.Transformer') private transformer: Transformer,
+    @inject('mushdamma.Validator') private validator: Validator,
+    @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory,
+    @inject('tiamat.Injector') private injector: Injector,
+  ) {
+    super();
+  }
 
   public collection(name: string): Collection {
     return this.collections[name];
@@ -100,7 +108,7 @@ export class DatabaseService extends EventEmitter implements Database {
         'cache': cachePipe
       });
 
-    for (let middlewareProvider of config.middleware || []) {
+    for (let middlewareProvider of this.middleware.concat(config.middleware || [])) {
       processor.middleware(middlewareProvider(this.injector, controller));
     }
 
