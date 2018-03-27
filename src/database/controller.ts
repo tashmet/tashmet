@@ -1,7 +1,7 @@
 import {Newable} from '@ziggurat/meta';
 import {injectable, decorate} from '@ziggurat/tiamat';
 import {Processor} from '@ziggurat/ningal';
-import {Collection, DocumentError, QueryOptions, CacheEvaluator} from '../interfaces';
+import {Collection, DocumentError, QueryOptions, Query, CacheEvaluator} from '../interfaces';
 import {CacheCollection} from '../collections/cache';
 import {Document} from '../models/document';
 import {QueryHashEvaluator} from '../caching/queryHash';
@@ -21,7 +21,7 @@ export class Controller<U extends Document = Document>
   protected _cache: CacheCollection;
   protected _buffer: Collection;
   protected _source: Collection;
-  private processor: Processor<U>;
+  private processor: Processor<any>;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<void>;
   private _name: string;
@@ -84,9 +84,10 @@ export class Controller<U extends Document = Document>
       await this.populatePromise;
     }
     try {
-      return await this._cache.find<T>(selector, options);
+      return await this.processor.process({selector, options}, 'find-cache');
     } catch (err) {
-      for (let doc of await this._source.find<T>(err.selector, err.options)) {
+      const query: Query = {selector: err.selector, options: err.options};
+      for (let doc of await this.processor.process(query, 'find-source')) {
         await this.processor.process(doc, 'cache');
       }
       this._cache.setCached(selector, options);

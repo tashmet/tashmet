@@ -50,6 +50,12 @@ export interface QueryOptions {
   limit?: number;
 }
 
+export interface Query {
+  selector: any;
+
+  options: QueryOptions;
+}
+
 /**
  * A collection of documents.
  */
@@ -186,6 +192,8 @@ export enum Pipe {
    * steps: Uncache
    */
   SourceRemove = 'source-remove',
+
+  Find = 'find',
 }
 
 /**
@@ -215,5 +223,15 @@ export enum Step {
   /**
    * Removal of document from source collection.
    */
-  Unpersist = 'unpersist'
+  Unpersist = 'unpersist',
+
+  /**
+   * Querrying of documents in cache collection.
+   */
+  CacheQuery = 'cache-query',
+
+  /**
+   * Querrying of documents in source collection.
+   */
+  SourceQuery = 'source-query',
 }

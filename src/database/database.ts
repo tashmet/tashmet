@@ -4,7 +4,7 @@ import {inject, optional, provider, activate, Injector,
 import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
 import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
-  CacheEvaluator, QueryOptions} from '../interfaces';
+  CacheEvaluator, QueryOptions, Query} from '../interfaces';
 import {CollectionConfig, Database, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
 import {CacheCollection} from '../collections/cache';
@@ -74,9 +74,15 @@ export class DatabaseService extends EventEmitter implements Database {
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});
     let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
 
+    let cacheWrapper = new CacheCollection(cache, [
+      new QueryHashEvaluator(),
+      new DocumentIdEvaluator(),
+      new RangeEvaluator()
+    ]);
+
     let cachePipe = new RevisionUpsertPipe(cache);
     let validationPipe = new ValidationPipe(this.validator);
-    let processor = this.processorFactory.createProcessor<Document>()
+    let processor = this.processorFactory.createProcessor<any>()
       .pipe('populate-pre-buffer', 'populate', {
         'validate': validationPipe,
       })
@@ -106,17 +112,23 @@ export class DatabaseService extends EventEmitter implements Database {
       })
       .pipe('cache', false, {
         'cache': cachePipe
+      })
+      .pipe('find-cache', 'find', {
+        'find-cache': async (q: Query) => {
+          return cacheWrapper.find(q.selector, q.options);
+        }
+      })
+      .pipe('find-source', 'find', {
+        'find-source': async (q: Query) => {
+          return source.find(q.selector, q.options);
+        }
       });
 
     for (let middlewareProvider of this.middleware.concat(config.middleware || [])) {
       processor.middleware(middlewareProvider(this.injector, controller));
     }
 
-    controller.initialize(config.name, source, new CacheCollection(cache, [
-      new QueryHashEvaluator(),
-      new DocumentIdEvaluator(),
-      new RangeEvaluator()
-    ]), buffer, processor);
+    controller.initialize(config.name, source, cacheWrapper, buffer, processor);
 
     if (config.populate) {
       Promise.all(transform(config.populateAfter || [], (result: any, depName: string) => {
