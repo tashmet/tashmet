@@ -110,18 +110,19 @@ export class DatabaseService extends EventEmitter implements Database {
           return doc;
         },
       })
-      .pipe('cache', false, {
-        'cache': cachePipe
-      })
-      .pipe('find-cache', 'find', {
+      .pipe('find.query-cache', 'find', {
         'find-cache': async (q: Query) => {
           return cacheWrapper.find(q.selector, q.options);
         }
       })
-      .pipe('find-source', 'find', {
+      .pipe('find.query-source', 'find', {
         'find-source': async (q: Query) => {
           return source.find(q.selector, q.options);
         }
+      })
+      .pipe('find.process', 'find', {
+        'validate': validationPipe,
+        'cache': cachePipe
       });
 
     for (let middlewareProvider of this.middleware.concat(config.middleware || [])) {

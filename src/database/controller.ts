@@ -62,7 +62,7 @@ export class Controller<U extends Document = Document>
       if (!this.locked) {
         doc._collection = this.name;
         if (this.upsertQueue.indexOf(doc._id) < 0) {
-          this.processor.process(doc, 'source-upsert');
+          this.do('source-upsert', doc);
         }
       }
     });
@@ -84,11 +84,11 @@ export class Controller<U extends Document = Document>
       await this.populatePromise;
     }
     try {
-      return await this.processor.process({selector, options}, 'find-cache');
+      return await this.do('find.query-cache', {selector, options});
     } catch (err) {
       const query: Query = {selector: err.selector, options: err.options};
-      for (let doc of await this.processor.process(query, 'find-source')) {
-        await this.processor.process(doc, 'cache');
+      for (let doc of await this.do('find.query-source', query)) {
+        await this.do('find.process', doc);
       }
       this._cache.setCached(selector, options);
       return this._cache.find<T>(selector, options);
@@ -102,7 +102,7 @@ export class Controller<U extends Document = Document>
       if (this.locked) {
         throw err;
       } else {
-        return <Promise<T>>this.processor.process(await this._source.findOne<T>(selector), 'cache');
+        return <Promise<T>>this.do('find.process', await this._source.findOne<T>(selector));
       }
     }
   }
@@ -118,7 +118,7 @@ export class Controller<U extends Document = Document>
 
     this.upsertQueue.push(copy._id);
 
-    await this.processor.process(copy, 'upsert');
+    await this.do('upsert', copy);
     pull(this.upsertQueue, copy._id);
     return Promise.resolve(copy);
   }
@@ -129,10 +129,10 @@ export class Controller<U extends Document = Document>
     }
     let affected = await this._source.find<T>(selector);
     for (let doc of affected) {
-      await this.processor.process(doc, 'unpersist');
+      await this.do('unpersist', doc);
     }
     for (let doc of await this._cache.collection.find<T>(selector)) {
-      await this.processor.process(doc, 'uncache');
+      await this.do('uncache', doc);
     }
     return affected;
   }
@@ -148,7 +148,7 @@ export class Controller<U extends Document = Document>
   private async _populate(): Promise<void> {
     for (let doc of await this.populateBuffer(await this._source.find<U>())) {
       try {
-        await this.processor.process(doc, 'populate-post-buffer');
+        await this.do('populate-post-buffer', doc);
       } catch (err) {
         this.emit('document-error', err);
       }
@@ -162,11 +162,15 @@ export class Controller<U extends Document = Document>
     for (let doc of docs) {
       doc._collection = this.name;
       try {
-        await this._buffer.upsert(await this.processor.process(doc, 'populate-pre-buffer'));
+        await this._buffer.upsert(await this.do('populate-pre-buffer', doc));
       } catch (err) {
         this.emit('document-error', err);
       }
     }
     return this._buffer.find<U>();
+  }
+
+  private do(pipe: string, data: any) {
+    return this.processor.process(data, pipe);
   }
 }
