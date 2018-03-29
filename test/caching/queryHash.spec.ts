@@ -3,19 +3,26 @@ import {expect} from 'chai';
 import 'mocha';
 
 describe('QueryHashEvaluator', () => {
-  let evaluator = new QueryHashEvaluator();
+  let ev = new QueryHashEvaluator();
 
   it('should initially not have a given query cached', () => {
-    expect(evaluator.isCached({}, {})).to.equal(false);
+    const q = {selector: {}, options: {}, cached: false};
+    expect(ev.processCacheQuery(q)).to.have.property('cached', false);
   });
   it('should cache one query', () => {
-    expect(evaluator.setCached({}, {}));
-    expect(evaluator.isCached({}, {})).to.equal(true);
+    const q = {selector: {}, options: {}, cached: false};
+
+    ev.processSourceQuery({selector: {}, options: {}});
+    expect(ev.processCacheQuery(q)).to.have.property('cached', true);
   });
   it('should only cache a specific query', () => {
-    expect(evaluator.setCached({foo: 1}, {limit: 1}));
-    expect(evaluator.isCached({foo: 1}, {limit: 1})).to.equal(true);
-    expect(evaluator.isCached({foo: 2}, {limit: 1})).to.equal(false);
-    expect(evaluator.isCached({foo: 1}, {limit: 2})).to.equal(false);
+    ev.processSourceQuery({selector: {foo: 1}, options: {limit: 1}});
+
+    expect(ev.processCacheQuery({selector: {foo: 1}, options: {limit: 1}, cached: false}))
+      .to.have.property('cached', true);
+    expect(ev.processCacheQuery({selector: {foo: 2}, options: {limit: 1}, cached: false}))
+      .to.have.property('cached', false);
+    expect(ev.processCacheQuery({selector: {foo: 1}, options: {limit: 2}, cached: false}))
+      .to.have.property('cached', false);
   });
 });

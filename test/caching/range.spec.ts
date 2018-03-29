@@ -178,30 +178,32 @@ describe('RangeSet', () => {
 });
 
 describe('RangeEvaluator', () => {
-  let evaluator = new RangeEvaluator();
+  let ev = new RangeEvaluator();
 
   it('should initially have no cached ranges', () => {
-    expect(evaluator.isCached({}, {})).to.equal(false);
+    const q = {selector: {}, options: {}, cached: false};
+    expect(ev.processCacheQuery(q)).to.have.property('cached', false);
   });
   it('should cache one range', () => {
-    expect(evaluator.setCached({}, {limit: 2}));
-    expect(evaluator.isCached({}, {})).to.equal(false);
-    expect(evaluator.isCached({}, {limit: 2})).to.equal(true);
+    ev.processSourceQuery({selector: {}, options: {limit: 2}});
+
+    expect(ev.processCacheQuery({selector: {}, options: {}, cached: false}))
+      .to.have.property('cached', false);
+    expect(ev.processCacheQuery({selector: {}, options: {limit: 2}, cached: false}))
+      .to.have.property('cached', true);
   });
   it('should not have cached results for a different selector', () => {
-    expect(evaluator.isCached({test: 2}, {limit: 2})).to.equal(false);
+    expect(ev.processCacheQuery({selector: {test: 2}, options: {limit: 2}, cached: false}))
+      .to.have.property('cached', false);
   });
   it('should cache contained ranges', () => {
-    expect(evaluator.isCached({}, {limit: 1})).to.equal(true);
-    expect(evaluator.isCached({}, {offset: 1, limit: 1})).to.equal(true);
+    expect(ev.processCacheQuery({selector: {}, options: {limit: 1}, cached: false}))
+      .to.have.property('cached', true);
+    expect(ev.processCacheQuery({selector: {}, options: {offset: 1, limit: 1}, cached: false}))
+      .to.have.property('cached', true);
   });
   it('should optimize queries', () => {
-    let selector = {};
-    let options = {offset: 1, limit: 3};
-
-    evaluator.optimizeQuery(selector, options);
-
-    expect(selector).to.eql({});
-    expect(options).to.eql({offset: 2, limit: 2});
+    expect(ev.processSourceQuery({selector: {}, options: {offset: 1, limit: 3}}))
+      .to.deep.equal({selector: {}, options: {offset: 2, limit: 2}});
   });
 });

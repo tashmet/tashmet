@@ -56,6 +56,10 @@ export interface Query {
   options: QueryOptions;
 }
 
+export interface CacheQuery extends Query {
+  cached: boolean;
+}
+
 /**
  * A collection of documents.
  */
@@ -119,18 +123,6 @@ export interface Collection<U extends Document = Document> {
   on(event: 'ready', fn: () => void): Collection<U>;
 
   emit(event: string, ...args: any[]): void;
-}
-
-export interface CacheEvaluator {
-  isCached(selector: object, options: QueryOptions): boolean;
-
-  setCached(selector: object, options: QueryOptions): void;
-
-  add(doc: any): void;
-
-  optimizeQuery(selector: object, options: QueryOptions): void;
-
-  invalidate(): void;
 }
 
 export class DocumentError extends Error {

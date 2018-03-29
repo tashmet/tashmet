@@ -7,29 +7,29 @@ describe('DocumentIdEvaluator', () => {
 
   describe('single id', () => {
     it('should initially not have a given document cached', () => {
-      expect(evaluator.isCached({_id: 'foo'}, {})).to.equal(false);
+      const q = {selector: {_id: 'foo'}, options: {}, cached: false};
+      expect(evaluator.processQuery(q)).to.have.property('cached', false);
     });
     it('should cache one document', () => {
+      const q = {selector: {_id: 'foo'}, options: {}, cached: false};
       expect(evaluator.add({_id: 'foo'}));
-      expect(evaluator.isCached({_id: 'foo'}, {})).to.equal(true);
-      expect(evaluator.isCached({_id: 'bar'}, {})).to.equal(false);
+      expect(evaluator.processQuery(q)).to.have.property('cached', true);
     });
   });
 
   describe('list of ids using $in', () => {
     it('should consider empty list cached', () => {
-      expect(evaluator.isCached({_id: {$in: []}}, {})).to.equal(true);
+      const q = {selector: {_id: {$in: []}}, options: {}, cached: false};
+      expect(evaluator.processQuery(q)).to.have.property('cached', true);
     });
     it('should consider list with only cached ids cached', () => {
-      expect(evaluator.isCached({_id: {$in: ['foo']}}, {})).to.equal(true);
-    });
-    it('should consider list with one or more uncached ids uncached', () => {
-      expect(evaluator.isCached({_id: {$in: ['foo', 'bar']}}, {})).to.equal(false);
+      const q = {selector: {_id: {$in: ['foo']}}, options: {}, cached: false};
+      expect(evaluator.processQuery(q)).to.have.property('cached', true);
     });
     it('should optimize partially cached query', () => {
-      let selector = {_id: {$in: ['foo', 'bar']}};
-      evaluator.optimizeQuery(selector, {});
-      expect(selector).to.eql({_id: {$in: ['bar']}});
+      const qIn  = {selector: {_id: {$in: ['foo', 'bar']}}, options: {}, cached: false};
+      const qOut = {selector: {_id: {$in: ['bar']}}, options: {}, cached: false};
+      expect(evaluator.processQuery(qIn)).to.deep.equal(qOut);
     });
   });
 });

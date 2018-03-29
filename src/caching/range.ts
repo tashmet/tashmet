@@ -75,12 +75,12 @@ export class RangeSet {
 }
 
 export class RangeEvaluator extends QueryHashEvaluator {
-  public isCached(selector: any, options: QueryOptions): boolean {
+  protected isCached(selector: any, options: QueryOptions): boolean {
     let matchingRanges: RangeSet = this.findCachedRanges(selector, options);
     return Boolean(matchingRanges && matchingRanges.contains(this.createRange(options)));
   }
 
-  public setCached(selector: any, options: QueryOptions) {
+  protected setCached(selector: any, options: QueryOptions) {
     let hash = this.hash(selector, options);
 
     if (!this.cachedQueries[hash]) {
@@ -89,7 +89,7 @@ export class RangeEvaluator extends QueryHashEvaluator {
     this.cachedQueries[hash].add(this.createRange(options));
   }
 
-  public optimizeQuery(selector: any, options: QueryOptions): any {
+  protected optimizeQuery(selector: any, options: QueryOptions) {
     let matchingRanges = this.findCachedRanges(selector, options);
     if (matchingRanges) {
       let range = this.createRange(options);

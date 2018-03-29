@@ -1,10 +1,41 @@
-import {CacheEvaluator, QueryOptions} from '../interfaces';
+import {Middleware, after, before} from '@ziggurat/ningal';
+import {CacheQuery, QueryOptions, Step, Pipe} from '../interfaces';
 import {isString, isObject, each, filter, every} from 'lodash';
 
-export class DocumentIdEvaluator implements CacheEvaluator {
+export class DocumentIdEvaluator extends Middleware {
   private ids: {[id: string]: boolean} = {};
 
-  public isCached(selector: any, options: QueryOptions): boolean {
+  @before({
+    step: Step.CacheQuery,
+    pipe: Pipe.Find
+  })
+  public processQuery(q: CacheQuery): CacheQuery {
+    if (isObject(q.selector._id) && q.selector._id.hasOwnProperty('$in')) {
+      q.selector._id['$in'] = filter(q.selector._id['$in'], (id: string) => {
+        return !(id in this.ids);
+      });
+    }
+    q.cached = q.cached || this.isCached(q.selector, q.options);
+    return q;
+  }
+
+  @after({
+    step: Step.Cache
+  })
+  public add(doc: any): any {
+    this.ids[doc._id] = true;
+    return doc;
+  }
+
+  @after({
+    step: Step.Uncache
+  })
+  public remove(doc: any): any {
+    delete this.ids[doc._id];
+    return doc;
+  }
+
+  private isCached(selector: any, options: QueryOptions): boolean {
     if (!selector.hasOwnProperty('_id')) {
       return false;
     }
@@ -17,23 +48,5 @@ export class DocumentIdEvaluator implements CacheEvaluator {
       });
     }
     return false;
-  }
-
-  public setCached(selector: any, options: QueryOptions) { return; }
-
-  public add(doc: any) {
-    this.ids[doc._id] = true;
-  }
-
-  public optimizeQuery(selector: any, options: QueryOptions): void {
-    if (isObject(selector._id) && selector._id.hasOwnProperty('$in')) {
-      selector._id['$in'] = filter(selector._id['$in'], (id: string) => {
-        return !(id in this.ids);
-      });
-    }
-  }
-
-  public invalidate(): void {
-    this.ids = {};
   }
 }

@@ -1,12 +1,11 @@
 import {Newable} from '@ziggurat/meta';
 import {injectable, decorate} from '@ziggurat/tiamat';
 import {Processor} from '@ziggurat/ningal';
-import {Collection, DocumentError, QueryOptions, Query, CacheEvaluator} from '../interfaces';
-import {CacheCollection} from '../collections/cache';
+import {Collection, DocumentError, QueryOptions, Query} from '../interfaces';
 import {Document} from '../models/document';
 import {QueryHashEvaluator} from '../caching/queryHash';
 import {EventEmitter} from 'eventemitter3';
-import {clone, map, pull, some} from 'lodash';
+import {clone, cloneDeep, map, pull, some} from 'lodash';
 
 if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
   decorate(injectable(), EventEmitter);
@@ -18,7 +17,7 @@ export class Controller<U extends Document = Document>
 {
   public readonly model: Newable<U>;
   public locked = true;
-  protected _cache: CacheCollection;
+  protected _cache: Collection;
   protected _buffer: Collection;
   protected _source: Collection;
   private processor: Processor<any>;
@@ -35,7 +34,7 @@ export class Controller<U extends Document = Document>
   }
 
   get cache(): Collection<U> {
-    return this._cache.collection;
+    return this._cache;
   }
 
   get source(): Collection<U> {
@@ -43,7 +42,7 @@ export class Controller<U extends Document = Document>
   }
 
   public initialize(name: string,
-    source: Collection, cache: CacheCollection, buffer: Collection, processor: Processor<U>)
+    source: Collection, cache: Collection, buffer: Collection, processor: Processor<U>)
   {
     this._name = name;
     this._source = source;
@@ -84,13 +83,17 @@ export class Controller<U extends Document = Document>
       await this.populatePromise;
     }
     try {
-      return await this.do('find.query-cache', {selector, options});
+      const query = {
+        selector: cloneDeep(selector || {}),
+        options: cloneDeep(options || {}),
+        cached: false
+      };
+      return await this.do('find.query-cache', query);
     } catch (err) {
-      const query: Query = {selector: err.selector, options: err.options};
+      const query: Query = {selector: err.instance.selector, options: err.instance.options};
       for (let doc of await this.do('find.query-source', query)) {
         await this.do('find.process', doc);
       }
-      this._cache.setCached(selector, options);
       return this._cache.find<T>(selector, options);
     }
   }
@@ -131,7 +134,7 @@ export class Controller<U extends Document = Document>
     for (let doc of affected) {
       await this.do('unpersist', doc);
     }
-    for (let doc of await this._cache.collection.find<T>(selector)) {
+    for (let doc of await this._cache.find<T>(selector)) {
       await this.do('uncache', doc);
     }
     return affected;
@@ -154,7 +157,6 @@ export class Controller<U extends Document = Document>
       }
     }
     this.locked = false;
-    this._cache.synced = true;
     this.emit('ready');
   }
 

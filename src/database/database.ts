@@ -4,10 +4,9 @@ import {inject, optional, provider, activate, Injector,
 import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
 import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
-  CacheEvaluator, QueryOptions, Query} from '../interfaces';
+  QueryOptions, Query, CacheQuery} from '../interfaces';
 import {CollectionConfig, Database, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
-import {CacheCollection} from '../collections/cache';
 import {NullCollection} from '../collections/null';
 import {RevisionUpsertPipe} from '../pipes/upsert';
 import {ValidationPipe} from '../pipes/validation';
@@ -18,6 +17,15 @@ import {RangeEvaluator} from '../caching/range';
 import {Document} from '../models/document';
 import {each, includes, isArray, map, transform} from 'lodash';
 import {CollectionAnnotation} from './decorators';
+
+export class CacheFindError extends Error {
+  public constructor(
+    public selector: Object,
+    public options: QueryOptions
+  ) {
+    super();
+  }
+}
 
 @provider({
   key: 'isimud.Database'
@@ -74,12 +82,6 @@ export class DatabaseService extends EventEmitter implements Database {
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});
     let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
 
-    let cacheWrapper = new CacheCollection(cache, [
-      new QueryHashEvaluator(),
-      new DocumentIdEvaluator(),
-      new RangeEvaluator()
-    ]);
-
     let cachePipe = new RevisionUpsertPipe(cache);
     let validationPipe = new ValidationPipe(this.validator);
     let processor = this.processorFactory.createProcessor<any>()
@@ -111,12 +113,16 @@ export class DatabaseService extends EventEmitter implements Database {
         },
       })
       .pipe('find.query-cache', 'find', {
-        'find-cache': async (q: Query) => {
-          return cacheWrapper.find(q.selector, q.options);
+        'cache-query': async (q: CacheQuery) => {
+          if (q.cached) {
+            return cache.find(q.selector, q.options);
+          } else {
+            throw new CacheFindError(q.selector, q.options);
+          }
         }
       })
       .pipe('find.query-source', 'find', {
-        'find-source': async (q: Query) => {
+        'source-query': async (q: Query) => {
           return source.find(q.selector, q.options);
         }
       })
@@ -125,11 +131,17 @@ export class DatabaseService extends EventEmitter implements Database {
         'cache': cachePipe
       });
 
+    config.middleware = (config.middleware || []).concat([
+      () => new QueryHashEvaluator(),
+      () => new DocumentIdEvaluator(),
+      () => new RangeEvaluator()
+    ]);
+
     for (let middlewareProvider of this.middleware.concat(config.middleware || [])) {
       processor.middleware(middlewareProvider(this.injector, controller));
     }
 
-    controller.initialize(config.name, source, cacheWrapper, buffer, processor);
+    controller.initialize(config.name, source, cache, buffer, processor);
 
     if (config.populate) {
       Promise.all(transform(config.populateAfter || [], (result: any, depName: string) => {
