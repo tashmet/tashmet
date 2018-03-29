@@ -73,6 +73,7 @@ export class DatabaseService extends EventEmitter implements Database {
   private initializeController(controller: Controller, config: CollectionConfig) {
     const modelName = getType(controller.model).getAnnotations(ModelAnnotation)[0].name;
 
+    this.models.add(controller.model);
     this.collections[config.name] = controller;
 
     let source = config.source

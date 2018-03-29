@@ -47,9 +47,6 @@ describe('Controller', async () => {
   @component({
     dependencies: [Isimud],
     providers: [TestController, MockCollectionFactory],
-    definitions: {
-      'mushdamma.Models': [Document]
-    }
   })
   class TestComponent {
     @inject('test.Controller') public controller: TestController;
