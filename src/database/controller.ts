@@ -112,9 +112,8 @@ export class Controller<U extends Document = Document>
 
   public async upsert<T extends U>(doc: T): Promise<T> {
     if (this.locked) {
-      throw new Error('Cannot upsert while populating collection');
+      await this.populatePromise;
     }
-
     let copy = clone(doc);
     copy._revision = doc._revision ? doc._revision + 1 : 1;
     copy._collection = this.name;
