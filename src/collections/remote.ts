@@ -1,4 +1,5 @@
-import {provider} from '@ziggurat/tiamat';
+import {inject, provider} from '@ziggurat/tiamat';
+import {Transformer} from '@ziggurat/mushdamma';
 import {Collection, CollectionFactory, RemoteCollectionConfig, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import * as io from 'socket.io-client';
@@ -9,14 +10,16 @@ import * as io from 'socket.io-client';
 export class RemoteCollectionFactory implements CollectionFactory<RemoteCollectionConfig> {
   private socket: any;
 
-  public constructor() {
+  public constructor(
+    @inject('mushdamma.Transformer') private transformer: Transformer
+  ) {
     if (typeof window !== 'undefined' && window.document) {
       this.socket = io.connect(window.location.origin);
     }
   }
 
   public createCollection(name: string, config: RemoteCollectionConfig): Collection {
-    return new RemoteCollection(config.path, name, this.socket);
+    return new RemoteCollection(config.path, name, this.transformer, this.socket);
   }
 }
 
@@ -26,6 +29,7 @@ class RemoteCollection extends EventEmitter implements Collection {
   public constructor(
     private _path: string,
     public readonly name: string,
+    private transformer: Transformer,
     socket: any
   ) {
     super();
@@ -50,7 +54,11 @@ class RemoteCollection extends EventEmitter implements Collection {
       throw new Error('Failed to contact server');
     }
     this.updateTotalCount(selector || {}, resp);
-    return resp.json();
+    let result = [];
+    for (let obj of await resp.json()) {
+      result.push(await this.transformer.toInstance(obj, 'relay'));
+    }
+    return result;
   }
 
   public async findOne(selector: object): Promise<any> {
