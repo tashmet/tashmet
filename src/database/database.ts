@@ -23,7 +23,7 @@ export class CacheFindError extends Error {
     public selector: Object,
     public options: QueryOptions
   ) {
-    super();
+    super('Query not cached');
   }
 }
 
