@@ -1,7 +1,18 @@
-import {Collection, QueryOptions} from '../interfaces';
+import {provider} from '@ziggurat/tiamat';
+import {Collection, CollectionFactory, MemoryCollectionConfig,
+  QueryOptions} from '../interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
 import {filter, find, findIndex, remove} from 'lodash';
+
+@provider({
+  key: 'isimud.MemoryCollectionFactory'
+})
+export class MemoryCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
+  public createCollection(name: string, config: MemoryCollectionConfig): Collection {
+    return new MemoryCollection(name);
+  }
+}
 
 export class MemoryCollection extends EventEmitter implements Collection {
   public docs: Document[] = [];

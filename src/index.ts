@@ -21,6 +21,7 @@ export * from './view/decorators';
 export * from './view/interfaces';
 
 import {DatabaseService} from './database/database';
+import {MemoryCollectionFactory} from './collections/memory';
 import {RemoteCollectionFactory} from './collections/remote';
 
 @component({
@@ -30,6 +31,7 @@ import {RemoteCollectionFactory} from './collections/remote';
   ],
   providers: [
     RemoteCollectionFactory,
+    MemoryCollectionFactory,
     DatabaseService,
   ],
   autoCreate: []
