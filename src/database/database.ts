@@ -2,14 +2,13 @@ import {getType} from 'reflect-helper';
 import {inject, optional, provider, activate, Injector,
   ServiceIdentifier} from '@ziggurat/tiamat';
 import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
-import {Processor, ProcessorFactory, Middleware} from '@ziggurat/ningal';
+import {Processor, ProcessorFactory, Middleware, Execution,
+  PipeFunction, Sequence} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   QueryOptions, Query, CacheQuery} from '../interfaces';
 import {CollectionConfig, Database, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
 import {NullCollection} from '../collections/null';
-import {RevisionUpsertPipe} from '../pipes/upsert';
-import {ValidationPipe} from '../pipes/validation';
 import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from '../caching/documentId';
 import {QueryHashEvaluator} from '../caching/queryHash';
@@ -17,15 +16,6 @@ import {RangeEvaluator} from '../caching/range';
 import {Document} from '../models/document';
 import {each, includes, isArray, map, transform} from 'lodash';
 import {CollectionAnnotation} from './decorators';
-
-export class CacheFindError extends Error {
-  public constructor(
-    public selector: Object,
-    public options: QueryOptions
-  ) {
-    super('Query not cached');
-  }
-}
 
 @provider({
   key: 'isimud.Database'
@@ -83,54 +73,9 @@ export class DatabaseService extends EventEmitter implements Database {
     let cache = this.memory.createCollection(config.name, {indices: ['_id']});
     let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
 
-    let cachePipe = new RevisionUpsertPipe(cache);
-    let validationPipe = new ValidationPipe(this.validator);
-    let processor = this.processorFactory.createProcessor<any>()
-      .pipe('populate-pre-buffer', 'populate', {
-        'validate': validationPipe,
-      })
-      .pipe('populate-post-buffer', 'populate', {
-        'cache': cachePipe
-      })
-      .pipe('source-upsert', true, {
-        'validate': validationPipe,
-        'cache': cachePipe
-      })
-      .pipe('upsert', true, {
-        'validate': validationPipe,
-        'cache': cachePipe,
-        'persist': doc => source.upsert(doc)
-      })
-      .pipe('unpersist', 'remove', {
-        'unpersist': async doc => {
-          await source.remove({_id: doc._id});
-          return doc;
-        }
-      })
-      .pipe('uncache', 'remove', {
-        'uncache': async doc => {
-          await cache.remove({_id: doc._id});
-          return doc;
-        },
-      })
-      .pipe('find.query-cache', 'find', {
-        'cache-query': async (q: CacheQuery) => {
-          if (q.cached) {
-            return cache.find(q.selector, q.options);
-          } else {
-            throw new CacheFindError(q.selector, q.options);
-          }
-        }
-      })
-      .pipe('find.query-source', 'find', {
-        'source-query': async (q: Query) => {
-          return source.find(q.selector, q.options);
-        }
-      })
-      .pipe('find.process', 'find', {
-        'validate': validationPipe,
-        'cache': cachePipe
-      });
+    let processor = this.processorFactory.createProcessor();
+
+    controller.initialize(config.name, source, cache, buffer, processor, this.validator);
 
     config.middleware = (config.middleware || []).concat([
       () => new QueryHashEvaluator(),
@@ -141,8 +86,6 @@ export class DatabaseService extends EventEmitter implements Database {
     for (let middlewareProvider of this.middleware.concat(config.middleware || [])) {
       processor.middleware(middlewareProvider(this.injector, controller));
     }
-
-    controller.initialize(config.name, source, cache, buffer, processor);
 
     if (config.populate) {
       Promise.all(transform(config.populateAfter || [], (result: any, depName: string) => {

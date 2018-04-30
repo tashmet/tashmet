@@ -94,6 +94,10 @@ describe('Controller', async () => {
     before(async () => {
       await controller.remove({});
       stub = sinon.stub(source, 'find');
+      stub.returns([
+        new Document('foo'),
+        new Document('bar')
+      ]);
     });
 
     afterEach(() => {
@@ -105,11 +109,6 @@ describe('Controller', async () => {
     });
 
     it('should read uncached documents from source', async () => {
-      stub.returns([
-        new Document('foo'),
-        new Document('bar')
-      ]);
-
       let docs = await controller.find();
 
       expect(docs).to.have.lengthOf(2);
@@ -132,7 +131,7 @@ describe('Controller', async () => {
 
     before(() => {
       stub = sinon.stub(source, 'upsert');
-      return controller.remove({});
+      return controller.cache.remove({});
     });
 
     after(() => {
@@ -213,7 +212,7 @@ describe('Controller', async () => {
 
       expect(docs).to.have.lengthOf(2);
       expect(stub).to.not.have.been.called;
-    })
+    });
   });
 
   describe('source upsert', () => {

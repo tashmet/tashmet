@@ -1,11 +1,16 @@
 import {Newable} from '@ziggurat/meta';
 import {injectable, decorate} from '@ziggurat/tiamat';
-import {Processor} from '@ziggurat/ningal';
-import {Collection, DocumentError, QueryOptions, Query} from '../interfaces';
+import {Processor, Sequence} from '@ziggurat/ningal';
+import {Validator} from '@ziggurat/mushdamma';
+import {Collection, QueryOptions, Query} from '../interfaces';
 import {Document} from '../models/document';
-import {QueryHashEvaluator} from '../caching/queryHash';
 import {EventEmitter} from 'eventemitter3';
-import {clone, cloneDeep, map, pull, some} from 'lodash';
+import {clone, pull} from 'lodash';
+import {RevisionUpsertPipe} from '../pipes/upsert';
+import {ValidationPipe} from '../pipes/validation';
+import {FindPipe, FindOnePipe} from '../pipes/find';
+import {PopulatePipe} from '../pipes/populate';
+import {RemovePipe} from '../pipes/remove';
 
 if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
   decorate(injectable(), EventEmitter);
@@ -20,10 +25,15 @@ export class Controller<U extends Document = Document>
   protected _cache: Collection;
   protected _buffer: Collection;
   protected _source: Collection;
-  private processor: Processor<any>;
   private upsertQueue: string[] = [];
-  private populatePromise: Promise<void>;
+  private populatePromise: Promise<U[]>;
   private _name: string;
+  private findPipe: (q: Query) => Promise<Document[]>;
+  private findOnePipe: (selector: object) => Promise<Document>;
+  private removePipe: (selector: object) => Promise<Document[]>;
+  private populatePipe: (selector: object) => Promise<Document[]>;
+  private upsertPipe: (doc: Document) => Promise<Document>;
+  private sourceUpsertPipe: (doc: Document) => Promise<Document>;
 
   get name(): string {
     return this._name;
@@ -42,13 +52,37 @@ export class Controller<U extends Document = Document>
   }
 
   public initialize(name: string,
-    source: Collection, cache: Collection, buffer: Collection, processor: Processor<U>)
+    source: Collection, cache: Collection, buffer: Collection, processor: Processor, validator: Validator)
   {
     this._name = name;
     this._source = source;
     this._cache = cache;
     this._buffer = buffer;
-    this.processor = processor;
+
+    let cachePipe = new RevisionUpsertPipe(cache);
+    let validationPipe = new ValidationPipe(validator);
+
+    this.findPipe = processor.pipe<Query, Document[]>('find', new FindPipe(
+      source, cache, cachePipe, validationPipe
+    ));
+    this.findOnePipe = processor.pipe<object, Document>('findOne', new FindOnePipe(
+      source, cache, cachePipe, validationPipe
+    ));
+    this.removePipe = processor.pipe<object, Document[]>('remove', new RemovePipe(
+      source, cache
+    ));
+    this.populatePipe = processor.pipe<object, Document[]>('populate', new PopulatePipe(
+      this.name, source, buffer, cachePipe, validationPipe
+    ));
+    this.upsertPipe = processor.pipe<Document>('upsert', new Sequence({
+      'validate': validationPipe,
+      'cache': cachePipe,
+      'persist': (doc: Document) => source.upsert(doc)
+    }));
+    this.sourceUpsertPipe = processor.pipe<Document>('source-upsert', new Sequence({
+      'validate': validationPipe,
+      'cache': cachePipe
+    }));
 
     cache.on('document-upserted', (doc: U) => {
       this.emit('document-upserted', doc);
@@ -61,7 +95,7 @@ export class Controller<U extends Document = Document>
       if (!this.locked) {
         doc._collection = this.name;
         if (this.upsertQueue.indexOf(doc._id) < 0) {
-          this.do('source-upsert', doc);
+          this.sourceUpsertPipe(doc);
         }
       }
     });
@@ -70,10 +104,14 @@ export class Controller<U extends Document = Document>
     });
   }
 
-  public populate(): Promise<void> {
+  public populate(): Promise<U[]> {
     if (!this.populatePromise && this._source) {
       this.locked = true;
-      this.populatePromise = this._populate();
+      this.populatePromise = <Promise<U[]>>this.populatePipe({}).then(docs => {
+        this.locked = false;
+        this.emit('ready');
+        return docs;
+      });
     }
     return this.populatePromise;
   }
@@ -82,32 +120,14 @@ export class Controller<U extends Document = Document>
     if (this.locked) {
       await this.populatePromise;
     }
-    try {
-      const query = {
-        selector: cloneDeep(selector || {}),
-        options: cloneDeep(options || {}),
-        cached: false
-      };
-      return await this.do('find.query-cache', query);
-    } catch (err) {
-      const query: Query = {selector: err.instance.selector, options: err.instance.options};
-      for (let doc of await this.do('find.query-source', query)) {
-        await this.do('find.process', doc);
-      }
-      return this._cache.find<T>(selector, options);
-    }
+    return <Promise<T[]>>this.findPipe({selector: selector || {}, options: options || {}});
   }
 
   public async findOne<T extends U>(selector: Object): Promise<T> {
-    try {
-      return await this._cache.findOne<T>(selector);
-    } catch (err) {
-      if (this.locked) {
-        throw err;
-      } else {
-        return <Promise<T>>this.do('find.process', await this._source.findOne<T>(selector));
-      }
+    if (this.locked) {
+      await this.populatePromise;
     }
+    return <Promise<T>>this.findOnePipe(selector);
   }
 
   public async upsert<T extends U>(doc: T): Promise<T> {
@@ -120,7 +140,7 @@ export class Controller<U extends Document = Document>
 
     this.upsertQueue.push(copy._id);
 
-    await this.do('upsert', copy);
+    await this.upsertPipe(copy);
     pull(this.upsertQueue, copy._id);
     return Promise.resolve(copy);
   }
@@ -129,14 +149,7 @@ export class Controller<U extends Document = Document>
     if (this.locked) {
       await this.populatePromise;
     }
-    let affected = await this._source.find<T>(selector);
-    for (let doc of affected) {
-      await this.do('unpersist', doc);
-    }
-    for (let doc of await this._cache.find<T>(selector)) {
-      await this.do('uncache', doc);
-    }
-    return affected;
+    return <Promise<T[]>>this.removePipe(selector);
   }
 
   public async count(selector?: Object): Promise<number> {
@@ -145,33 +158,5 @@ export class Controller<U extends Document = Document>
     } catch (err) {
       return this._source.count(selector);
     }
-  }
-
-  private async _populate(): Promise<void> {
-    for (let doc of await this.populateBuffer(await this._source.find<U>())) {
-      try {
-        await this.do('populate-post-buffer', doc);
-      } catch (err) {
-        this.emit('document-error', err);
-      }
-    }
-    this.locked = false;
-    this.emit('ready');
-  }
-
-  private async populateBuffer(docs: U[]): Promise<U[]> {
-    for (let doc of docs) {
-      doc._collection = this.name;
-      try {
-        await this._buffer.upsert(await this.do('populate-pre-buffer', doc));
-      } catch (err) {
-        this.emit('document-error', err);
-      }
-    }
-    return this._buffer.find<U>();
-  }
-
-  private do(pipe: string, data: any) {
-    return this.processor.process(data, pipe);
   }
 }
