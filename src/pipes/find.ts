@@ -33,10 +33,10 @@ export class FindPipe extends Component<Query, Document[]> {
         selector: cloneDeep(q.selector || {}),
         options: cloneDeep(q.options || {}),
         cached: false
-      });
+      }, exec);
     } catch (err) {
       const query: Query = {selector: err.instance.selector, options: err.instance.options};
-      for (let doc of await(this.querySource(query))) {
+      for (let doc of await(this.querySource(query, exec))) {
         await this.upsertCache(await this.validate(doc, exec), exec);
       }
       return this.cache.find(q.selector, q.options);
@@ -44,7 +44,7 @@ export class FindPipe extends Component<Query, Document[]> {
   }
 
   @step('cache-query')
-  private async queryCache(q: CacheQuery): Promise<Document[]> {
+  private async queryCache(q: CacheQuery, exec: Execution<Document[]>): Promise<Document[]> {
     if (q.cached) {
       return this.cache.find(q.selector, q.options);
     } else {
@@ -53,7 +53,7 @@ export class FindPipe extends Component<Query, Document[]> {
   }
 
   @step('source-query')
-  private async querySource(q: Query): Promise<Document[]> {
+  private async querySource(q: Query, exec: Execution<Document[]>): Promise<Document[]> {
     return this.source.find(q.selector, q.options);
   }
 }
