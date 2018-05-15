@@ -87,17 +87,6 @@ export class DatabaseService extends EventEmitter implements Database {
       processor.middleware(middlewareProvider(this.injector, controller));
     }
 
-    if (config.populate) {
-      Promise.all(transform(config.populateAfter || [], (result: any, depName: string) => {
-        result.push(this.injector.get<Controller>(depName).populate());
-      }))
-        .then(() => {
-          return controller.populate();
-        });
-    } else {
-      controller.locked = false;
-    }
-
     controller.on('ready', () => {
       this.syncedCount += 1;
       if (this.syncedCount === Object.keys(this.collections).length) {

@@ -117,23 +117,14 @@ export class Controller<U extends Document = Document>
   }
 
   public async find<T extends U>(selector?: Object, options?: QueryOptions): Promise<T[]> {
-    if (this.locked) {
-      await this.populatePromise;
-    }
     return <Promise<T[]>>this.findPipe({selector: selector || {}, options: options || {}});
   }
 
   public async findOne<T extends U>(selector: Object): Promise<T> {
-    if (this.locked) {
-      await this.populatePromise;
-    }
     return <Promise<T>>this.findOnePipe(selector);
   }
 
   public async upsert<T extends U>(doc: T): Promise<T> {
-    if (this.locked) {
-      await this.populatePromise;
-    }
     let copy = clone(doc);
     copy._revision = doc._revision ? doc._revision + 1 : 1;
     copy._collection = this.name;
@@ -146,9 +137,6 @@ export class Controller<U extends Document = Document>
   }
 
   public async remove<T extends U>(selector: Object): Promise<T[]> {
-    if (this.locked) {
-      await this.populatePromise;
-    }
     return <Promise<T[]>>this.removePipe(selector);
   }
 

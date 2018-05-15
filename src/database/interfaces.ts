@@ -28,18 +28,6 @@ export interface CollectionConfig {
    * A list of providers of processing pipeline midddleware.
    */
   middleware?: MiddlewareProvider[];
-
-  /**
-   * Specify if the collection should be automatically populated from its source on creation.
-   *
-   * default: false
-   */
-  populate?: boolean;
-
-  /**
-   * A list of collections that must be populated before this one is.
-   */
-  populateAfter?: string[];
 }
 
 /**
