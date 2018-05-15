@@ -1,5 +1,6 @@
 import {Middleware, after, before} from '@ziggurat/ningal';
 import {CacheQuery, QueryOptions, Step, Pipe} from '../interfaces';
+import {Document} from '../models/document';
 import {isString, isObject, each, filter, every} from 'lodash';
 
 export class DocumentIdEvaluator extends Middleware {
@@ -30,9 +31,11 @@ export class DocumentIdEvaluator extends Middleware {
   @after({
     step: Step.Uncache
   })
-  public remove(doc: any): any {
-    delete this.ids[doc._id];
-    return doc;
+  public remove(docs: any[]) {
+    for (let doc of docs) {
+      delete this.ids[doc._id];
+    }
+    return docs;
   }
 
   private isCached(selector: any, options: QueryOptions): boolean {
