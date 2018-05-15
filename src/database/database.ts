@@ -2,7 +2,7 @@ import {getType} from 'reflect-helper';
 import {inject, optional, provider, activate, Injector,
   ServiceIdentifier} from '@ziggurat/tiamat';
 import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
-import {Processor, ProcessorFactory, Middleware, Execution,
+import {Processor, ProcessorFactory, Middleware,
   PipeFunction, Sequence} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig,
   QueryOptions, Query, CacheQuery} from '../interfaces';

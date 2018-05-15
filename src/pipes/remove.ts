@@ -1,4 +1,4 @@
-import {Pipe, Execution, Component, step} from '@ziggurat/ningal';
+import {Pipe, Component, step} from '@ziggurat/ningal';
 import {Collection} from '../interfaces';
 import {Document} from '../models/document';
 
@@ -10,7 +10,7 @@ export class RemovePipe extends Component<object, Document[]> {
     super();
   }
 
-  public async process(selector: object, exec: Execution<any>): Promise<Document[]> {
+  public async process(selector: object): Promise<Document[]> {
     for (let doc of await this.source.find(selector)) {
       await this.unpersist(doc);
     }

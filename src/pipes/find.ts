@@ -1,4 +1,4 @@
-import {Pipe, PipeFunction, Execution, Component, callable, step} from '@ziggurat/ningal';
+import {Pipe, PipeFunction, Component, callable, step} from '@ziggurat/ningal';
 import {Collection, CacheQuery, Query, QueryOptions} from '../interfaces';
 import {Document} from '../models/document';
 import {cloneDeep} from 'lodash';
@@ -27,24 +27,24 @@ export class FindPipe extends Component<Query, Document[]> {
     this.validate = callable(cachePipe);
   }
 
-  public async process(q: Query, exec: Execution<any>): Promise<Document[]> {
+  public async process(q: Query): Promise<Document[]> {
     try {
       return await this.queryCache({
         selector: cloneDeep(q.selector || {}),
         options: cloneDeep(q.options || {}),
         cached: false
-      }, exec);
+      });
     } catch (err) {
       const query: Query = {selector: err.instance.selector, options: err.instance.options};
-      for (let doc of await(this.querySource(query, exec))) {
-        await this.upsertCache(await this.validate(doc, exec), exec);
+      for (let doc of await(this.querySource(query))) {
+        await this.upsertCache(await this.validate(doc));
       }
       return this.cache.find(q.selector, q.options);
     }
   }
 
   @step('cache-query')
-  private async queryCache(q: CacheQuery, exec: Execution<Document[]>): Promise<Document[]> {
+  private async queryCache(q: CacheQuery): Promise<Document[]> {
     if (q.cached) {
       return this.cache.find(q.selector, q.options);
     } else {
@@ -53,7 +53,7 @@ export class FindPipe extends Component<Query, Document[]> {
   }
 
   @step('source-query')
-  private async querySource(q: Query, exec: Execution<Document[]>): Promise<Document[]> {
+  private async querySource(q: Query): Promise<Document[]> {
     return this.source.find(q.selector, q.options);
   }
 }
@@ -73,12 +73,12 @@ export class FindOnePipe extends Component<object, Document> {
     this.validate = callable(cachePipe);
   }
 
-  public async process(selector: object, exec: Execution<any>): Promise<Document> {
+  public async process(selector: object): Promise<Document> {
     try {
       return await this.cache.findOne(selector);
     } catch (err) {
       let doc = await this.source.findOne(selector);
-      return await this.upsertCache(await this.validate(doc, exec), exec);
+      return await this.upsertCache(await this.validate(doc));
     }
   }
 }
