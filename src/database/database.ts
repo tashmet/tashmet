@@ -68,10 +68,10 @@ export class DatabaseService extends EventEmitter implements Database {
 
     let source = config.source
       ? config.source(this.injector, modelName)
-      : new NullCollection(config.name + ':source');
+      : new NullCollection(config.name + '.source');
 
-    let cache = this.memory.createCollection(config.name, {indices: ['_id']});
-    let buffer = this.memory.createCollection(config.name + ':buffer', {indices: ['_id']});
+    let cache = this.memory.createCollection(config.name + '.cache', {indices: ['_id']});
+    let buffer = this.memory.createCollection(config.name + '.buffer', {indices: ['_id']});
 
     let processor = this.processorFactory.createProcessor();
 

@@ -25,7 +25,7 @@ describe('Controller', async () => {
   })
   class MockCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
     public createCollection(name: string, config: MemoryCollectionConfig): Collection {
-      if (name === 'test') {
+      if (name === 'test.cache') {
         return cache;
       } else {
         return buffer;
