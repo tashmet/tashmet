@@ -10,7 +10,7 @@ export class DocumentIdEvaluator extends Middleware {
     step: Step.CacheQuery,
     pipe: Pipe.Find
   })
-  public processQuery(q: CacheQuery): CacheQuery {
+  public processQuery(q: CacheQuery) {
     if (isObject(q.selector._id) && q.selector._id.hasOwnProperty('$in')) {
       q.selector._id['$in'] = filter(q.selector._id['$in'], (id: string) => {
         return !(id in this.ids);
@@ -23,7 +23,7 @@ export class DocumentIdEvaluator extends Middleware {
   @after({
     step: Step.Cache
   })
-  public add(doc: any): any {
+  public add(doc: Document) {
     this.ids[doc._id] = true;
     return doc;
   }
@@ -31,7 +31,7 @@ export class DocumentIdEvaluator extends Middleware {
   @after({
     step: Step.Uncache
   })
-  public remove(docs: any[]) {
+  public remove(docs: Document[]) {
     for (let doc of docs) {
       delete this.ids[doc._id];
     }

@@ -8,7 +8,7 @@ export class QueryHashEvaluator extends Middleware {
     step: Step.CacheQuery,
     pipe: Pipe.Find
   })
-  public processCacheQuery(q: CacheQuery): CacheQuery {
+  public processCacheQuery(q: CacheQuery) {
     q.cached = q.cached || this.isCached(q.selector, q.options);
     return q;
   }
@@ -17,7 +17,7 @@ export class QueryHashEvaluator extends Middleware {
     step: Step.SourceQuery,
     pipe: Pipe.Find
   })
-  public processSourceQuery(q: Query): Query {
+  public processSourceQuery(q: Query) {
     this.optimizeQuery(q.selector, q.options);
     this.setCached(q.selector, q.options);
     return q;

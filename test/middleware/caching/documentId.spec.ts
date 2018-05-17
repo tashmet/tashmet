@@ -1,4 +1,5 @@
 import {DocumentIdEvaluator} from '../../../src/middleware/caching/documentId';
+import {Document} from '../../../src/models/document';
 import {expect} from 'chai';
 import 'mocha';
 
@@ -12,7 +13,7 @@ describe('DocumentIdEvaluator', () => {
     });
     it('should cache one document', () => {
       const q = {selector: {_id: 'foo'}, options: {}, cached: false};
-      expect(evaluator.add({_id: 'foo'}));
+      evaluator.add(new Document('foo'));
       expect(evaluator.processQuery(q)).to.have.property('cached', true);
     });
   });
