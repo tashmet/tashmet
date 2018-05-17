@@ -8,9 +8,9 @@ export function inline(name: string, docs: any[]): SourceProvider {
       'isimud.MemoryCollectionFactory'
     );
     let collection = factory.createCollection(name, {indices: ['_id']});
-    docs.forEach((doc: any) => {
+    for (let doc of docs) {
       collection.upsert(doc);
-    });
+    }
     return collection;
   };
 }
