@@ -65,7 +65,7 @@ export class Controller<U extends Document = Document>
     this.findPipe = processor.pipe<Query, Document[]>('find', new FindPipe(
       source, cache, cachePipe, validationPipe
     ));
-    this.findOnePipe = processor.pipe<object, Document>('findOne', new FindOnePipe(
+    this.findOnePipe = processor.pipe<object, Document>('find-one', new FindOnePipe(
       source, cache, cachePipe, validationPipe
     ));
     this.removePipe = processor.pipe<object, Document[]>('remove', new RemovePipe(

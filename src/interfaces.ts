@@ -158,6 +158,7 @@ export enum Pipe {
   /**
    * Document being upserted to controller by upsert() method.
    *
+   * signature: (doc: Document) => Promise<Document>
    * steps: Validate -> Cache -> Persist
    */
   Upsert = 'upsert',
@@ -165,6 +166,7 @@ export enum Pipe {
   /**
    * Document being removed from controller by remove() method.
    *
+   * signature: (selector: object) => Promise<Document[]>
    * steps: Uncache -> Unpersist
    */
   Remove = 'remove',
@@ -173,6 +175,7 @@ export enum Pipe {
    * Document being upserted to collection as a result of getting a 'document-upserted' event
    * from the source collection.
    *
+   * signature: (doc: Document) => Promise<Document>
    * steps: Validate -> Cache
    */
   SourceUpsert = 'source-upsert',
@@ -181,11 +184,26 @@ export enum Pipe {
    * Document being removed from collection as a result of getting a 'document-removed' event
    * from the source collection.
    *
+   * signature: (doc: Document) => Promise<Document>
    * steps: Uncache
    */
   SourceRemove = 'source-remove',
 
+  /**
+   * Find query performed on the collection.
+   *
+   * signature: (q: Query) => Promise<Document[]>
+   * steps: CacheQuery -> (SourceQuery -> Validate -> Cache)
+   */
   Find = 'find',
+
+  /**
+   * Find one query performed on the collection.
+   *
+   * signature: (selector: object) => Promise<Document>
+   * steps: CacheQuery -> (SourceQuery -> Validate -> Cache)
+   */
+  FindOne = 'find-one',
 }
 
 /**
@@ -194,36 +212,50 @@ export enum Pipe {
 export enum Step {
   /**
    * Validation of document according to its model schema.
+   *
+   * signature: (doc: Document) => Promise<Document>
    */
   Validate = 'validate',
 
   /**
    * Upserting of document to cache collection.
+   *
+   * signature: (doc: Document) => Promise<Document>
    */
   Cache = 'cache',
 
   /**
-   * Removal of document from cache collection.
+   * Removal of documents from cache collection.
+   *
+   * signature: (selector: object) => Promise<Document[]>
    */
   Uncache = 'uncache',
 
   /**
    * Upserting of document to source collection.
+   *
+   * signature: (doc: Document) => Promise<Document>
    */
   Persist = 'persist',
 
   /**
-   * Removal of document from source collection.
+   * Removal of documents from source collection.
+   *
+   * signature: (selector: object) => Promise<Document[]>
    */
   Unpersist = 'unpersist',
 
   /**
    * Querrying of documents in cache collection.
+   *
+   * signature: (q: CacheQuery) => Promise<Document[]>
    */
   CacheQuery = 'cache-query',
 
   /**
    * Querrying of documents in source collection.
+   *
+   * signature: (q: Query) => Promise<Document[]>
    */
   SourceQuery = 'source-query',
 }
