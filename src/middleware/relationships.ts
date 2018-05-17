@@ -74,12 +74,14 @@ export class RelationshipsMiddleware extends Middleware {
     step: Step.Uncache,
     pipe: Pipe.Remove
   })
-  private async removeRelationships(doc: Document): Promise<Document> {
-    for (let other of await this.controller.cache.find({[this.config.key]: doc._id})) {
-      remove(this.getRefs(doc), id => id === doc._id);
-      await this.controller.cache.upsert(other);
+  private async removeRelationships(docs: Document[]): Promise<Document[]> {
+    for (let doc of docs) {
+      for (let other of await this.controller.cache.find({[this.config.key]: doc._id})) {
+        remove(this.getRefs(doc), id => id === doc._id);
+        await this.controller.cache.upsert(other);
+      }
     }
-    return doc;
+    return docs;
   }
 
   private async findRelated(doc: Document, collection: Collection): Promise<Document[]> {
