@@ -1,4 +1,4 @@
-import {QueryHashEvaluator} from '../../src/caching/queryHash';
+import {QueryHashEvaluator} from '../../../src/middleware/caching/queryHash';
 import {expect} from 'chai';
 import 'mocha';
 

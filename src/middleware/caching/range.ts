@@ -1,6 +1,6 @@
-import {QueryOptions} from '../interfaces';
+import {QueryOptions} from '../../interfaces';
 import {QueryHashEvaluator} from './queryHash';
-import {cloneDeep, some} from 'lodash';
+import {some} from 'lodash';
 
 export class Range {
   public constructor(public start: number, public end: number) {}

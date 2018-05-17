@@ -1,4 +1,4 @@
-import {DocumentIdEvaluator} from '../../src/caching/documentId';
+import {DocumentIdEvaluator} from '../../../src/middleware/caching/documentId';
 import {expect} from 'chai';
 import 'mocha';
 

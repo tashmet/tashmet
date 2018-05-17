@@ -1,7 +1,5 @@
-import {isObject, filter} from 'lodash';
 import {Middleware, after, before} from '@ziggurat/ningal';
-import {CacheQuery, Query, QueryOptions, Step, Pipe} from '../interfaces';
-import {Document} from '../models/document';
+import {CacheQuery, Query, QueryOptions, Step, Pipe} from '../../interfaces';
 
 export class QueryHashEvaluator extends Middleware {
   protected cachedQueries: {[query: string]: any} = {};

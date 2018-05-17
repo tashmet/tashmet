@@ -1,7 +1,7 @@
 import {Middleware, after, before} from '@ziggurat/ningal';
-import {CacheQuery, QueryOptions, Step, Pipe} from '../interfaces';
-import {Document} from '../models/document';
-import {isString, isObject, each, filter, every} from 'lodash';
+import {CacheQuery, QueryOptions, Step, Pipe} from '../../interfaces';
+import {Document} from '../../models/document';
+import {isString, isObject, filter, every} from 'lodash';
 
 export class DocumentIdEvaluator extends Middleware {
   private ids: {[id: string]: boolean} = {};
