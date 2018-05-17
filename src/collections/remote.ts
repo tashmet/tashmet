@@ -71,7 +71,7 @@ class RemoteCollection extends EventEmitter implements Collection {
 
   public async upsert(obj: any): Promise<any> {
     let resp = await fetch(this._path, {
-      body: JSON.stringify(obj),
+      body: JSON.stringify(await this.transformer.toPlain(obj, 'relay')),
       headers: {
         'content-type': 'application/json'
       },
