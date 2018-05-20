@@ -3,7 +3,7 @@ import {Collection, CollectionFactory, MemoryCollectionConfig,
   QueryOptions} from '../interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
-import {filter, findIndex, remove} from 'lodash';
+import {cloneDeep, filter, findIndex, remove} from 'lodash';
 
 @provider({
   key: 'isimud.MemoryCollectionFactory'
@@ -36,13 +36,14 @@ export class MemoryCollection extends EventEmitter implements Collection {
 
   public upsert<T extends Document>(doc: T): Promise<T> {
     const i = findIndex(this.docs, o => o._id === doc._id);
+    const clone = cloneDeep(doc);
     if (i >= 0) {
-      this.docs[i] = doc;
+      this.docs[i] = clone;
     } else {
-      this.docs.push(doc);
+      this.docs.push(clone);
     }
-    this.emit('document-upserted', doc);
-    return Promise.resolve(doc);
+    this.emit('document-upserted', clone);
+    return Promise.resolve(clone);
   }
 
   public remove<T extends Document>(selector: any): Promise<T[]> {
