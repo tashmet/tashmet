@@ -158,26 +158,23 @@ describe('Controller', async () => {
   });
 
   describe('remove', () => {
-    let stub: any;
-
     before(async () => {
       await controller.remove({});
       await controller.upsert(new Document('doc1'));
       await controller.upsert(new Document('doc2'));
-      stub = sinon.stub(source, 'remove');
     });
 
-    after(() => {
-      stub.restore();
+    it('should remove and return a single document', async () => {
+      const docs = await controller.remove({_id: 'doc1'});
+      return expect(docs.length).to.equal(1);
     });
 
     it('should remove a single document from the cache', async () => {
-      await controller.remove({_id: 'doc1'});
       return expect(cache.count()).to.eventually.equal(1);
     });
 
     it('should remove the document from the source', () => {
-      return expect(stub).to.have.been.calledOnce;
+      return expect(source.count()).to.eventually.equal(1);
     });
   });
 

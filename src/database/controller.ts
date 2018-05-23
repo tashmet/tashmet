@@ -5,7 +5,7 @@ import {Validator} from '@ziggurat/mushdamma';
 import {Collection, QueryOptions, Query} from '../interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
-import {clone, pull} from 'lodash';
+import {clone, find, pull} from 'lodash';
 import {RevisionUpsertPipe} from '../pipes/upsert';
 import {ValidationPipe} from '../pipes/validation';
 import {FindPipe, FindOnePipe} from '../pipes/find';
@@ -27,6 +27,7 @@ export class Controller<U extends Document = Document>
   protected _source: Collection;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<U[]>;
+  private removePromise: Promise<Document[]> | undefined;
   private _name: string;
   private findPipe: (q: Query) => Promise<Document[]>;
   private findOnePipe: (selector: object) => Promise<Document>;
@@ -100,7 +101,11 @@ export class Controller<U extends Document = Document>
       }
     });
     source.on('document-removed', (doc: U) => {
-      this._cache.remove({_id: doc._id});
+      this.await(this.removePromise, (res: Document[] | undefined) => {
+        if (!res || !find(res, {_id: doc._id})) {
+          this._cache.remove({_id: doc._id});
+        }
+      });
     });
   }
 
@@ -137,7 +142,9 @@ export class Controller<U extends Document = Document>
   }
 
   public async remove<T extends U>(selector: Object): Promise<T[]> {
-    return <Promise<T[]>>this.removePipe(selector);
+    return <Promise<T[]>>(this.removePromise = this.removePipe(selector)
+      .then(docs => { this.removePromise = undefined; return docs; })
+      .catch(err => { this.removePromise = undefined; return err; }));
   }
 
   public async count(selector?: Object): Promise<number> {
@@ -145,6 +152,14 @@ export class Controller<U extends Document = Document>
       return await this._cache.count(selector);
     } catch (err) {
       return this._source.count(selector);
+    }
+  }
+
+  private await<T>(p: Promise<T> | undefined, fn: Function) {
+    if (p) {
+      p.then(res => { fn(res); return res; }).catch(err => { fn(); return err; });
+    } else {
+      fn();
     }
   }
 }
