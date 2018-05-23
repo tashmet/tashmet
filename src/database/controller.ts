@@ -34,7 +34,6 @@ export class Controller<U extends Document = Document>
   private removePipe: (selector: object) => Promise<Document[]>;
   private populatePipe: (selector: object) => Promise<Document[]>;
   private upsertPipe: (doc: Document) => Promise<Document>;
-  private sourceUpsertPipe: (doc: Document) => Promise<Document>;
 
   get name(): string {
     return this._name;
@@ -80,9 +79,13 @@ export class Controller<U extends Document = Document>
       'cache': cachePipe,
       'persist': (doc: Document) => source.upsert(doc)
     }));
-    this.sourceUpsertPipe = processor.pipe<Document>('source-upsert', new Sequence({
+
+    const sourceUpsertPipe = processor.pipe<Document>('source-upsert', new Sequence({
       'validate': validationPipe,
       'cache': cachePipe
+    }));
+    const sourceRemovePipe = processor.pipe<object, Document[]>('source-remove', new Sequence({
+      'uncache': async (selector: object) => this.cache.remove(selector)
     }));
 
     cache.on('document-upserted', (doc: U) => {
@@ -96,14 +99,14 @@ export class Controller<U extends Document = Document>
       if (!this.locked) {
         doc._collection = this.name;
         if (this.upsertQueue.indexOf(doc._id) < 0) {
-          this.sourceUpsertPipe(doc);
+          sourceUpsertPipe(doc);
         }
       }
     });
     source.on('document-removed', (doc: U) => {
       this.await(this.removePromise, (res: Document[] | undefined) => {
         if (!res || !find(res, {_id: doc._id})) {
-          this._cache.remove({_id: doc._id});
+          sourceRemovePipe({_id: doc._id});
         }
       });
     });
