@@ -48,7 +48,7 @@ class RemoteCollection extends EventEmitter implements Collection {
     }
   }
 
-  public async find(selector?: object, options?: QueryOptions): Promise<any[]> {
+  public async find<T>(selector?: object, options?: QueryOptions): Promise<T[]> {
     let resp = await fetch(this.createQuery(selector, options));
     if (!resp.ok) {
       throw new Error('Failed to contact server');
@@ -56,29 +56,29 @@ class RemoteCollection extends EventEmitter implements Collection {
     this.updateTotalCount(selector || {}, resp);
     let result = [];
     for (let obj of await resp.json()) {
-      result.push(await this.transformer.toInstance(obj, 'relay'));
+      result.push(await this.transformer.toInstance<T>(obj, 'relay'));
     }
     return result;
   }
 
-  public async findOne(selector: object): Promise<any> {
-    let docs = await this.find(selector, {limit: 1});
+  public async findOne<T>(selector: object): Promise<T> {
+    let docs = await this.find<T>(selector, {limit: 1});
     if (docs.length === 0) {
       throw new Error('Document not found');
     }
     return docs[0];
   }
 
-  public async upsert(obj: any): Promise<any> {
+  public async upsert<T>(doc: T): Promise<T> {
     let resp = await fetch(this._path, {
-      body: JSON.stringify(await this.transformer.toPlain(obj, 'relay')),
+      body: JSON.stringify(await this.transformer.toPlain(doc, 'relay')),
       headers: {
         'content-type': 'application/json'
       },
       method: 'POST'
     });
     if (resp.ok) {
-      return obj;
+      return doc;
     } else {
       throw new Error('Failed to upsert');
     }
@@ -93,7 +93,7 @@ class RemoteCollection extends EventEmitter implements Collection {
     return totalCount;
   }
 
-  public remove(): Promise<any[]> {
+  public remove<T>(selector?: object): Promise<T[]> {
     return Promise.reject(new Error('remove() not implemented for remote collection'));
   }
 
