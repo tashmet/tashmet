@@ -12,6 +12,4 @@ export class CollectionAnnotation {
 export const collection = <(config: CollectionConfig) => any>
   classDecorator(CollectionAnnotation, {
     middleware: [],
-    populate: false,
-    populateAfter: []
   });
