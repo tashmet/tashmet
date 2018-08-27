@@ -24,7 +24,7 @@ export class FindPipe extends Component<Query, Document[]> {
   ) {
     super();
     this.upsertCache = callable(cachePipe);
-    this.validate = callable(cachePipe);
+    this.validate = callable(validationPipe);
   }
 
   public async process(q: Query): Promise<Document[]> {
@@ -70,7 +70,7 @@ export class FindOnePipe extends Component<object, Document> {
   ) {
     super();
     this.upsertCache = callable(cachePipe);
-    this.validate = callable(cachePipe);
+    this.validate = callable(validationPipe);
   }
 
   public async process(selector: object): Promise<Document> {
