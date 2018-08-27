@@ -61,6 +61,10 @@ export class DatabaseService extends EventEmitter implements Database {
   }
 
   private initializeController(controller: Controller, config: CollectionConfig) {
+    if (config.name in this.collections) {
+      throw new Error(`A collection named '${config.name}' already exists`);
+    }
+
     const modelName = getType(controller.model).getAnnotations(ModelAnnotation)[0].name;
 
     this.models.add(controller.model);
