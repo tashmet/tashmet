@@ -73,29 +73,43 @@ export interface Collection<U extends Document = Document> {
    * Insert a document into the collection.
    *
    * If the document already exists it will be updated.
-   * A promise for the upserted document is returned.
+   *
+   * @param doc The document to insert.
+   * @returns A promise for the upserted document.
    */
   upsert<T extends U>(doc: T): Promise<T>;
 
   /**
    * Find documents in the collection.
+   *
+   * @param selector The selector which documents are matched against.
+   * @param options A set of options determining sorting order, limit and offset.
+   * @returns A promise for the list of matching documents.
    */
   find<T extends U>(selector?: object, options?: QueryOptions): Promise<T[]>;
 
   /**
    * Find a single document in the collection.
+   *
+   * @param selector The selector which documents are matched against.
+   * @returns A promise for the first matching document if one was found.
+   * @throws DocumentError if no document was found.
    */
   findOne<T extends U>(selector: object): Promise<T>;
 
   /**
    * Remove all documents matching selector from collection.
    *
-   * Returns a list of all the documents that were removed.
+   * @param selector The selector which documents are matched against.
+   * @returns A list of all the documents that were removed.
    */
   remove<T extends U>(selector: object): Promise<T[]>;
 
   /**
    * Get the number of documents in the collection that matches a given selector.
+   *
+   * @param selector The selector which documents are matched against.
+   * @returns A promise for the document count.
    */
   count(selector?: object): Promise<number>;
 
