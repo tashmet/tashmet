@@ -2,10 +2,8 @@ import {getType} from 'reflect-helper';
 import {inject, optional, provider, activate, Injector,
   ServiceIdentifier} from '@ziggurat/tiamat';
 import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
-import {Processor, ProcessorFactory, Middleware,
-  PipeFunction, Sequence} from '@ziggurat/ningal';
-import {CollectionFactory, Collection, MemoryCollectionConfig,
-  QueryOptions, Query, CacheQuery} from '../interfaces';
+import {ProcessorFactory} from '@ziggurat/ningal';
+import {CollectionFactory, Collection, MemoryCollectionConfig} from '../interfaces';
 import {CollectionConfig, Database, MiddlewareProvider} from './interfaces';
 import {Controller} from './controller';
 import {NullCollection} from '../collections/null';
@@ -13,8 +11,6 @@ import {EventEmitter} from 'eventemitter3';
 import {DocumentIdEvaluator} from '../middleware/caching/documentId';
 import {QueryHashEvaluator} from '../middleware/caching/queryHash';
 import {RangeEvaluator} from '../middleware/caching/range';
-import {Document} from '../models/document';
-import {each, includes, isArray, map, transform} from 'lodash';
 import {CollectionAnnotation} from './decorators';
 
 @provider({

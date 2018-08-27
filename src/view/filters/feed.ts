@@ -1,7 +1,6 @@
 import {QueryOptions} from '../../interfaces';
 import {Filter, FeedConfig} from '../interfaces';
 import {View} from '../view';
-import {EventEmitter} from 'eventemitter3';
 
 export class FeedFilter extends Filter {
   public limit: number;

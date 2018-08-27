@@ -3,7 +3,7 @@ import {Collection, CollectionFactory, MemoryCollectionConfig,
   QueryOptions} from '../interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
-import {filter, find, findIndex, remove} from 'lodash';
+import {filter, findIndex, remove} from 'lodash';
 
 @provider({
   key: 'isimud.MemoryCollectionFactory'

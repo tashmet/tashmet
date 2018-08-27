@@ -1,4 +1,4 @@
-import {Pipe, Component, step} from '@ziggurat/ningal';
+import {Component, step} from '@ziggurat/ningal';
 import {Collection} from '../interfaces';
 import {Document} from '../models/document';
 

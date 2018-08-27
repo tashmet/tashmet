@@ -1,5 +1,5 @@
 import {Newable} from '@ziggurat/meta';
-import {provider, Injector} from '@ziggurat/tiamat';
+import {Injector} from '@ziggurat/tiamat';
 import {before, after, Middleware} from '@ziggurat/ningal';
 import {map, orderBy, remove, transform} from 'lodash';
 import {Collection, Pipe, Step} from '../interfaces';

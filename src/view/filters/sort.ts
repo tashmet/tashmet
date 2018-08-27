@@ -1,6 +1,5 @@
 import {QueryOptions, SortingOrder} from '../../interfaces';
 import {Filter, SortingConfig} from '../interfaces';
-import {EventEmitter} from 'eventemitter3';
 
 export class SortingFilter extends Filter {
   public key: string;

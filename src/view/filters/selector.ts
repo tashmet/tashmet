@@ -1,7 +1,6 @@
 import {QueryOptions} from '../../interfaces';
 import {Filter, SelectorConfig} from '../interfaces';
 import {extend} from 'lodash';
-import {EventEmitter} from 'eventemitter3';
 
 export class SelectorFilter<T> extends Filter {
   public value: T | undefined;

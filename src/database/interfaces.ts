@@ -2,7 +2,6 @@ import {Injector, ServiceIdentifier} from '@ziggurat/tiamat';
 import {Middleware} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
-import {Document} from '../models/document';
 
 /**
  * Configuration for the collection decorator.

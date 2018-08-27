@@ -1,12 +1,10 @@
-import {getType} from 'reflect-helper';
-import {activate, injectable, inject, Injector} from '@ziggurat/tiamat';
+import {injectable} from '@ziggurat/tiamat';
 import {QueryOptions} from '../interfaces';
 import {Filter} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 import {each, find, includes} from 'lodash';
-import {ViewOfAnnotation} from './decorators';
 
 @injectable()
 export class View<T extends Document = Document> extends EventEmitter {

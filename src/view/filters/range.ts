@@ -1,7 +1,5 @@
 import {QueryOptions} from '../../interfaces';
 import {Filter, RangeConfig} from '../interfaces';
-import {View} from '../view';
-import {EventEmitter} from 'eventemitter3';
 
 export class RangeFilter extends Filter {
   public offset: number;

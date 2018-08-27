@@ -1,4 +1,4 @@
-import {classDecorator, Abstract, Newable} from '@ziggurat/meta';
+import {classDecorator} from '@ziggurat/meta';
 import {Injector, ServiceIdentifier, SelfActivationAnnotation} from '@ziggurat/tiamat';
 import {Controller} from '../database/controller';
 import {Filter} from '../view/interfaces';
