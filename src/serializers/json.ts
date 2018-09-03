@@ -1,10 +1,7 @@
-import {Injector} from '@ziggurat/tiamat';
 import {Serializer, SerializerProvider} from '../interfaces';
 
 export function json(): SerializerProvider {
-  return (injector: Injector): Serializer => {
-    return new JsonSerializer();
-  };
+  return () => new JsonSerializer();
 }
 
 class JsonSerializer implements Serializer {
