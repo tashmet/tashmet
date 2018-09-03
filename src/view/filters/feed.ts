@@ -1,6 +1,17 @@
 import {QueryOptions} from '../../interfaces';
-import {Filter, FeedConfig} from '../interfaces';
+import {Filter, FilterConfig} from '../interfaces';
 import {View} from '../view';
+
+/**
+ * Configuration options for feed filter.
+ */
+export interface FeedConfig extends FilterConfig {
+  /** Number of documents to include in the feed. */
+  limit: number;
+
+  /** Number of documents to increment by when loading more. */
+  increment: number;
+}
 
 /**
  * A filter that provides a feed.

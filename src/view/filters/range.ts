@@ -1,5 +1,20 @@
 import {QueryOptions} from '../../interfaces';
-import {Filter, RangeConfig} from '../interfaces';
+import {Filter, FilterConfig} from '../interfaces';
+
+/**
+ * Configuration options for range filter
+ */
+export interface RangeConfig extends FilterConfig {
+  /**
+   * Offset from the beginning of the result set.
+   *
+   * @default 0
+   */
+  offset?: number;
+
+  /** Number of documents to include in the range */
+  length: number;
+}
 
 /**
  * A filter that limits the range of documents.

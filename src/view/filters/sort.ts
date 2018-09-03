@@ -1,5 +1,7 @@
-import {QueryOptions, SortingOrder} from '../../interfaces';
-import {Filter, SortingConfig} from '../interfaces';
+import {QueryOptions, Sorting, SortingOrder} from '../../interfaces';
+import {Filter, FilterConfig} from '../interfaces';
+
+export interface SortingConfig extends Sorting, FilterConfig {}
 
 export class SortingFilter extends Filter {
   public key: string;

@@ -1,6 +1,14 @@
 import {QueryOptions} from '../../interfaces';
-import {Filter, SelectorConfig} from '../interfaces';
+import {Filter, FilterConfig} from '../interfaces';
 import {extend} from 'lodash';
+
+export interface SelectorConfig<T> extends FilterConfig {
+  value?: T;
+
+  compile?: (value?: T) => object;
+
+  disableOn?: T;
+}
 
 export class SelectorFilter<T> extends Filter {
   public value: T | undefined;
