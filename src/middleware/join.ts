@@ -29,6 +29,14 @@ export class JoinMiddleware extends Middleware {
     pipe: Pipe.Find
   })
   private async joinOnFind(docs: Document[]): Promise<Document[]> {
+    let ids = new Set(docs.map(d => this.getRef(d))).values();
+    let others = await this.foreign.find({_id: {'$in': ids}});
+    for (let doc of docs) {
+      let other = others.find(o => o === this.getRef(doc));
+      if (other) {
+        this.setRef(doc, other);
+      }
+    }
     return docs;
   }
 
@@ -36,9 +44,16 @@ export class JoinMiddleware extends Middleware {
     pipe: Pipe.Upsert
   })
   private async joinOnUpsert(doc: Document): Promise<Document> {
-    let id = (<any>doc)[this.config.key];
-    let obj = await this.foreign.findOne({_id: id});
-    (<any>doc)[this.config.key] = obj;
+    let id = this.getRef(doc);
+    this.setRef(doc, await this.foreign.findOne({_id: id}));
     return doc;
+  }
+
+  private setRef(doc: Document, other: Document) {
+    (<any>doc)[this.config.key] = other;
+  }
+
+  private getRef(doc: Document) {
+    return (<any>doc)[this.config.key];
   }
 }
