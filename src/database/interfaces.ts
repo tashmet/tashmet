@@ -33,6 +33,12 @@ export interface CollectionConfig {
  *
  */
 export interface Database {
+  /**
+   * Get an existing collection by name.
+   *
+   * @param name The name of the collection.
+   * @returns The instance of the collection.
+   */
   collection(name: string): Collection;
 
   /**
@@ -41,6 +47,10 @@ export interface Database {
    * This function will create a new instance given a provider and a configuration.
    * The provider needs to be registered in transient scope with the injector prior to
    * calling this function.
+   *
+   * @param key The service identifier for the provider of the collection.
+   * @param config The configuration used for setting up the collection.
+   * @returns An instance of the collection.
    */
   createCollection<C extends Controller<any>>(
     key: ServiceIdentifier<C>, config: CollectionConfig): C;
