@@ -13,20 +13,20 @@ export interface CollectionConfig {
   name: string;
 
   /**
-   * Provider of the source collection.
+   * Producer of the source collection.
    *
    * The controller can have an optional source collection that documents are read from and
    * writter to such as a file on disk when server-side or a remote rest interface when the
    * controller operates in a browser.
    *
-   * If no source provider is given, the controller will be a volatile memory collection.
+   * If no source producer is given, the controller will be a volatile memory collection.
    */
-  source?: SourceProvider;
+  source?: SourceProducer;
 
   /**
-   * A list of providers of processing pipeline midddleware.
+   * A list of producers of processing pipeline midddleware.
    */
-  middleware?: MiddlewareProvider[];
+  middleware?: MiddlewareProducer[];
 }
 
 /**
@@ -58,6 +58,6 @@ export interface Database {
   on(event: string, fn: any): void;
 }
 
-export type SourceProvider = (injector: Injector, model: string) => Collection;
+export type SourceProducer = (injector: Injector, model: string) => Collection;
 
-export type MiddlewareProvider = (injector: Injector, controller: Controller) => Middleware;
+export type MiddlewareProducer = (injector: Injector, controller: Controller) => Middleware;

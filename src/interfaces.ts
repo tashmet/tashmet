@@ -156,8 +156,6 @@ export interface Serializer {
   serialize(data: object): Promise<Buffer>;
 }
 
-export type SerializerProvider = (injector: Injector) => Serializer;
-
 /**
  * An enumeration of the different pipes that can be hooked into by database middleware,
  */

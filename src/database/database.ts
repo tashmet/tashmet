@@ -4,7 +4,7 @@ import {inject, optional, provider, activate, Injector,
 import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
 import {ProcessorFactory} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig} from '../interfaces';
-import {CollectionConfig, Database, MiddlewareProvider} from './interfaces';
+import {CollectionConfig, Database, MiddlewareProducer} from './interfaces';
 import {Controller} from './controller';
 import {NullCollection} from '../collections/null';
 import {EventEmitter} from 'eventemitter3';
@@ -24,7 +24,7 @@ export class DatabaseService extends EventEmitter implements Database {
     @inject('isimud.MemoryCollectionFactory')
     private memory: CollectionFactory<MemoryCollectionConfig>,
     @inject('isimud.Middleware') @optional()
-    private middleware: MiddlewareProvider[] = [],
+    private middleware: MiddlewareProducer[] = [],
     @inject('mushdamma.ModelRegistry') private models: ModelRegistry,
     @inject('mushdamma.Transformer') private transformer: Transformer,
     @inject('mushdamma.Validator') private validator: Validator,
@@ -83,8 +83,8 @@ export class DatabaseService extends EventEmitter implements Database {
       () => new RangeEvaluator()
     ]);
 
-    for (let middlewareProvider of this.middleware.concat(config.middleware || [])) {
-      processor.middleware(middlewareProvider(this.injector, controller));
+    for (let middlewareProducer of this.middleware.concat(config.middleware || [])) {
+      processor.middleware(middlewareProducer(this.injector, controller));
     }
 
     controller.on('ready', () => {
