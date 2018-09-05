@@ -1,4 +1,4 @@
-import {classDecorator} from '@ziggurat/meta';
+import {classDecorator, Newable, Abstract} from '@ziggurat/meta';
 import {Injector, ServiceIdentifier, SelfActivationAnnotation} from '@ziggurat/tiamat';
 import {Controller} from '../database/controller';
 import {Filter} from '../view/interfaces';
@@ -24,5 +24,5 @@ export class ViewOfAnnotation extends SelfActivationAnnotation<View> {
   }
 }
 
-export const viewOf = <(key: ServiceIdentifier<Controller<any>>) => any>
+export const viewOf = <(key: ServiceIdentifier<any>) => any>
   classDecorator(ViewOfAnnotation);
