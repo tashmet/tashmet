@@ -1,6 +1,6 @@
 import {Injector, ServiceIdentifier} from '@ziggurat/tiamat';
-import {after, Middleware} from '@ziggurat/ningal';
-import {Collection, Pipe} from '../interfaces';
+import {after, before, Middleware} from '@ziggurat/ningal';
+import {Collection, Pipe, Step} from '../interfaces';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 
@@ -49,7 +49,19 @@ export class JoinMiddleware extends Middleware {
     return doc;
   }
 
-  private setRef(doc: Document, other: Document) {
+  @before({
+    pipe: Pipe.SourceUpsert,
+    step: Step.Persist
+  })
+  private async disjoinOnPersist(doc: Document): Promise<Document> {
+    let ref = this.getRef(doc);
+    if (ref instanceof Document) {
+      this.setRef(doc, ref._id);
+    }
+    return doc;
+  }
+
+  private setRef(doc: Document, other: any) {
     (<any>doc)[this.config.key] = other;
   }
 
