@@ -22,7 +22,7 @@ export interface JoinConfig {
  * document in another collection. This middleware will then replace the id string with a
  * reference to the actual document if found.
  *
- * The join is performed on calls to find() and upsert(). When the document is
+ * The join is performed on calls to find(), findOne() and upsert(). When the document is
  * persisted the join is reverted again.
  *
  * @param config The configuration options.
@@ -58,12 +58,17 @@ export class JoinMiddleware extends Middleware {
   }
 
   @after({
+    pipe: Pipe.FindOne
+  })
+  private async joinOnFindOne(doc: Document): Promise<Document> {
+    return this.joinSingle(doc);
+  }
+
+  @after({
     pipe: Pipe.Upsert
   })
   private async joinOnUpsert(doc: Document): Promise<Document> {
-    let id = this.getRef(doc);
-    this.setRef(doc, await this.foreign.findOne({_id: id}));
-    return doc;
+    return this.joinSingle(doc);
   }
 
   @before({
@@ -75,6 +80,12 @@ export class JoinMiddleware extends Middleware {
     if (ref instanceof Document) {
       this.setRef(doc, ref._id);
     }
+    return doc;
+  }
+
+  private async joinSingle(doc: Document): Promise<Document> {
+    let id = this.getRef(doc);
+    this.setRef(doc, await this.foreign.findOne({_id: id}));
     return doc;
   }
 
