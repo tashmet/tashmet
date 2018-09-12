@@ -4,12 +4,29 @@ import {Collection, Pipe, Step} from '../interfaces';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
 
+/**
+ * Configuration options for join middleware.
+ */
 export interface JoinConfig {
+  /** The key in local documents that contain the id */
   key: string;
 
+  /** The foreign collection */
   foreign: ServiceIdentifier<Controller>;
 }
 
+/**
+ * Join documents from another collection to a key in documents in this one.
+ *
+ * The given key should exist on documents in this collection and have as its value an id of a
+ * document in another collection. This middleware will then replace the id string with a
+ * reference to the actual document if found.
+ *
+ * The join is performed on calls to find() and upsert(). When the document is
+ * persisted the join is reverted again.
+ *
+ * @param config The configuration options.
+ */
 export const join = (config: JoinConfig) => {
   return (injector: Injector, controller: Controller): Middleware  => {
     let foreign = injector.get<Collection>(config.foreign);
