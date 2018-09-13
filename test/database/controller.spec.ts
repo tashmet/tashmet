@@ -143,9 +143,11 @@ describe('Controller', async () => {
     });
 
     it('should add and return the document', async () => {
-      let doc = await controller.upsert(new Document('foo'));
+      let input = new Document('foo');
+      stub.returns(input)
+      let doc = await controller.upsert(input);
 
-      expect(doc).to.include({_id: 'foo', _revision: 1});
+      expect(doc).to.include({_id: 'foo'});
     });
 
     it('should upsert the document to the cache', () => {

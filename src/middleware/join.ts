@@ -3,6 +3,7 @@ import {after, before, Middleware} from '@ziggurat/ningal';
 import {Collection, Pipe, Step} from '../interfaces';
 import {Controller} from '../database/controller';
 import {Document} from '../models/document';
+import {isString} from 'lodash';
 
 /**
  * Configuration options for join middleware.
@@ -46,7 +47,10 @@ export class JoinMiddleware extends Middleware {
     pipe: Pipe.Find
   })
   private async joinOnFind(docs: Document[]): Promise<Document[]> {
-    let ids = new Set(docs.map(d => this.getRef(d))).values();
+    let ids = new Set(docs
+      .map(d => this.getRef(d))
+      .filter(ref => isString(ref))
+    ).values();
     let others = await this.foreign.find({_id: {'$in': ids}});
     for (let doc of docs) {
       let other = others.find(o => o === this.getRef(doc));
@@ -72,7 +76,7 @@ export class JoinMiddleware extends Middleware {
   }
 
   @before({
-    pipe: Pipe.SourceUpsert,
+    pipe: Pipe.Upsert,
     step: Step.Persist
   })
   private async disjoinOnPersist(doc: Document): Promise<Document> {
@@ -84,8 +88,10 @@ export class JoinMiddleware extends Middleware {
   }
 
   private async joinSingle(doc: Document): Promise<Document> {
-    let id = this.getRef(doc);
-    this.setRef(doc, await this.foreign.findOne({_id: id}));
+    let ref = this.getRef(doc);
+    if (isString(ref)) {
+      this.setRef(doc, await this.foreign.findOne({_id: ref}));
+    }
     return doc;
   }
 

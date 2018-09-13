@@ -139,7 +139,7 @@ export class Controller<U extends Document = Document>
 
     this.upsertQueue.push(copy._id);
 
-    await this.upsertPipe(copy);
+    copy = <T>(await this.upsertPipe(copy));
     pull(this.upsertQueue, copy._id);
     return Promise.resolve(copy);
   }
