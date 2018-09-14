@@ -8,9 +8,6 @@ import {CollectionConfig, Database, MiddlewareProducer} from './interfaces';
 import {Controller} from './controller';
 import {NullCollection} from '../collections/null';
 import {EventEmitter} from 'eventemitter3';
-import {DocumentIdEvaluator} from '../middleware/caching/documentId';
-import {QueryHashEvaluator} from '../middleware/caching/queryHash';
-import {RangeEvaluator} from '../middleware/caching/range';
 import {CollectionAnnotation} from './decorators';
 
 @provider({
@@ -76,12 +73,6 @@ export class DatabaseService extends EventEmitter implements Database {
     let processor = this.processorFactory.createProcessor();
 
     controller.initialize(config.name, source, cache, buffer, processor, this.validator);
-
-    config.middleware = (config.middleware || []).concat([
-      () => new QueryHashEvaluator(),
-      () => new DocumentIdEvaluator(),
-      () => new RangeEvaluator()
-    ]);
 
     for (let middlewareProducer of this.middleware.concat(config.middleware || [])) {
       processor.middleware(middlewareProducer(this.injector, controller));

@@ -117,13 +117,6 @@ describe('Controller', async () => {
     it('should have added the documents to the cache', async () => {
       expect(await cache.count()).to.equal(2);
     });
-
-    it('should read cached documents from cache', async () => {
-      let docs = await controller.find();
-
-      expect(docs).to.have.lengthOf(2);
-      expect(stub).to.not.have.been.called;
-    });
   });
 
   describe('upsert', () => {
@@ -144,7 +137,7 @@ describe('Controller', async () => {
 
     it('should add and return the document', async () => {
       let input = new Document('foo');
-      stub.returns(input)
+      stub.returns(input);
       let doc = await controller.upsert(input);
 
       expect(doc).to.include({_id: 'foo'});
@@ -204,13 +197,6 @@ describe('Controller', async () => {
 
       await controller.populate();
       return expect(cache.count()).to.eventually.equal(2);
-    });
-
-    it('should make all subsequent querries look only in the cache', async () => {
-      let docs = await controller.find();
-
-      expect(docs).to.have.lengthOf(2);
-      expect(stub).to.not.have.been.called;
     });
   });
 
