@@ -1,7 +1,7 @@
 import {getType} from 'reflect-helper';
 import {inject, optional, provider, activate, Injector,
   ServiceIdentifier} from '@ziggurat/tiamat';
-import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/mushdamma';
+import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/amelatu';
 import {ProcessorFactory} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, MemoryCollectionConfig} from '../interfaces';
 import {CollectionConfig, Database, MiddlewareProducer} from './interfaces';
@@ -22,9 +22,9 @@ export class DatabaseService extends EventEmitter implements Database {
     private memory: CollectionFactory<MemoryCollectionConfig>,
     @inject('isimud.Middleware') @optional()
     private middleware: MiddlewareProducer[] = [],
-    @inject('mushdamma.ModelRegistry') private models: ModelRegistry,
-    @inject('mushdamma.Transformer') private transformer: Transformer,
-    @inject('mushdamma.Validator') private validator: Validator,
+    @inject('amelatu.ModelRegistry') private models: ModelRegistry,
+    @inject('amelatu.Transformer') private transformer: Transformer,
+    @inject('amelatu.Validator') private validator: Validator,
     @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory,
     @inject('tiamat.Injector') private injector: Injector,
   ) {

@@ -1,6 +1,6 @@
-import {Validator} from '@ziggurat/mushdamma';
+import {Validator} from '@ziggurat/amelatu';
 import {Pipe} from '@ziggurat/ningal';
-import {DocumentError} from '../interfaces';
+import {DocumentValidationError} from '../interfaces';
 import {Document} from '../models/document';
 
 /**
@@ -12,10 +12,9 @@ export class ValidationPipe implements Pipe<Document> {
   ) {}
 
   public async process(input: Document): Promise<Document> {
-    let result = await this.validator.validate(input);
-    if (result.length > 0) {
-      const c = result[0].constraints;
-      throw new DocumentError(input, c[Object.keys(c)[0]]);
+    let result = this.validator.validate(input);
+    if (!result.hasPassed()) {
+      throw new DocumentValidationError(result);
     } else {
       return input;
     }

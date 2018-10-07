@@ -1,7 +1,7 @@
 import {Newable} from '@ziggurat/meta';
 import {injectable, decorate} from '@ziggurat/tiamat';
 import {Processor, Sequence} from '@ziggurat/ningal';
-import {Validator} from '@ziggurat/mushdamma';
+import {Validator} from '@ziggurat/amelatu';
 import {Collection, QueryOptions, Query} from '../interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';

@@ -1,5 +1,5 @@
 import {inject, provider} from '@ziggurat/tiamat';
-import {Transformer} from '@ziggurat/mushdamma';
+import {Transformer} from '@ziggurat/amelatu';
 import {Collection, CollectionFactory, RemoteCollectionConfig, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import * as io from 'socket.io-client';
@@ -11,7 +11,7 @@ export class RemoteCollectionFactory implements CollectionFactory<RemoteCollecti
   private socket: any;
 
   public constructor(
-    @inject('mushdamma.Transformer') private transformer: Transformer
+    @inject('amelatu.Transformer') private transformer: Transformer
   ) {
     if (typeof window !== 'undefined' && window.document) {
       this.socket = io.connect(window.location.origin);

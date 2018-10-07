@@ -1,4 +1,4 @@
-import {Injector} from '@ziggurat/tiamat';
+import {ValidationResult, ValidationErrorMap} from '@ziggurat/amelatu';
 import {Document} from './models/document';
 
 /**
@@ -144,6 +144,16 @@ export class DocumentError extends Error {
 
   public constructor(public instance: any, message: string) {
     super(message);
+  }
+}
+
+export class DocumentValidationError extends DocumentError {
+  public name = 'DocumentValidationError';
+  public children: ValidationErrorMap;
+
+  public constructor(validationResult: ValidationResult) {
+    super(validationResult.instance, 'Document validation failed');
+    this.children = validationResult.errors;
   }
 }
 

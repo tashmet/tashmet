@@ -1,5 +1,5 @@
 import {getType} from 'reflect-helper';
-import {model, number, string, ModelAnnotation} from '@ziggurat/mushdamma';
+import {model, number, string, ModelAnnotation} from '@ziggurat/amelatu';
 
 @model({
   name: 'isimud.Document',

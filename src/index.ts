@@ -1,5 +1,5 @@
 import {component} from '@ziggurat/tiamat';
-import {Mushdamma} from '@ziggurat/mushdamma';
+import {Amelatu} from '@ziggurat/amelatu';
 import {Ningal} from '@ziggurat/ningal';
 
 export {MemoryCollection} from './collections/memory';
@@ -18,7 +18,7 @@ import {RemoteCollectionFactory} from './collections/remote';
 
 @component({
   dependencies: [
-    Mushdamma,
+    Amelatu,
     Ningal
   ],
   providers: [
