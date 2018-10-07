@@ -25,7 +25,6 @@ import {RemoteCollectionFactory} from './collections/remote';
     RemoteCollectionFactory,
     MemoryCollectionFactory,
     DatabaseService,
-  ],
-  autoCreate: []
+  ]
 })
 export class Isimud {}
