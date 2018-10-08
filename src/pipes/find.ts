@@ -35,7 +35,7 @@ export class FindPipe extends Component<Query, Document[]> {
         cached: false
       });
     } catch (err) {
-      const query: Query = {selector: err.instance.selector, options: err.instance.options};
+      const query: Query = {selector: err.selector, options: err.options};
       for (let doc of await(this.querySource(query))) {
         await this.upsertCache(await this.validate(doc));
       }
