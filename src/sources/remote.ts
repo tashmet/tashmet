@@ -5,13 +5,9 @@ import {RemoteCollection} from '../collections/remote';
 import {Collection} from '../interfaces';
 import * as io from 'socket.io-client';
 
-export function remote(path: string): SourceProducer {
+export function remote(path: string, socket?: SocketIOClient.Socket): SourceProducer {
   return (injector: Injector, config: CollectionConfig): Collection => {
     const transformer = injector.get<Transformer>('amelatu.Transformer');
-    let socket: any;
-    if (typeof window !== 'undefined' && window.document) {
-      socket = io.connect(window.location.origin);
-    }
     return new RemoteCollection(path, config, transformer, socket);
   };
 }
