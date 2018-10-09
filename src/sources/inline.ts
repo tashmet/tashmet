@@ -1,14 +1,15 @@
 import {Injector} from '@ziggurat/tiamat';
-import {SourceProducer} from '../database/interfaces';
-import {Collection, CollectionFactory, MemoryCollectionConfig} from '../interfaces';
+import {CollectionConfig, SourceProducer} from '../database/interfaces';
+import {Collection, CollectionFactory, CollectionType} from '../interfaces';
 import {Document} from '../models/document';
 
-export function inline<T extends Document>(name: string, docs: T[]): SourceProducer {
-  return (injector: Injector, model: string): Collection => {
-    let factory = injector.get<CollectionFactory<MemoryCollectionConfig>>(
+export function inline<T extends Document>(docs: T[]): SourceProducer {
+  return (injector: Injector, config: CollectionConfig): Collection => {
+    let factory = injector.get<CollectionFactory<T>>(
       'isimud.MemoryCollectionFactory'
     );
-    let collection = factory.createCollection(name, {indices: ['_id']});
+    let collection = factory.createCollection(config, CollectionType.Source);
+
     for (let doc of docs) {
       collection.upsert(doc);
     }

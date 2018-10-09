@@ -1,34 +1,14 @@
-import {inject, provider} from '@ziggurat/tiamat';
 import {Transformer} from '@ziggurat/amelatu';
-import {Collection, CollectionFactory, RemoteCollectionConfig, QueryOptions} from '../interfaces';
+import {Collection, QueryOptions} from '../interfaces';
+import {CollectionConfig} from '../database/interfaces';
 import {EventEmitter} from 'eventemitter3';
-import * as io from 'socket.io-client';
 
-@provider({
-  key: 'isimud.RemoteCollectionFactory'
-})
-export class RemoteCollectionFactory implements CollectionFactory<RemoteCollectionConfig> {
-  private socket: any;
-
-  public constructor(
-    @inject('amelatu.Transformer') private transformer: Transformer
-  ) {
-    if (typeof window !== 'undefined' && window.document) {
-      this.socket = io.connect(window.location.origin);
-    }
-  }
-
-  public createCollection(name: string, config: RemoteCollectionConfig): Collection {
-    return new RemoteCollection(config.path, name, this.transformer, this.socket);
-  }
-}
-
-class RemoteCollection extends EventEmitter implements Collection {
+export class RemoteCollection extends EventEmitter implements Collection {
   private countCache: {[selector: string]: number} = {};
 
   public constructor(
     private _path: string,
-    public readonly name: string,
+    private config: CollectionConfig,
     private transformer: Transformer,
     socket: any
   ) {
@@ -46,6 +26,10 @@ class RemoteCollection extends EventEmitter implements Collection {
         }
       });
     }
+  }
+
+  public get name(): string {
+    return this.config.name + '.source';
   }
 
   public async find<T>(selector?: object, options?: QueryOptions): Promise<T[]> {

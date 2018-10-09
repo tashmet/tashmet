@@ -1,9 +1,8 @@
-import {getType} from 'reflect-helper';
 import {inject, optional, provider, activate, Injector,
   ServiceIdentifier} from '@ziggurat/tiamat';
-import {ModelRegistry, ModelAnnotation, Transformer, Validator} from '@ziggurat/amelatu';
+import {ModelRegistry, Validator} from '@ziggurat/amelatu';
 import {ProcessorFactory} from '@ziggurat/ningal';
-import {CollectionFactory, Collection, MemoryCollectionConfig} from '../interfaces';
+import {CollectionFactory, Collection, CollectionType} from '../interfaces';
 import {CollectionConfig, Database, MiddlewareProducer} from './interfaces';
 import {Controller} from './controller';
 import {NullCollection} from '../collections/null';
@@ -19,11 +18,10 @@ export class DatabaseService extends EventEmitter implements Database {
 
   public constructor(
     @inject('isimud.MemoryCollectionFactory')
-    private memory: CollectionFactory<MemoryCollectionConfig>,
+    private memory: CollectionFactory,
     @inject('isimud.Middleware') @optional()
     private middleware: MiddlewareProducer[] = [],
     @inject('amelatu.ModelRegistry') private models: ModelRegistry,
-    @inject('amelatu.Transformer') private transformer: Transformer,
     @inject('amelatu.Validator') private validator: Validator,
     @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory,
     @inject('tiamat.Injector') private injector: Injector,
@@ -45,10 +43,10 @@ export class DatabaseService extends EventEmitter implements Database {
 
   @activate(o => o instanceof Controller)
   private activateController(controller: Controller): Controller {
-    const annotations = getType(controller.constructor).getAnnotations(CollectionAnnotation);
+    const annotation = CollectionAnnotation.onClass(controller.constructor)[0];
 
-    if (annotations.length !== 0) {
-      this.initializeController(controller, annotations[0].config);
+    if (annotation) {
+      this.initializeController(controller, annotation.config);
     }
     return controller;
   }
@@ -58,17 +56,15 @@ export class DatabaseService extends EventEmitter implements Database {
       throw new Error(`A collection named '${config.name}' already exists`);
     }
 
-    const modelName = getType(controller.model).getAnnotations(ModelAnnotation)[0].name;
-
     this.models.add(controller.model);
     this.collections[config.name] = controller;
 
     let source = config.source
-      ? config.source(this.injector, modelName)
+      ? config.source(this.injector, config, controller.model)
       : new NullCollection(config.name + '.source');
 
-    let cache = this.memory.createCollection(config.name + '.cache', {indices: ['_id']});
-    let buffer = this.memory.createCollection(config.name + '.buffer', {indices: ['_id']});
+    let cache = this.memory.createCollection(config, CollectionType.Cache);
+    let buffer = this.memory.createCollection(config, CollectionType.Buffer);
 
     let processor = this.processorFactory.createProcessor();
 

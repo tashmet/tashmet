@@ -1,6 +1,7 @@
 import {provider} from '@ziggurat/tiamat';
-import {Collection, CollectionFactory, MemoryCollectionConfig,
+import {Collection, CollectionFactory, CollectionType,
   QueryOptions} from '../interfaces';
+import {CollectionConfig} from '../database/interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
 import {cloneDeep, filter, findIndex, remove} from 'lodash';
@@ -8,9 +9,11 @@ import {cloneDeep, filter, findIndex, remove} from 'lodash';
 @provider({
   key: 'isimud.MemoryCollectionFactory'
 })
-export class MemoryCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
-  public createCollection(name: string, config: MemoryCollectionConfig): Collection {
-    return new MemoryCollection(name);
+export class MemoryCollectionFactory implements CollectionFactory {
+  public createCollection(
+    config: CollectionConfig, type: CollectionType): Collection
+  {
+    return new MemoryCollection(config.name + '.' + type);
   }
 }
 

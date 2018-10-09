@@ -1,22 +1,21 @@
 import {ValidationResult, ValidationErrorMap} from '@ziggurat/amelatu';
+import {CollectionConfig} from './database/interfaces';
 import {Document} from './models/document';
+
+export enum CollectionType {
+  Source = 'source',
+  Cache = 'cache',
+  Buffer = 'buffer'
+}
 
 /**
  * Generic interface for creating collections.
  */
-export interface CollectionFactory<T, U extends Document = Document> {
+export interface CollectionFactory<T extends Document = Document> {
   /**
-   * Create a new collection given a name and configuration.
+   * Create a new collection.
    */
-  createCollection(name: string, config: T): Collection<U>;
-}
-
-export interface MemoryCollectionConfig {
-  indices?: string[];
-}
-
-export interface RemoteCollectionConfig {
-  path: string;
+  createCollection(ctrlConfig: CollectionConfig, type: CollectionType): Collection<T>;
 }
 
 export enum SortingOrder {

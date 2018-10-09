@@ -14,7 +14,6 @@ export * from './database/interfaces';
 
 import {DatabaseService} from './database/database';
 import {MemoryCollectionFactory} from './collections/memory';
-import {RemoteCollectionFactory} from './collections/remote';
 
 @component({
   dependencies: [
@@ -22,7 +21,6 @@ import {RemoteCollectionFactory} from './collections/remote';
     Ningal
   ],
   providers: [
-    RemoteCollectionFactory,
     MemoryCollectionFactory,
     DatabaseService,
   ]

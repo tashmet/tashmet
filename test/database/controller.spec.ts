@@ -1,10 +1,11 @@
-import {bootstrap, component, provider, inject, Injector} from '@ziggurat/tiamat';
+import {bootstrap, component, provider, inject} from '@ziggurat/tiamat';
 import {Isimud} from '../../src';
 import {collection} from '../../src/database/decorators';
-import {Collection, CollectionFactory, MemoryCollectionConfig} from '../../src/interfaces';
+import {Collection, CollectionFactory, CollectionType} from '../../src/interfaces';
 import {MemoryCollection} from '../../src/collections/memory';
 import {Document} from '../../src/models/document';
 import {Controller} from '../../src/database/controller';
+import {CollectionConfig} from '../../src/database/interfaces';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -23,9 +24,9 @@ describe('Controller', async () => {
   @provider({
     key: 'isimud.MemoryCollectionFactory'
   })
-  class MockCollectionFactory implements CollectionFactory<MemoryCollectionConfig> {
-    public createCollection(name: string, config: MemoryCollectionConfig): Collection {
-      if (name === 'test.cache') {
+  class MockCollectionFactory implements CollectionFactory {
+    public createCollection(config: CollectionConfig, type: CollectionType): Collection {
+      if (type === CollectionType.Cache) {
         return cache;
       } else {
         return buffer;

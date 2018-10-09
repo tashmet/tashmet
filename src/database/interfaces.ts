@@ -1,3 +1,4 @@
+import {Newable} from '@ziggurat/meta';
 import {Injector, ServiceIdentifier} from '@ziggurat/tiamat';
 import {Middleware} from '@ziggurat/ningal';
 import {Controller} from './controller';
@@ -27,6 +28,8 @@ export interface CollectionConfig {
    * A list of producers of processing pipeline midddleware.
    */
   middleware?: MiddlewareProducer[];
+
+  indices?: string[];
 }
 
 /**
@@ -58,6 +61,7 @@ export interface Database {
   on(event: string, fn: any): void;
 }
 
-export type SourceProducer = (injector: Injector, model: string) => Collection;
+export type SourceProducer = (
+  injector: Injector, config: CollectionConfig, model: Newable<any>) => Collection;
 
 export type MiddlewareProducer = (injector: Injector, controller: Controller) => Middleware;
