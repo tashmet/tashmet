@@ -21,7 +21,7 @@ export class Controller<U extends Document = Document>
   extends EventEmitter implements Collection<U>
 {
   public readonly model: Newable<U>;
-  public locked = true;
+  public locked = false;
   protected _cache: Collection;
   protected _buffer: Collection;
   protected _source: Collection;

@@ -14,14 +14,20 @@ export class RemoteCollection extends EventEmitter implements Collection {
   ) {
     super();
 
+    function belongs(doc: any): boolean {
+      return doc._collection === config.name
+        || '@id' in doc && doc['@id'].startsWith(config.name);
+    }
+
     if (socket) {
       socket.on('document-upserted', (doc: any) => {
-        if (doc._collection === this.name) {
-          this.emit('document-upserted', doc);
+        if (belongs(doc)) {
+          this.transformer.toInstance(doc, 'relay').then(instance =>
+            this.emit('document-upserted', instance));
         }
       });
       socket.on('document-removed', (doc: any) => {
-        if (doc._collection === this.name) {
+        if (belongs(doc)) {
           this.emit('document-removed', doc);
         }
       });
