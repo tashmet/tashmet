@@ -151,11 +151,7 @@ export class Controller<U extends Document = Document>
   }
 
   public async count(selector?: Object): Promise<number> {
-    try {
-      return await this._cache.count(selector);
-    } catch (err) {
-      return this._source.count(selector);
-    }
+    return this._source.count(selector);
   }
 
   private await<T>(p: Promise<T> | undefined, fn: Function) {
