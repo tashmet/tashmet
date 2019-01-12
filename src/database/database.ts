@@ -17,10 +17,8 @@ export class DatabaseService extends EventEmitter implements Database {
   private syncedCount = 0;
 
   public constructor(
-    @inject('isimud.MemoryCollectionFactory')
-    private memory: CollectionFactory,
-    @inject('isimud.Middleware') @optional()
-    private middleware: MiddlewareProducer[] = [],
+    @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory,
+    @inject('isimud.Middleware') @optional() private middleware: MiddlewareProducer[] = [],
     @inject('amelatu.ModelRegistry') private models: ModelRegistry,
     @inject('amelatu.Validator') private validator: Validator,
     @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory,
@@ -41,7 +39,7 @@ export class DatabaseService extends EventEmitter implements Database {
     return controller;
   }
 
-  @activate(o => o instanceof Controller)
+  @activate(Controller)
   private activateController(controller: Controller): Controller {
     const annotation = CollectionAnnotation.onClass(controller.constructor)[0];
 
