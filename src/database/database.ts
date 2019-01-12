@@ -68,9 +68,11 @@ export class DatabaseService extends EventEmitter implements Database {
 
     controller.initialize(config.name, source, cache, buffer, processor, this.validator);
 
-    for (let middlewareProducer of this.middleware.concat(config.middleware || [])) {
-      processor.middleware(middlewareProducer(this.injector, controller));
-    }
+    this.injector.on('bootstrap-done', () => {
+      for (let middlewareProducer of this.middleware.concat(config.middleware || [])) {
+        processor.middleware(middlewareProducer(this.injector, controller));
+      }
+    });
 
     controller.on('ready', () => {
       this.syncedCount += 1;
