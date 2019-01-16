@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/isimud",
-  "version": "0.32.5",
+  "version": "0.32.6",
   "description": "Isimud is an isomorphic document storage and processing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -28,7 +28,7 @@
     "@types/sinon": "^2.3.6",
     "@types/sinon-chai": "^2.7.29",
     "@types/socket.io-client": "^1.4.32",
-    "@ziggurat/tiamat": "^0.10.0",
+    "@ziggurat/tiamat": "^0.10.2",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
     "gulp": "^3.9.1",
@@ -46,6 +46,6 @@
     "typescript": "^2.7.0"
   },
   "peerDependencies": {
-    "@ziggurat/tiamat": "^0.10.0"
+    "@ziggurat/tiamat": "^0.10.2"
   }
 }

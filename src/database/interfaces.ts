@@ -33,6 +33,22 @@ export interface CollectionConfig {
 }
 
 /**
+ * Configuration for the database.
+ */
+export interface DatabaseConfig {
+  /**
+   * Base URL that will prefix the name of each collection added to the database.
+   */
+  baseUrl: string;
+
+  /**
+   * A list of producers of processing pipeline middleware applied to every collection added to
+   * the database.
+   */
+  middleware: MiddlewareProducer[];
+}
+
+/**
  *
  */
 export interface Database {

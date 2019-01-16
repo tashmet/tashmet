@@ -12,6 +12,7 @@ export * from './interfaces';
 export * from './database/decorators';
 export * from './database/interfaces';
 
+import {DatabaseConfig} from './database/interfaces';
 import {DatabaseService} from './database/database';
 import {MemoryCollectionFactory} from './collections/memory';
 
@@ -23,6 +24,12 @@ import {MemoryCollectionFactory} from './collections/memory';
   providers: [
     MemoryCollectionFactory,
     DatabaseService,
-  ]
+  ],
+  definitions: {
+    'isimud.DatabaseConfig': {
+      baseUrl: '',
+      middleware: []
+    } as DatabaseConfig
+  }
 })
 export class Isimud {}
