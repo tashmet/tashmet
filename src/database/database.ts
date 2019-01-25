@@ -1,4 +1,4 @@
-import {inject, provider, activate, Injector,
+import {inject, provider, activate, bootstrapDone, Injector,
   ServiceIdentifier} from '@ziggurat/tiamat';
 import {ModelRegistry, Validator} from '@ziggurat/amelatu';
 import {ProcessorFactory} from '@ziggurat/ningal';
@@ -70,7 +70,7 @@ export class DatabaseService extends EventEmitter implements Database {
 
     controller.initialize(name, source, cache, buffer, processor, this.validator);
 
-    this.injector.on('bootstrap-done', () => {
+    bootstrapDone(this.injector, () => {
       for (let middlewareProducer of this.config.middleware.concat(config.middleware || [])) {
         processor.middleware(middlewareProducer(this.injector, controller));
       }
