@@ -1,10 +1,25 @@
 import {provider} from '@ziggurat/tiamat';
 import {Collection, CollectionFactory, CollectionType,
   QueryOptions} from '../interfaces';
-import {CollectionConfig} from '../database/interfaces';
+import {CollectionConfig, SourceProducer} from '../database/interfaces';
 import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
 import {cloneDeep, filter, findIndex, remove} from 'lodash';
+import {Injector} from '@ziggurat/tiamat';
+
+export function inline<T extends Document>(docs: T[]): SourceProducer {
+  return (injector: Injector, config: CollectionConfig): Collection => {
+    let factory = injector.get<CollectionFactory<T>>(
+      'isimud.MemoryCollectionFactory'
+    );
+    let collection = factory.createCollection(config, CollectionType.Source);
+
+    for (let doc of docs) {
+      collection.upsert(doc);
+    }
+    return collection;
+  };
+}
 
 @provider({
   key: 'isimud.MemoryCollectionFactory'

@@ -2,12 +2,11 @@ import {component} from '@ziggurat/tiamat';
 import {Amelatu} from '@ziggurat/amelatu';
 import {Ningal} from '@ziggurat/ningal';
 
-export {MemoryCollection} from './collections/memory';
+export {inline, MemoryCollection} from './collections/memory';
+export {http} from './collections/http';
 export {Controller} from './database/controller';
 export {Document} from './models/document';
 export {json} from './serializers/json';
-export {inline} from './sources/inline';
-export {remote} from './sources/remote';
 export * from './interfaces';
 export * from './database/decorators';
 export * from './database/interfaces';
