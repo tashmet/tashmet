@@ -1,4 +1,4 @@
-import {inject, provider, activate, bootstrapDone, Injector,
+import {provider, activate, bootstrapDone, Container,
   ServiceIdentifier} from '@ziggurat/tiamat';
 import {ModelRegistry, Validator} from '@ziggurat/amelatu';
 import {ProcessorFactory} from '@ziggurat/ningal';
@@ -10,19 +10,27 @@ import {EventEmitter} from 'eventemitter3';
 import {CollectionAnnotation} from './decorators';
 
 @provider({
-  key: 'isimud.Database'
+  key: 'isimud.Database',
+  inject: [
+    'isimud.MemoryCollectionFactory',
+    'amelatu.ModelRegistry',
+    'amelatu.Validator',
+    'ningal.ProcessorFactory',
+    'tiamat.Container',
+    'isimud.DatabaseConfig'
+  ]
 })
 export class DatabaseService extends EventEmitter implements Database {
   private collections: {[name: string]: Controller} = {};
   private syncedCount = 0;
 
   public constructor(
-    @inject('isimud.MemoryCollectionFactory') private memory: CollectionFactory,
-    @inject('amelatu.ModelRegistry') private models: ModelRegistry,
-    @inject('amelatu.Validator') private validator: Validator,
-    @inject('ningal.ProcessorFactory') private processorFactory: ProcessorFactory,
-    @inject('tiamat.Injector') private injector: Injector,
-    @inject('isimud.DatabaseConfig') private config: DatabaseConfig
+    private memory: CollectionFactory,
+    private models: ModelRegistry,
+    private validator: Validator,
+    private processorFactory: ProcessorFactory,
+    private container: Container,
+    private config: DatabaseConfig
   ) {
     super();
   }
@@ -34,7 +42,7 @@ export class DatabaseService extends EventEmitter implements Database {
   public createCollection<C extends Controller<any>>(
     key: ServiceIdentifier<C>, config: CollectionConfig): C
   {
-    let controller = this.injector.get<C>(key);
+    let controller = this.container.get<C>(key);
     this.initializeController(controller, config);
     return controller;
   }
@@ -60,7 +68,7 @@ export class DatabaseService extends EventEmitter implements Database {
     this.collections[name] = controller;
 
     let source = config.source
-      ? config.source(this.injector, config, controller.model)
+      ? config.source(this.container, config, controller.model)
       : new NullCollection(name + '.source');
 
     let cache = this.memory.createCollection(config, CollectionType.Cache);
@@ -70,9 +78,9 @@ export class DatabaseService extends EventEmitter implements Database {
 
     controller.initialize(name, source, cache, buffer, processor, this.validator);
 
-    bootstrapDone(this.injector, () => {
+    bootstrapDone(this.container, () => {
       for (let middlewareProducer of this.config.middleware.concat(config.middleware || [])) {
-        processor.middleware(middlewareProducer(this.injector, controller));
+        processor.middleware(middlewareProducer(this.container, controller));
       }
     });
 

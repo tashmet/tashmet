@@ -1,5 +1,5 @@
 import {Newable} from '@ziggurat/meta';
-import {Injector, ServiceIdentifier} from '@ziggurat/tiamat';
+import {Container, ServiceIdentifier} from '@ziggurat/tiamat';
 import {Middleware} from '@ziggurat/ningal';
 import {Controller} from './controller';
 import {Collection} from '../interfaces';
@@ -64,7 +64,7 @@ export interface Database {
    * Create a collection.
    *
    * This function will create a new instance given a provider and a configuration.
-   * The provider needs to be registered in transient scope with the injector prior to
+   * The provider needs to be registered in transient scope with the container prior to
    * calling this function.
    *
    * @param key The service identifier for the provider of the collection.
@@ -78,6 +78,6 @@ export interface Database {
 }
 
 export type SourceProducer = (
-  injector: Injector, config: CollectionConfig, model: Newable<any>) => Collection;
+  container: Container, config: CollectionConfig, model: Newable<any>) => Collection;
 
-export type MiddlewareProducer = (injector: Injector, controller: Controller) => Middleware;
+export type MiddlewareProducer = (container: Container, controller: Controller) => Middleware;

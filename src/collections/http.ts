@@ -1,4 +1,4 @@
-import {Injector} from '@ziggurat/tiamat';
+import {Container} from '@ziggurat/tiamat';
 import {Transformer} from '@ziggurat/amelatu';
 import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
@@ -13,8 +13,8 @@ export interface HttpCollectionConfig {
 }
 
 export function http(config: HttpCollectionConfig): SourceProducer {
-  return (injector: Injector, colConfig: CollectionConfig): Collection => {
-    const transformer = injector.get<Transformer>('amelatu.Transformer');
+  return (container: Container, colConfig: CollectionConfig): Collection => {
+    const transformer = container.get<Transformer>('amelatu.Transformer');
     return new HttpCollection(colConfig.name, config, transformer);
   };
 }

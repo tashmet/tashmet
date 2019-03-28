@@ -1,5 +1,4 @@
 import {Newable} from '@ziggurat/meta';
-import {injectable, decorate} from '@ziggurat/tiamat';
 import {Processor, Sequence} from '@ziggurat/ningal';
 import {Validator} from '@ziggurat/amelatu';
 import {Collection, QueryOptions, Query} from '../interfaces';
@@ -12,11 +11,6 @@ import {FindPipe, FindOnePipe} from '../pipes/find';
 import {PopulatePipe} from '../pipes/populate';
 import {RemovePipe} from '../pipes/remove';
 
-if (Reflect.hasOwnMetadata('inversify:paramtypes', EventEmitter) === false) {
-  decorate(injectable(), EventEmitter);
-}
-
-@injectable()
 export class Controller<U extends Document = Document>
   extends EventEmitter implements Collection<U>
 {

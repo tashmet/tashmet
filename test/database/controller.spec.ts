@@ -1,4 +1,5 @@
-import {bootstrap, component, provider, inject} from '@ziggurat/tiamat';
+import {bootstrap, component, provider} from '@ziggurat/tiamat';
+import {container} from '@ziggurat/tiamat-inversify';
 import {Isimud} from '../../src';
 import {collection} from '../../src/database/decorators';
 import {Collection, CollectionFactory, CollectionType} from '../../src/interfaces';
@@ -39,7 +40,7 @@ describe('Controller', async () => {
   })
   @collection({
     name: 'test',
-    source: injector => source
+    source: () => source
   })
   class TestController extends Controller {
     public model = Document;
@@ -48,12 +49,15 @@ describe('Controller', async () => {
   @component({
     dependencies: [Isimud],
     providers: [TestController, MockCollectionFactory],
+    inject: ['test.Controller']
   })
   class TestComponent {
-    @inject('test.Controller') public controller: TestController;
+    public constructor(
+      public ctrl: TestController
+    ) {}
   }
 
-  let controller = (await bootstrap(TestComponent)).controller;
+  let controller = (await bootstrap(container(), TestComponent)).ctrl;
 
   describe('findOne', () => {
     const stub = sinon.stub(source, 'findOne');
