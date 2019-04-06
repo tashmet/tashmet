@@ -9,7 +9,7 @@ export interface HttpCollectionConfig {
 
   socket?: any;
 
-  serializeQuery?: (selector: object, options: QueryOptions) => string;
+  queryParams?: (selector: object, options: QueryOptions) => {[name: string]: string};
 }
 
 export function http(config: HttpCollectionConfig): SourceProducer {
@@ -19,8 +19,7 @@ export function http(config: HttpCollectionConfig): SourceProducer {
   };
 }
 
-export function serializeQuery(selector: object, options: QueryOptions): string {
-  let query = this._path;
+export function queryParams(selector: object, options: QueryOptions): {[name: string]: string} {
   let params: {[name: string]: string} = {};
   if (Object.keys(selector).length > 0) {
     params['selector'] = JSON.stringify(selector);
@@ -28,18 +27,12 @@ export function serializeQuery(selector: object, options: QueryOptions): string 
   if (Object.keys(options).length > 0) {
     params['options'] = JSON.stringify(options);
   }
-  if (Object.keys(params).length > 0) {
-    const esc = encodeURIComponent;
-    query = query + '?' + Object.keys(params)
-        .map(k => esc(k) + '=' + esc(params[k]))
-        .join('&');
-  }
-  return query;
+  return params;
 }
 
 export class HttpCollection extends EventEmitter implements Collection {
   private countCache: {[selector: string]: number} = {};
-  private serializeQuery = serializeQuery;
+  private queryParams = queryParams;
 
   public constructor(
     private _name: string,
@@ -48,8 +41,8 @@ export class HttpCollection extends EventEmitter implements Collection {
   ) {
     super();
 
-    if (config.serializeQuery) {
-      this.serializeQuery = config.serializeQuery;
+    if (config.queryParams) {
+      this.queryParams = config.queryParams;
     }
 
     function belongs(doc: any): boolean {
@@ -77,7 +70,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async find<T>(selector?: object, options?: QueryOptions): Promise<T[]> {
-    let resp = await fetch(this.serializeQuery(selector || {}, options || {}));
+    let resp = await fetch(this.serializeQuery(selector, options));
     if (!resp.ok) {
       throw new Error('Failed to contact server');
     }
@@ -115,7 +108,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   public async count(selector?: object): Promise<number> {
     let totalCount = this.countCache[JSON.stringify(selector)];
     if (!totalCount) {
-      let resp = await fetch(this.serializeQuery(selector || {}, {}), {method: 'HEAD'});
+      let resp = await fetch(this.serializeQuery(selector), {method: 'HEAD'});
       totalCount = this.updateTotalCount(selector || {}, resp);
     }
     return totalCount;
@@ -123,6 +116,19 @@ export class HttpCollection extends EventEmitter implements Collection {
 
   public remove<T>(selector?: object): Promise<T[]> {
     return Promise.reject(new Error('remove() not implemented for remote collection'));
+  }
+
+  private serializeQuery(selector?: object, options?: QueryOptions): string {
+    const params = this.queryParams(selector || {}, options || {});
+
+    let query = this.config.path;
+    if (Object.keys(params).length > 0) {
+      const esc = encodeURIComponent;
+      query = query + '?' + Object.keys(params)
+          .map(k => esc(k) + '=' + esc(params[k]))
+          .join('&');
+    }
+    return query;
   }
 
   private updateTotalCount(selector: object, resp: Response): number {
