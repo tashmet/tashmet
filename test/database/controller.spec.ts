@@ -35,9 +35,6 @@ describe('Controller', async () => {
     }
   }
 
-  @provider({
-    key: 'test.Controller'
-  })
   @collection({
     name: 'test',
     source: () => source
@@ -49,7 +46,7 @@ describe('Controller', async () => {
   @component({
     dependencies: [Isimud],
     providers: [TestController, MockCollectionFactory],
-    inject: ['test.Controller']
+    inject: [TestController]
   })
   class TestComponent {
     public constructor(

@@ -1,5 +1,5 @@
-import {provider, activate, bootstrapDone, Container,
-  ServiceIdentifier} from '@ziggurat/tiamat';
+import {Newable} from '@ziggurat/meta';
+import {provider, bootstrapDone, Container} from '@ziggurat/tiamat';
 import {ModelRegistry, Validator} from '@ziggurat/amelatu';
 import {ProcessorFactory} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, CollectionType} from '../interfaces';
@@ -7,7 +7,6 @@ import {CollectionConfig, Database, DatabaseConfig} from './interfaces';
 import {Controller} from './controller';
 import {NullCollection} from '../collections/null';
 import {EventEmitter} from 'eventemitter3';
-import {CollectionAnnotation} from './decorators';
 
 @provider({
   key: 'isimud.Database',
@@ -40,20 +39,10 @@ export class DatabaseService extends EventEmitter implements Database {
   }
 
   public createCollection<C extends Controller<any>>(
-    key: ServiceIdentifier<C>, config: CollectionConfig): C
+    ctr: Newable<C>, config: CollectionConfig): C
   {
-    let controller = this.container.get<C>(key);
+    let controller = new ctr();
     this.initializeController(controller, config);
-    return controller;
-  }
-
-  @activate(Controller)
-  private activateController(controller: Controller): Controller {
-    const annotation = CollectionAnnotation.onClass(controller.constructor)[0];
-
-    if (annotation) {
-      this.initializeController(controller, annotation.config);
-    }
     return controller;
   }
 
