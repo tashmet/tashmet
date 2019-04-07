@@ -14,6 +14,13 @@ export interface CollectionConfig {
   name: string;
 
   /**
+   * Model of the documents in the collection.
+   *
+   * Will be Document by default
+   */
+  model?: Newable<any>;
+
+  /**
    * Producer of the source collection.
    *
    * The controller can have an optional source collection that documents are read from and
@@ -77,7 +84,6 @@ export interface Database {
   on(event: string, fn: any): void;
 }
 
-export type SourceProducer = (
-  container: Container, config: CollectionConfig, model: Newable<any>) => Collection;
+export type SourceProducer = (container: Container, config: CollectionConfig) => Collection;
 
 export type MiddlewareProducer = (container: Container, controller: Controller) => Middleware;

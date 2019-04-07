@@ -14,44 +14,26 @@ import {RemovePipe} from '../pipes/remove';
 export class Controller<U extends Document = Document>
   extends EventEmitter implements Collection<U>
 {
-  public readonly model: Newable<U>;
   public locked = false;
-  protected _cache: Collection;
-  protected _buffer: Collection;
-  protected _source: Collection;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<U[]>;
   private removePromise: Promise<Document[]> | undefined;
-  private _name: string;
   private findPipe: (q: Query) => Promise<Document[]>;
   private findOnePipe: (selector: object) => Promise<Document>;
   private removePipe: (selector: object) => Promise<Document[]>;
   private populatePipe: (selector: object) => Promise<Document[]>;
   private upsertPipe: (doc: Document) => Promise<Document>;
 
-  get name(): string {
-    return this._name;
-  }
-
-  get buffer(): Collection<U> {
-    return this._buffer;
-  }
-
-  get cache(): Collection<U> {
-    return this._cache;
-  }
-
-  get source(): Collection<U> {
-    return this._source;
-  }
-
-  public initialize(name: string,
-    source: Collection, cache: Collection, buffer: Collection, processor: Processor, validator: Validator)
-  {
-    this._name = name;
-    this._source = source;
-    this._cache = cache;
-    this._buffer = buffer;
+  constructor(
+    public readonly name: string,
+    public readonly model: Newable<U>,
+    public readonly source: Collection,
+    public readonly cache: Collection,
+    public readonly buffer: Collection,
+    processor: Processor,
+    validator: Validator
+  ) {
+    super();
 
     let cachePipe = new RevisionUpsertPipe(cache);
     let validationPipe = new ValidationPipe(validator);
@@ -107,7 +89,7 @@ export class Controller<U extends Document = Document>
   }
 
   public populate(): Promise<U[]> {
-    if (!this.populatePromise && this._source) {
+    if (!this.populatePromise && this.source) {
       this.locked = true;
       this.populatePromise = <Promise<U[]>>this.populatePipe({}).then(docs => {
         this.locked = false;
@@ -145,7 +127,7 @@ export class Controller<U extends Document = Document>
   }
 
   public async count(selector?: Object): Promise<number> {
-    return this._source.count(selector);
+    return this.source.count(selector);
   }
 
   private await<T>(p: Promise<T> | undefined, fn: Function) {

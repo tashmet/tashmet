@@ -1,6 +1,7 @@
 import {classDecorator, Newable} from '@ziggurat/meta';
 import {Container, AbstractProviderAnnotation} from '@ziggurat/tiamat';
 import {CollectionConfig, Database} from './interfaces';
+import {Document} from '../models/document';
 
 export class CollectionAnnotation extends AbstractProviderAnnotation {
   public constructor(
@@ -17,6 +18,7 @@ export class CollectionAnnotation extends AbstractProviderAnnotation {
 
 export const collection = <(config: CollectionConfig) => any>
   classDecorator(CollectionAnnotation, {
+    model: Document,
     middleware: [],
     indices: ['_id']
   });

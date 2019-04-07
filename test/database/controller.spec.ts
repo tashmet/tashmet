@@ -39,9 +39,7 @@ describe('Controller', async () => {
     name: 'test',
     source: () => source
   })
-  class TestController extends Controller {
-    public model = Document;
-  }
+  class TestController extends Controller {}
 
   @component({
     dependencies: [Isimud],
