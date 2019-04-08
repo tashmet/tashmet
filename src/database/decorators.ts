@@ -7,12 +7,12 @@ export class CollectionAnnotation extends AbstractProviderAnnotation {
   public constructor(
     public config: CollectionConfig,
     public target: Newable<any>
-  ) { super(target, []); }
+  ) { super(target); }
 
   public provide(container: Container) {
-    container.registerFactory(this.target, () => {
-      return container.get<Database>('isimud.Database').createCollection(this.target, this.config);
-    }, false);
+    container.registerSingletonFactory(this.target, (database: Database) => {
+      return database.createCollection(this.target, this.config);
+    }, ['isimud.Database']);
   }
 }
 
