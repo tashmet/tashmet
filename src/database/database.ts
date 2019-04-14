@@ -1,5 +1,5 @@
 import {Newable} from '@ziggurat/meta';
-import {provider, bootstrapDone, Container} from '@ziggurat/tiamat';
+import {provider, Container} from '@ziggurat/tiamat';
 import {ModelRegistry, Validator} from '@ziggurat/amelatu';
 import {ProcessorFactory} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, CollectionType} from '../interfaces';
@@ -64,11 +64,9 @@ export class DatabaseService extends EventEmitter implements Database {
     this.models.add(controller.model);
     this.collections[name] = controller;
 
-    bootstrapDone(this.container, () => {
-      for (let middlewareProducer of this.config.middleware.concat(config.middleware || [])) {
-        processor.middleware(middlewareProducer(this.container, controller));
-      }
-    });
+    for (let middlewareProducer of this.config.middleware.concat(config.middleware || [])) {
+      processor.middleware(middlewareProducer(this.container, controller));
+    }
 
     controller.on('ready', () => {
       this.syncedCount += 1;
