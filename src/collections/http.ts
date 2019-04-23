@@ -1,5 +1,5 @@
+import {Transformer} from '@ziggurat/common';
 import {Container} from '@ziggurat/tiamat';
-import {Transformer} from '@ziggurat/amelatu';
 import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {CollectionConfig, SourceProducer} from '../database/interfaces';
@@ -14,7 +14,7 @@ export interface HttpCollectionConfig {
 
 export function http(config: HttpCollectionConfig): SourceProducer {
   return (container: Container, colConfig: CollectionConfig): Collection => {
-    const transformer = container.get<Transformer>('amelatu.Transformer');
+    const transformer = container.get<Transformer>('ziggurat.Transformer');
     return new HttpCollection(colConfig.name, config, transformer);
   };
 }
@@ -69,7 +69,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     return this._name + '.source';
   }
 
-  public async find<T>(selector?: object, options?: QueryOptions): Promise<T[]> {
+  public async find(selector?: object, options?: QueryOptions): Promise<any[]> {
     let resp = await fetch(this.serializeQuery(selector, options));
     if (!resp.ok) {
       throw new Error('Failed to contact server');
@@ -77,20 +77,20 @@ export class HttpCollection extends EventEmitter implements Collection {
     this.updateTotalCount(selector || {}, resp);
     let result = [];
     for (let obj of await resp.json()) {
-      result.push(await this.transformer.toInstance<T>(obj, 'relay'));
+      result.push(await this.transformer.toInstance(obj, 'relay'));
     }
     return result;
   }
 
-  public async findOne<T>(selector: object): Promise<T> {
-    let docs = await this.find<T>(selector, {limit: 1});
+  public async findOne(selector: object): Promise<any> {
+    let docs = await this.find(selector, {limit: 1});
     if (docs.length === 0) {
       throw new Error('Document not found');
     }
     return docs[0];
   }
 
-  public async upsert<T>(doc: T): Promise<T> {
+  public async upsert(doc: any): Promise<any> {
     let resp = await fetch(this.config.path, {
       body: JSON.stringify(await this.transformer.toPlain(doc, 'relay')),
       headers: {
@@ -114,7 +114,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     return totalCount;
   }
 
-  public remove<T>(selector?: object): Promise<T[]> {
+  public remove(selector?: object): Promise<any[]> {
     return Promise.reject(new Error('remove() not implemented for remote collection'));
   }
 

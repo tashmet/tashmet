@@ -15,8 +15,6 @@ export interface CollectionConfig {
 
   /**
    * Model of the documents in the collection.
-   *
-   * Will be Document by default
    */
   model?: Newable<any>;
 

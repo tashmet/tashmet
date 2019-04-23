@@ -14,7 +14,8 @@
     "noResolve": false,
     "noUnusedParameters": false,
     "noUnusedLocals": false,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "esModuleInterop": true
   },
   "compileOnSave": false,
   "exclude": [

@@ -1,66 +1,67 @@
 import {Newable} from '@ziggurat/meta';
 import {Processor, Sequence} from '@ziggurat/ningal';
-import {Validator} from '@ziggurat/amelatu';
+import {Validator} from '@ziggurat/common';
 import {Collection, QueryOptions, Query} from '../interfaces';
-import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
-import {clone, find, pull} from 'lodash';
+import clone from 'lodash/clone';
+import find from 'lodash/find';
+import pull from 'lodash/pull';
 import {RevisionUpsertPipe} from '../pipes/upsert';
 import {ValidationPipe} from '../pipes/validation';
 import {FindPipe, FindOnePipe} from '../pipes/find';
 import {PopulatePipe} from '../pipes/populate';
 import {RemovePipe} from '../pipes/remove';
 
-export class Controller<U extends Document = Document>
+export class Controller<U = any>
   extends EventEmitter implements Collection<U>
 {
   public locked = false;
   private upsertQueue: string[] = [];
   private populatePromise: Promise<U[]>;
-  private removePromise: Promise<Document[]> | undefined;
-  private findPipe: (q: Query) => Promise<Document[]>;
-  private findOnePipe: (selector: object) => Promise<Document>;
-  private removePipe: (selector: object) => Promise<Document[]>;
-  private populatePipe: (selector: object) => Promise<Document[]>;
-  private upsertPipe: (doc: Document) => Promise<Document>;
+  private removePromise: Promise<U[]> | undefined;
+  private findPipe: (q: Query) => Promise<U[]>;
+  private findOnePipe: (selector: object) => Promise<U>;
+  private removePipe: (selector: object) => Promise<U[]>;
+  private populatePipe: (selector: object) => Promise<U[]>;
+  private upsertPipe: (doc: U) => Promise<U>;
 
   constructor(
     public readonly name: string,
-    public readonly model: Newable<U>,
+    public readonly model: Newable<U> | undefined,
     public readonly source: Collection,
     public readonly cache: Collection,
     public readonly buffer: Collection,
     processor: Processor,
-    validator: Validator
+    validator?: Validator
   ) {
     super();
 
-    let cachePipe = new RevisionUpsertPipe(cache);
-    let validationPipe = new ValidationPipe(validator);
+    let cachePipe = new RevisionUpsertPipe<U>(cache);
+    let validationPipe = new ValidationPipe<U>(validator);
 
-    this.findPipe = processor.pipe<Query, Document[]>('find', new FindPipe(
+    this.findPipe = processor.pipe<Query, U[]>('find', new FindPipe(
       source, cache, cachePipe, validationPipe
     ));
-    this.findOnePipe = processor.pipe<object, Document>('find-one', new FindOnePipe(
+    this.findOnePipe = processor.pipe<object, U>('find-one', new FindOnePipe<U>(
       source, cache, cachePipe, validationPipe
     ));
-    this.removePipe = processor.pipe<object, Document[]>('remove', new RemovePipe(
+    this.removePipe = processor.pipe<object, U[]>('remove', new RemovePipe(
       source, cache
     ));
-    this.populatePipe = processor.pipe<object, Document[]>('populate', new PopulatePipe(
+    this.populatePipe = processor.pipe<object, U[]>('populate', new PopulatePipe(
       this.name, source, buffer, cachePipe, validationPipe
     ));
-    this.upsertPipe = processor.pipe<Document>('upsert', new Sequence({
+    this.upsertPipe = processor.pipe<U>('upsert', new Sequence({
       'validate': validationPipe,
       'cache': cachePipe,
-      'persist': (doc: Document) => source.upsert(doc)
+      'persist': (doc: U) => source.upsert(doc)
     }));
 
-    const sourceUpsertPipe = processor.pipe<Document>('source-upsert', new Sequence({
+    const sourceUpsertPipe = processor.pipe<U>('source-upsert', new Sequence({
       'validate': validationPipe,
       'cache': cachePipe
     }));
-    const sourceRemovePipe = processor.pipe<object, Document[]>('source-remove', new Sequence({
+    const sourceRemovePipe = processor.pipe<object, U[]>('source-remove', new Sequence({
       'uncache': async (selector: object) => this.cache.remove(selector)
     }));
 
@@ -71,7 +72,7 @@ export class Controller<U extends Document = Document>
       this.emit('document-removed', doc);
     });
 
-    source.on('document-upserted', (doc: U) => {
+    source.on('document-upserted', (doc: any) => {
       if (!this.locked) {
         doc._collection = this.name;
         if (this.upsertQueue.indexOf(doc._id) < 0) {
@@ -79,8 +80,8 @@ export class Controller<U extends Document = Document>
         }
       }
     });
-    source.on('document-removed', (doc: U) => {
-      this.await(this.removePromise, (res: Document[] | undefined) => {
+    source.on('document-removed', (doc: any) => {
+      this.await(this.removePromise, (res: any[] | undefined) => {
         if (!res || !find(res, {_id: doc._id})) {
           sourceRemovePipe({_id: doc._id});
         }
@@ -108,8 +109,8 @@ export class Controller<U extends Document = Document>
     return <Promise<T>>this.findOnePipe(selector);
   }
 
-  public async upsert<T extends U>(doc: T): Promise<T> {
-    let copy = clone(doc);
+  public async upsert<T extends U>(doc: any): Promise<T> {
+    let copy = <any>clone(doc);
     copy._revision = doc._revision ? doc._revision + 1 : 1;
     copy._collection = this.name;
 

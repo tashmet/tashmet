@@ -1,6 +1,5 @@
-import {ValidationResult, ValidationErrorMap} from '@ziggurat/amelatu';
+import {ValidationResult, ValidationErrorMap} from '@ziggurat/common';
 import {CollectionConfig} from './database/interfaces';
-import {Document} from './models/document';
 
 export enum CollectionType {
   Source = 'source',
@@ -11,7 +10,7 @@ export enum CollectionType {
 /**
  * Generic interface for creating collections.
  */
-export interface CollectionFactory<T extends Document = Document> {
+export interface CollectionFactory<T = any> {
   /**
    * Create a new collection.
    */
@@ -62,7 +61,7 @@ export interface CacheQuery extends Query {
 /**
  * A collection of documents.
  */
-export interface Collection<U extends Document = Document> {
+export interface Collection<U = any> {
   /**
    * Name of the collection.
    */
@@ -76,7 +75,7 @@ export interface Collection<U extends Document = Document> {
    * @param doc The document to insert.
    * @returns A promise for the upserted document.
    */
-  upsert<T extends U>(doc: T): Promise<T>;
+  upsert<T extends U = any>(doc: T): Promise<T>;
 
   /**
    * Find documents in the collection.
@@ -85,7 +84,7 @@ export interface Collection<U extends Document = Document> {
    * @param options A set of options determining sorting order, limit and offset.
    * @returns A promise for the list of matching documents.
    */
-  find<T extends U>(selector?: object, options?: QueryOptions): Promise<T[]>;
+  find<T extends U = any>(selector?: object, options?: QueryOptions): Promise<T[]>;
 
   /**
    * Find a single document in the collection.
@@ -94,7 +93,7 @@ export interface Collection<U extends Document = Document> {
    * @returns A promise for the first matching document if one was found.
    * @throws DocumentError if no document was found.
    */
-  findOne<T extends U>(selector: object): Promise<T>;
+  findOne<T extends U = any>(selector: object): Promise<T>;
 
   /**
    * Remove all documents matching selector from collection.
@@ -102,7 +101,7 @@ export interface Collection<U extends Document = Document> {
    * @param selector The selector which documents are matched against.
    * @returns A list of all the documents that were removed.
    */
-  remove<T extends U>(selector: object): Promise<T[]>;
+  remove<T extends U = any>(selector: object): Promise<T[]>;
 
   /**
    * Get the number of documents in the collection that matches a given selector.
@@ -179,7 +178,7 @@ export enum Pipe {
   /**
    * Document being upserted to controller by upsert() method.
    *
-   * signature: (doc: Document) => Promise<Document>
+   * signature: (doc: any) => Promise<any>
    * steps: Validate -> Cache -> Persist
    */
   Upsert = 'upsert',
@@ -187,7 +186,7 @@ export enum Pipe {
   /**
    * Document being removed from controller by remove() method.
    *
-   * signature: (selector: object) => Promise<Document[]>
+   * signature: (selector: object) => Promise<any[]>
    * steps: Uncache -> Unpersist
    */
   Remove = 'remove',
@@ -196,7 +195,7 @@ export enum Pipe {
    * Document being upserted to collection as a result of getting a 'document-upserted' event
    * from the source collection.
    *
-   * signature: (doc: Document) => Promise<Document>
+   * signature: (doc: any) => Promise<any>
    * steps: Validate -> Cache
    */
   SourceUpsert = 'source-upsert',
@@ -205,7 +204,7 @@ export enum Pipe {
    * Document being removed from collection as a result of getting a 'document-removed' event
    * from the source collection.
    *
-   * signature: (doc: Document) => Promise<Document>
+   * signature: (doc: any) => Promise<any>
    * steps: Uncache
    */
   SourceRemove = 'source-remove',
@@ -213,7 +212,7 @@ export enum Pipe {
   /**
    * Find query performed on the collection.
    *
-   * signature: (q: Query) => Promise<Document[]>
+   * signature: (q: Query) => Promise<any[]>
    * steps: CacheQuery -> (SourceQuery -> Validate -> Cache)
    */
   Find = 'find',
@@ -221,7 +220,7 @@ export enum Pipe {
   /**
    * Find one query performed on the collection.
    *
-   * signature: (selector: object) => Promise<Document>
+   * signature: (selector: object) => Promise<any>
    * steps: CacheQuery -> (SourceQuery -> Validate -> Cache)
    */
   FindOne = 'find-one',
@@ -234,49 +233,49 @@ export enum Step {
   /**
    * Validation of document according to its model schema.
    *
-   * signature: (doc: Document) => Promise<Document>
+   * signature: (doc: any) => Promise<any>
    */
   Validate = 'validate',
 
   /**
    * Upserting of document to cache collection.
    *
-   * signature: (doc: Document) => Promise<Document>
+   * signature: (doc: any) => Promise<any>
    */
   Cache = 'cache',
 
   /**
    * Removal of documents from cache collection.
    *
-   * signature: (selector: object) => Promise<Document[]>
+   * signature: (selector: object) => Promise<any[]>
    */
   Uncache = 'uncache',
 
   /**
    * Upserting of document to source collection.
    *
-   * signature: (doc: Document) => Promise<Document>
+   * signature: (doc: any) => Promise<any>
    */
   Persist = 'persist',
 
   /**
    * Removal of documents from source collection.
    *
-   * signature: (selector: object) => Promise<Document[]>
+   * signature: (selector: object) => Promise<any[]>
    */
   Unpersist = 'unpersist',
 
   /**
    * Querrying of documents in cache collection.
    *
-   * signature: (q: CacheQuery) => Promise<Document[]>
+   * signature: (q: CacheQuery) => Promise<any[]>
    */
   CacheQuery = 'cache-query',
 
   /**
    * Querrying of documents in source collection.
    *
-   * signature: (q: Query) => Promise<Document[]>
+   * signature: (q: Query) => Promise<any[]>
    */
   SourceQuery = 'source-query',
 }

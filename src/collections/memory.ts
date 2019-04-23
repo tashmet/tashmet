@@ -2,11 +2,13 @@ import {provider, Container} from '@ziggurat/tiamat';
 import {Collection, CollectionFactory, CollectionType,
   QueryOptions} from '../interfaces';
 import {CollectionConfig, SourceProducer} from '../database/interfaces';
-import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
-import {cloneDeep, filter, findIndex, remove} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import filter from 'lodash/filter';
+import findIndex from 'lodash/findIndex';
+import remove from 'lodash/remove';
 
-export function inline<T extends Document>(docs: T[]): SourceProducer {
+export function inline<T = any>(docs: T[]): SourceProducer {
   return (container: Container, config: CollectionConfig): Collection => {
     let factory = container.get<CollectionFactory<T>>(
       'isimud.MemoryCollectionFactory'
@@ -32,18 +34,18 @@ export class MemoryCollectionFactory implements CollectionFactory {
 }
 
 export class MemoryCollection extends EventEmitter implements Collection {
-  public docs: Document[] = [];
+  public docs: any[] = [];
 
   public constructor(public readonly name = '') {
     super();
   }
 
-  public find<T extends Document>(selector?: object, options?: QueryOptions): Promise<any> {
+  public find(selector?: object, options?: QueryOptions): Promise<any> {
     return Promise.resolve(filter(this.docs, selector || {}));
   }
 
-  public async findOne<T extends Document>(selector: object): Promise<T> {
-    let docs = await this.find<T>(selector);
+  public async findOne(selector: object): Promise<any> {
+    let docs = await this.find(selector);
     if (docs.length > 0) {
       return Promise.resolve(docs[0]);
     } else {
@@ -51,7 +53,7 @@ export class MemoryCollection extends EventEmitter implements Collection {
     }
   }
 
-  public upsert<T extends Document>(doc: T): Promise<T> {
+  public upsert(doc: any): Promise<any> {
     const i = findIndex(this.docs, o => o._id === doc._id);
     const clone = cloneDeep(doc);
     if (i >= 0) {
@@ -63,12 +65,12 @@ export class MemoryCollection extends EventEmitter implements Collection {
     return Promise.resolve(clone);
   }
 
-  public remove<T extends Document>(selector: any): Promise<T[]> {
+  public remove(selector: any): Promise<any[]> {
     let removed = remove(this.docs, selector);
     for (let doc of removed) {
       this.emit('document-removed', doc);
     }
-    return Promise.resolve(<T[]>removed);
+    return Promise.resolve(removed);
   }
 
   public async count(selector?: object): Promise<number> {

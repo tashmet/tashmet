@@ -1,18 +1,18 @@
 import {bootstrap, component, provider} from '@ziggurat/tiamat';
 import {container} from '@ziggurat/tiamat-inversify';
+import {Container as InversifyContainer} from 'inversify';
 import {Isimud} from '../../src';
 import {collection} from '../../src/database/decorators';
 import {Collection, CollectionFactory, CollectionType} from '../../src/interfaces';
 import {MemoryCollection} from '../../src/collections/memory';
-import {Document} from '../../src/models/document';
 import {Controller} from '../../src/database/controller';
 import {CollectionConfig} from '../../src/database/interfaces';
 import {expect} from 'chai';
 import 'mocha';
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -52,7 +52,7 @@ describe('Controller', async () => {
     ) {}
   }
 
-  let controller = (await bootstrap(container(), TestComponent)).ctrl;
+  let controller = (await bootstrap(container(new InversifyContainer()), TestComponent)).ctrl;
 
   describe('findOne', () => {
     const stub = sinon.stub(source, 'findOne');
@@ -72,7 +72,7 @@ describe('Controller', async () => {
     });
 
     it('should read uncached document from source and cache it', async () => {
-      stub.returns(Promise.resolve(new Document('foo')));
+      stub.returns(Promise.resolve({_id: 'foo'}));
 
       let doc = await controller.findOne({_id: 'foo'});
 
@@ -95,8 +95,8 @@ describe('Controller', async () => {
       await controller.remove({});
       stub = sinon.stub(source, 'find');
       stub.returns([
-        new Document('foo'),
-        new Document('bar')
+        {_id: 'foo', _collection: '', _revision: 1},
+        {_id: 'bar', _collection: '', _revision: 1}
       ]);
     });
 
@@ -136,7 +136,7 @@ describe('Controller', async () => {
     });
 
     it('should add and return the document', async () => {
-      let input = new Document('foo');
+      let input = {_id: 'foo', _collection: '', _revision: 1};
       stub.returns(input);
       let doc = await controller.upsert(input);
 
@@ -155,8 +155,8 @@ describe('Controller', async () => {
   describe('remove', () => {
     before(async () => {
       await controller.remove({});
-      await controller.upsert(new Document('doc1'));
-      await controller.upsert(new Document('doc2'));
+      await controller.upsert({_id: 'doc1', _collection: '', _revision: 1});
+      await controller.upsert({_id: 'doc2', _collection: '', _revision: 1});
     });
 
     it('should remove and return a single document', async () => {
@@ -191,8 +191,8 @@ describe('Controller', async () => {
 
     it('should load all documents from source into cache', async () => {
       stub.returns(Promise.resolve([
-        new Document('foo'),
-        new Document('bar')
+        {_id: 'foo', _collection: '', _revision: 1},
+        {_id: 'bar', _collection: '', _revision: 1}
       ]));
 
       await controller.populate();
@@ -206,12 +206,12 @@ describe('Controller', async () => {
     });
 
     it('should trigger document-upserted in controller', (done) => {
-      controller.on('document-upserted', (doc: Document) => {
+      controller.on('document-upserted', (doc: any) => {
         controller.removeAllListeners();
         done();
       });
 
-      source.upsert(new Document('doc1'));
+      source.upsert({_id: 'foo', _collection: '', _revision: 1});
     });
 
     it('should upsert the document to the cache', () => {
@@ -222,11 +222,11 @@ describe('Controller', async () => {
   describe('source remove', () => {
     before(async () => {
       await controller.remove({});
-      await source.upsert(new Document('doc1'));
+      await source.upsert({_id: 'doc1', _collection: '', _revision: 1});
     });
 
     it('should trigger document-removed in controller', (done) => {
-      controller.on('document-removed', (doc: Document) => {
+      controller.on('document-removed', (doc: any) => {
         controller.removeAllListeners();
         done();
       });

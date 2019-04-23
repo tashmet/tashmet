@@ -1,7 +1,6 @@
 import {Pipe, PipeFunction, Component, callable, step} from '@ziggurat/ningal';
 import {Collection, CacheQuery, Query, QueryOptions} from '../interfaces';
-import {Document} from '../models/document';
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 
 export class CacheFindError extends Error {
   public constructor(
@@ -12,22 +11,22 @@ export class CacheFindError extends Error {
   }
 }
 
-export class FindPipe extends Component<Query, Document[]> {
-  @step('cache') private upsertCache: PipeFunction<Document>;
-  @step('validate') private validate: PipeFunction<Document>;
+export class FindPipe<T> extends Component<Query, T[]> {
+  @step('cache') private upsertCache: PipeFunction<any>;
+  @step('validate') private validate: PipeFunction<any>;
 
   public constructor(
     private source: Collection,
     private cache: Collection,
-    cachePipe: Pipe<Document>,
-    validationPipe: Pipe<Document>
+    cachePipe: Pipe<T>,
+    validationPipe: Pipe<T>
   ) {
     super();
     this.upsertCache = callable(cachePipe);
     this.validate = callable(validationPipe);
   }
 
-  public async process(q: Query): Promise<Document[]> {
+  public async process(q: Query): Promise<T[]> {
     try {
       return await this.queryCache({
         selector: cloneDeep(q.selector || {}),
@@ -44,7 +43,7 @@ export class FindPipe extends Component<Query, Document[]> {
   }
 
   @step('cache-query')
-  private async queryCache(q: CacheQuery): Promise<Document[]> {
+  private async queryCache(q: CacheQuery): Promise<T[]> {
     if (q.cached) {
       return this.cache.find(q.selector, q.options);
     } else {
@@ -53,27 +52,27 @@ export class FindPipe extends Component<Query, Document[]> {
   }
 
   @step('source-query')
-  private async querySource(q: Query): Promise<Document[]> {
+  private async querySource(q: Query): Promise<T[]> {
     return this.source.find(q.selector, q.options);
   }
 }
 
-export class FindOnePipe extends Component<object, Document> {
-  @step('cache') private upsertCache: PipeFunction<Document>;
-  @step('validate') private validate: PipeFunction<Document>;
+export class FindOnePipe<T> extends Component<object, T> {
+  @step('cache') private upsertCache: PipeFunction<T>;
+  @step('validate') private validate: PipeFunction<T>;
 
   public constructor(
     private source: Collection,
     private cache: Collection,
-    cachePipe: Pipe<Document>,
-    validationPipe: Pipe<Document>
+    cachePipe: Pipe<T>,
+    validationPipe: Pipe<T>
   ) {
     super();
     this.upsertCache = callable(cachePipe);
     this.validate = callable(validationPipe);
   }
 
-  public async process(selector: object): Promise<Document> {
+  public async process(selector: object): Promise<T> {
     try {
       return await this.cache.findOne(selector);
     } catch (err) {

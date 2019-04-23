@@ -1,17 +1,19 @@
-import {Validator} from '@ziggurat/amelatu';
+import {Validator} from '@ziggurat/common';
 import {Pipe} from '@ziggurat/ningal';
 import {DocumentValidationError} from '../interfaces';
-import {Document} from '../models/document';
 
 /**
  * Pipe that validates the input document against its model's constraints.
  */
-export class ValidationPipe implements Pipe<Document> {
+export class ValidationPipe<T> implements Pipe<T> {
   public constructor(
-    private validator: Validator
+    private validator?: Validator
   ) {}
 
-  public async process(input: Document): Promise<Document> {
+  public async process(input: T): Promise<T> {
+    if (!this.validator) {
+      return input;
+    }
     let result = this.validator.validate(input);
     if (!result.hasPassed()) {
       throw new DocumentValidationError(result);

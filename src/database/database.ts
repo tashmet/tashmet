@@ -1,23 +1,22 @@
 import {Newable} from '@ziggurat/meta';
-import {provider, Container} from '@ziggurat/tiamat';
-import {ModelRegistry, Validator} from '@ziggurat/amelatu';
+import {provider, Container, Optional} from '@ziggurat/tiamat';
+import {ModelRegistry, Validator} from '@ziggurat/common';
 import {ProcessorFactory} from '@ziggurat/ningal';
 import {CollectionFactory, Collection, CollectionType} from '../interfaces';
 import {CollectionConfig, Database, DatabaseConfig} from './interfaces';
 import {Controller} from './controller';
 import {NullCollection} from '../collections/null';
-import {Document} from '../models/document';
 import {EventEmitter} from 'eventemitter3';
 
 @provider({
   key: 'isimud.Database',
   inject: [
     'isimud.MemoryCollectionFactory',
-    'amelatu.ModelRegistry',
-    'amelatu.Validator',
     'ningal.ProcessorFactory',
     'tiamat.Container',
-    'isimud.DatabaseConfig'
+    'isimud.DatabaseConfig',
+    Optional.of('ziggurat.Validator'),
+    Optional.of('ziggurat.ModelRegistry')
   ]
 })
 export class DatabaseService extends EventEmitter implements Database {
@@ -26,11 +25,11 @@ export class DatabaseService extends EventEmitter implements Database {
 
   public constructor(
     private memory: CollectionFactory,
-    private models: ModelRegistry,
-    private validator: Validator,
     private processorFactory: ProcessorFactory,
     private container: Container,
-    private config: DatabaseConfig
+    private config: DatabaseConfig,
+    private validator: Validator,
+    private models: ModelRegistry
   ) {
     super();
   }
@@ -58,10 +57,12 @@ export class DatabaseService extends EventEmitter implements Database {
     let processor = this.processorFactory.createProcessor();
 
     let controller = new ctr(
-      name, config.model || Document, source, cache, buffer, processor, this.validator
+      name, config.model, source, cache, buffer, processor, this.validator
     );
 
-    this.models.add(controller.model);
+    if (this.models && controller.model) {
+      this.models.add(controller.model);
+    }
     this.collections[name] = controller;
 
     for (let middlewareProducer of this.config.middleware.concat(config.middleware || [])) {
