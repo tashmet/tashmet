@@ -1,5 +1,6 @@
 import {component} from '@ziggurat/tiamat';
 import {Ningal} from '@ziggurat/ningal';
+import {Common} from '@ziggurat/common';
 
 export {inline, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
@@ -12,14 +13,12 @@ export * from './database/interfaces';
 import {DatabaseConfig} from './database/interfaces';
 import {DatabaseService} from './database/database';
 import {MemoryCollectionFactory} from './collections/memory';
-import {IdentityTransformer} from './transformer';
 
 @component({
   dependencies: [
-    Ningal
+    Common, Ningal
   ],
   providers: [
-    IdentityTransformer,
     MemoryCollectionFactory,
     DatabaseService,
   ],
