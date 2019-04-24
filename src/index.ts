@@ -5,7 +5,6 @@ import {Common} from '@ziggurat/common';
 export {inline, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
 export {Controller} from './database/controller';
-export {json} from './serializers/json';
 export * from './interfaces';
 export * from './database/decorators';
 export * from './database/interfaces';

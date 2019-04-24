@@ -156,15 +156,6 @@ export class DocumentValidationError extends DocumentError {
 }
 
 /**
- *
- */
-export interface Serializer {
-  deserialize(buffer: Buffer): Promise<object>;
-
-  serialize(data: object): Promise<Buffer>;
-}
-
-/**
  * An enumeration of the different pipes that can be hooked into by database middleware,
  */
 export enum Pipe {
