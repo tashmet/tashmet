@@ -53,7 +53,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     if (config.socket) {
       config.socket.on('document-upserted', (doc: any) => {
         if (belongs(doc)) {
-          this.transformer.toInstance(doc, 'publishing').then(instance =>
+          this.transformer.toInstance(doc, 'publication').then(instance =>
             this.emit('document-upserted', instance));
         }
       });
@@ -77,7 +77,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     this.updateTotalCount(selector || {}, resp);
     let result = [];
     for (let obj of await resp.json()) {
-      result.push(await this.transformer.toInstance(obj, 'publishing'));
+      result.push(await this.transformer.toInstance(obj, 'publication'));
     }
     return result;
   }
@@ -92,7 +92,7 @@ export class HttpCollection extends EventEmitter implements Collection {
 
   public async upsert(doc: any): Promise<any> {
     let resp = await fetch(this.config.path, {
-      body: JSON.stringify(await this.transformer.toPlain(doc, 'publishing')),
+      body: JSON.stringify(await this.transformer.toPlain(doc, 'publication')),
       headers: {
         'content-type': 'application/json'
       },
