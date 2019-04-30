@@ -15,8 +15,8 @@ import {EventEmitter} from 'eventemitter3';
     'ningal.ProcessorFactory',
     'tiamat.Container',
     'isimud.DatabaseConfig',
-    Optional.of('ziggurat.Validator'),
-    Optional.of('ziggurat.ModelRegistry')
+    'ziggurat.ModelRegistry',
+    Optional.of('ziggurat.Validator')
   ]
 })
 export class DatabaseService extends EventEmitter implements Database {
@@ -28,8 +28,8 @@ export class DatabaseService extends EventEmitter implements Database {
     private processorFactory: ProcessorFactory,
     private container: Container,
     private config: DatabaseConfig,
-    private validator: Validator,
-    private models: ModelRegistry
+    private modelRegistry: ModelRegistry,
+    private validator: Validator
   ) {
     super();
   }
@@ -60,8 +60,8 @@ export class DatabaseService extends EventEmitter implements Database {
       name, config.model, source, cache, buffer, processor, this.validator
     );
 
-    if (this.models && controller.model) {
-      this.models.add(controller.model);
+    if (controller.model) {
+      this.modelRegistry.register(controller.model);
     }
     this.collections[name] = controller;
 
