@@ -7,8 +7,6 @@ import {CollectionConfig, SourceProducer} from '../database/interfaces';
 export interface HttpCollectionConfig {
   path: string;
 
-  socket?: any;
-
   queryParams?: (selector: object, options: QueryOptions) => {[name: string]: string};
 }
 
@@ -43,25 +41,6 @@ export class HttpCollection extends EventEmitter implements Collection {
 
     if (config.queryParams) {
       this.queryParams = config.queryParams;
-    }
-
-    function belongs(doc: any): boolean {
-      return doc._collection === _name
-        || '@id' in doc && doc['@id'].startsWith(_name);
-    }
-
-    if (config.socket) {
-      config.socket.on('document-upserted', (doc: any) => {
-        if (belongs(doc)) {
-          this.transformer.toInstance(doc, 'publication').then(instance =>
-            this.emit('document-upserted', instance));
-        }
-      });
-      config.socket.on('document-removed', (doc: any) => {
-        if (belongs(doc)) {
-          this.emit('document-removed', doc);
-        }
-      });
     }
   }
 
