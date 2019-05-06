@@ -1,6 +1,4 @@
 import {component} from '@ziggurat/tiamat';
-import {Ningal} from '@ziggurat/ningal';
-import {Common} from '@ziggurat/common';
 
 export {inline, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
@@ -15,7 +13,8 @@ import {MemoryCollectionFactory} from './collections/memory';
 
 @component({
   dependencies: [
-    Common, Ningal
+    import('@ziggurat/common'),
+    import('@ziggurat/ningal')
   ],
   providers: [
     MemoryCollectionFactory,
@@ -28,4 +27,4 @@ import {MemoryCollectionFactory} from './collections/memory';
     } as DatabaseConfig
   }
 })
-export class Isimud {}
+export default class Isimud {}

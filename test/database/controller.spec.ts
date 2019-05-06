@@ -1,7 +1,7 @@
 import {bootstrap, component, provider} from '@ziggurat/tiamat';
 import {container} from '@ziggurat/tiamat-inversify';
 import {Container as InversifyContainer} from 'inversify';
-import {Isimud} from '../../src';
+import Isimud from '../../src';
 import {collection} from '../../src/database/decorators';
 import {Collection, CollectionFactory, CollectionType} from '../../src/interfaces';
 import {MemoryCollection} from '../../src/collections/memory';
