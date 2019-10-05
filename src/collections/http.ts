@@ -1,8 +1,7 @@
-import {Transformer} from '@ziggurat/common';
 import {Container} from '@ziggurat/tiamat';
 import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
-import {CollectionConfig, SourceProducer} from '../database/interfaces';
+import {CollectionProducer} from '../interfaces';
 
 export interface HttpCollectionConfig {
   path: string;
@@ -10,10 +9,9 @@ export interface HttpCollectionConfig {
   queryParams?: (selector: object, options: QueryOptions) => {[name: string]: string};
 }
 
-export function http(config: HttpCollectionConfig): SourceProducer {
-  return (container: Container, colConfig: CollectionConfig): Collection => {
-    const transformer = container.get<Transformer>('ziggurat.Transformer');
-    return new HttpCollection(colConfig.name, config, transformer);
+export function http(config: HttpCollectionConfig): CollectionProducer {
+  return (container: Container, name: string): Collection => {
+    return new HttpCollection(name, config);
   };
 }
 
@@ -33,9 +31,8 @@ export class HttpCollection extends EventEmitter implements Collection {
   private queryParams = queryParams;
 
   public constructor(
-    private _name: string,
+    public readonly name: string,
     private config: HttpCollectionConfig,
-    private transformer: Transformer,
   ) {
     super();
 
@@ -44,21 +41,13 @@ export class HttpCollection extends EventEmitter implements Collection {
     }
   }
 
-  public get name(): string {
-    return this._name + '.source';
-  }
-
   public async find(selector?: object, options?: QueryOptions): Promise<any[]> {
     let resp = await fetch(this.serializeQuery(selector, options));
     if (!resp.ok) {
       throw new Error('Failed to contact server');
     }
     this.updateTotalCount(selector || {}, resp);
-    let result = [];
-    for (let obj of await resp.json()) {
-      result.push(await this.transformer.toInstance(obj, 'publication'));
-    }
-    return result;
+    return await resp.json();
   }
 
   public async findOne(selector: object): Promise<any> {
@@ -71,7 +60,7 @@ export class HttpCollection extends EventEmitter implements Collection {
 
   public async upsert(doc: any): Promise<any> {
     let resp = await fetch(this.config.path, {
-      body: JSON.stringify(await this.transformer.toPlain(doc, 'publication')),
+      body: JSON.stringify(doc),
       headers: {
         'content-type': 'application/json'
       },

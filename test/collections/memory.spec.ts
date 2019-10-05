@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 
 describe('MemoryCollection', () => {
-  let col = new MemoryCollection();
+  let col = new MemoryCollection('test');
 
   it('should initially return 0 for count()', () => {
     expect(col.count()).to.eventually.equal(0);

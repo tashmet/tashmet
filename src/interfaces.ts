@@ -1,21 +1,4 @@
-import {ValidationResult, ValidationErrorMap} from '@ziggurat/common';
-import {CollectionConfig} from './database/interfaces';
-
-export enum CollectionType {
-  Source = 'source',
-  Cache = 'cache',
-  Buffer = 'buffer'
-}
-
-/**
- * Generic interface for creating collections.
- */
-export interface CollectionFactory<T = any> {
-  /**
-   * Create a new collection.
-   */
-  createCollection(ctrlConfig: CollectionConfig, type: CollectionType): Collection<T>;
-}
+import {Container} from '@ziggurat/tiamat';
 
 export enum SortingOrder {
   Ascending = 'asc',
@@ -46,16 +29,6 @@ export interface QueryOptions {
    * Limit the number of items that are fetched.
    */
   limit?: number;
-}
-
-export interface Query {
-  selector: any;
-
-  options: QueryOptions;
-}
-
-export interface CacheQuery extends Query {
-  cached: boolean;
 }
 
 /**
@@ -145,128 +118,45 @@ export class DocumentError extends Error {
   }
 }
 
-export class DocumentValidationError extends DocumentError {
-  public name = 'DocumentValidationError';
-  public children: ValidationErrorMap;
+/**
+ * Configuration for the database.
+ */
+export interface DatabaseConfig {
+  /**
+   * Base URL that will prefix the name of each collection added to the database.
+   */
+  baseUrl: string;
 
-  public constructor(validationResult: ValidationResult) {
-    super(validationResult.instance, 'Document validation failed');
-    this.children = validationResult.errors;
-  }
+  /**
+   * A map of producers of collections to be created by the database.
+   */
+  collections: {[name: string]: CollectionProducer};
 }
 
 /**
- * An enumeration of the different pipes that can be hooked into by database middleware,
+ *
  */
-export enum Pipe {
+export interface Database {
   /**
-   * Population of collection from its source.
+   * Get an existing collection by name.
    *
-   * steps: Validate -> Cache
+   * @param name The name of the collection.
+   * @returns The instance of the collection.
    */
-  Populate = 'populate',
+  collection<T = any>(name: string): Collection<T>;
 
   /**
-   * Document being upserted to controller by upsert() method.
+   * Create a collection.
    *
-   * signature: (doc: any) => Promise<any>
-   * steps: Validate -> Cache -> Persist
+   * This function will create a new instance given a name and producer.
+   *
+   * @param name The name of the collection.
+   * @param producer The producer creating the collection.
+   * @returns An instance of the collection.
    */
-  Upsert = 'upsert',
+  createCollection<T = any>(name: string, producer: CollectionProducer<T>): Collection<T>;
 
-  /**
-   * Document being removed from controller by remove() method.
-   *
-   * signature: (selector: object) => Promise<any[]>
-   * steps: Uncache -> Unpersist
-   */
-  Remove = 'remove',
-
-  /**
-   * Document being upserted to collection as a result of getting a 'document-upserted' event
-   * from the source collection.
-   *
-   * signature: (doc: any) => Promise<any>
-   * steps: Validate -> Cache
-   */
-  SourceUpsert = 'source-upsert',
-
-  /**
-   * Document being removed from collection as a result of getting a 'document-removed' event
-   * from the source collection.
-   *
-   * signature: (doc: any) => Promise<any>
-   * steps: Uncache
-   */
-  SourceRemove = 'source-remove',
-
-  /**
-   * Find query performed on the collection.
-   *
-   * signature: (q: Query) => Promise<any[]>
-   * steps: CacheQuery -> (SourceQuery -> Validate -> Cache)
-   */
-  Find = 'find',
-
-  /**
-   * Find one query performed on the collection.
-   *
-   * signature: (selector: object) => Promise<any>
-   * steps: CacheQuery -> (SourceQuery -> Validate -> Cache)
-   */
-  FindOne = 'find-one',
+  on(event: string, fn: any): void;
 }
 
-/**
- * An enumeration of the different steps that can be hooked into by database middleware,
- */
-export enum Step {
-  /**
-   * Validation of document according to its model schema.
-   *
-   * signature: (doc: any) => Promise<any>
-   */
-  Validate = 'validate',
-
-  /**
-   * Upserting of document to cache collection.
-   *
-   * signature: (doc: any) => Promise<any>
-   */
-  Cache = 'cache',
-
-  /**
-   * Removal of documents from cache collection.
-   *
-   * signature: (selector: object) => Promise<any[]>
-   */
-  Uncache = 'uncache',
-
-  /**
-   * Upserting of document to source collection.
-   *
-   * signature: (doc: any) => Promise<any>
-   */
-  Persist = 'persist',
-
-  /**
-   * Removal of documents from source collection.
-   *
-   * signature: (selector: object) => Promise<any[]>
-   */
-  Unpersist = 'unpersist',
-
-  /**
-   * Querrying of documents in cache collection.
-   *
-   * signature: (q: CacheQuery) => Promise<any[]>
-   */
-  CacheQuery = 'cache-query',
-
-  /**
-   * Querrying of documents in source collection.
-   *
-   * signature: (q: Query) => Promise<any[]>
-   */
-  SourceQuery = 'source-query',
-}
+export type CollectionProducer<T = any> = (container: Container, name: string) => Collection<T>;
