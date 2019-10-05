@@ -6,7 +6,7 @@ import {EventEmitter} from 'eventemitter3';
 @provider({
   key: 'ziggurat.Database',
   inject: [
-    'ziggurat.Container',
+    'tiamat.Container',
     'ziggurat.DatabaseConfig',
   ]
 })
