@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/ziggurat",
-  "version": "0.39.0",
+  "version": "0.39.1",
   "description": "Ziggurat is an isomorphic publishing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@ziggurat/meta": "^0.1.2",
+    "assign-deep": "^1.0.0",
     "eventemitter3": "^2.0.2",
     "mingo": "^2.3.5"
   },
