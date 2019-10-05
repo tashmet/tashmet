@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/ziggurat",
-  "version": "0.39.2",
+  "version": "0.39.3",
   "description": "Ziggurat is an isomorphic publishing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -10,7 +10,6 @@
   "author": "Björn Andersson",
   "license": "MIT",
   "dependencies": {
-    "@ziggurat/meta": "^0.1.2",
     "assign-deep": "^1.0.0",
     "eventemitter3": "^2.0.2",
     "mingo": "^2.3.5"
@@ -22,8 +21,8 @@
     "@types/node": "8.0.14",
     "@types/sinon": "^2.3.6",
     "@types/sinon-chai": "^2.7.29",
-    "@ziggurat/tiamat": "^0.14.3",
-    "@ziggurat/tiamat-inversify": "^0.4.0",
+    "@ziggurat/tiamat": "^0.15.1",
+    "@ziggurat/tiamat-inversify": "^0.4.1",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
     "gulp": "^3.9.1",
@@ -41,6 +40,6 @@
     "typescript": "^2.7.0"
   },
   "peerDependencies": {
-    "@ziggurat/tiamat": "^0.14.3"
+    "@ziggurat/tiamat": "^0.15.1"
   }
 }

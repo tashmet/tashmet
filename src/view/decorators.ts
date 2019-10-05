@@ -1,5 +1,4 @@
-import {classDecorator, Newable, Abstract} from '@ziggurat/meta';
-import {Container, AbstractProviderAnnotation} from '@ziggurat/tiamat';
+import {classDecorator, Container, Newable, Abstract, AbstractProviderAnnotation} from '@ziggurat/tiamat';
 import {Database} from '../interfaces';
 import {Filter} from './view';
 
