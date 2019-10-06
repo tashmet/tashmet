@@ -19,6 +19,9 @@ export class DatabaseService extends EventEmitter implements Database {
     private config: DatabaseConfig,
   ) {
     super();
+    for (let name of Object.keys(config.collections)) {
+      this.createCollection(name, config.collections[name]);
+    }
   }
 
   public collection(name: string): Collection {
