@@ -48,6 +48,9 @@ export class MemoryCollection extends EventEmitter implements Collection {
   public async remove(selector: object): Promise<any[]> {
     let affected = await this.find(selector);
     this.collection = this.collection.filter(obj => affected.findIndex(o => o._id !== obj._id));
+    for (let doc of affected) {
+      this.emit('document-removed', doc);
+    }
     return affected;
   }
 
