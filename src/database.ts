@@ -16,7 +16,7 @@ export class DatabaseService extends EventEmitter implements Database {
 
   public constructor(
     private container: Container,
-    private config: DatabaseConfig,
+    config: DatabaseConfig,
   ) {
     super();
     for (let name of Object.keys(config.collections)) {
@@ -30,8 +30,6 @@ export class DatabaseService extends EventEmitter implements Database {
 
   public createCollection<T = any>(name: string, producer: CollectionProducer<T>): Collection<T>
   {
-    name = this.config.baseUrl + name;
-
     if (name in this.collections) {
       throw new Error(`A collection named '${name}' already exists`);
     }

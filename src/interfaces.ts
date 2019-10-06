@@ -123,11 +123,6 @@ export class DocumentError extends Error {
  */
 export interface DatabaseConfig {
   /**
-   * Base URL that will prefix the name of each collection added to the database.
-   */
-  baseUrl: string;
-
-  /**
    * A map of producers of collections to be created by the database.
    */
   collections: {[name: string]: CollectionProducer};
