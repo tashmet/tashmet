@@ -6,6 +6,7 @@ export {
 } from './collections/managed';
 export {http} from './collections/http';
 export * from './interfaces';
+export * from './caching';
 export * from './view';
 
 import {DatabaseConfig} from './interfaces';
