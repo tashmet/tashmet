@@ -49,10 +49,17 @@ export class CachingEndpoint extends Middleware {
 
   public find(next: Function) {
     return async (selector?: any, options?: QueryOptions) => {
+      const originalSelector = this.clone(selector);
+      const originalOptions = this.clone(options);
+
       for (let doc of await next(selector, options)) {
         await this.cache.upsert(doc);
       }
-      return this.cache.find(selector, options);
+      return this.cache.find(originalSelector, originalOptions);
     };
+  }
+
+  private clone<T>(obj: T): T {
+    return obj ? JSON.parse(JSON.stringify(obj)) : undefined;
   }
 }
