@@ -18,7 +18,6 @@ import {DatabaseService} from './database';
   ],
   definitions: {
     'ziggurat.DatabaseConfig': {
-      baseUrl: '',
       collections: {}
     } as DatabaseConfig
   }
