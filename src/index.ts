@@ -16,7 +16,7 @@ import {DatabaseService} from './database';
   providers: [
     DatabaseService,
   ],
-  definitions: {
+  instances: {
     'ziggurat.DatabaseConfig': {
       collections: {}
     } as DatabaseConfig
