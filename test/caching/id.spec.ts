@@ -2,7 +2,7 @@ import {IDCache} from '../../src/caching/id';
 import {expect} from 'chai';
 import 'mocha';
 
-describe('IDCachingMiddleware', () => {
+describe('IDCache', () => {
   let idCache = new IDCache();
 
   describe('single id', () => {
