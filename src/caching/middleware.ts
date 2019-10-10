@@ -17,6 +17,10 @@ export abstract class CacheEvaluator {
   public isCached(selector: any, options?: QueryOptions): boolean {
     return false;
   }
+
+  public success(selector: any, options?: QueryOptions): void {
+    return;
+  }
 }
 
 export class CachingMiddleware extends Middleware {
@@ -34,7 +38,12 @@ export class CachingMiddleware extends Middleware {
   public find(next: Function) {
     return async (selector?: any, options?: QueryOptions) => {
       this.evaluator.optimize(selector || {}, options);
-      return this.evaluator.isCached(selector) ? [] : next(selector, options);
+      if (this.evaluator.isCached(selector, options)) {
+        return [];
+      }
+      const docs = await next(selector, options);
+      this.evaluator.success(selector, options);
+      return docs;
     };
   }
 }

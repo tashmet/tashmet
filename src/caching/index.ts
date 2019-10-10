@@ -4,6 +4,7 @@ import {MemoryCollection} from '../collections/memory';
 import {Middleware, MiddlewareProducer} from '../collections/managed';
 import {CachingMiddleware, CachingEndpoint} from './middleware';
 import {IDCache} from './id';
+import {QueryCache} from './query';
 
 export {CacheEvaluator, CachingMiddleware} from './middleware';
 
@@ -16,6 +17,7 @@ export function caching(): MiddlewareProducer {
 
     return [
       new CachingEndpoint(source, cache),
+      new CachingMiddleware(source, cache, new QueryCache()),
       new CachingMiddleware(source, cache, new IDCache()),
     ];
   };
