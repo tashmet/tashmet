@@ -19,7 +19,6 @@ import {
 })
 export class DatabaseService extends EventEmitter implements Database {
   private collections: {[name: string]: Collection} = {};
-  private syncedCount = 0;
 
   public constructor(
     private container: Container,
@@ -57,13 +56,6 @@ export class DatabaseService extends EventEmitter implements Database {
         const res = produce(this.container, collection);
         return acc.concat(Array.isArray(res) ? res : [res]);
       }, [] as Middleware[]));
-
-    collection.on('ready', () => {
-      this.syncedCount += 1;
-      if (this.syncedCount === Object.keys(this.collections).length) {
-        this.emit('database-synced');
-      }
-    });
 
     collection.on('document-upserted', (doc: any) => {
       this.emit('document-upserted', doc, collection);

@@ -102,11 +102,6 @@ export interface Collection<U = any> {
    */
   on(event: 'document-error', fn: (err: DocumentError) => void): Collection<U>;
 
-  /**
-   * Listen for when the collection has been synced.
-   */
-  on(event: 'ready', fn: () => void): Collection<U>;
-
   emit(event: string, ...args: any[]): void;
 }
 
