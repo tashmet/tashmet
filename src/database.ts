@@ -1,7 +1,14 @@
 import {provider, Container} from '@ziggurat/tiamat';
-import {Collection, CollectionProducer} from './interfaces';
-import {Database, DatabaseConfig} from './interfaces';
 import {EventEmitter} from 'eventemitter3';
+import {ManagedCollection} from './collections/managed';
+import {
+  Collection,
+  CollectionConfig,
+  CollectionProducer,
+  Database,
+  DatabaseConfig,
+  Middleware
+} from './interfaces';
 
 @provider({
   key: 'ziggurat.Database',
@@ -16,7 +23,7 @@ export class DatabaseService extends EventEmitter implements Database {
 
   public constructor(
     private container: Container,
-    config: DatabaseConfig,
+    private config: DatabaseConfig,
   ) {
     super();
     for (let name of Object.keys(config.collections)) {
@@ -28,15 +35,28 @@ export class DatabaseService extends EventEmitter implements Database {
     return this.collections[name];
   }
 
-  public createCollection<T = any>(name: string, producer: CollectionProducer<T>): Collection<T>
+  public createCollection<T = any>(
+    name: string, producer: CollectionProducer<T> | CollectionConfig): Collection<T>
   {
     if (name in this.collections) {
       throw new Error(`A collection named '${name}' already exists`);
     }
 
-    let collection = producer(this.container, name);
+    let collection: Collection;
+    let middleware = this.config.use || [];
 
-    this.collections[name] = collection;
+    if (typeof producer === 'function') {
+      collection = producer(this.container, name);
+    } else {
+      collection = producer.source(this.container, name);
+      middleware = (producer.useBefore || []).concat(middleware, producer.use || []);
+    }
+
+    this.collections[name] = new ManagedCollection(name, collection, middleware
+      .reduce((acc, produce) => {
+        const res = produce(this.container, collection);
+        return acc.concat(Array.isArray(res) ? res : [res]);
+      }, [] as Middleware[]));
 
     collection.on('ready', () => {
       this.syncedCount += 1;
@@ -55,6 +75,6 @@ export class DatabaseService extends EventEmitter implements Database {
       this.emit('document-error', err, collection);
     });
 
-    return collection;
+    return this.collections[name];
   }
 }

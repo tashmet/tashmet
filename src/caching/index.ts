@@ -1,7 +1,6 @@
 import {Container} from '@ziggurat/tiamat';
-import {Collection, CollectionProducer} from '../interfaces';
+import {Collection, Middleware, MiddlewareProducer} from '../interfaces';
 import {MemoryCollection} from '../collections/memory';
-import {managed, Middleware, MiddlewareProducer} from '../collections/managed';
 import {CachingMiddleware, CachingEndpoint} from './middleware';
 import {IDCache} from './id';
 import {QueryCache} from './query';
@@ -19,16 +18,4 @@ export function caching(): MiddlewareProducer {
       new CachingMiddleware(source, cache, new IDCache()),
     ];
   };
-}
-
-/**
- * Convenience function for creating a cached collection given a source
- *
- * @param source Producer that creates the source collection.
- */
-export function cached(source: CollectionProducer): CollectionProducer {
-  return managed({
-    source: source,
-    middleware: [caching()]
-  });
 }

@@ -1,31 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {Container} from '@ziggurat/tiamat';
-import {Collection, CollectionProducer, QueryOptions} from '../interfaces';
-
-export class Middleware<T = any> {
-  public constructor(protected source: Collection<T>) {}
-}
-
-export type MiddlewareProducer<T = any> =
-  (container: Container, source: Collection) => Middleware<T> | Middleware<T>[];
-
-export interface ManagedCollectionConfig {
-  source: CollectionProducer;
-
-  middleware: MiddlewareProducer[];
-}
-
-export function managed(config: ManagedCollectionConfig): CollectionProducer {
-  return (container: Container, name: string): Collection => {
-    const source = config.source(container, name);
-
-    return new ManagedCollection(name, source, config.middleware
-      .reduce((acc, produce) => {
-        const res = produce(container, source);
-        return acc.concat(Array.isArray(res) ? res : [res]);
-      }, [] as Middleware[]));
-  };
-}
+import {Collection, Middleware, QueryOptions} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(

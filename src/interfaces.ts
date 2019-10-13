@@ -118,6 +118,31 @@ export class DocumentError extends Error {
   }
 }
 
+export class Middleware<T = any> {
+  public constructor(protected source: Collection<T>) {}
+}
+
+export type MiddlewareProducer<T = any> =
+  (container: Container, source: Collection) => Middleware<T> | Middleware<T>[];
+
+
+export interface CollectionConfig {
+  /**
+   * Producer creating the collection.
+   */
+  source: CollectionProducer;
+
+  /**
+   * Optional list of middleware that should be applied after any middleware from the database.
+   */
+  use?: MiddlewareProducer[];
+
+  /**
+   * Optional list of middleware that should be applied before any middleware from the database.
+   */
+  useBefore?: MiddlewareProducer[];
+}
+
 /**
  * Configuration for the database.
  */
@@ -125,7 +150,12 @@ export interface DatabaseConfig {
   /**
    * A map of producers of collections to be created by the database.
    */
-  collections: {[name: string]: CollectionProducer};
+  collections: {[name: string]: CollectionProducer | CollectionConfig};
+
+  /**
+   * Optional list of middleware that should be applied to all collections in the database.
+   */
+  use?: MiddlewareProducer[];
 }
 
 /**

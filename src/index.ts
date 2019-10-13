@@ -1,9 +1,6 @@
 import {component} from '@ziggurat/tiamat';
 
 export {inline, MemoryCollection} from './collections/memory';
-export {
-  managed, Middleware, MiddlewareProducer, ManagedCollectionConfig
-} from './collections/managed';
 export {http} from './collections/http';
 export * from './interfaces';
 export * from './caching';

@@ -1,5 +1,4 @@
-import {Collection, QueryOptions} from '../interfaces';
-import {Middleware} from '../collections/managed';
+import {Collection, Middleware, QueryOptions} from '../interfaces';
 
 export abstract class CacheEvaluator {
   public add(doc: any): void {
