@@ -7,8 +7,19 @@ import {
   CollectionProducer,
   Database,
   DatabaseConfig,
-  Middleware
+  Middleware,
+  MiddlewareProducer
 } from './interfaces';
+
+export function produceMiddleware(
+  producers: MiddlewareProducer[], source: Collection, container: Container
+) {
+  return producers
+    .reduce((acc, produce) => {
+      const res = produce(container, source);
+      return acc.concat(Array.isArray(res) ? res : [res]);
+    }, [] as Middleware[]);
+}
 
 @provider({
   key: 'ziggurat.Database',
@@ -41,21 +52,18 @@ export class DatabaseService extends EventEmitter implements Database {
       throw new Error(`A collection named '${name}' already exists`);
     }
 
-    let collection: Collection;
+    let source: Collection;
     let middleware = this.config.use || [];
 
     if (typeof producer === 'function') {
-      collection = producer(this.container, name);
+      source = producer(this.container, name);
     } else {
-      collection = producer.source(this.container, name);
+      source = producer.source(this.container, name);
       middleware = (producer.useBefore || []).concat(middleware, producer.use || []);
     }
 
-    this.collections[name] = new ManagedCollection(collection, middleware
-      .reduce((acc, produce) => {
-        const res = produce(this.container, collection);
-        return acc.concat(Array.isArray(res) ? res : [res]);
-      }, [] as Middleware[]));
+    let collection = new ManagedCollection(
+      source, produceMiddleware(middleware, source, this.container));
 
     collection.on('document-upserted', (doc: any) => {
       this.emit('document-upserted', doc, collection);
@@ -67,6 +75,6 @@ export class DatabaseService extends EventEmitter implements Database {
       this.emit('document-error', err, collection);
     });
 
-    return this.collections[name];
+    return this.collections[name] = collection;
   }
 }
