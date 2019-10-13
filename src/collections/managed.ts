@@ -3,7 +3,6 @@ import {Collection, Middleware, QueryOptions} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
-    public readonly name: string,
     private source: Collection<T>,
     middleware: Middleware[]
   ) {
@@ -11,6 +10,10 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     for (let mw of middleware.reverse()) {
       this.use(mw);
     }
+  }
+
+  public get name(): string {
+    return this.source.name;
   }
 
   public async find(selector: object = {}, options: QueryOptions = {}): Promise<any[]> {

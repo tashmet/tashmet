@@ -51,7 +51,7 @@ export class DatabaseService extends EventEmitter implements Database {
       middleware = (producer.useBefore || []).concat(middleware, producer.use || []);
     }
 
-    this.collections[name] = new ManagedCollection(name, collection, middleware
+    this.collections[name] = new ManagedCollection(collection, middleware
       .reduce((acc, produce) => {
         const res = produce(this.container, collection);
         return acc.concat(Array.isArray(res) ? res : [res]);
