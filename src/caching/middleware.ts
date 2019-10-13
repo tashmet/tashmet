@@ -25,7 +25,7 @@ export abstract class CacheEvaluator {
 export class CachingMiddleware extends Middleware {
   public constructor(
     source: Collection,
-    cache: Collection,
+    private cache: Collection,
     private evaluator: CacheEvaluator
   ) {
     super(source);
@@ -43,6 +43,12 @@ export class CachingMiddleware extends Middleware {
       const docs = await next(selector, options);
       this.evaluator.success(selector, options);
       return docs;
+    };
+  }
+
+  public count(next: Function) {
+    return async (selector?: any) => {
+      return this.evaluator.isCached(selector) ? this.cache.count(selector) : next(selector);
     };
   }
 }
