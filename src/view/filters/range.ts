@@ -29,7 +29,7 @@ export interface RangeConfig extends FilterConfig {
  * omitting the offset in this case would yield the same result.
  *
  * ```typescript
- * class MyView {
+ * class MyView extends View {
  *   range = new RangeFilter({
  *     offset: 0
  *     length: 10

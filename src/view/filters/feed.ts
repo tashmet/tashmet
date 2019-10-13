@@ -24,7 +24,7 @@ export interface FeedConfig extends FilterConfig {
  * increased each time more items are requested.
  *
  * ```typescript
- * class MyView {
+ * class MyView extends View {
  *   feed = new FeedFilter({
  *     limit: 10,
  *     increment: 5

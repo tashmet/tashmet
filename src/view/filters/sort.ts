@@ -16,7 +16,7 @@ export interface SortingConfig extends Sorting, FilterConfig {}
  * A filter for sorting articles according to their publication date could look as following:
  *
  * ```typescript
- * class MyView<Article> {
+ * class MyView extends View {
  *   dateSort = new SortingFilter({
  *     key: 'datePublished',
  *     order: SortingOrder.Descending

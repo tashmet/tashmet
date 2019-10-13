@@ -33,7 +33,7 @@ export interface SelectorConfig<T> extends FilterConfig {
  * This is especially useful when we just want to create a static filter.
  *
  * ```typescript
- * class MyView {
+ * class MyView extends View {
  *   selector = new SelectorFilter<object>({
  *     value: {category: 'cars'}
  *   });
