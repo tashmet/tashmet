@@ -24,8 +24,6 @@ export abstract class Filter {
    * Override it to make modifications to the selector and query options.
    */
   public apply(selector: object, options: QueryOptions): void { return; }
-
-  public attach(view: View) { return; }
 }
 
 /**
@@ -38,6 +36,7 @@ export abstract class Filter {
  * finally used to query the collection.
  */
 export class View<T = any> extends EventEmitter {
+  private _totalCount = 0;
   private _selector: any = {};
   private _options: QueryOptions = {};
   private _data: T[] = [];
@@ -58,7 +57,6 @@ export class View<T = any> extends EventEmitter {
   }
 
   public filter<F extends Filter>(filter: F): F {
-    filter.attach(this);
     let proxy = new Proxy(filter, {
       set: (target: any, key: PropertyKey, value: any, reciever: any): boolean => {
         let toggleDirty = key === 'dirty' && value === true && !filter.dirty;
@@ -92,6 +90,20 @@ export class View<T = any> extends EventEmitter {
   }
 
   /**
+   * The total number of documents matching the view's selector, disregarding its query options.
+   */
+  public get totalCount(): number {
+    return this._totalCount;
+  }
+
+  /**
+   * The number of documents excluded from the view based on its query options.
+   */
+  public get excludedCount(): number {
+    return this.totalCount - this.data.length;
+  }
+
+  /**
    * Manually trigger a refresh of the view.
    *
    * This function applies all the filters and updates the list of documents.
@@ -103,8 +115,8 @@ export class View<T = any> extends EventEmitter {
     this.applyFilters(true);
 
     let docs = await this.collection.find<T>(this.selector, this.options);
-    let totalCount = await this.collection.count(this.selector);
-    this.emit('data-updated', docs, totalCount);
+    this._totalCount = await this.collection.count(this.selector);
+    this.emit('data-updated', docs);
     return docs;
   }
 
