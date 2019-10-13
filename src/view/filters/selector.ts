@@ -48,7 +48,7 @@ export interface SelectorConfig<T> extends FilterConfig {
  * specific value by setting the 'disableOn' property.
  *
  * ```typescript
- * class MyView {
+ * class MyView extends View {
  *   category = new SelectorFilter<string>({
  *     value: 'all',
  *     compile: value => ({category: value}),
