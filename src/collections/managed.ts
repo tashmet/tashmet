@@ -7,6 +7,11 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     middleware: Middleware[]
   ) {
     super();
+
+    source.on('document-upserted', doc => this.emit('document-upserted', doc));
+    source.on('document-removed', doc => this.emit('document-removed', doc));
+    source.on('document-error', err => this.emit('document-error', err));
+
     for (let mw of middleware.reverse()) {
       this.use(mw);
     }
