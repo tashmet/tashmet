@@ -168,15 +168,31 @@ export interface Database {
   /**
    * Create a collection.
    *
-   * This function will create a new instance given a name and producer.
+   * This function will create a new instance given a name and producer / config.
    *
    * @param name The name of the collection.
-   * @param producer The producer creating the collection.
+   * @param producer The producer creating the collection or configuration with producer.
    * @returns An instance of the collection.
    */
-  createCollection<T = any>(name: string, producer: CollectionProducer<T>): Collection<T>;
+  createCollection<T = any>(name: string, producer: CollectionProducer<T> | CollectionConfig): Collection<T>;
 
-  on(event: string, fn: any): void;
+  /**
+   * Listen for when a document in a collection has been added or changed.
+   * The callback supplies the document and the collection it was upserted to.
+   */
+  on(event: 'document-upserted', fn: (obj: any, collection: Collection) => void): Database;
+
+  /**
+   * Listen for when a document in a collection has been removed.
+   * The callback supplies the removed document and the collection it was removed from.
+   */
+  on(event: 'document-removed', fn: (obj: any, collection: Collection) => void): Database;
+
+  /**
+   * Listen for when an error was generated when loading or saving a document
+   * in a collection. The callback supplies the document error and the collection generating it.
+   */
+  on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): Database;
 }
 
 export type CollectionProducer<T = any> = (container: Container, name: string) => Collection<T>;
