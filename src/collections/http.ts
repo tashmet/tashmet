@@ -82,8 +82,17 @@ export class HttpCollection extends EventEmitter implements Collection {
     return totalCount;
   }
 
-  public remove(selector?: object): Promise<any[]> {
-    return Promise.reject(new Error('remove() not implemented for remote collection'));
+  public async remove(selector: object): Promise<any[]> {
+    let docs = await this.find(selector);
+    for (let doc of docs) {
+      let resp = await fetch(this.config.path + '/' + doc._id, {
+        method: 'DELETE'
+      });
+      if (!resp.ok) {
+        throw new Error('Failed to delete: ' + doc._id);
+      }
+    }
+    return docs;
   }
 
   private serializeQuery(selector?: object, options?: QueryOptions): string {
