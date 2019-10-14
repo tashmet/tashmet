@@ -1,8 +1,8 @@
 import {Container} from '@ziggurat/tiamat';
 
 export enum SortingOrder {
-  Ascending = 'asc',
-  Descending = 'desc'
+  Ascending = 1,
+  Descending = -1
 }
 
 export interface Sorting {

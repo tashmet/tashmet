@@ -64,7 +64,7 @@ export class MemoryCollection extends EventEmitter implements Collection {
     if (options.sort) {
       const sort: any = {};
       for (let s of options.sort) {
-        sort[s.key] = s.order === SortingOrder.Ascending ? 1 : -1;
+        sort[s.key] = s.order;
       }
       cursor = cursor.sort(sort);
     }
