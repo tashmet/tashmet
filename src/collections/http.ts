@@ -72,7 +72,7 @@ export class HttpCollection extends EventEmitter implements Collection {
       method: exists ? 'PUT' : 'POST'
     });
     if (resp.ok) {
-      return doc;
+      return resp.json();
     } else {
       throw new Error('Failed to upsert');
     }

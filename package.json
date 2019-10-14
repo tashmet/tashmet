@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/ziggurat",
-  "version": "0.41.13",
+  "version": "0.41.14",
   "description": "Ziggurat is an isomorphic publishing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -17,6 +17,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/chai-as-promised": "0.0.31",
+    "@types/fetch-mock": "^7.3.1",
     "@types/mocha": "^2.2.41",
     "@types/node": "8.0.14",
     "@types/sinon": "^2.3.6",
@@ -24,6 +25,8 @@
     "@ziggurat/tiamat": "^0.17.1",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
+    "chai-fetch-mock": "^2.0.0",
+    "fetch-mock": "^7.5.1",
     "gulp": "^3.9.1",
     "gulp-batch": "^1.0.5",
     "gulp-tslint": "^8.1.1",
@@ -31,6 +34,7 @@
     "gulp-watch": "^4.3.11",
     "harmonize": "^2.0.0",
     "mocha": "^3.4.2",
+    "node-fetch": "^2.6.0",
     "run-sequence": "^2.0.0",
     "sinon": "^4.0.1",
     "sinon-chai": "^2.14.0",
