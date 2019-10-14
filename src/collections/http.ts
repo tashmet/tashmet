@@ -59,12 +59,17 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async upsert(doc: any): Promise<any> {
-    let resp = await fetch(this.config.path, {
+    const exists = (await this.count({_id: doc._id})) === 1;
+    let path = this.config.path;
+    if (exists) {
+      path = path + '/' + doc._id;
+    }
+    let resp = await fetch(path, {
       body: JSON.stringify(doc),
       headers: {
         'content-type': 'application/json'
       },
-      method: 'POST'
+      method: exists ? 'PUT' : 'POST'
     });
     if (resp.ok) {
       return doc;
