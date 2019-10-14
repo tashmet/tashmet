@@ -3,7 +3,7 @@ import {Collection, CollectionProducer, QueryOptions, SortingOrder} from '../int
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 
-export function inline<T = any>(docs: T[]): CollectionProducer {
+export function memory<T = any>(docs: T[] = []): CollectionProducer {
   return (container: Container, name: string): Collection => {
     let collection = new MemoryCollection(name);
 

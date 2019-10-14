@@ -1,6 +1,6 @@
 import {component} from '@ziggurat/tiamat';
 
-export {inline, MemoryCollection} from './collections/memory';
+export {memory, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
 export * from './interfaces';
 export * from './caching';
