@@ -27,7 +27,6 @@ export function queryParams(selector: object, options: QueryOptions): {[name: st
 }
 
 export class HttpCollection extends EventEmitter implements Collection {
-  private countCache: {[selector: string]: number} = {};
   private queryParams = queryParams;
 
   public constructor(
@@ -46,7 +45,6 @@ export class HttpCollection extends EventEmitter implements Collection {
     if (!resp.ok) {
       throw new Error('Failed to contact server');
     }
-    this.updateTotalCount(selector || {}, resp);
     return await resp.json();
   }
 
@@ -79,12 +77,13 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async count(selector?: object): Promise<number> {
-    let totalCount = this.countCache[JSON.stringify(selector)];
+    let resp = await fetch(this.serializeQuery(selector), {method: 'HEAD'});
+
+    const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
-      let resp = await fetch(this.serializeQuery(selector), {method: 'HEAD'});
-      totalCount = this.updateTotalCount(selector || {}, resp);
+      throw new Error('Failed to get "x-total-count" header');
     }
-    return totalCount;
+    return parseInt(totalCount, 10);
   }
 
   public async remove(selector: object): Promise<any[]> {
@@ -111,13 +110,5 @@ export class HttpCollection extends EventEmitter implements Collection {
           .join('&');
     }
     return query;
-  }
-
-  private updateTotalCount(selector: object, resp: Response): number {
-    let totalCount = resp.headers.get('x-total-count');
-    if (!totalCount) {
-      throw new Error('Failed to get "x-total-count" header');
-    }
-    return this.countCache[JSON.stringify(selector)] = parseInt(totalCount, 10);
   }
 }
