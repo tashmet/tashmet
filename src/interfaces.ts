@@ -5,12 +5,6 @@ export enum SortingOrder {
   Descending = -1
 }
 
-export interface Sorting {
-  key: string;
-
-  order: SortingOrder;
-}
-
 /**
  *
  */
@@ -18,7 +12,7 @@ export interface QueryOptions {
   /**
    * Sort by one or more properties in ascending or descending order.
    */
-  sort?: Sorting[];
+  sort?: {[key: string]: SortingOrder};
 
   /**
    * Skip the first number of documents from the results.

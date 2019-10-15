@@ -21,7 +21,7 @@ describe('SortingFilter', () => {
     filter.apply({}, options);
 
     expect(options).to.be.eql({
-       sort: [{key: 'foo', order: SortingOrder.Ascending}]
+       sort: {foo: SortingOrder.Ascending}
     });
   });
 
@@ -31,7 +31,7 @@ describe('SortingFilter', () => {
     filter.apply({}, options);
 
     expect(options).to.be.eql({
-       sort: [{key: 'foo', order: SortingOrder.Descending}]
+       sort: {foo: SortingOrder.Descending}
     });
   });
 
@@ -41,7 +41,7 @@ describe('SortingFilter', () => {
     filter.apply({}, options);
 
     expect(options).to.be.eql({
-       sort: [{key: 'bar', order: SortingOrder.Descending}]
+       sort: {bar: SortingOrder.Descending}
     });
   });
 
@@ -56,10 +56,10 @@ describe('SortingFilter', () => {
     filter2.apply({}, options);
 
     expect(options).to.be.eql({
-       sort: [
-         {key: 'bar', order: SortingOrder.Descending},
-         {key: 'other', order: SortingOrder.Ascending}
-       ]
+       sort: {
+         bar: SortingOrder.Descending,
+         other: SortingOrder.Ascending
+       }
     });
   });
 });

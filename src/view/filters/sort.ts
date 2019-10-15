@@ -1,11 +1,15 @@
-import {QueryOptions, Sorting, SortingOrder} from '../../interfaces';
+import {QueryOptions, SortingOrder} from '../../interfaces';
 import {FilterConfig} from '../interfaces';
 import {Filter} from '../view';
 
 /**
  * Configuration options for sorting filter
  */
-export interface SortingConfig extends Sorting, FilterConfig {}
+export interface SortingConfig extends FilterConfig {
+  key: string;
+
+  order: SortingOrder;
+}
 
 /**
  * A filter that sorts documents according to a given key and order.
@@ -36,8 +40,8 @@ export class SortingFilter extends Filter {
 
   public apply(selector: any, options: QueryOptions): void {
     if (!options.sort) {
-      options.sort = [];
+      options.sort = {};
     }
-    options.sort.push({key: this.key, order: this.order});
+    options.sort[this.key] = this.order;
   }
 }

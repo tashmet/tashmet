@@ -53,7 +53,7 @@ export class MemoryCollection extends EventEmitter implements Collection {
 
   public async remove(selector: object): Promise<any[]> {
     let affected = await this.find(selector);
-    this.collection = this.collection.filter(obj => affected.findIndex(o => o._id !== obj._id));
+    this.collection = this.collection.filter(obj => affected.findIndex(o => o._id !== obj._id) === -1);
     for (let doc of affected) {
       this.emit('document-removed', doc);
     }
@@ -68,11 +68,7 @@ export class MemoryCollection extends EventEmitter implements Collection {
     let cursor = mingo.find(this.collection, selector);
 
     if (options.sort) {
-      const sort: any = {};
-      for (let s of options.sort) {
-        sort[s.key] = s.order;
-      }
-      cursor = cursor.sort(sort);
+      cursor = cursor.sort(options.sort);
     }
     if (options.offset) {
       cursor = cursor.skip(options.offset);

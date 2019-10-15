@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/ziggurat",
-  "version": "0.41.18",
+  "version": "0.42.0",
   "description": "Ziggurat is an isomorphic publishing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
