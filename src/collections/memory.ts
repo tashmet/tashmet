@@ -1,7 +1,8 @@
 import {Container} from '@ziggurat/tiamat';
-import {Collection, CollectionProducer, QueryOptions, SortingOrder} from '../interfaces';
+import {Collection, CollectionProducer, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
+import ObjectID from 'bson-objectid';
 
 export function memory<T = any>(docs: T[] = []): CollectionProducer {
   return (container: Container, name: string): Collection => {
@@ -35,11 +36,16 @@ export class MemoryCollection extends EventEmitter implements Collection {
   }
 
   public upsert(obj: any): Promise<any> {
-    const index = this.collection.findIndex(o => o._id === obj._id);
-    if (index >= 0) {
-      this.collection[index] = obj;
-    } else {
+    if (!obj.hasOwnProperty('_id')) {
+      obj._id = new ObjectID().toHexString();
       this.collection.push(obj);
+    } else {
+      const index = this.collection.findIndex(o => o._id === obj._id);
+      if (index >= 0) {
+        this.collection[index] = obj;
+      } else {
+        this.collection.push(obj);
+      }
     }
     this.emit('document-upserted', obj);
     return Promise.resolve(obj);
