@@ -97,5 +97,13 @@ describe('MemoryCollection', () => {
       const docs = await col.remove({'item.category': 'cookies'});
       expect(docs).to.have.length(2);
     });
+    it('should have removed selected documents', async () => {
+      await col.remove({'item.category': 'cookies'});
+      return expect(col.count({'item.category': 'cookies'})).to.eventually.eql(0);
+    });
+    it('should not remove other documents', async () => {
+      await col.remove({'item.category': 'cookies'});
+      return expect(col.count()).to.eventually.eql(3);
+    });
   });
 });
