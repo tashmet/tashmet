@@ -1,4 +1,3 @@
-import {Container} from '@ziggurat/tiamat';
 import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {CollectionProducer} from '../interfaces';
@@ -10,9 +9,7 @@ export interface HttpCollectionConfig {
 }
 
 export function http(config: HttpCollectionConfig): CollectionProducer {
-  return (container: Container, name: string): Collection => {
-    return new HttpCollection(name, config);
-  };
+  return name => new HttpCollection(name, config);
 }
 
 export function queryParams(selector: object, options: QueryOptions): {[name: string]: string} {

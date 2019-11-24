@@ -1,5 +1,3 @@
-import {Container} from '@ziggurat/tiamat';
-
 export enum SortingOrder {
   Ascending = 1,
   Descending = -1
@@ -111,8 +109,7 @@ export class Middleware<T = any> {
   public constructor(protected source: Collection<T>) {}
 }
 
-export type MiddlewareProducer<T = any> =
-  (container: Container, source: Collection) => Middleware<T> | Middleware<T>[];
+export type MiddlewareProducer<T = any> = (source: Collection) => Middleware<T> | Middleware<T>[];
 
 
 export interface CollectionConfig {
@@ -189,4 +186,4 @@ export interface Database {
   on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): Database;
 }
 
-export type CollectionProducer<T = any> = (container: Container, name: string) => Collection<T>;
+export type CollectionProducer<T = any> = (name: string) => Collection<T>;

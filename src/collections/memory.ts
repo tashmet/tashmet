@@ -1,11 +1,10 @@
-import {Container} from '@ziggurat/tiamat';
 import {Collection, CollectionProducer, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
 export function memory<T = any>(docs: T[] = []): CollectionProducer {
-  return (container: Container, name: string): Collection => {
+  return name => {
     let collection = new MemoryCollection(name);
 
     for (let doc of docs) {
