@@ -1,11 +1,11 @@
-import {MiddlewareProducer} from '../interfaces';
+import {Collection, Middleware, MiddlewareFactory} from '../interfaces';
 import {MemoryCollection} from '../collections/memory';
 import {CachingMiddleware, CachingEndpoint} from './middleware';
 import {IDCache} from './id';
 import {QueryCache} from './query';
 
-export function caching(): MiddlewareProducer {
-  return source => {
+export class CachingMiddlewareFactory extends MiddlewareFactory {
+  public create(source: Collection): Middleware[] {
     let cache = new MemoryCollection(source.name);
 
     source.on('document-upserted', doc => cache.upsert(doc));
@@ -16,5 +16,7 @@ export function caching(): MiddlewareProducer {
       new CachingMiddleware(source, cache, new QueryCache()),
       new CachingMiddleware(source, cache, new IDCache()),
     ];
-  };
+  }
 }
+
+export const caching = () => new CachingMiddlewareFactory();

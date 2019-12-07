@@ -1,3 +1,5 @@
+import {Factory} from '@ziggurat/tiamat';
+
 export enum SortingOrder {
   Ascending = 1,
   Descending = -1
@@ -109,24 +111,28 @@ export class Middleware<T = any> {
   public constructor(protected source: Collection<T>) {}
 }
 
-export type MiddlewareProducer<T = any> = (source: Collection) => Middleware<T> | Middleware<T>[];
+export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {
+  public abstract create(source: Collection): Middleware<T> | Middleware<T>[];
+}
 
 
 export interface CollectionConfig {
   /**
-   * Producer creating the collection.
+   * Factory creating the collection.
    */
-  source: CollectionProducer;
+  source: CollectionFactory;
 
   /**
-   * Optional list of middleware that should be applied after any middleware from the database.
+   * Optional list of factories creating middleware that should be applied after any middleware
+   * from the database.
    */
-  use?: MiddlewareProducer[];
+  use?: MiddlewareFactory[];
 
   /**
-   * Optional list of middleware that should be applied before any middleware from the database.
+   * Optional list of factories creating middleware that should be applied before any middleware
+   * from the database.
    */
-  useBefore?: MiddlewareProducer[];
+  useBefore?: MiddlewareFactory[];
 }
 
 /**
@@ -136,12 +142,13 @@ export interface DatabaseConfig {
   /**
    * A map of producers of collections to be created by the database.
    */
-  collections: {[name: string]: CollectionProducer | CollectionConfig};
+  collections: {[name: string]: CollectionFactory | CollectionConfig};
 
   /**
-   * Optional list of middleware that should be applied to all collections in the database.
+   * Optional list of factories creating middleware that should be applied to all collections in
+   * the database.
    */
-  use?: MiddlewareProducer[];
+  use?: MiddlewareFactory[];
 }
 
 /**
@@ -162,10 +169,11 @@ export interface Database {
    * This function will create a new instance given a name and producer / config.
    *
    * @param name The name of the collection.
-   * @param producer The producer creating the collection or configuration with producer.
+   * @param factory The factory creating the collection or configuration with factory.
    * @returns An instance of the collection.
    */
-  createCollection<T = any>(name: string, producer: CollectionProducer<T> | CollectionConfig): Collection<T>;
+  createCollection<T = any>(
+    name: string, factory: CollectionFactory<T> | CollectionConfig): Collection<T>;
 
   /**
    * Listen for when a document in a collection has been added or changed.
@@ -186,4 +194,6 @@ export interface Database {
   on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): Database;
 }
 
-export type CollectionProducer<T = any> = (name: string) => Collection<T>;
+export abstract class CollectionFactory<T = any> extends Factory<Collection<T>> {
+  public abstract create(name: string): Collection<T>;
+}

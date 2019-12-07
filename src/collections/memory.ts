@@ -1,17 +1,25 @@
-import {Collection, CollectionProducer, QueryOptions} from '../interfaces';
+import {Collection, CollectionFactory, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
-export function memory<T = any>(docs: T[] = []): CollectionProducer {
-  return name => {
+export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
+  public constructor(private docs: T[] = []) {
+    super();
+  }
+
+  public create(name: string) {
     let collection = new MemoryCollection(name);
 
-    for (let doc of docs) {
+    for (let doc of this.docs) {
       collection.upsert(doc);
     }
     return collection;
-  };
+  }
+}
+
+export function memory<T = any>(docs: T[] = []) {
+  return new MemoryCollectionFactory(docs);
 }
 
 export class MemoryCollection extends EventEmitter implements Collection {

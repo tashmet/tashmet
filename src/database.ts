@@ -4,7 +4,7 @@ import {ManagedCollection} from './collections/managed';
 import {
   Collection,
   CollectionConfig,
-  CollectionProducer,
+  CollectionFactory,
   Database,
   DatabaseConfig,
   Middleware,
@@ -33,24 +33,27 @@ export class DatabaseService extends EventEmitter implements Database {
   }
 
   public createCollection<T = any>(
-    name: string, producer: CollectionProducer<T> | CollectionConfig): Collection<T>
+    name: string, factory: CollectionFactory<T> | CollectionConfig): Collection<T>
   {
     if (name in this.collections) {
       throw new Error(`A collection named '${name}' already exists`);
     }
 
     let source: Collection;
-    let middleware = this.config.use || [];
+    let middlewareFactories = this.config.use || [];
 
-    if (typeof producer === 'function') {
-      source = producer(name);
+    if (factory instanceof CollectionFactory) {
+      source = factory.create(name);
     } else {
-      source = producer.source(name);
-      middleware = (producer.useBefore || []).concat(middleware, producer.use || []);
+      source = factory.source.create(name);
+      middlewareFactories = (factory.useBefore || []).concat(
+        middlewareFactories, factory.use || []);
     }
 
     let collection = new ManagedCollection(
-      source, middleware.reduce((acc, produce) => acc.concat(produce(source)), [] as Middleware[]));
+      source, middlewareFactories.reduce((middleware, middlewareFactory) => {
+        return middleware.concat(middlewareFactory.create(source));
+      }, [] as Middleware[]));
 
     collection.on('document-upserted', (doc: any) => {
       this.emit('document-upserted', doc, collection);

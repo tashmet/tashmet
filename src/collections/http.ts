@@ -1,6 +1,6 @@
 import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
-import {CollectionProducer} from '../interfaces';
+import {CollectionFactory} from '../interfaces';
 
 export interface HttpCollectionConfig {
   path: string;
@@ -8,9 +8,17 @@ export interface HttpCollectionConfig {
   queryParams?: (selector: object, options: QueryOptions) => {[name: string]: string};
 }
 
-export function http(config: HttpCollectionConfig): CollectionProducer {
-  return name => new HttpCollection(name, config);
+export class HttpCollectionFactory extends CollectionFactory {
+  public constructor(private config: HttpCollectionConfig) {
+    super();
+  }
+
+  public create(name: string) {
+    return new HttpCollection(name, this.config);
+  }
 }
+
+export const http = (config: HttpCollectionConfig) => new HttpCollectionFactory(config);
 
 export function queryParams(selector: object, options: QueryOptions): {[name: string]: string} {
   let params: {[name: string]: string} = {};
