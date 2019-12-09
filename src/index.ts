@@ -1,4 +1,4 @@
-import {component} from '@ziggurat/tiamat';
+import {component, Provider} from '@ziggurat/tiamat';
 
 export {memory, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
@@ -12,11 +12,9 @@ import {DatabaseService} from './database';
 @component({
   providers: [
     DatabaseService,
-  ],
-  instances: {
-    'ziggurat.DatabaseConfig': {
+    Provider.ofInstance<DatabaseConfig>('ziggurat.DatabaseConfig', {
       collections: {}
-    } as DatabaseConfig
-  }
+    })
+  ],
 })
 export default class Ziggurat {}

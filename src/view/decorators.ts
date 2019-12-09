@@ -1,27 +1,27 @@
-import {classDecorator, Container, Newable, Abstract, AbstractProviderAnnotation} from '@ziggurat/tiamat';
+import {classDecorator, Newable, FactoryProviderAnnotation} from '@ziggurat/tiamat';
 import {Database} from '../interfaces';
-import {Filter} from './view';
+import {Filter, View} from './view';
 
-export class ViewOfAnnotation extends AbstractProviderAnnotation {
+export class ViewOfAnnotation extends FactoryProviderAnnotation<View> {
+  public inject = ['ziggurat.Database'];
+
   public constructor(
-    public collectionName: string,
-    private target: Newable<any>
+    private collectionName: string,
+    private target: Newable<View>
   ) {
     super(target);
   }
 
-  public provide(container: Container) {
-    container.registerSingletonFactory(this.target, (database: Database) => {
-      let view = new this.target(database.collection(this.collectionName));
+  public create(database: Database) {
+    let view = new this.target(database.collection(this.collectionName));
 
-      for (let viewProp of Object.keys(view)) {
-        if ((<any>view)[viewProp] instanceof Filter) {
-          const filter: Filter = (<any>view)[viewProp];
-          (<any>view)[viewProp] = view.filter(filter);
-        }
+    for (let viewProp of Object.keys(view)) {
+      if ((<any>view)[viewProp] instanceof Filter) {
+        const filter: Filter = (<any>view)[viewProp];
+        (<any>view)[viewProp] = view.filter(filter);
       }
-      return view;
-    }, ['ziggurat.Database']);
+    }
+    return view;
   }
 }
 
