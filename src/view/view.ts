@@ -48,10 +48,10 @@ export class View<T = any> extends EventEmitter {
       this._data = results;
     });
 
-    collection.on('document-upserted', (doc: any) => {
+    collection.on('document-upserted', (doc: T) => {
       this.documentUpdated(doc);
     });
-    collection.on('document-removed', (doc: any) => {
+    collection.on('document-removed', (doc: T) => {
       this.documentUpdated(doc);
     });
   }
