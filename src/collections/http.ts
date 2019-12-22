@@ -2,6 +2,8 @@ import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {CollectionFactory} from '../interfaces';
 
+const io = require('socket.io-client');
+
 export interface HttpCollectionConfig {
   path: string;
 
@@ -39,6 +41,14 @@ export class HttpCollection extends EventEmitter implements Collection {
     private config: HttpCollectionConfig,
   ) {
     super();
+
+    let socket = io.connect(config.path);
+    socket.on('document-upserted', (doc: any) => {
+      this.emit('document-upserted', doc);
+    });
+    socket.on('document-removed', (doc: any) => {
+      this.emit('document-removed', doc);
+    });
 
     if (config.queryParams) {
       this.queryParams = config.queryParams;
