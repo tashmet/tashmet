@@ -133,9 +133,6 @@ export class View<T = any> extends EventEmitter {
   }
 
   private async documentUpdated(doc: any) {
-    if (doc._collection !== this.collection.name) {
-      return;
-    }
     this.applyFilters();
     // TODO: This query needs to only be made against cached documents.
     let docs = await this.collection.find(this.selector, this.options);
