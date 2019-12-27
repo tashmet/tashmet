@@ -1,4 +1,4 @@
-import {HttpCollection} from '../../src/collections/http';
+import {HttpCollection} from '../../../src/collections/http';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';

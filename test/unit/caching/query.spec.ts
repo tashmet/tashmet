@@ -1,4 +1,4 @@
-import {QueryCache} from '../../src/caching/query';
+import {QueryCache} from '../../../src/caching/query';
 import {expect} from 'chai';
 import 'mocha';
 

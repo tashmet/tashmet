@@ -1,4 +1,4 @@
-import {IDCache} from '../../src/caching/id';
+import {IDCache} from '../../../src/caching/id';
 import {expect} from 'chai';
 import 'mocha';
 

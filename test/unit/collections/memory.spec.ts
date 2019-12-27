@@ -1,4 +1,4 @@
-import {MemoryCollection} from '../../src/collections/memory';
+import {MemoryCollection} from '../../../src/collections/memory';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';

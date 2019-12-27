@@ -1,5 +1,5 @@
-import {SortingOrder, QueryOptions} from '../../../src/interfaces';
-import {SortingFilter} from '../../../src/view/filters/sort';
+import {SortingOrder, QueryOptions} from '../../../../src/interfaces';
+import {SortingFilter} from '../../../../src/view/filters/sort';
 import {expect} from 'chai';
 import 'mocha';
 
