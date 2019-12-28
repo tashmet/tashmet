@@ -44,9 +44,7 @@ export class View<T = any> extends EventEmitter {
 
   constructor(public readonly collection: Collection) {
     super();
-    this.on('data-updated', (results: T[]) => {
-      this._data = results;
-    });
+    this.removeAllListeners();
 
     collection.on('document-upserted', (doc: T) => {
       this.documentUpdated(doc);
@@ -61,7 +59,7 @@ export class View<T = any> extends EventEmitter {
       set: (target: any, key: PropertyKey, value: any, reciever: any): boolean => {
         let toggleDirty = key === 'dirty' && value === true && !filter.dirty;
         target[key] = value;
-        if (toggleDirty || filter.observe.indexOf(<string>key) > 0) {
+        if (toggleDirty || filter.observe.indexOf(<string>key) >= 0) {
           this.refresh();
         }
         return true;
@@ -118,6 +116,14 @@ export class View<T = any> extends EventEmitter {
     this._totalCount = await this.collection.count(this.selector);
     this.emit('data-updated', docs);
     return docs;
+  }
+
+  public removeAllListeners() {
+    super.removeAllListeners();
+    this.on('data-updated', (results: T[]) => {
+      this._data = results;
+    });
+    return this;
   }
 
   private applyFilters(resetDirty = false) {
