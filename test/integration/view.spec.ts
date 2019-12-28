@@ -10,6 +10,7 @@ import {
   memory,
   viewOf,
   FeedFilter,
+  SelectorFilter,
   SortingFilter,
   SortingOrder,
   View
@@ -37,6 +38,13 @@ describe('view', () => {
       key: 'amount',
       order: SortingOrder.Descending,
       observe: ['order'],
+    });
+
+    public category = new SelectorFilter<string>({
+      value: 'all',
+      compile: value => ({'item.category': value}),
+      disableOn: 'all',
+      observe: ['value'],
     });
   }
 
@@ -92,9 +100,20 @@ describe('view', () => {
   it('should load more documents', (done) => {
     view.on('data-updated', docs => {
       expect(docs.length).to.eql(5);
+      expect(view.totalCount).to.eql(5);
       expect(view.excludedCount).to.eql(0);
       done();
     });
     view.feed.loadMore();
+  });
+
+  it('should filter by category', (done) => {
+    view.on('data-updated', docs => {
+      expect(docs.length).to.eql(2);
+      expect(view.totalCount).to.eql(2);
+      expect(view.excludedCount).to.eql(0);
+      done();
+    });
+    view.category.value = 'cookies';
   });
 });
