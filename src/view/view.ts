@@ -1,5 +1,6 @@
-import {Collection, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
+import mingo from 'mingo';
+import {Collection, QueryOptions} from '../interfaces';
 import {FilterConfig} from './interfaces';
 
 /**
@@ -44,13 +45,11 @@ export class View<T = any> extends EventEmitter {
 
   constructor(public readonly collection: Collection) {
     super();
-    this.removeAllListeners();
-
     collection.on('document-upserted', (doc: T) => {
-      this.documentUpdated(doc);
+      this.onDocumentChanged(doc);
     });
     collection.on('document-removed', (doc: T) => {
-      this.documentUpdated(doc);
+      this.onDocumentChanged(doc);
     });
   }
 
@@ -112,18 +111,10 @@ export class View<T = any> extends EventEmitter {
   public async refresh(): Promise<T[]> {
     this.applyFilters(true);
 
-    let docs = await this.collection.find<T>(this.selector, this.options);
+    this._data = await this.collection.find<T>(this.selector, this.options);
     this._totalCount = await this.collection.count(this.selector);
-    this.emit('data-updated', docs);
-    return docs;
-  }
-
-  public removeAllListeners() {
-    super.removeAllListeners();
-    this.on('data-updated', (results: T[]) => {
-      this._data = results;
-    });
-    return this;
+    this.emit('data-updated', this._data, this._totalCount);
+    return this._data;
   }
 
   private applyFilters(resetDirty = false) {
@@ -138,12 +129,11 @@ export class View<T = any> extends EventEmitter {
     }
   }
 
-  private async documentUpdated(doc: any) {
-    this.applyFilters();
-    // TODO: This query needs to only be made against cached documents.
-    let docs = await this.collection.find(this.selector, this.options);
-    if (docs.find(d => d._id === doc._id)) {
-      this.emit('data-updated', docs);
+  private async onDocumentChanged(doc: any) {
+    const query = new mingo.Query(this.selector);
+
+    if (query.test(doc)) {
+      return this.refresh();
     }
   }
 }
