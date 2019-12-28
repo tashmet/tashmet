@@ -40,4 +40,24 @@ describe('database', () => {
     expect(() => db.createCollection('test', memory()))
       .to.throw("A collection named 'test' already exists");
   });
+
+  describe('event', () => {
+    it('should be emitted when a document is upserted', (done) => {
+      db.on('document-upserted', (doc, collection) => {
+        expect(doc.name).to.eql('doc3');
+        expect(collection.name).to.eql('test');
+        done();
+      });
+      db.collection('test').upsert({name: 'doc3'});
+    });
+
+    it('should be emitted when a document is removed', (done) => {
+      db.on('document-removed', (doc, collection) => {
+        expect(doc.name).to.eql('doc3');
+        expect(collection.name).to.eql('test');
+        done();
+      });
+      db.collection('test').remove({name: 'doc3'});
+    });
+  });
 });
