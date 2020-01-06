@@ -1,28 +1,29 @@
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
-import {Annotation} from '@ziggurat/tiamat';
+import {Annotation, Newable} from '@ziggurat/tiamat';
 import {Collection, QueryOptions} from '../interfaces';
 
 export class ViewPropertyAnnotation extends Annotation {
   public constructor(
     private modifier: QueryModifier<any>,
+    target: Newable<any>,
     private propName: string,
   ) {
     super();
   }
 
   public apply(view: View<any>): void {
-    this.modifier.modifySelector((view as any)[this.propName], view.selector);
-    this.modifier.modifyOptions((view as any)[this.propName], view.options);
+    this.modifier.modifySelector((view as any)[this.propName], this.propName, view.selector);
+    this.modifier.modifyOptions((view as any)[this.propName], this.propName, view.options);
   }
 }
 
 export abstract class QueryModifier<T> {
-  public modifySelector(value: T, selector: any) {
+  public modifySelector(value: T, key: string, selector: any) {
     return;
   }
 
-  public modifyOptions(value: T, options: QueryOptions) {
+  public modifyOptions(value: T, key: string, options: QueryOptions) {
     return;
   }
 }

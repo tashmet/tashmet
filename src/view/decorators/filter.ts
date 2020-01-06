@@ -1,5 +1,5 @@
-import {propertyDecorator, Newable} from '@ziggurat/tiamat';
-import {View, ViewPropertyAnnotation, QueryModifier} from '../view';
+import {propertyDecorator} from '@ziggurat/tiamat';
+import {ViewPropertyAnnotation, QueryModifier} from '../view';
 
 const assignDeep = require('assign-deep');
 
@@ -22,28 +22,17 @@ export interface FilterConfig<T> {
 export class Filter<T> extends QueryModifier<T> {
   public constructor(
     private config: FilterConfig<any>,
-    private propName: string
   ) { super(); }
 
-  public modifySelector(value: T, selector: any) {
+  public modifySelector(value: T, key: string, selector: any) {
     if (value === this.config.disableOn) {
       return;
     }
     if (this.config.compile) {
       assignDeep(selector, this.config.compile(value));
     } else {
-      selector[this.propName] = value;
+      selector[key] = value;
     }
-  }
-}
-
-export class FilterAnnotation extends ViewPropertyAnnotation {
-  public constructor(
-    config: FilterConfig<any>,
-    target: Newable<View<any>>,
-    propName: string,
-  ) {
-    super(new Filter(config, propName), propName);
   }
 }
 
@@ -89,5 +78,5 @@ export class FilterAnnotation extends ViewPropertyAnnotation {
  * ```
  */
 export function filter<T>(config: FilterConfig<T> = {}) {
-  return propertyDecorator<T>(FilterAnnotation)(config);
+  return propertyDecorator<T>(ViewPropertyAnnotation)(new Filter(config));
 }
