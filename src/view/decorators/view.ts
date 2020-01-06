@@ -43,5 +43,6 @@ export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
  *
  * Decorate a view to attach it to a collection given its name.
  */
-export const view = <(config: ViewConfig) => any>
-  classDecorator(ViewAnnotation);
+export function view(config: ViewConfig) {
+  return classDecorator<View<any>>(ViewAnnotation)(config);
+}
