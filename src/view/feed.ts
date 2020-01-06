@@ -31,12 +31,15 @@ export abstract class Feed<T = any> extends ItemSet<T> {
   /** Number of documents to increment by when loading more. */
   public increment: number;
 
-  /**
-   * Load more documents by increasing the limit with the value of the increment.
-   */
-  public loadMore(): void {
+  /** Load more documents by increasing the limit with the value of the increment. */
+  public async loadMore(): Promise<T[]> {
     this.limit = this.limit + this.increment;
-    this.refresh();
+    return this.refresh();
+  }
+
+  /** Check if there are more documents to load. */
+  public hasMore(): boolean {
+    return this.excludedCount > 0;
   }
 
   protected query(): Query {

@@ -59,7 +59,7 @@ export class Query {
 export abstract class View<T> extends EventEmitter {
   protected _data: T;
 
-  constructor(public readonly collection: Collection) {
+  public constructor(public readonly collection: Collection) {
     super();
     collection.on('document-upserted', (doc: any) => {
       this.onDocumentChanged(doc);
