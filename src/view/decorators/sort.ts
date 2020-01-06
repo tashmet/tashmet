@@ -38,5 +38,4 @@ export class SortByAnnotation extends ViewPropertyAnnotation {
  * }
  * ```
  */
-export const sortBy = <(key: string) => any>
-  propertyDecorator(SortByAnnotation);
+export const sortBy = (key: string) => propertyDecorator<SortingOrder>(SortByAnnotation)(key);

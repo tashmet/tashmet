@@ -19,13 +19,13 @@ export interface FilterConfig<T> {
   disableOn?: T;
 }
 
-export class Filter extends QueryModifier<any> {
+export class Filter<T> extends QueryModifier<T> {
   public constructor(
     private config: FilterConfig<any>,
     private propName: string
   ) { super(); }
 
-  public modifySelector(value: any, selector: any) {
+  public modifySelector(value: T, selector: any) {
     if (value === this.config.disableOn) {
       return;
     }
@@ -59,7 +59,7 @@ export class FilterAnnotation extends ViewPropertyAnnotation {
  *
  * ```typescript
  * class MyView extends ItemSet {
- *   @filter({}) public category = 'cars';
+ *   @filter() public category = 'cars';
  * }
  * ```
  * Changing the category using the above filter is now trivial:
@@ -88,5 +88,6 @@ export class FilterAnnotation extends ViewPropertyAnnotation {
  * }
  * ```
  */
-export const filter = <(config: FilterConfig<any>) => any>
-  propertyDecorator(FilterAnnotation);
+export function filter<T>(config: FilterConfig<T> = {}) {
+  return propertyDecorator<T>(FilterAnnotation)(config);
+}
