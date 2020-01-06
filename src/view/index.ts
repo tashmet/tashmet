@@ -1,7 +1,8 @@
-export {FilterConfig} from './interfaces';
-export {viewOf} from './decorators';
-export {View, Filter} from './view';
-export {FeedConfig, FeedFilter} from './filters/feed';
-export {RangeConfig, RangeFilter} from './filters/range';
-export {SelectorConfig, SelectorFilter} from './filters/selector';
-export {SortingConfig, SortingFilter} from './filters/sort';
+export {filter, FilterConfig} from './decorators/filter';
+export {sortBy} from './decorators/sort';
+export {view} from './decorators/view';
+export {Feed} from './feed';
+export {Range} from './range';
+export {View} from './view';
+export {Item} from './item';
+export {ItemSet} from './itemSet';

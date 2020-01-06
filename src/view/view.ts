@@ -1,30 +1,30 @@
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
+import {Annotation} from '@ziggurat/tiamat';
 import {Collection, QueryOptions} from '../interfaces';
-import {FilterConfig} from './interfaces';
 
-/**
- * Base class for filters.
- *
- * Extend this class to create a filter that can be used in a view to limit results.
- */
-export abstract class Filter {
-  /** True if filter has changed since last update */
-  public dirty = false;
-
-  public observe: string[];
-
-  public constructor(config: FilterConfig) {
-    this.observe = config.observe || [];
+export class ViewPropertyAnnotation extends Annotation {
+  public constructor(
+    private modifier: QueryModifier<any>,
+    private propName: string,
+  ) {
+    super();
   }
 
-  /**
-   * Apply the filter to the given query.
-   *
-   * This function is called every time the view is refreshed.
-   * Override it to make modifications to the selector and query options.
-   */
-  public apply(selector: object, options: QueryOptions): void { return; }
+  public apply(view: View<any>): void {
+    this.modifier.modifySelector((view as any)[this.propName], view.selector);
+    this.modifier.modifyOptions((view as any)[this.propName], view.options);
+  }
+}
+
+export abstract class QueryModifier<T> {
+  public modifySelector(value: T, selector: any) {
+    return;
+  }
+
+  public modifyOptions(value: T, options: QueryOptions) {
+    return;
+  }
 }
 
 /**
@@ -36,68 +36,30 @@ export abstract class Filter {
  * having been changed) a selector object and query options are passed through each filter and
  * finally used to query the collection.
  */
-export class View<T = any> extends EventEmitter {
-  private _totalCount = 0;
-  private _selector: any = {};
-  private _options: QueryOptions = {};
-  private _data: T[] = [];
-  private filters: Filter[] = [];
+export abstract class View<T> extends EventEmitter {
+  /** The current selector */
+  public selector: any = {};
+
+  /** The current query options */
+  public options: QueryOptions = {};
+
+  protected _data: T;
 
   constructor(public readonly collection: Collection) {
     super();
-    collection.on('document-upserted', (doc: T) => {
+    collection.on('document-upserted', (doc: any) => {
       this.onDocumentChanged(doc);
     });
-    collection.on('document-removed', (doc: T) => {
+    collection.on('document-removed', (doc: any) => {
       this.onDocumentChanged(doc);
     });
-  }
-
-  public filter<F extends Filter>(filter: F): F {
-    let proxy = new Proxy(filter, {
-      set: (target: any, key: PropertyKey, value: any, reciever: any): boolean => {
-        let toggleDirty = key === 'dirty' && value === true && !filter.dirty;
-        target[key] = value;
-        if (toggleDirty || filter.observe.indexOf(<string>key) >= 0) {
-          this.refresh();
-        }
-        return true;
-      }
-    });
-    this.filters.push(proxy);
-    this.applyFilters();
-    return proxy;
-  }
-
-  /** The current selector */
-  public get selector(): any {
-    return this._selector;
-  }
-
-  /** The current query options */
-  public get options(): QueryOptions {
-    return this._options;
   }
 
   /**
    * The list of documents in this view.
    */
-  public get data(): T[] {
+  public get data(): T {
     return this._data;
-  }
-
-  /**
-   * The total number of documents matching the view's selector, disregarding its query options.
-   */
-  public get totalCount(): number {
-    return this._totalCount;
-  }
-
-  /**
-   * The number of documents excluded from the view based on its query options.
-   */
-  public get excludedCount(): number {
-    return this.totalCount - this.data.length;
   }
 
   /**
@@ -108,24 +70,14 @@ export class View<T = any> extends EventEmitter {
    * @returns A promise for the list of matching documents.
    * @emits data-updated
    */
-  public async refresh(): Promise<T[]> {
-    this.applyFilters(true);
+  public abstract refresh(): Promise<T>;
 
-    this._data = await this.collection.find<T>(this.selector, this.options);
-    this._totalCount = await this.collection.count(this.selector);
-    this.emit('data-updated', this._data, this._totalCount);
-    return this._data;
-  }
+  protected compileQuery() {
+    this.selector = {};
+    this.options = {};
 
-  private applyFilters(resetDirty = false) {
-    this._selector = {};
-    this._options = {};
-
-    for (let f of this.filters) {
-      f.apply(this.selector, this.options);
-      if (resetDirty) {
-        f.dirty = false;
-      }
+    for (let f of ViewPropertyAnnotation.onClass(this.constructor)) {
+      f.apply(this);
     }
   }
 

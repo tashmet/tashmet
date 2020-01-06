@@ -13,12 +13,11 @@ import {
   Database,
   DatabaseConfig,
   memory,
-  viewOf,
-  RangeFilter,
-  SelectorFilter,
-  SortingFilter,
+  view,
+  filter,
+  sortBy,
   SortingOrder,
-  View
+  Range
 } from '../../src';
 
 chai.use(chaiAsPromised);
@@ -33,24 +32,21 @@ const data = [
 ];
 
 describe('view', () => {
-  @viewOf('test')
-  class TestView extends View {
-    public range = new RangeFilter({
-      length: 2
-    });
+  @view({
+    collection: 'test',
+    monitor: ['sort', 'category']
+  })
+  class TestView extends Range {
+    public limit = 2;
 
-    public sort = new SortingFilter({
-      key: 'amount',
-      order: SortingOrder.Descending,
-      observe: ['order'],
-    });
+    @sortBy('amount')
+    public sort = SortingOrder.Descending;
 
-    public category = new SelectorFilter<string>({
-      value: 'all',
+    @filter({
       compile: value => ({'item.category': value}),
       disableOn: 'all',
-      observe: ['value'],
-    });
+    })
+    public category = 'all';
   }
 
   @component({
@@ -70,14 +66,14 @@ describe('view', () => {
     public constructor(public testView: TestView, public database: Database) {}
   }
 
-  let view: TestView;
+  let sut: TestView;
   let collection: Collection;
 
   let sandbox: any;
 
   before(async () => {
     const app = (await bootstrap(TestComponent));
-    view = app.testView;
+    sut = app.testView;
     collection = app.database.collection('test');
   });
 
@@ -90,27 +86,27 @@ describe('view', () => {
   });
 
   afterEach(() => {
-    view.removeAllListeners();
+    sut.removeAllListeners();
     sandbox.restore();
   });
 
   describe('collection events', () => {
     beforeEach(async () => {
-      view.category.value = 'cake';
-      await view.refresh();
+      sut.category = 'cake';
+      await sut.refresh();
     });
 
     after(async () => {
-      view.category.value = 'all';
-      await view.refresh();
+      sut.category = 'all';
+      await sut.refresh();
     });
 
     it('should initially have documents', () => {
-      expect(view.data.map(d => d._id)).to.eql([4, 5]);
+      expect(sut.data.map(d => d._id)).to.eql([4, 5]);
     });
 
     it('should update when document matching selector is added', (done) => {
-      view.on('data-updated', (docs: any[], totalCount: number) => {
+      sut.on('item-set-updated', (docs, totalCount) => {
         expect(docs.length).to.eql(2);
         expect(totalCount).to.eql(4);
         expect(docs.map(d => d._id)).to.eql([6, 4]);
@@ -123,7 +119,7 @@ describe('view', () => {
 
     it('should not update when document not matching selector is added', (done) => {
       let spy = sandbox.spy();
-      view.on('data-updated', spy);
+      sut.on('item-set-updated', spy);
 
       collection.upsert(
         {_id: 7, item: { category: 'cookies', type: 'gingerbread'}, amount: 25 });
@@ -135,7 +131,7 @@ describe('view', () => {
     });
 
     it('should update when document is updated to match view', (done) => {
-      view.on('data-updated', (docs: any[], totalCount: number) => {
+      sut.on('item-set-updated', (docs, totalCount) => {
         expect(docs.length).to.eql(2);
         expect(totalCount).to.eql(3);
         expect(docs.map(d => d._id)).to.eql([1, 4]);
@@ -148,7 +144,7 @@ describe('view', () => {
     });
 
     it('should update when document matching selector is removed', (done) => {
-      view.on('data-updated', (docs: any[], totalCount: number) => {
+      sut.on('item-set-updated', (docs, totalCount) => {
         expect(docs.length).to.eql(2);
         expect(totalCount).to.eql(2);
         expect(docs.map(d => d._id)).to.eql([4, 5]);
@@ -158,7 +154,7 @@ describe('view', () => {
     });
 
     it('should update when document matching query options is removed', (done) => {
-      view.on('data-updated', (docs: any[], totalCount: number) => {
+      sut.on('item-set-updated', (docs, totalCount) => {
         expect(docs.length).to.eql(2);
         expect(totalCount).to.eql(2);
         expect(docs.map(d => d._id)).to.eql([4, 1]);
@@ -169,7 +165,7 @@ describe('view', () => {
 
     it('should not update when document outside view is removed', (done) => {
       let spy = sandbox.spy();
-      view.on('data-updated', spy);
+      sut.on('item-set-updated', spy);
 
       collection.remove({_id: 2});
 
@@ -182,25 +178,25 @@ describe('view', () => {
 
   describe('changing sorting order', () => {
     it('should update data', (done) => {
-      expect(view.data.map(d => d._id)).to.eql([2, 4]);
+      expect(sut.data.map(d => d._id)).to.eql([2, 4]);
 
-      view.on('data-updated', (docs: any[]) => {
+      sut.on('item-set-updated', docs => {
         expect(docs.map(d => d._id)).to.eql([1, 3]);
         done();
       });
-      view.sort.order = SortingOrder.Ascending;
+      sut.sort = SortingOrder.Ascending;
     });
   });
 
   describe('changing selector', () => {
     it('should filter by category', (done) => {
-      view.on('data-updated', docs => {
+      sut.on('item-set-updated', docs => {
         expect(docs.length).to.eql(2);
-        expect(view.totalCount).to.eql(2);
-        expect(view.excludedCount).to.eql(0);
+        expect(sut.totalCount).to.eql(2);
+        expect(sut.excludedCount).to.eql(0);
         done();
       });
-      view.category.value = 'cookies';
+      sut.category = 'cookies';
     });
   });
 });
