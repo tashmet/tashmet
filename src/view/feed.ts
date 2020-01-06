@@ -1,4 +1,5 @@
 import {ItemSet} from './itemSet';
+import {Query} from './view';
 
 /**
  * An item set that acts as a feed.
@@ -38,8 +39,7 @@ export abstract class Feed<T = any> extends ItemSet<T> {
     this.refresh();
   }
 
-  protected compileQuery() {
-    super.compileQuery();
-    this.options.limit = this.limit;
+  protected query(): Query {
+    return super.query().limit(this.limit);
   }
 }

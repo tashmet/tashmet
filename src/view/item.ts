@@ -5,9 +5,7 @@ import {View} from './view';
  */
 export abstract class Item<T = any> extends View<T> {
   public async refresh(): Promise<T> {
-    this.compileQuery();
-
-    this._data = await this.collection.findOne<T>(this.selector);
+    this._data = await this.collection.findOne<T>(this.query().selector);
     this.emit('item-updated', this._data);
     return this._data;
   }

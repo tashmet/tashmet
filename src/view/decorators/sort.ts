@@ -1,16 +1,19 @@
-import {propertyDecorator} from '@ziggurat/tiamat';
-import {QueryOptions, SortingOrder} from '../../interfaces';
-import {ViewPropertyAnnotation, QueryModifier} from '../view';
+import {propertyDecorator, Newable} from '@ziggurat/tiamat';
+import {SortingOrder} from '../../interfaces';
+import {ViewPropertyAnnotation, Query} from '../view';
 
-export class SortBy extends QueryModifier<SortingOrder | undefined> {
-  public constructor(private sortKey: string) { super(); }
+export class SortByAnnotation extends ViewPropertyAnnotation {
+  public constructor(
+    private sortKey: string,
+    target: Newable<any>,
+    propertyKey: string,
+  ) {
+    super(target, propertyKey);
+  }
 
-  public modifyOptions(value: SortingOrder | undefined, key: string, options: QueryOptions) {
-    if (!options.sort) {
-      options.sort = {};
-    }
+  public apply(query: Query, value: SortingOrder | undefined) {
     if (value !== undefined) {
-      options.sort[this.sortKey] = value;
+      query.sort(this.sortKey, value);
     }
   }
 }
@@ -31,4 +34,4 @@ export class SortBy extends QueryModifier<SortingOrder | undefined> {
  * ```
  */
 export const sortBy = (key: string) =>
-  propertyDecorator<SortingOrder | undefined>(ViewPropertyAnnotation)(new SortBy(key));
+  propertyDecorator<SortingOrder | undefined>(SortByAnnotation)(key);

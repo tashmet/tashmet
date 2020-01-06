@@ -1,30 +1,49 @@
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
+import {getType} from 'reflect-helper';
 import {Annotation, Newable} from '@ziggurat/tiamat';
-import {Collection, QueryOptions} from '../interfaces';
+import {Collection, QueryOptions, SortingOrder} from '../interfaces';
+
+const assignDeep = require('assign-deep');
 
 export class ViewPropertyAnnotation extends Annotation {
   public constructor(
-    private modifier: QueryModifier<any>,
-    target: Newable<any>,
-    private propName: string,
+    protected target: Newable<any>,
+    protected propertyKey: string,
   ) {
     super();
   }
 
-  public apply(view: View<any>): void {
-    this.modifier.modifySelector((view as any)[this.propName], this.propName, view.selector);
-    this.modifier.modifyOptions((view as any)[this.propName], this.propName, view.options);
-  }
+  public apply(query: Query, value: any): void { return; }
 }
 
-export abstract class QueryModifier<T> {
-  public modifySelector(value: T, key: string, selector: any) {
-    return;
+export class Query {
+  public constructor(
+    public selector: object = {},
+    public options: QueryOptions = {},
+  ) {}
+
+  public select(selector: object): Query {
+    assignDeep(this.selector, selector);
+    return this;
   }
 
-  public modifyOptions(value: T, key: string, options: QueryOptions) {
-    return;
+  public sort(key: string, order: SortingOrder): Query {
+    if (!this.options.sort) {
+      this.options.sort = {};
+    }
+    this.options.sort[key] = order;
+    return this;
+  }
+
+  public skip(count: number): Query {
+    this.options.offset = count;
+    return this;
+  }
+
+  public limit(count: number): Query {
+    this.options.limit = count;
+    return this;
   }
 }
 
@@ -38,12 +57,6 @@ export abstract class QueryModifier<T> {
  * finally used to query the collection.
  */
 export abstract class View<T> extends EventEmitter {
-  /** The current selector */
-  public selector: any = {};
-
-  /** The current query options */
-  public options: QueryOptions = {};
-
   protected _data: T;
 
   constructor(public readonly collection: Collection) {
@@ -57,7 +70,7 @@ export abstract class View<T> extends EventEmitter {
   }
 
   /**
-   * The list of documents in this view.
+   * A document or list of documents in this view.
    */
   public get data(): T {
     return this._data;
@@ -65,25 +78,22 @@ export abstract class View<T> extends EventEmitter {
 
   /**
    * Manually trigger a refresh of the view.
-   *
-   * This function applies all the filters and updates the list of documents.
-   *
-   * @returns A promise for the list of matching documents.
-   * @emits data-updated
    */
   public abstract refresh(): Promise<T>;
 
-  protected compileQuery() {
-    this.selector = {};
-    this.options = {};
+  protected query(): Query {
+    const query = new Query();
 
-    for (let f of ViewPropertyAnnotation.onClass(this.constructor)) {
-      f.apply(this);
+    for (let prop of getType(this.constructor).properties) {
+      for (let annotation of prop.getAnnotations(ViewPropertyAnnotation)) {
+        annotation.apply(query, (this as any)[prop.name]);
+      }
     }
+    return query;
   }
 
   private async onDocumentChanged(doc: any) {
-    const query = new mingo.Query(this.selector);
+    const query = new mingo.Query(this.query().selector);
 
     if (query.test(doc)) {
       return this.refresh();

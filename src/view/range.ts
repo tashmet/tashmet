@@ -1,4 +1,5 @@
 import {ItemSet} from './itemSet';
+import {Query} from './view';
 
 /**
  * An item set that limits the range of documents.
@@ -25,9 +26,11 @@ export class Range<T = any> extends ItemSet<T> {
   /** Number of documents to include in the range */
   public limit: number | undefined;
 
-  protected compileQuery() {
-    super.compileQuery();
-    this.options.offset = this.offset;
-    this.options.limit = this.limit;
+  protected query(): Query {
+    const query = super.query().skip(this.offset);
+    if (this.limit) {
+      query.limit(this.limit);
+    }
+    return query;
   }
 }
