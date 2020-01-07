@@ -1,6 +1,6 @@
 {
   "name": "@ziggurat/ziggurat",
-  "version": "0.46.6",
+  "version": "0.47.0",
   "description": "Ziggurat is an isomorphic publishing platform",
   "scripts": {
     "test": "mocha --opts mocha.opts"
@@ -24,7 +24,7 @@
     "@types/node": "8.0.14",
     "@types/sinon": "^2.3.6",
     "@types/sinon-chai": "^2.7.29",
-    "@ziggurat/tiamat": "^0.21.3",
+    "@ziggurat/tiamat": "^0.22.0",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
     "chai-fetch-mock": "^2.0.0",
@@ -45,6 +45,6 @@
     "typescript": "^2.7.0"
   },
   "peerDependencies": {
-    "@ziggurat/tiamat": "^0.21.3"
+    "@ziggurat/tiamat": "^0.22.0"
   }
 }

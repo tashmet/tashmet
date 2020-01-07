@@ -1,19 +1,12 @@
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import {getType} from 'reflect-helper';
-import {Annotation, Newable} from '@ziggurat/tiamat';
+import {Annotation} from '@ziggurat/tiamat';
 import {Collection, QueryOptions, SortingOrder} from '../interfaces';
 
 const assignDeep = require('assign-deep');
 
 export class ViewPropertyAnnotation extends Annotation {
-  public constructor(
-    protected target: Newable<any>,
-    protected propertyKey: string,
-  ) {
-    super();
-  }
-
   public apply(query: Query, value: any): void { return; }
 }
 

@@ -1,4 +1,4 @@
-import {propertyDecorator, Newable} from '@ziggurat/tiamat';
+import {propertyDecorator} from '@ziggurat/tiamat';
 import {ViewPropertyAnnotation, Query} from '../view';
 
 /**
@@ -20,10 +20,9 @@ export interface FilterConfig<T> {
 export class FilterAnnotation extends ViewPropertyAnnotation {
   public constructor(
     private config: FilterConfig<any>,
-    target: Newable<any>,
-    propertyKey: string,
+    private propertyKey: string,
   ) {
-    super(target, propertyKey);
+    super();
   }
 
   public apply(query: Query, value: any) {
@@ -80,5 +79,5 @@ export class FilterAnnotation extends ViewPropertyAnnotation {
  * ```
  */
 export function filter<T>(config: FilterConfig<T> = {}) {
-  return propertyDecorator<T>(FilterAnnotation)(config);
+  return propertyDecorator<T>((target, propertyKey) => new FilterAnnotation(config, propertyKey));
 }
