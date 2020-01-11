@@ -2,3 +2,4 @@ dist
 dts
 node_modules
 *.swp
+.vscode
