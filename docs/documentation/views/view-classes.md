@@ -1,4 +1,17 @@
-# Item sets
+# View classes
+
+## Item
+
+The most basic type of view is one that monitors a single document.
+
+```typescript
+@view({collection: 'posts'})
+class SinglePost extends Item {
+  @filter() public _id = 'foo';
+}
+```
+
+The above view will contain a single document where the id matches the one specified in the filter
 
 ## Range
 
