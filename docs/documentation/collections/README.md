@@ -32,3 +32,37 @@ let docs = await collection.remove({a: 1});
 For every document removed a **document-removed** event will be emitted from the collection.
 {% endhint %}
 
+## Finding
+
+Documents are queried from the collection either by using the **findOne** method for retrieving a single document or by using **find** to retrieve a list of them.
+
+### findOne
+
+This method takes a selector as its only argument and returns a promise with the first matching document if one was found. If none were matching the selector the promise is rejected with an error.
+
+```typescript
+let doc = await collection.findOne({a: 1});
+```
+
+### find
+
+This method takes two optional arguments, a selector as well as query options. If no selector is given every document in the collection will be returned.
+
+```typescript
+let docs = await collection.find({a: 1}, {limit: 3});
+```
+
+The query options are used for sorting and limiting the result set.
+
+```typescript
+export interface QueryOptions {
+  sort?: {[key: string]: SortingOrder};
+
+  offset?: number;
+
+  limit?: number;
+}
+```
+
+## 
+
