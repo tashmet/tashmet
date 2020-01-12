@@ -33,7 +33,7 @@ Once a view is defined and provided we can inject and use it in another class an
   inject: [MyView]
 })
 class ViewConsumer {
-  public constrcutor(private view: MyView) {}
+  public constructor(private view: MyView) {}
   
   public async render() {
     await this.view.refresh();

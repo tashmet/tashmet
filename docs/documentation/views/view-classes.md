@@ -11,7 +11,7 @@ class SinglePost extends Item {
 }
 ```
 
-The above view will contain a single document where the id matches the one specified in the filter.
+The above view will contain a single document where the id matches the one specified in the filter
 
 ## Range
 
