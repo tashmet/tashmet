@@ -12,5 +12,5 @@
 * [Collections](documentation/collections.md)
 * [Views](documentation/views/README.md)
   * [Item sets](documentation/views/item-sets.md)
-  * [Filters](documentation/views/filters.md)
+  * [Filtering](documentation/views/filtering.md)
 
