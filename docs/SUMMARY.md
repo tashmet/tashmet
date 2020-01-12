@@ -9,7 +9,9 @@
 
 ## Documentation
 
-* [Collections](documentation/collections.md)
+* [Collections](documentation/collections/README.md)
+  * [Memory](documentation/collections/memory.md)
+  * [Http](documentation/collections/http.md)
 * [Views](documentation/views/README.md)
   * [View classes](documentation/views/view-classes.md)
   * [Filtering](documentation/views/filtering.md)
