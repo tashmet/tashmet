@@ -1,3 +1,7 @@
+---
+description: The different types of views
+---
+
 # View classes
 
 ## Item
