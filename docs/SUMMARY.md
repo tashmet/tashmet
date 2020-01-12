@@ -13,4 +13,5 @@
 * [Views](documentation/views/README.md)
   * [Item sets](documentation/views/item-sets.md)
   * [Filtering](documentation/views/filtering.md)
+  * [Sorting](documentation/views/sorting.md)
 
