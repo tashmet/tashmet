@@ -5,4 +5,5 @@
 ## Getting started
 
 * [Installation](getting-started/installation.md)
+* [Creating an application](getting-started/application.md)
 
