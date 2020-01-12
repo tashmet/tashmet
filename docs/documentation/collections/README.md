@@ -64,5 +64,13 @@ export interface QueryOptions {
 }
 ```
 
+## Counting
+
+Documents matching a given selector can be counted using the **count** method. It takes as its only argument an optional selector and returns a promise with the number of documents matching the selector, or the total amount of documents in the collection if the selector was omitted.
+
+```typescript
+let docCount = await collection.count({a: 1});
+```
+
 ## 
 
