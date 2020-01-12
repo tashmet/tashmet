@@ -27,7 +27,7 @@ A view that monitors a subset of documents.
 
 ```typescript
 @view({collection: 'posts', monitor: ['dateSort']})
-class SinglePost extends ItemSet {
+class SortedPosts extends ItemSet {
   @sortBy('datePublished')
   public dateSort = SortingOrder.Descending;
 }
