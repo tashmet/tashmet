@@ -16,5 +16,23 @@ class MyRange extends Range {
 }
 ```
 
+## Feed
 
+An item set that acts as a feed. 
+
+This item set is suited for where a list of items are shown and the user has the ability to load more. The feed will keep track of how many items should be displayed. The feed is configured by setting an initial limit and an increment by which the limit is increased each time more items are requested.
+
+```typescript
+@view({collection: 'posts'})
+class MyFeed extends Feed {
+  public limit = 10;
+  public increment = 5;
+}
+```
+
+Provided that the collection has enough documents available the above feed will make sure that the view has only 10 documents initially. Calling loadMore\(\) will increase the capacity to 1
+
+```typescript
+view.loadMore()
+```
 
