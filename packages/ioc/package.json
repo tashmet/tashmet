@@ -1,0 +1,21 @@
+{
+  "name": "@ziqquratu/ioc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha --opts mocha.opts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ziqquratu/reflection": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.8",
+    "@types/reflect-metadata": "^0.1.0"
+  }
+}

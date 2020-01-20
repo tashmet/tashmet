@@ -1,0 +1,19 @@
+{
+  "name": "@ziqquratu/reflection",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha --opts mocha.opts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^13.1.8",
+    "@types/reflect-metadata": "^0.1.0",
+    "reflect-helper": "^1.1.1"
+  }
+}

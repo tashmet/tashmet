@@ -22,15 +22,15 @@ When running it in a web-browser you probably want to have the content rendered 
 
 The framework is split over a few main packages. This documentation covers the main one which is the database itself. The other packages are as follows
 
-### [Tiamat](https://ziggurat.gitbook.io/tiamat/)
+### [Tiamat](https://ziqquratu.gitbook.io/tiamat/)
 
 The foundation library used for defining components and handling dependency injection.
 
-### [Nabu](https://ziggurat.gitbook.io/nabu/)
+### [Nabu](https://ziqquratu.gitbook.io/nabu/)
 
 A set of tools for reading and writing content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown. 
 
-### [Tashmetu](https://ziggurat.gitbook.io/tashmetu/)
+### [Tashmetu](https://ziqquratu.gitbook.io/tashmetu/)
 
 An HTTP server for publishing content. It allows us to define RESTful resources that interact with the collections in our database. 
 

@@ -1,50 +1,36 @@
 {
-  "name": "@ziggurat/ziggurat",
-  "version": "0.47.0",
-  "description": "Ziggurat is an isomorphic publishing platform",
+  "name": "ziqquratu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ziqquratu is an isomorphic publishing platform",
   "scripts": {
-    "test": "mocha --opts mocha.opts"
+    "build": "lerna run build",
+    "clean": "rimraf packages/*/dist dist",
+    "test": "lerna run test && mocha --opts mocha.opts"
   },
-  "main": "dist/index.js",
-  "types": "dts/index.d.ts",
   "author": "Björn Andersson",
   "license": "MIT",
-  "dependencies": {
-    "assign-deep": "^1.0.0",
-    "bson-objectid": "^1.3.0",
-    "eventemitter3": "^2.0.2",
-    "mingo": "^2.3.5",
-    "socket.io-client": "^2.3.0"
-  },
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/chai-as-promised": "0.0.31",
     "@types/fetch-mock": "^7.3.1",
     "@types/mocha": "^2.2.41",
-    "@types/node": "8.0.14",
     "@types/sinon": "^2.3.6",
     "@types/sinon-chai": "^2.7.29",
-    "@ziggurat/tiamat": "^0.22.0",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
     "chai-fetch-mock": "^2.0.0",
     "fetch-mock": "^7.5.1",
-    "gulp": "^3.9.1",
-    "gulp-batch": "^1.0.5",
-    "gulp-tslint": "^8.1.1",
-    "gulp-typescript": "^3.1.4",
-    "gulp-watch": "^4.3.11",
     "harmonize": "^2.0.0",
+    "lerna": "^3.20.2",
     "mocha": "^3.4.2",
     "node-fetch": "^2.6.0",
+    "rimraf": "^3.0.0",
     "run-sequence": "^2.0.0",
     "sinon": "^4.0.1",
     "sinon-chai": "^2.14.0",
     "ts-node": "^3.0.6",
     "tslint": "^5.7.0",
     "typescript": "^2.7.0"
-  },
-  "peerDependencies": {
-    "@ziggurat/tiamat": "^0.22.0"
   }
 }

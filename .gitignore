@@ -3,3 +3,4 @@ dts
 node_modules
 *.swp
 .vscode
+lerna-debug.log

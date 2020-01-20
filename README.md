@@ -1,10 +1,10 @@
-# Ziggurat
+# Ziqquratu
 
-This is the Ziggurat repo, containing code, tests and documentation for the Ziggurat publishing framework. To get started head over to the [user documentation](https://ziggurat.gitbook.io/).
+This is the Ziqqurat mono-repo, containing code, tests and documentation for the Ziqquratu publishing framework. To get started head over to the [user documentation](https://ziqquratu.gitbook.io/).
 
 ## Introduction
 
-Ziggurat is a lightweight open-source database written in typescript with the purpose of publishing content in a web application such as a blog or a larger web site. The framework is isomorphic, meaning it can run both on the server and the client.
+Ziqquratu is a lightweight open-source database written in typescript with the purpose of publishing content in a web application such as a blog or a larger web site. The framework is isomorphic, meaning it can run both on the server and the client.
 
 ## Philosophy
 
