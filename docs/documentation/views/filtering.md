@@ -1,6 +1,6 @@
 # Filtering
 
-A view can have multiple filters. Each filter will extend the selector object produced by the previous ones.  To filter documents on a certain key we simply create a property with the same name, assign it a value and decorate it with the filter decorator.
+A view can have multiple filters. Each filter will extend the selector object produced by the previous ones. To filter documents on a certain key we simply create a property with the same name, assign it a value and decorate it with the filter decorator.
 
 ```typescript
 class MyView extends ItemSet {

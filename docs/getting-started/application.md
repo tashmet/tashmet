@@ -5,13 +5,9 @@
 In the following example we will set up a database with a single in-memory collection with a couple of initial documents in it.
 
 ```typescript
-import {bootstrap, component, Provider} from '@ziqquratu/tiamat';
-import {Database, Collection} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, Provider, Database} from '@ziqquratu/ziqquratu';
 
 @component({
-  dependencies: [
-    import('@ziqquratu/ziqquratu')
-  ],
   providers: [
     Provider.ofInstance<Database>('ziqquratu.DatabaseConfig', {
       collections: {
@@ -37,6 +33,4 @@ export class Application {
 
 bootstrap(Application).then(app => app.run()));
 ```
-
-
 

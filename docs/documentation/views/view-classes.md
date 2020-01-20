@@ -31,7 +31,7 @@ class MyRange extends Range {
 
 ## Feed
 
-An item set that acts as a feed. 
+An item set that acts as a feed.
 
 This item set is suited for where a list of items are shown and the user has the ability to load more. The feed will keep track of how many items should be displayed. The feed is configured by setting an initial limit and an increment by which the limit is increased each time more items are requested.
 

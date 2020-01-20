@@ -34,7 +34,7 @@ Once a view is defined and provided we can inject and use it in another class an
 })
 class ViewConsumer {
   public constructor(private view: MyView) {}
-  
+
   public async render() {
     await this.view.refresh();
     console.log(this.view.data);
@@ -63,6 +63,4 @@ view.on('item-set-updated', docs => {
 
 view.dateSort = SortingOrder.Descending;
 ```
-
-
 

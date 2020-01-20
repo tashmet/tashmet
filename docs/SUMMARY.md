@@ -8,11 +8,19 @@
 
 ## Documentation
 
-* [Collections](documentation/collections/README.md)
-  * [Memory](documentation/collections/memory.md)
-  * [Http](documentation/collections/http.md)
+* [Database](documentation/database/README.md)
+  * [Collections](documentation/database/collections/README.md)
+    * [Memory](documentation/database/collections/memory.md)
+    * [Http](documentation/database/collections/http.md)
 * [Views](documentation/views/README.md)
   * [View classes](documentation/views/view-classes.md)
   * [Filtering](documentation/views/filtering.md)
   * [Sorting](documentation/views/sorting.md)
+* [Reflection](documentation/reflection.md)
+* [Inversion of Control](documentation/ioc/README.md)
+  * [Container](documentation/ioc/container.md)
+  * [Components](documentation/ioc/components.md)
+  * [Providers](documentation/ioc/providers.md)
+  * [Resolvers](documentation/ioc/resolvers.md)
+  * [Factories](documentation/ioc/factories.md)
 
