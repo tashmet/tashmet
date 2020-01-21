@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/ziqquratu",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,9 +13,9 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^13.1.8",
-    "@ziqquratu/database": "^1.0.0",
-    "@ziqquratu/ioc": "^1.0.0",
-    "@ziqquratu/reflection": "^1.0.0",
+    "@ziqquratu/database": "^0.9.0",
+    "@ziqquratu/ioc": "^0.9.0",
+    "@ziqquratu/reflection": "^0.9.0",
     "reflect-metadata": "^0.1.13"
   }
 }
