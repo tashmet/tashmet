@@ -17,10 +17,12 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "reflect-helper": "^1.1.1"
+  },
   "devDependencies": {
     "@types/node": "^13.1.8",
-    "@types/reflect-metadata": "^0.1.0",
-    "reflect-helper": "^1.1.1"
+    "@types/reflect-metadata": "^0.1.0"
   },
   "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
 }

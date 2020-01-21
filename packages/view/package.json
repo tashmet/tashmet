@@ -18,7 +18,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/node": "^13.1.8",
     "@ziqquratu/database": "^0.9.5",
     "@ziqquratu/ioc": "^0.9.5",
     "@ziqquratu/reflection": "^0.9.4",

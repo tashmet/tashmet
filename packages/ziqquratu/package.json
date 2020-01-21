@@ -17,11 +17,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/node": "^13.1.8",
     "@ziqquratu/database": "^0.9.5",
     "@ziqquratu/ioc": "^0.9.5",
-    "@ziqquratu/reflection": "^0.9.4",
-    "reflect-metadata": "^0.1.13"
+    "@ziqquratu/reflection": "^0.9.4"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.8"
   },
   "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
 }

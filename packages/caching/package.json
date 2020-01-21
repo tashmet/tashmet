@@ -18,9 +18,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/node": "^13.1.8",
-    "@ziqquratu/database": "^0.9.5",
-    "reflect-metadata": "^0.1.13"
+    "@ziqquratu/database": "^0.9.5"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.8"
   },
   "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
 }
