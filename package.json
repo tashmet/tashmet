@@ -1,6 +1,6 @@
 {
   "name": "ziqquratu",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "private": true,
   "description": "Ziqquratu is an isomorphic publishing platform",
   "scripts": {

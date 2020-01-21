@@ -10,7 +10,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "assign-deep": "^1.0.1",
     "bson-objectid": "^1.3.0",
