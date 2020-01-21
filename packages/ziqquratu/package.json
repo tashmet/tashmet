@@ -11,11 +11,15 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@types/node": "^13.1.8",
     "@ziqquratu/database": "^0.9.1",
     "@ziqquratu/ioc": "^0.9.1",
     "@ziqquratu/reflection": "^0.9.1",
     "reflect-metadata": "^0.1.13"
-  }
+  },
+  "gitHead": "a8298bb8f3a3d235848e15d5eaad56ac6e2a561d"
 }
