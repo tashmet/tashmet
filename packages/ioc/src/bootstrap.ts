@@ -21,7 +21,7 @@ export async function bootstrap<T>(
 export async function bootstrapWithContainer<T>(
   component: Newable<T>, container: Container, fn?: Bootstrap): Promise<T>
 {
-  container.register(Provider.ofInstance('tiamat.Container', container));
+  container.register(Provider.ofInstance('ziqquratu.Container', container));
   if (!BootstrapAnnotation.existsOnClass(component)) {
     throw Error('Missing bootstrap annotation on component');
   }
