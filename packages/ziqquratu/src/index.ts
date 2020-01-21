@@ -1,6 +1,9 @@
 export * from '@ziqquratu/database';
 export * from '@ziqquratu/reflection';
 export {
+  ServiceIdentifier,
+  ServiceRequest,
+
   // Container
   Container,
   BasicContainer,
