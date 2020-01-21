@@ -35,6 +35,7 @@ export {
 
 import DatabaseComponent from '@ziqquratu/database';
 import * as ioc from '@ziqquratu/ioc';
+import {Newable} from '@ziqquratu/reflection';
 
 /**
  * Redefinition of component decorator to include dependency on @ziqquratuu/database.
