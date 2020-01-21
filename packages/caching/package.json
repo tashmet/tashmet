@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/caching",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@types/node": "^13.1.8",
-    "@ziqquratu/database": "^0.9.2",
+    "@ziqquratu/database": "^0.9.3",
     "reflect-metadata": "^0.1.13"
   },
   "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
