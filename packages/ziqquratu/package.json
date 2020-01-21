@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/ziqquratu",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,9 +17,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@ziqquratu/database": "^0.9.5",
-    "@ziqquratu/ioc": "^0.9.5",
-    "@ziqquratu/reflection": "^0.9.4"
+    "@ziqquratu/database": "^0.9.6",
+    "@ziqquratu/ioc": "^0.9.6",
+    "@ziqquratu/reflection": "^0.9.5"
   },
   "devDependencies": {
     "@types/node": "^13.1.8"
