@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/view",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "@types/node": "^13.1.8",
-    "@ziqquratu/database": "^0.9.4",
-    "@ziqquratu/ioc": "^0.9.4",
+    "@ziqquratu/database": "^0.9.5",
+    "@ziqquratu/ioc": "^0.9.5",
     "@ziqquratu/reflection": "^0.9.4",
     "assign-deep": "^1.0.1",
     "eventemitter3": "^2.0.0",
