@@ -8,7 +8,10 @@
     "build": "tsc",
     "test": "mocha --opts mocha.opts"
   },
-  "keywords": [],
+  "keywords": [
+    "ziqquratu",
+    "reflection"
+  ],
   "author": "",
   "license": "MIT",
   "publishConfig": {

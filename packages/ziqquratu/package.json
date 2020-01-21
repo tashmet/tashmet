@@ -8,7 +8,9 @@
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
-  "keywords": [],
+  "keywords": [
+    "ziqquratu"
+  ],
   "author": "",
   "license": "MIT",
   "publishConfig": {
