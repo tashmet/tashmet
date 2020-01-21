@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/ioc",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ziqquratu/reflection": "^0.9.0"
+    "@ziqquratu/reflection": "^0.9.1"
   },
   "devDependencies": {
     "@types/node": "^13.1.8",
