@@ -5,7 +5,7 @@
 In your project, use npm to install the package.
 
 ```text
-$ npm install @ziggurat/ziggurat
+$ npm install @ziqquratu/ziqquratu
 ```
 
 ## Your first application
