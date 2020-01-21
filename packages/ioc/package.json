@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/ioc",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,7 +18,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ziqquratu/reflection": "^0.9.3"
+    "@ziqquratu/reflection": "^0.9.4"
   },
   "devDependencies": {
     "@types/node": "^13.1.8",

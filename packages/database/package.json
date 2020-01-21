@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/database",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,8 +27,8 @@
   "devDependencies": {
     "@types/node": "^13.1.8",
     "@types/reflect-metadata": "^0.1.0",
-    "@ziqquratu/ioc": "^0.9.3",
-    "@ziqquratu/reflection": "^0.9.3"
+    "@ziqquratu/ioc": "^0.9.4",
+    "@ziqquratu/reflection": "^0.9.4"
   },
   "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
 }
