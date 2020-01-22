@@ -12,7 +12,7 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     source.on('document-removed', doc => this.emit('document-removed', doc));
     source.on('document-error', err => this.emit('document-error', err));
 
-    for (let mw of middleware.reverse()) {
+    for (const mw of middleware.reverse()) {
       this.use(mw);
     }
   }
@@ -42,7 +42,7 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
   }
 
   private use(mw: any) {
-    for (let prop of Object.getOwnPropertyNames(mw).concat(Object.getOwnPropertyNames(mw.__proto__))) {
+    for (const prop of Object.getOwnPropertyNames(mw).concat(Object.getOwnPropertyNames(mw.__proto__))) {
       if (typeof mw[prop] === 'function' && prop !== 'constructor' && (this as any)[prop]) {
         const f = (this as any)[prop];
         (this as any)[prop] = mw[prop](f.bind(this));

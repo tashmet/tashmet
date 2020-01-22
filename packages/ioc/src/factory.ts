@@ -19,7 +19,7 @@ export abstract class Factory<T> {
   }
 
   protected resolve(fn: (...args: any[]) => T) {
-    const constructor = (<typeof Factory>this.constructor);
+    const constructor = this.constructor as typeof Factory;
     return constructor.container.resolve<T>(Injection.of(fn, this.inject));
   }
 

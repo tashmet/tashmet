@@ -46,28 +46,28 @@ class ComponentAnnotation extends BootstrapAnnotation {
       inject: this.config.inject
     }));
 
-    for (let dep of this.config.dependencies || []) {
-      let annotation = await this.getAnnotation(dep);
+    for (const dep of this.config.dependencies || []) {
+      const annotation = await this.getAnnotation(dep);
       await annotation.register(container);
       this.dependencies.push(annotation);
     }
-    for (let provider of this.config.providers || []) {
+    for (const provider of this.config.providers || []) {
       container.register(provider);
     }
-    for (let factory of this.config.factories || []) {
+    for (const factory of this.config.factories || []) {
       factory.container = container;
     }
   }
 
   public resolve<T>(container: Container): T {
-    for (let dep of this.dependencies) {
+    for (const dep of this.dependencies) {
       dep.resolve(container);
     }
     return container.resolve(this.target);
   }
 
   private async getAnnotation(dep: Newable<any> | Promise<any>): Promise<BootstrapAnnotation> {
-    let ctr = dep instanceof Promise ? (await dep).default : dep;
+    const ctr = dep instanceof Promise ? (await dep).default : dep;
 
     if (!BootstrapAnnotation.existsOnClass(ctr)) {
       throw Error('Missing bootstrap annotation on component');

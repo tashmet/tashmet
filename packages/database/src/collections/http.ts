@@ -10,20 +10,8 @@ export interface HttpCollectionConfig {
   queryParams?: (selector: object, options: QueryOptions) => {[name: string]: string};
 }
 
-export class HttpCollectionFactory extends CollectionFactory {
-  public constructor(private config: HttpCollectionConfig) {
-    super();
-  }
-
-  public create(name: string) {
-    return new HttpCollection(name, this.config);
-  }
-}
-
-export const http = (config: HttpCollectionConfig) => new HttpCollectionFactory(config);
-
 export function queryParams(selector: object, options: QueryOptions): {[name: string]: string} {
-  let params: {[name: string]: string} = {};
+  const params: {[name: string]: string} = {};
   if (Object.keys(selector).length > 0) {
     params['selector'] = JSON.stringify(selector);
   }
@@ -42,7 +30,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   ) {
     super();
 
-    let socket = io.connect(config.path);
+    const socket = io.connect(config.path);
     socket.on('document-upserted', (doc: any) => {
       this.emit('document-upserted', doc);
     });
@@ -56,7 +44,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async find(selector?: object, options?: QueryOptions): Promise<any[]> {
-    let resp = await fetch(this.serializeQuery(selector, options));
+    const resp = await fetch(this.serializeQuery(selector, options));
     if (!resp.ok) {
       throw new Error('Failed to contact server');
     }
@@ -64,7 +52,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async findOne(selector: object): Promise<any> {
-    let docs = await this.find(selector, {limit: 1});
+    const docs = await this.find(selector, {limit: 1});
     if (docs.length === 0) {
       throw new Error('Document not found');
     }
@@ -77,7 +65,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     if (exists) {
       path = path + '/' + doc._id;
     }
-    let resp = await fetch(path, {
+    const resp = await fetch(path, {
       body: JSON.stringify(doc),
       headers: {
         'content-type': 'application/json'
@@ -92,7 +80,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async count(selector?: object): Promise<number> {
-    let resp = await fetch(this.serializeQuery(selector), {method: 'HEAD'});
+    const resp = await fetch(this.serializeQuery(selector), {method: 'HEAD'});
 
     const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
@@ -102,9 +90,9 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async remove(selector: object): Promise<any[]> {
-    let docs = await this.find(selector);
-    for (let doc of docs) {
-      let resp = await fetch(this.config.path + '/' + doc._id, {
+    const docs = await this.find(selector);
+    for (const doc of docs) {
+      const resp = await fetch(this.config.path + '/' + doc._id, {
         method: 'DELETE'
       });
       if (!resp.ok) {
@@ -127,3 +115,15 @@ export class HttpCollection extends EventEmitter implements Collection {
     return query;
   }
 }
+
+export class HttpCollectionFactory extends CollectionFactory {
+  public constructor(private config: HttpCollectionConfig) {
+    super();
+  }
+
+  public create(name: string) {
+    return new HttpCollection(name, this.config);
+  }
+}
+
+export const http = (config: HttpCollectionConfig) => new HttpCollectionFactory(config);

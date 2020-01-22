@@ -5,7 +5,7 @@ import {QueryCache} from './query';
 
 export class CachingMiddlewareFactory extends MiddlewareFactory {
   public create(source: Collection): Middleware[] {
-    let cache = new MemoryCollection(source.name);
+    const cache = new MemoryCollection(source.name);
 
     source.on('document-upserted', doc => cache.upsert(doc));
     source.on('document-removed', doc => cache.remove({_id: doc._id}));

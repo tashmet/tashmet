@@ -13,18 +13,18 @@ function matchBody(body: any) {
 }
 
 describe('HttpCollection', () => {
-  let col = new HttpCollection('test', {path: '/api/test'});
+  const col = new HttpCollection('test', {path: '/api/test'});
 
   before(() => {
     fetchMock.head('/api/test?selector=%7B%22_id%22%3A%22foo%22%7D', {
-      headers: {'x-total-count': 1}
+      headers: {'x-total-count': '1'}
     });
     fetchMock.get('/api/test?selector=%7B%22_id%22%3A%22foo%22%7D', {
       body: {_id: 'foo'},
-      headers: {'x-total-count': 1}
+      headers: {'x-total-count': '1'}
     });
 
-    fetchMock.head('*', {headers: {'x-total-count': 0}});
+    fetchMock.head('*', {headers: {'x-total-count': '0'}});
   });
 
   after(() => {

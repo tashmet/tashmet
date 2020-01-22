@@ -66,7 +66,7 @@ export class CachingEndpoint extends Middleware {
       const originalSelector = this.clone(selector);
       const originalOptions = this.clone(options);
 
-      for (let doc of await next(selector, options)) {
+      for (const doc of await next(selector, options)) {
         await this.cache.upsert(doc);
       }
       return this.cache.find(originalSelector, originalOptions);

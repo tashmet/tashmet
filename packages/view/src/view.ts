@@ -77,8 +77,8 @@ export abstract class View<T> extends EventEmitter {
   protected query(): Query {
     const query = new Query();
 
-    for (let prop of getType(this.constructor).properties) {
-      for (let annotation of prop.getAnnotations(ViewPropertyAnnotation)) {
+    for (const prop of getType(this.constructor).properties) {
+      for (const annotation of prop.getAnnotations(ViewPropertyAnnotation)) {
         annotation.apply(query, (this as any)[prop.name]);
       }
     }

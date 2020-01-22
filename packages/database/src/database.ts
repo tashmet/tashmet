@@ -23,7 +23,7 @@ export class DatabaseService extends EventEmitter implements Database {
     private config: DatabaseConfig,
   ) {
     super();
-    for (let name of Object.keys(config.collections)) {
+    for (const name of Object.keys(config.collections)) {
       this.createCollection(name, config.collections[name]);
     }
   }
@@ -50,7 +50,7 @@ export class DatabaseService extends EventEmitter implements Database {
         middlewareFactories, factory.use || []);
     }
 
-    let collection = new ManagedCollection(
+    const collection = new ManagedCollection(
       source, middlewareFactories.reduce((middleware, middlewareFactory) => {
         return middleware.concat(middlewareFactory.create(source));
       }, [] as Middleware[]));

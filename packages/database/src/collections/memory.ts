@@ -3,25 +3,6 @@ import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
-export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
-  public constructor(private docs: T[] = []) {
-    super();
-  }
-
-  public create(name: string) {
-    let collection = new MemoryCollection(name);
-
-    for (let doc of this.docs) {
-      collection.upsert(doc);
-    }
-    return collection;
-  }
-}
-
-export function memory<T = any>(docs: T[] = []) {
-  return new MemoryCollectionFactory(docs);
-}
-
 export class MemoryCollection extends EventEmitter implements Collection {
   private collection: any[] = [];
 
@@ -62,7 +43,7 @@ export class MemoryCollection extends EventEmitter implements Collection {
     const affected = await this.find(selector);
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
-    for (let doc of affected) {
+    for (const doc of affected) {
       this.emit('document-removed', doc);
     }
     return affected;
@@ -86,4 +67,23 @@ export class MemoryCollection extends EventEmitter implements Collection {
     }
     return cursor;
   }
+}
+
+export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
+  public constructor(private docs: T[] = []) {
+    super();
+  }
+
+  public create(name: string) {
+    const collection = new MemoryCollection(name);
+
+    for (const doc of this.docs) {
+      collection.upsert(doc);
+    }
+    return collection;
+  }
+}
+
+export function memory<T = any>(docs: T[] = []) {
+  return new MemoryCollectionFactory(docs);
 }

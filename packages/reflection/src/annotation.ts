@@ -50,7 +50,7 @@ export class Annotation {
     let annotations: T[] = [];
     const method = getType(ctr).methods.find(m => m.name === methodName);
     if (method) {
-      for (let param of method.parameters) {
+      for (const param of method.parameters) {
         annotations = annotations.concat(param.getAnnotations().filter(a => a instanceof this));
       }
     }

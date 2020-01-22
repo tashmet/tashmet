@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import {Newable} from './interfaces';
 
 function decorate(target: object, annotation: any) {
-  let annotations = Reflect.getOwnMetadata('annotations', target) || [];
+  const annotations = Reflect.getOwnMetadata('annotations', target) || [];
   annotations.push(annotation);
   Reflect.defineMetadata('annotations', annotations, target);
 }
@@ -19,7 +19,7 @@ function decorateProperty(target: object, propertyKey: string, annotation: any) 
 function decorateParameter(
   target: object, propertyKey: string, parameterIndex: number, annotation: any
 ) {
-  let parameters: any[][] = Reflect.getMetadata('parameters', target, propertyKey) || [];
+  const parameters: any[][] = Reflect.getMetadata('parameters', target, propertyKey) || [];
   while (parameters.length <= parameterIndex) {
     parameters.push([]);
   }

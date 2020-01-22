@@ -12,7 +12,7 @@ export class QueryCache extends CacheEvaluator {
     this.cachedQueries[this.hash(selector, options)] = options;
   }
 
-  protected hash(selector: Object, options?: QueryOptions): string {
+  protected hash(selector: Record<string, any>, options?: QueryOptions): string {
     return JSON.stringify(selector) + JSON.stringify(options || {});
   }
 }
