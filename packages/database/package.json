@@ -17,6 +17,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "dependencies": {
     "@ziqquratu/ioc": "^0.9.6",
     "@ziqquratu/reflection": "^0.9.5",

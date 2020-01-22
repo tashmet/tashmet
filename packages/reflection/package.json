@@ -17,6 +17,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "dependencies": {
     "reflect-helper": "^1.1.1"
   },
