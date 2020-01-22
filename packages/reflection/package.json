@@ -24,7 +24,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "LICENSE"
   ],
   "dependencies": {
     "reflect-helper": "^1.1.1"
