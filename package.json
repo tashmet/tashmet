@@ -6,6 +6,7 @@
   "scripts": {
     "build": "lerna run build",
     "clean": "rimraf packages/*/dist dist",
+    "commit": "git-cz",
     "lint": "lerna run --no-bail lint",
     "test": "lerna run test && mocha --opts mocha.opts"
   },
@@ -23,6 +24,8 @@
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
     "chai-fetch-mock": "^2.0.0",
+    "commitizen": "^4.0.3",
+    "cz-conventional-changelog": "^3.0.2",
     "eslint": "^6.8.0",
     "fetch-mock": "^7.5.1",
     "lerna": "^3.20.2",
@@ -33,5 +36,10 @@
     "sinon-chai": "^2.14.0",
     "ts-node": "^3.0.6",
     "typescript": "^3.7.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
