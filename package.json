@@ -6,6 +6,7 @@
   "scripts": {
     "build": "lerna run build",
     "clean": "rimraf packages/*/dist dist",
+    "lint": "lerna run --no-bail lint",
     "test": "lerna run test && mocha --opts mocha.opts"
   },
   "author": "Björn Andersson",
@@ -17,20 +18,20 @@
     "@types/mocha": "^2.2.41",
     "@types/sinon": "^2.3.6",
     "@types/sinon-chai": "^2.7.29",
+    "@typescript-eslint/eslint-plugin": "^2.17.0",
+    "@typescript-eslint/parser": "^2.17.0",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
     "chai-fetch-mock": "^2.0.0",
+    "eslint": "^6.8.0",
     "fetch-mock": "^7.5.1",
-    "harmonize": "^2.0.0",
     "lerna": "^3.20.2",
     "mocha": "^3.4.2",
     "node-fetch": "^2.6.0",
     "rimraf": "^3.0.0",
-    "run-sequence": "^2.0.0",
     "sinon": "^4.0.1",
     "sinon-chai": "^2.14.0",
     "ts-node": "^3.0.6",
-    "tslint": "^5.7.0",
-    "typescript": "^2.7.0"
+    "typescript": "^3.7.0"
   }
 }

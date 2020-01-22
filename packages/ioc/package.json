@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "lint": "eslint --cache --ext .js,.ts src/",
     "test": "mocha --opts mocha.opts"
   },
   "keywords": [
