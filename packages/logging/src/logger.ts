@@ -29,6 +29,8 @@ export class DefaultLogger implements Logger {
   }
 
   private emit(message: string, severity: LogLevel) {
-    this.sink.emit({message, severity, timestamp: new Date().getTime()});
+    if (severity >= this.config.level) {
+      this.sink.emit({message, severity, timestamp: new Date().getTime()});
+    }
   }
 }

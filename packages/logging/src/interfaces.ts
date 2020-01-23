@@ -1,8 +1,8 @@
 import {Factory} from '@ziqquratu/ioc';
 
-export enum LogLevel {
-  Info,
+export const enum LogLevel {
   Debug,
+  Info,
   Warning,
   Error,
 };
