@@ -41,3 +41,7 @@ export interface LoggerConfig {
   level: LogLevel;
   sink: SinkFactory;
 }
+
+export interface Formatter {
+  format(event: LogEvent): string;
+}

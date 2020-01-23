@@ -1,11 +1,26 @@
-import {LogEvent, Sink, LogLevel, SinkFactory} from './interfaces';
+import {Formatter, LogEvent, Sink, LogLevel, SinkFactory} from './interfaces';
+
+export class DefaultFormatter implements Formatter {
+  public format(event: LogEvent) {
+    const {message, timestamp, scope} = event;
+    return scope.length > 0
+      ? `[${this.timeString(timestamp)}] (${scope.join('.')}) ${message}`
+      : `[${this.timeString(timestamp)}] ${message}`
+  }
+
+  protected timeString(timestamp: number): string {
+    const isoString = new Date(timestamp).toISOString();
+    return isoString.substr(isoString.indexOf('T') + 1, 8);
+  }
+}
 
 export class ConsoleWriter implements Sink {
-  public emit(event: LogEvent) {
-    const {message, severity, timestamp, scope} = event;
-    const output = `[${scope.join('.')}] ${message}`;
+  public constructor(private formatter: Formatter) {}
 
-    switch (severity) {
+  public emit(event: LogEvent) {
+    const output = this.formatter.format(event);
+
+    switch (event.severity) {
       case LogLevel.Info:
         console.log(output);
         break;
@@ -24,7 +39,7 @@ export class ConsoleWriter implements Sink {
 
 export class ConsoleWriterFactory extends SinkFactory {
   public create() {
-    return new ConsoleWriter();
+    return new ConsoleWriter(new DefaultFormatter());
   }
 }
 
