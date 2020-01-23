@@ -11,6 +11,7 @@ export interface LogEvent {
   readonly message: string;
   readonly severity: LogLevel;
   readonly timestamp: number;
+  readonly scope: string[];
 }
 
 export interface Sink {
@@ -22,6 +23,9 @@ export abstract class SinkFactory extends Factory<Sink> {
 }
 
 export interface Logger {
+  readonly scope: string[];
+  readonly parent: Logger | null;
+
   info(message: string): void;
 
   debug(message: string): void;
@@ -29,6 +33,8 @@ export interface Logger {
   warn(message: string): void;
 
   error(message: string): void;
+
+  inScope(scope: string): Logger;
 }
 
 export interface LoggerConfig {

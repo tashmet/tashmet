@@ -1,14 +1,13 @@
 import {Logger, LoggerConfig, Sink, LogLevel} from './interfaces';
-import {provider} from '@ziqquratu/ioc';
 
-@provider({
-  key: 'ziqquratu.Logger',
-  inject: ['ziqquratu.LoggerConfig']
-})
 export class DefaultLogger implements Logger {
   private sink: Sink;
 
-  public constructor(private config: LoggerConfig) {
+  public constructor(
+    private config: LoggerConfig,
+    public scope: string[] = [],
+    public parent: Logger | null = null,
+  ) {
     this.sink = this.config.sink.create();
   }
 
@@ -28,9 +27,13 @@ export class DefaultLogger implements Logger {
     this.emit(message, LogLevel.Error);
   }
 
+  public inScope(scope: string): Logger {
+    return new DefaultLogger(this.config, [...this.scope, scope], this);
+  }
+
   private emit(message: string, severity: LogLevel) {
     if (severity >= this.config.level) {
-      this.sink.emit({message, severity, timestamp: new Date().getTime()});
+      this.sink.emit({message, severity, timestamp: new Date().getTime(), scope: this.scope});
     }
   }
 }

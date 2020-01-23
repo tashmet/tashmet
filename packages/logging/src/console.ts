@@ -2,20 +2,21 @@ import {LogEvent, Sink, LogLevel, SinkFactory} from './interfaces';
 
 export class ConsoleWriter implements Sink {
   public emit(event: LogEvent) {
-    const {message, severity, timestamp} = event;
+    const {message, severity, timestamp, scope} = event;
+    const output = `[${scope.join('.')}] ${message}`;
 
     switch (severity) {
       case LogLevel.Info:
-        console.log(message);
+        console.log(output);
         break;
       case LogLevel.Debug:
-        console.debug(message);
+        console.debug(output);
         break;
       case LogLevel.Warning:
-        console.warn(message);
+        console.warn(output);
         break;
       case LogLevel.Error:
-        console.error(message);
+        console.error(output);
         break;
     }
   }
