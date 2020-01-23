@@ -1,5 +1,6 @@
 export * from '@ziqquratu/database';
 export * from '@ziqquratu/reflection';
+export * from '@ziqquratu/logging';
 export {
   ServiceIdentifier,
   ServiceRequest,
@@ -37,6 +38,7 @@ export {
 } from '@ziqquratu/ioc';
 
 import DatabaseComponent from '@ziqquratu/database';
+import Logging from '@ziqquratu/logging';
 import * as ioc from '@ziqquratu/ioc';
 import {Newable} from '@ziqquratu/reflection';
 
@@ -52,6 +54,9 @@ import {Newable} from '@ziqquratu/reflection';
  */
 export const component = (config?: ioc.ComponentConfig) => {
   config = config || {};
-  config.dependencies = (config.dependencies || []).concat(DatabaseComponent);
+  config.dependencies = (config.dependencies || []).concat([
+    DatabaseComponent,
+    Logging,
+  ]);
   return ioc.component(config);
 };

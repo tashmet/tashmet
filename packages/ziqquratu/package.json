@@ -29,6 +29,7 @@
   "dependencies": {
     "@ziqquratu/database": "^0.9.6",
     "@ziqquratu/ioc": "^0.9.6",
+    "@ziqquratu/logging": "^0.9.0",
     "@ziqquratu/reflection": "^0.9.5"
   },
   "devDependencies": {
