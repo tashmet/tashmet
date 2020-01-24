@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/caching",
-  "version": "0.9.6",
+  "version": "1.0.0-alpha.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@ziqquratu/database": "^0.9.6"
+    "@ziqquratu/database": "^1.0.0-alpha.0"
   },
   "devDependencies": {
     "@types/node": "^13.1.8"
