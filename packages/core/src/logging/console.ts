@@ -1,21 +1,36 @@
-import {Formatter, LogEvent, Sink, LogLevel, SinkFactory} from './interfaces';
+import {LogFormatter, LogEvent, Sink, LogLevel, SinkFactory} from './interfaces';
 
-export class DefaultFormatter implements Formatter {
+export class ScopeLogFormatter implements LogFormatter {
+  private lastScope = '';
+
   public format(event: LogEvent) {
     const {message, timestamp, scope} = event;
-    return scope.length > 0
-      ? `[${this.timeString(timestamp)}] (${scope.join('.')}) ${message}`
-      : `[${this.timeString(timestamp)}] ${message}`
+    const scopeName = scope.join('.');
+    
+    let output = '';
+    if (scopeName !== this.lastScope) {
+      output = this.formatScope(scope) + '\n';
+      this.lastScope = scopeName;
+    }
+    return `${output}  ${this.formatTimestamp(timestamp)} ${this.formatMessage(message)}`;
   }
 
-  protected timeString(timestamp: number): string {
+  protected formatTimestamp(timestamp: number): string {
     const isoString = new Date(timestamp).toISOString();
     return isoString.substr(isoString.indexOf('T') + 1, 8);
+  }
+
+  protected formatScope(scope: string[]): string {
+    return scope.join('.');
+  }
+
+  protected formatMessage(message: string): string {
+    return message;
   }
 }
 
 export class ConsoleWriter implements Sink {
-  public constructor(private formatter: Formatter) {}
+  public constructor(private formatter: LogFormatter) {}
 
   public emit(event: LogEvent) {
     const output = this.formatter.format(event);
@@ -43,12 +58,12 @@ export class ConsoleWriterFactory extends SinkFactory {
   ) { super(); }
 
   public create() {
-    return new ConsoleWriter(this.config.formatter || new DefaultFormatter());
+    return new ConsoleWriter(this.config.format || new ScopeLogFormatter());
   }
 }
 
 export interface ConsoleWriterConfig {
-  formatter?: Formatter;
+  format?: LogFormatter;
 }
 
 export const consoleWriter = (config: ConsoleWriterConfig = {}) => new ConsoleWriterFactory(config);

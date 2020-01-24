@@ -39,9 +39,9 @@ export {
   LogEvent,
   Logger,
   LoggerConfig,
+  LogFormatter,
   Sink,
   SinkFactory,
-  Formatter,
 
   // Writers
   consoleWriter,

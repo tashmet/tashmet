@@ -1,6 +1,6 @@
 {
-  "name": "@ziqquratu/ziqquratu",
-  "version": "0.9.8",
+  "name": "@ziqquratu/terminal",
+  "version": "0.9.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,8 @@
     "test": "exit 0"
   },
   "keywords": [
-    "ziqquratu"
+    "ziqquratu",
+    "terminal"
   ],
   "author": "",
   "license": "MIT",
@@ -28,10 +29,9 @@
   ],
   "dependencies": {
     "@ziqquratu/core": "^0.9.0",
-    "@ziqquratu/database": "^0.9.6"
+    "chalk": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^13.1.8"
-  },
-  "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
+  }
 }

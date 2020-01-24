@@ -1,2 +1,2 @@
 export * from './interfaces';
-export {consoleWriter} from './console';
+export {consoleWriter, ScopeLogFormatter} from './console';

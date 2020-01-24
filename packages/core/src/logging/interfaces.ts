@@ -43,6 +43,6 @@ export interface LoggerConfig {
   sink: SinkFactory | SinkFactory[];
 }
 
-export interface Formatter {
+export interface LogFormatter {
   format(event: LogEvent): string;
 }

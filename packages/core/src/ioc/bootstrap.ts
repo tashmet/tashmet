@@ -2,7 +2,7 @@ import {Annotation, Newable} from '../reflection';
 import {Container} from './interfaces';
 import {BasicContainer} from './container';
 import {Provider} from './provider';
-import {Logger, LogLevel, LoggerConfig} from '../logging/interfaces';
+import {Logger, LogLevel, LoggerConfig, LogFormatter} from '../logging/interfaces';
 import {DefaultLogger} from '../logging/logger';
 import {consoleWriter} from '../logging/console';
 
@@ -10,6 +10,8 @@ export type Bootstrap = (container: Container) => Promise<void>;
 
 export interface BootstrapConfig {
   logLevel?: LogLevel;
+
+  logFormat?: LogFormatter;
 
   container?: (logger: Logger) => Container;
 }
@@ -32,7 +34,7 @@ export async function bootstrap<T>(
 {
   const loggerConfig: LoggerConfig = {
     level: config.logLevel !== undefined ? config.logLevel : LogLevel.None,
-    sink: consoleWriter(),
+    sink: consoleWriter({format: config.logFormat}),
   };
   const logger = DefaultLogger.fromConfig(loggerConfig).inScope('core');
   const container = config.container ? config.container(logger) : new BasicContainer(logger);
