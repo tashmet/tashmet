@@ -1,6 +1,6 @@
 # Ziqquratu
 
-This is the Ziqqurat mono-repo, containing code, tests and documentation for the Ziqquratu publishing framework. To get started head over to the [user documentation](https://ziqquratu.gitbook.io/).
+This is the Ziqquratu mono-repo, containing code, tests and documentation for the Ziqquratu publishing framework. To get started head over to the [user documentation](https://ziqquratu.gitbook.io/).
 
 ## Introduction
 
@@ -10,4 +10,4 @@ Ziqquratu is a lightweight open-source database written in typescript with the p
 
 The framework was created mainly to make it easy to share content between a server and a client. It was built using a highly modular design with scalability in mind which means you could use it for a simple web-page, blog or larger web application.
 
-When running it in a web-browser you probably want to have the content rendered using some front-end framework. Ziggurat does not limit your choices here.
+When running it in a web-browser you probably want to have the content rendered using some front-end framework. Ziqquratu does not limit your choices here.
