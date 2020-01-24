@@ -1,4 +1,5 @@
 import {provider} from '@ziqquratu/ioc';
+import {Logger} from '@ziqquratu/logging';
 import {EventEmitter} from 'eventemitter3';
 import {ManagedCollection} from './collections/managed';
 import {
@@ -14,6 +15,7 @@ import {
   key: 'ziqquratu.Database',
   inject: [
     'ziqquratu.DatabaseConfig',
+    'ziqquratu.DatabaseLogger',
   ]
 })
 export class DatabaseService extends EventEmitter implements Database {
@@ -21,6 +23,7 @@ export class DatabaseService extends EventEmitter implements Database {
 
   public constructor(
     private config: DatabaseConfig,
+    private logger: Logger,
   ) {
     super();
     for (const name of Object.keys(config.collections)) {
@@ -35,36 +38,43 @@ export class DatabaseService extends EventEmitter implements Database {
   public createCollection<T = any>(
     name: string, factory: CollectionFactory<T> | CollectionConfig): Collection<T>
   {
-    if (name in this.collections) {
-      throw new Error(`A collection named '${name}' already exists`);
+    try {
+      if (name in this.collections) {
+        throw new Error(`A collection named '${name}' already exists`);
+      }
+
+      let source: Collection;
+      let middlewareFactories = this.config.use || [];
+
+      if (factory instanceof CollectionFactory) {
+        source = factory.create(name);
+      } else {
+        source = factory.source.create(name);
+        middlewareFactories = (factory.useBefore || []).concat(
+          middlewareFactories, factory.use || []);
+      }
+
+      const collection = new ManagedCollection(
+        source, middlewareFactories.reduce((middleware, middlewareFactory) => {
+          return middleware.concat(middlewareFactory.create(source));
+        }, [] as Middleware[]));
+
+      collection.on('document-upserted', (doc: any) => {
+        this.emit('document-upserted', doc, collection);
+      });
+      collection.on('document-removed', (doc: any) => {
+        this.emit('document-removed', doc, collection);
+      });
+      collection.on('document-error', (err: any) => {
+        this.emit('document-error', err, collection);
+      });
+
+      this.logger.info(`Created collection '${name}'`);
+
+      return this.collections[name] = collection;
+    } catch (err) {
+      this.logger.error(err.message);
+      throw err;
     }
-
-    let source: Collection;
-    let middlewareFactories = this.config.use || [];
-
-    if (factory instanceof CollectionFactory) {
-      source = factory.create(name);
-    } else {
-      source = factory.source.create(name);
-      middlewareFactories = (factory.useBefore || []).concat(
-        middlewareFactories, factory.use || []);
-    }
-
-    const collection = new ManagedCollection(
-      source, middlewareFactories.reduce((middleware, middlewareFactory) => {
-        return middleware.concat(middlewareFactory.create(source));
-      }, [] as Middleware[]));
-
-    collection.on('document-upserted', (doc: any) => {
-      this.emit('document-upserted', doc, collection);
-    });
-    collection.on('document-removed', (doc: any) => {
-      this.emit('document-removed', doc, collection);
-    });
-    collection.on('document-error', (err: any) => {
-      this.emit('document-error', err, collection);
-    });
-
-    return this.collections[name] = collection;
   }
 }

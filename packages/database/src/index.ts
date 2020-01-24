@@ -1,4 +1,5 @@
 import {component, Provider} from '@ziqquratu/ioc';
+import {Logger} from '@ziqquratu/logging';
 
 export {memory, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
@@ -12,6 +13,11 @@ import {DatabaseService} from './database';
     DatabaseService,
     Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
       collections: {}
+    }),
+    Provider.ofFactory<Logger>({
+      key: 'ziqquratu.DatabaseLogger',
+      inject: ['ziqquratu.Logger'],
+      create: (logger: Logger) => logger.inScope('database')
     })
   ],
 })

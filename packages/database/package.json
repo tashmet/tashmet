@@ -29,6 +29,7 @@
   ],
   "dependencies": {
     "@ziqquratu/ioc": "^0.9.6",
+    "@ziqquratu/logging": "^0.9.0",
     "@ziqquratu/reflection": "^0.9.5",
     "assign-deep": "^1.0.1",
     "bson-objectid": "^1.3.0",
