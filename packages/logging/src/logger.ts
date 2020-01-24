@@ -1,14 +1,14 @@
-import {Logger, LoggerConfig, Sink, LogLevel} from './interfaces';
+import {Logger, LoggerConfig, Sink, LogLevel, SinkFactory} from './interfaces';
 
 export class DefaultLogger implements Logger {
-  private sink: Sink;
+  private sinks: Sink[];
 
   public constructor(
     private config: LoggerConfig,
     public scope: string[] = [],
     public parent: Logger | null = null,
   ) {
-    this.sink = this.config.sink.create();
+    this.sinks = ([] as SinkFactory[]).concat(this.config.sink).map(f => f.create());
   }
 
   public info(message: string) {
@@ -33,7 +33,9 @@ export class DefaultLogger implements Logger {
 
   private emit(message: string, severity: LogLevel) {
     if (severity >= this.config.level) {
-      this.sink.emit({message, severity, timestamp: new Date().getTime(), scope: this.scope});
+      for (const sink of this.sinks) {
+        sink.emit({message, severity, timestamp: new Date().getTime(), scope: this.scope});
+      }
     }
   }
 }
