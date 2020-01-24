@@ -1,4 +1,4 @@
-import {Annotation, Newable, classDecorator} from '@ziqquratu/reflection';
+import {Annotation, Newable, classDecorator} from '../../reflection';
 import {ServiceIdentifier, ServiceRequest} from '../interfaces';
 import {ClassProviderConfig, FactoryProviderConfig, InjectedProviderConfig} from '../provider';
 

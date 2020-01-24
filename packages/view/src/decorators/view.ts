@@ -1,5 +1,4 @@
-import {FactoryProviderAnnotation} from '@ziqquratu/ioc';
-import {classDecorator, Newable} from '@ziqquratu/reflection';
+import {classDecorator, FactoryProviderAnnotation, Newable} from '@ziqquratu/core';
 import {Database} from '@ziqquratu/database';
 import {View} from '../view';
 

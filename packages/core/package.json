@@ -1,6 +1,6 @@
 {
-  "name": "@ziqquratu/reflection",
-  "version": "0.9.5",
+  "name": "@ziqquratu/core",
+  "version": "0.9.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
   },
   "keywords": [
     "ziqquratu",
-    "reflection"
+    "core"
   ],
   "author": "",
   "license": "MIT",
@@ -33,6 +33,5 @@
   "devDependencies": {
     "@types/node": "^13.1.8",
     "@types/reflect-metadata": "^0.1.0"
-  },
-  "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
+  }
 }

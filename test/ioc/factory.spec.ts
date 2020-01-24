@@ -3,7 +3,7 @@ import {expect} from 'chai';
 import 'mocha';
 
 describe('Factory', () => {
-  let container = new BasicContainer();
+  const container = new BasicContainer();
 
   class MyFactory extends Factory<string> {
     public constructor(private ending: string) {
@@ -24,12 +24,12 @@ describe('Factory', () => {
   });
 
   it('should throw if factory was not registered', () => {
-    let fact = new MyFactory('!');
+    const fact = new MyFactory('!');
     expect(() => fact.create('hello')).to.throw();
   });
 
   it('should create an instance', () => {
-    let fact = new MyFactory('!');
+    const fact = new MyFactory('!');
     MyFactory.container = container;
     expect(fact.create('hello')).to.eql('hello world!');
   });

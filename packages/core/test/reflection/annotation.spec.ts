@@ -1,5 +1,6 @@
-import {Annotation} from '../src/annotation';
-import {classDecorator, parameterDecorator, propertyDecorator} from '../src/decoration';
+import {
+  classDecorator, parameterDecorator, propertyDecorator, Annotation
+} from '../../../core/src/reflection';
 import {expect} from 'chai';
 import 'mocha';
 

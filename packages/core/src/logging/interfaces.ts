@@ -1,10 +1,11 @@
-import {Factory} from '@ziqquratu/ioc';
+import {Factory} from '../ioc/factory';
 
 export const enum LogLevel {
   Debug,
   Info,
   Warning,
   Error,
+  None,
 };
 
 export interface LogEvent {

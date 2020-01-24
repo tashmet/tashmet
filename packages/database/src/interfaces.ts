@@ -1,4 +1,4 @@
-import {Factory} from '@ziqquratu/ioc';
+import {Factory} from '@ziqquratu/core';
 
 export enum SortingOrder {
   Ascending = 1,

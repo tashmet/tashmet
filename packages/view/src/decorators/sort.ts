@@ -1,4 +1,4 @@
-import {propertyDecorator} from '@ziqquratu/reflection';
+import {propertyDecorator} from '@ziqquratu/core';
 import {SortingOrder} from '@ziqquratu/database';
 import {ViewPropertyAnnotation, Query} from '../view';
 

@@ -1,4 +1,4 @@
-export {bootstrap, bootstrapWithContainer} from './bootstrap';
+export {bootstrap} from './bootstrap';
 export {Factory} from './factory';
 export * from './interfaces';
 export * from './resolvers';

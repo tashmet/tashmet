@@ -1,4 +1,6 @@
-import {Constructor, Newable} from '@ziqquratu/reflection';
+import {Constructor, Newable} from '../reflection';
+import {Logger, LogLevel} from '../logging/interfaces';
+import {DefaultLogger} from '../logging/logger';
 import {Container, ServiceIdentifier, ServiceRequest, Resolver} from './interfaces';
 import {Provider} from './provider';
 import {ClassProviderAnnotation, FactoryProviderAnnotation} from './decorators/provider';
@@ -7,12 +9,19 @@ import {ClassProviderAnnotation, FactoryProviderAnnotation} from './decorators/p
  * Abstract container that can be overridden to plug into an existing DI framework.
  */
 export abstract class AbstractContainer implements Container {
+  public constructor(protected logger: Logger) {}
+
   public resolve<T>(req: ServiceRequest<T>): T {
-    return req instanceof Resolver ? req.resolve(this) : this.get(req);
+    if (req instanceof Resolver) {
+      return req.resolve(this);
+    }
+    this.logger.debug(`Resolving '${this.nameOf(req)}'`);
+    return this.get(req);
   }
 
   public register<T>(provider: Provider<T> | Newable<T>): void {
     if (provider instanceof Provider) {
+      this.logger.debug(`Registering '${this.nameOf(provider.key)}'`);
       return this.registerResolver(provider.key, provider.resolver);
     }
     if (ClassProviderAnnotation.existsOnClass(provider)) {
@@ -23,6 +32,7 @@ export abstract class AbstractContainer implements Container {
       const config = FactoryProviderAnnotation.onClass(provider)[0];
       return this.register(Provider.ofFactory(config));
     }
+    this.logger.debug(`Registering '${this.nameOf(provider)}'`);
     this.register(Provider.ofClass({ctr: provider}));
   }
 
@@ -31,6 +41,16 @@ export abstract class AbstractContainer implements Container {
   protected abstract registerResolver<T>(key: ServiceIdentifier<any>, resolver: Resolver<T>): void;
 
   protected abstract get<T>(key: ServiceIdentifier<T>): T;
+
+  protected nameOf<T>(key: ServiceIdentifier<T>): string {
+    if (typeof key === 'string') {
+      return key;
+    }
+    if (typeof key === 'symbol') {
+      return key.toString();
+    }
+    return (key as Constructor<T>).name || '';
+  }
 }
 
 /**
@@ -39,8 +59,8 @@ export abstract class AbstractContainer implements Container {
 export class BasicContainer extends AbstractContainer {
   private resolvers: Map<ServiceIdentifier<any>, Resolver<any>>;
 
-  public constructor() {
-    super();
+  public constructor(logger: Logger = new DefaultLogger({level: LogLevel.None, sink: []})) {
+    super(logger);
     this.resolvers = new Map();
   }
 
@@ -59,15 +79,5 @@ export class BasicContainer extends AbstractContainer {
       throw Error('No resolver registered for key: ' + this.nameOf(key));
     }
     return res.resolve(this);
-  }
-
-  private nameOf<T>(key: ServiceIdentifier<T>): string {
-    if (typeof key === 'string') {
-      return key;
-    }
-    if (typeof key === 'symbol') {
-      return key.toString();
-    }
-    return (key as Constructor<T>).name || '';
   }
 }

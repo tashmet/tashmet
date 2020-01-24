@@ -1,4 +1,4 @@
-import {classDecorator, Newable} from '@ziqquratu/reflection';
+import {classDecorator, Newable} from '../../reflection';
 import {Container, ServiceRequest} from '../interfaces';
 import {BootstrapAnnotation} from '../bootstrap';
 import {NewableFactory} from '../factory';

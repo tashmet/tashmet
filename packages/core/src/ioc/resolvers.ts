@@ -1,4 +1,4 @@
-import {Newable} from '@ziqquratu/reflection';
+import {Newable} from '../reflection';
 import {Container, Resolver, ServiceRequest, ServiceIdentifier} from './interfaces';
 
 /**

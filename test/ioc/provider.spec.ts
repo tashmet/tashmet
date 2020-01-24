@@ -3,7 +3,7 @@ import {expect} from 'chai';
 import 'mocha';
 
 describe('provider', () => {
-  let container = new BasicContainer();
+  const container = new BasicContainer();
 
   describe('without annotation', () => {
     class ProviderWithoutAnnotation {}
@@ -85,8 +85,8 @@ describe('provider', () => {
     });
 
     it('should only have a single instance', () => {
-      let instance1 = container.resolve<SingletonProvider>('test.SingletonProvider');
-      let instance2 = container.resolve<SingletonProvider>('test.SingletonProvider');
+      const instance1 = container.resolve<SingletonProvider>('test.SingletonProvider');
+      const instance2 = container.resolve<SingletonProvider>('test.SingletonProvider');
 
       expect(instance1).to.equal(instance2);
     });
@@ -106,8 +106,8 @@ describe('provider', () => {
     });
 
     it('should return instances for a registered name', () => {
-      let instance1 = container.resolve<TransientProvider>('test.TransientProvider');
-      let instance2 = container.resolve<TransientProvider>('test.TransientProvider');
+      const instance1 = container.resolve<TransientProvider>('test.TransientProvider');
+      const instance2 = container.resolve<TransientProvider>('test.TransientProvider');
 
       expect(instance1).to.not.equal(instance2);
     });

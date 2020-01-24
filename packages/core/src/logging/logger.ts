@@ -8,7 +8,7 @@ export class DefaultLogger implements Logger {
     public scope: string[] = [],
     public parent: Logger | null = null,
   ) {
-    this.sinks = ([] as SinkFactory[]).concat(this.config.sink).map(f => f.create());
+    this.sinks = ([] as SinkFactory[]).concat(config.sink).map(f => f.create());
   }
 
   public info(message: string) {

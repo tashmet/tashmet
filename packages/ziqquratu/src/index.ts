@@ -1,7 +1,6 @@
 export * from '@ziqquratu/database';
-export * from '@ziqquratu/reflection';
-export * from '@ziqquratu/logging';
 export {
+  // IoC
   ServiceIdentifier,
   ServiceRequest,
 
@@ -21,7 +20,6 @@ export {
 
   // Bootstrapping
   bootstrap,
-  bootstrapWithContainer,
 
   // Factory
   Factory,
@@ -29,18 +27,44 @@ export {
   // Component
   ComponentConfig,
 
-  // Provider
+  // Providers
   ClassProviderAnnotation,
   FactoryProviderAnnotation,
   InjectedProviderAnnotation,
   provider,
   Provider,
-} from '@ziqquratu/ioc';
+
+  // Logging
+  LogLevel,
+  LogEvent,
+  Logger,
+  LoggerConfig,
+  Sink,
+  SinkFactory,
+  Formatter,
+
+  // Writers
+  consoleWriter,
+
+  // Reflection
+  Abstract,
+  Constructor,
+  Newable,
+
+  // Decorators
+  classDecorator,
+  methodDecorator,
+  parameterDecorator,
+  propertyDecorator,
+
+  // Annotation
+  Annotation,
+
+} from '@ziqquratu/core';
 
 import DatabaseComponent from '@ziqquratu/database';
-import Logging from '@ziqquratu/logging';
-import * as ioc from '@ziqquratu/ioc';
-import {Newable} from '@ziqquratu/reflection';
+import * as core from '@ziqquratu/core';
+import {Newable} from '@ziqquratu/core';
 
 /**
  * Component class decorator.
@@ -52,11 +76,10 @@ import {Newable} from '@ziqquratu/reflection';
  * This is a redefinition of component decorator found in @ziqquratu/ioc
  * which includes a dependency on @ziqquratu/database.
  */
-export const component = (config?: ioc.ComponentConfig) => {
+export const component = (config?: core.ComponentConfig) => {
   config = config || {};
   config.dependencies = (config.dependencies || []).concat([
     DatabaseComponent,
-    Logging,
   ]);
-  return ioc.component(config);
+  return core.component(config);
 };

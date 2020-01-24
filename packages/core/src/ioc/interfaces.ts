@@ -1,4 +1,4 @@
-import {Abstract, Newable} from '@ziqquratu/reflection';
+import {Abstract, Newable} from '../reflection';
 import {Provider} from './provider';
 
 export type ServiceIdentifier<T> = (string | symbol | Newable<T> | Abstract<T>);

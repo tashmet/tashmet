@@ -1,7 +1,7 @@
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import {getType} from 'reflect-helper';
-import {Annotation} from '@ziqquratu/reflection';
+import {Annotation} from '@ziqquratu/core';
 import {Collection, QueryOptions, SortingOrder} from '@ziqquratu/database';
 
 const assignDeep = require('assign-deep');

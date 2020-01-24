@@ -1,5 +1,4 @@
-import {provider} from '@ziqquratu/ioc';
-import {Logger} from '@ziqquratu/logging';
+import {provider, Logger} from '@ziqquratu/core';
 import {EventEmitter} from 'eventemitter3';
 import {ManagedCollection} from './collections/managed';
 import {

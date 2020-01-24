@@ -1,5 +1,4 @@
-import {component, Provider} from '@ziqquratu/ioc';
-import {Logger} from '@ziqquratu/logging';
+import {component, Logger, Provider} from '@ziqquratu/core';
 
 export {memory, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';

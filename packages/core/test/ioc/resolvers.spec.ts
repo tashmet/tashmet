@@ -1,6 +1,6 @@
-import {Instance, Cache, Injection, Lazy, Lookup, Optional} from '../src';
-import {BasicContainer} from '../src/container';
-import {Provider} from '../src/provider';
+import {Instance, Cache, Injection, Lazy, Lookup, Optional} from '../../src/ioc';
+import {BasicContainer} from '../../src/ioc/container';
+import {Provider} from '../../src/ioc/provider';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -9,10 +9,10 @@ import 'mocha';
 
 chai.use(sinonChai);
 
-let sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox();
 
 describe('resolvers', () => {
-  let container = new BasicContainer();
+  const container = new BasicContainer();
 
   before(() => {
     container.register(Provider.ofInstance('foo', 'instance'));
@@ -25,7 +25,7 @@ describe('resolvers', () => {
   });
 
   describe('Cache', () => {
-    let cache = Cache.of('foo');
+    const cache = Cache.of('foo');
 
     beforeEach(() => {
       sandbox.spy(container, 'resolve');
@@ -50,10 +50,10 @@ describe('resolvers', () => {
         public constructor(public foo: string) {}
       }
 
-      let injection = Injection.ofClass(Target, ['foo']);
+      const injection = Injection.ofClass(Target, ['foo']);
 
       it('should resolve instance of class with dependencies injected', () => {
-        let instance = injection.resolve(container);
+        const instance = injection.resolve(container);
 
         expect(instance).to.be.instanceOf(Target);
         expect(instance.foo).to.eql('instance');
@@ -61,7 +61,7 @@ describe('resolvers', () => {
     });
 
     describe('of', () => {
-      let injection = Injection.of((foo: string) => foo, ['foo']);
+      const injection = Injection.of((foo: string) => foo, ['foo']);
 
       it('should resolve by calling factory function with dependencies', () => {
         expect(injection.resolve(container)).to.eql('instance');
@@ -70,7 +70,7 @@ describe('resolvers', () => {
   });
 
   describe('Lazy', () => {
-    let lazy = Lazy.of('foo');
+    const lazy = Lazy.of('foo');
 
     it('should resolve a function that resolves the service request', () => {
       expect(lazy.resolve(container)()).to.eql('instance');
