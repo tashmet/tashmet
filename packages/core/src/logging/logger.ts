@@ -1,15 +1,18 @@
 import {Logger, LoggerConfig, Sink, LogLevel, SinkFactory} from './interfaces';
 
 export class DefaultLogger implements Logger {
-  private sinks: Sink[];
+  public static fromConfig(config: LoggerConfig): Logger {
+    return new DefaultLogger(
+      config.level, ([] as SinkFactory[]).concat(config.sink).map(f => f.create())
+    );
+  }
 
   public constructor(
-    private config: LoggerConfig,
-    public scope: string[] = [],
-    public parent: Logger | null = null,
-  ) {
-    this.sinks = ([] as SinkFactory[]).concat(config.sink).map(f => f.create());
-  }
+    private level: LogLevel = LogLevel.None,
+    private sinks: Sink[] = [],
+    public readonly scope: string[] = [],
+    public readonly parent: Logger | null = null,
+  ) {}
 
   public info(message: string) {
     this.emit(message, LogLevel.Info);
@@ -28,11 +31,11 @@ export class DefaultLogger implements Logger {
   }
 
   public inScope(scope: string): Logger {
-    return new DefaultLogger(this.config, [...this.scope, scope], this);
+    return new DefaultLogger(this.level, this.sinks, [...this.scope, scope], this);
   }
 
   private emit(message: string, severity: LogLevel) {
-    if (severity >= this.config.level) {
+    if (severity >= this.level) {
       for (const sink of this.sinks) {
         sink.emit({message, severity, timestamp: new Date().getTime(), scope: this.scope});
       }

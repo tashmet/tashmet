@@ -25,31 +25,6 @@ export class BootstrapAnnotation extends Annotation {
 }
 
 /**
- * Bootstrap a component with a pre-existing container.
- */
-async function bootstrapWithContainer<T>(
-  component: Newable<T>, container: Container, loggerConfig: LoggerConfig, fn?: Bootstrap): Promise<T>
-{
-  container.register(Provider.ofInstance('ziqquratu.Container', container));
-  container.register(Provider.ofInstance('ziqquratu.LoggerConfig', loggerConfig));
-  container.register(Provider.ofFactory({
-    key: 'ziqquratu.Logger',
-    inject: ['ziqquratu.LoggerConfig'],
-    create: (config: LoggerConfig) => new DefaultLogger(config)
-  }));
-
-  if (!BootstrapAnnotation.existsOnClass(component)) {
-    throw Error('Missing bootstrap annotation on component');
-  }
-  const annotation = BootstrapAnnotation.onClass(component)[0];
-  await annotation.register(container);
-  if (fn) {
-    await fn(container);
-  }
-  return annotation.resolve(container);
-}
-
-/**
  * Bootstrap a component.
  */
 export async function bootstrap<T>(
@@ -59,8 +34,27 @@ export async function bootstrap<T>(
     level: config.logLevel !== undefined ? config.logLevel : LogLevel.None,
     sink: consoleWriter(),
   };
-  const logger = new DefaultLogger(loggerConfig).inScope('core');
+  const logger = DefaultLogger.fromConfig(loggerConfig).inScope('core');
   const container = config.container ? config.container(logger) : new BasicContainer(logger);
 
-  return bootstrapWithContainer(component, container, loggerConfig, fn);
+  logger.debug(`Bootstrapping '${component.name}'`);
+
+  container.register(Provider.ofInstance('ziqquratu.Container', container));
+  container.register(Provider.ofInstance('ziqquratu.LoggerConfig', loggerConfig));
+  container.register(Provider.ofFactory({
+    key: 'ziqquratu.Logger',
+    inject: ['ziqquratu.LoggerConfig'],
+    create: (config: LoggerConfig) => DefaultLogger.fromConfig(config)
+  }));
+
+  if (!BootstrapAnnotation.existsOnClass(component)) {
+    throw Error('Missing bootstrap annotation on component');
+  }
+  const annotation = BootstrapAnnotation.onClass(component)[0];
+  await annotation.register(container);
+  if (fn) {
+    logger.debug('Running custom bootstrap function');
+    await fn(container);
+  }
+  return annotation.resolve(container);
 }

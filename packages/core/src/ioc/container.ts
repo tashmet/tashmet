@@ -1,5 +1,5 @@
 import {Constructor, Newable} from '../reflection';
-import {Logger, LogLevel} from '../logging/interfaces';
+import {Logger} from '../logging/interfaces';
 import {DefaultLogger} from '../logging/logger';
 import {Container, ServiceIdentifier, ServiceRequest, Resolver} from './interfaces';
 import {Provider} from './provider';
@@ -59,8 +59,8 @@ export abstract class AbstractContainer implements Container {
 export class BasicContainer extends AbstractContainer {
   private resolvers: Map<ServiceIdentifier<any>, Resolver<any>>;
 
-  public constructor(logger: Logger = new DefaultLogger({level: LogLevel.None, sink: []})) {
-    super(logger);
+  public constructor(logger: Logger = new DefaultLogger()) {
+    super(logger.inScope('BasicContainer'));
     this.resolvers = new Map();
   }
 
