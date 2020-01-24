@@ -38,9 +38,17 @@ export class ConsoleWriter implements Sink {
 }
 
 export class ConsoleWriterFactory extends SinkFactory {
+  public constructor(
+    private config: ConsoleWriterConfig
+  ) { super(); }
+
   public create() {
-    return new ConsoleWriter(new DefaultFormatter());
+    return new ConsoleWriter(this.config.formatter || new DefaultFormatter());
   }
 }
 
-export const consoleWriter = () => new ConsoleWriterFactory();
+export interface ConsoleWriterConfig {
+  formatter?: Formatter;
+}
+
+export const consoleWriter = (config: ConsoleWriterConfig = {}) => new ConsoleWriterFactory(config);
