@@ -75,9 +75,9 @@ describe('view', () => {
   });
 
   beforeEach(async () => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     await collection.remove({});
-    for (let doc of data) {
+    for (const doc of data) {
       await collection.upsert(doc);
     }
   });
@@ -115,7 +115,7 @@ describe('view', () => {
     });
 
     it('should not update when document not matching selector is added', (done) => {
-      let spy = sandbox.spy();
+      const spy = sandbox.spy();
       sut.on('item-set-updated', spy);
 
       collection.upsert(
@@ -161,7 +161,7 @@ describe('view', () => {
     });
 
     it('should not update when document outside view is removed', (done) => {
-      let spy = sandbox.spy();
+      const spy = sandbox.spy();
       sut.on('item-set-updated', spy);
 
       collection.remove({_id: 2});
