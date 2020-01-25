@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/view",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,8 +28,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@ziqquratu/core": "^1.0.0-alpha.0",
-    "@ziqquratu/database": "^1.0.0-alpha.0",
+    "@ziqquratu/core": "^1.0.0-alpha.1",
+    "@ziqquratu/database": "^1.0.0-alpha.1",
     "assign-deep": "^1.0.1",
     "eventemitter3": "^2.0.0",
     "mingo": "^2.4.0",

@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/terminal",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@ziqquratu/core": "^1.0.0-alpha.0",
+    "@ziqquratu/core": "^1.0.0-alpha.1",
     "chalk": "^3.0.0"
   },
   "devDependencies": {
