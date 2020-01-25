@@ -15,13 +15,13 @@ export abstract class AbstractContainer implements Container {
     if (req instanceof Resolver) {
       return req.resolve(this);
     }
-    this.logger.debug(`Resolving '${this.nameOf(req)}'`);
+    this.logger.inScope('resolve').debug(`key '${this.nameOf(req)}'`);
     return this.get(req);
   }
 
   public register<T>(provider: Provider<T> | Newable<T>): void {
     if (provider instanceof Provider) {
-      this.logger.debug(`Registering '${this.nameOf(provider.key)}'`);
+      this.logger.inScope('register').info(`key '${this.nameOf(provider.key)}'`);
       return this.registerResolver(provider.key, provider.resolver);
     }
     if (ClassProviderAnnotation.existsOnClass(provider)) {
@@ -32,7 +32,7 @@ export abstract class AbstractContainer implements Container {
       const config = FactoryProviderAnnotation.onClass(provider)[0];
       return this.register(Provider.ofFactory(config));
     }
-    this.logger.debug(`Registering '${this.nameOf(provider)}'`);
+    this.logger.inScope('register').info(`key '${this.nameOf(provider)}'`);
     this.register(Provider.ofClass({ctr: provider}));
   }
 

@@ -19,12 +19,14 @@ import {
 })
 export class DatabaseService extends EventEmitter implements Database {
   private collections: {[name: string]: Collection} = {};
+  private logger: Logger;
 
   public constructor(
     private config: DatabaseConfig,
-    private logger: Logger,
+    logger: Logger,
   ) {
     super();
+    this.logger = logger.inScope('DatabaseService');
     for (const name of Object.keys(config.collections)) {
       this.createCollection(name, config.collections[name]);
     }
@@ -68,7 +70,7 @@ export class DatabaseService extends EventEmitter implements Database {
         this.emit('document-error', err, collection);
       });
 
-      this.logger.info(`Created collection '${name}'`);
+      this.logger.inScope('createCollection').info(source.toString());
 
       return this.collections[name] = collection;
     } catch (err) {

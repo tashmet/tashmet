@@ -43,6 +43,10 @@ export class HttpCollection extends EventEmitter implements Collection {
     }
   }
 
+  public toString(): string {
+    return `http collection '${this.name}' at '${this.config.path}'`;
+  }
+
   public async find(selector?: object, options?: QueryOptions): Promise<any[]> {
     const resp = await fetch(this.serializeQuery(selector, options));
     if (!resp.ok) {

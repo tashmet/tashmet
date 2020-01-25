@@ -39,7 +39,7 @@ export async function bootstrap<T>(
   const logger = DefaultLogger.fromConfig(loggerConfig).inScope('core');
   const container = config.container ? config.container(logger) : new BasicContainer(logger);
 
-  logger.debug(`Bootstrapping '${component.name}'`);
+  logger.inScope('bootstrap').info(`component '${component.name}'`);
 
   container.register(Provider.ofInstance('ziqquratu.Container', container));
   container.register(Provider.ofInstance('ziqquratu.LoggerConfig', loggerConfig));

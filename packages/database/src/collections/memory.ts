@@ -10,6 +10,10 @@ export class MemoryCollection extends EventEmitter implements Collection {
     super();
   }
 
+  public toString(): string {
+    return `memory collection '${this.name}' (${this.collection.length} documents)`;
+  }
+
   public async find(selector: object = {}, options: QueryOptions = {}): Promise<any[]> {
     return this.cursor(selector, options).all();
   }
