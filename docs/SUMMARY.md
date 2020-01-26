@@ -24,4 +24,6 @@
   * [View classes](documentation/views/view-classes.md)
   * [Filtering](documentation/views/filtering.md)
   * [Sorting](documentation/views/sorting.md)
+* [Integration](integration/README.md)
+  * [Aurelia](integration/aurelia.md)
 
