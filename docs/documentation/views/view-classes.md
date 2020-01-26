@@ -43,7 +43,7 @@ class MyFeed extends Feed {
 }
 ```
 
-Provided that the collection has enough documents available the above feed will make sure that the view has only 10 documents initially. Calling **loadMore** will increase the capacity to 15.
+Provided that the collection has enough documents available the above feed will make sure that the view has only 10 documents initially. Calling loadMore\(\) will increase the capacity to 1
 
 ```typescript
 view.loadMore()

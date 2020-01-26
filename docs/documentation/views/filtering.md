@@ -14,7 +14,7 @@ Changing the category using the above filter is now trivial
 view.category = 'bikes';
 ```
 
-To disable the filter on a specific value we can set the 'disableOn' option.
+To disable the filter on a specific value we can set the **disableOn** option.
 
 ```typescript
 class MyView extends ItemSet {
