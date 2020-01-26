@@ -5,35 +5,13 @@
 The most basic type of view is one that monitors a single document.
 
 ```typescript
-@view({collection: 'posts', monitor: ['_id']})
+@view({collection: 'posts'})
 class SinglePost extends Item {
   @filter() public _id = 'foo';
 }
 ```
 
 The above view will contain a single document where the id matches the one specified in the filter
-
-{% hint style="info" %}
-When a user changes the \_id so that a new document is contained in the view, an **item-updated** event is emitted with the new document from the view.
-{% endhint %}
-
-### ItemSet
-
-A view that monitors a subset of documents.
-
-```typescript
-@view({collection: 'posts', monitor: ['dateSort']})
-class SortedPosts extends ItemSet {
-  @sortBy('datePublished')
-  public dateSort = SortingOrder.Descending;
-}
-```
-
-The above view will contain every document in the collection sorted by _datePublished_ in descending order.
-
-{% hint style="info" %}
-When a user changes the sorting order or a document is upserted to or removed from the collection, an **item-set-updated** event is emitted with the new documents now contained in the view.
-{% endhint %}
 
 ## Range
 
@@ -65,7 +43,7 @@ class MyFeed extends Feed {
 }
 ```
 
-Provided that the collection has enough documents available the above feed will make sure that the view has only 10 documents initially. Calling **loadMore** will increase the capacity to 15.
+Provided that the collection has enough documents available the above feed will make sure that the view has only 10 documents initially. Calling loadMore\(\) will increase the capacity to 1
 
 ```typescript
 view.loadMore()

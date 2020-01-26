@@ -26,4 +26,5 @@
   * [Sorting](documentation/views/sorting.md)
 * [Integration](integration/README.md)
   * [Aurelia](integration/aurelia.md)
+  * [MongoDB](integration/mongodb.md)
 
