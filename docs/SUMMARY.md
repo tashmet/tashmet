@@ -10,9 +10,9 @@
 
 * [Core](documentation/core/README.md)
   * [Inversion of Control](documentation/ioc/README.md)
-    * [Container](documentation/ioc/container.md)
+    * [Container](documentation/core/ioc/container.md)
     * [Components](documentation/ioc/components.md)
-    * [Providers](documentation/ioc/providers.md)
+    * [Providers](documentation/core/ioc/providers.md)
     * [Resolvers](documentation/ioc/resolvers.md)
     * [Factories](documentation/ioc/factories.md)
   * [Reflection](documentation/reflection.md)

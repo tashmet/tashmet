@@ -2,7 +2,7 @@
 
 Providers allow us to register services with the container for later resolution. They can be added either statically to a component's list of providers or dynamically to the container during bootstrapping.
 
-A provider is made up of a service identifier and a [resolver](). When the container is solicited for a service with that identifier, either by calling resolve on the container directly or through injection, the resolver will be tasked with supplying an instance.
+A provider is made up of a service identifier and a [resolver](resolvers.md). When the container is solicited for a service with that identifier, either by calling resolve on the container directly or through injection, the resolver will be tasked with supplying an instance.
 
 ## Instance
 
@@ -55,7 +55,7 @@ Provider.ofFactory({
 
 ## Resolver
 
-A provider can also be created directly from a [resolver](). This can be useful for creating, for instance, an alias. The provider below will turn out instances of another service given that service has been registered, without throwing an exception if it has not.
+A provider can also be created directly from a [resolver](resolvers.md). This can be useful for creating, for instance, an alias. The provider below will turn out instances of another service given that service has been registered, without throwing an exception if it has not.
 
 ```typescript
 Provider.ofResolver('MyService', Optional.of('OtherService'));

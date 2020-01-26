@@ -1,6 +1,6 @@
 # Container
 
-The container allows us to register providers and resolve service requests. An instance of the container can be acquired either during bootstrapping of a [component]() or injected afterwards using its service identifier.
+The container allows us to register providers and resolve service requests. An instance of the container can be acquired either during bootstrapping of a [component](components.md) or injected afterwards using its service identifier.
 
 ```typescript
 @provider({
@@ -13,7 +13,7 @@ class MyService {
 
 ## Registration
 
-A [provider]() can be registered by a class constructor
+A [provider](providers.md) can be registered by a class constructor
 
 ```typescript
 container.register(MyService);
@@ -46,7 +46,7 @@ Once a service has been registered it can be resolved using its unique service i
 container.resolve(MyService);
 ```
 
-Resolution can also be done by supplying a [resolver](). 
+Resolution can also be done by supplying a [resolver](resolvers.md). 
 
 ```typescript
 container.resolve(Optional.of(MyService));
