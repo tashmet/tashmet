@@ -5,13 +5,17 @@
 The most basic type of view is one that monitors a single document.
 
 ```typescript
-@view({collection: 'posts'})
+@view({collection: 'posts', monitor: ['_id']})
 class SinglePost extends Item {
   @filter() public _id = 'foo';
 }
 ```
 
 The above view will contain a single document where the id matches the one specified in the filter
+
+{% hint style="info" %}
+When a user changes the \_id so that a new document is contained in the view, an **item-updated** event is emitted with the new document from the view.
+{% endhint %}
 
 ### ItemSet
 
