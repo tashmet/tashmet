@@ -25,7 +25,8 @@
   "files": [
     "dist",
     "src",
-    "LICENSE"
+    "LICENSE",
+    "README.md"
   ],
   "dependencies": {
     "@ziqquratu/database": "^1.0.0-alpha.1"
