@@ -6,6 +6,12 @@ description: Monitor one or more documents in a collection
 
 Views allow us to track a subset of documents in a collection by applying various filters.
 
+## Installation
+
+```text
+npm install @ziqquratu/view
+```
+
 ## Defining a view
 
 A view is defined as a class extending one of the [view classes](view-classes.md) and annotated by the view decorator.
@@ -42,7 +48,7 @@ class ViewConsumer {
 }
 ```
 
-## Monitoring changes
+### Monitoring changes
 
 A view can have multiple properties that define which documents should be included \([filtering](filtering.md)\) and how they should be ordered \([sorting](sorting.md)\). These properties can be monitored so that a change automatically refreshes the data.
 
