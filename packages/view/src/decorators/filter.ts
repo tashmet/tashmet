@@ -1,5 +1,5 @@
 import {propertyDecorator} from '@ziqquratu/core';
-import {ViewPropertyAnnotation, Query} from '../view';
+import {QueryPropertyAnnotation, QueryBuilder} from '../query';
 
 /**
  * Configuration options for selector filter
@@ -17,7 +17,7 @@ export interface FilterConfig<T> {
   disableOn?: T;
 }
 
-export class FilterAnnotation extends ViewPropertyAnnotation {
+export class FilterAnnotation extends QueryPropertyAnnotation {
   public constructor(
     private config: FilterConfig<any>,
     private propertyKey: string,
@@ -25,14 +25,14 @@ export class FilterAnnotation extends ViewPropertyAnnotation {
     super();
   }
 
-  public apply(query: Query, value: any) {
+  public apply(query: QueryBuilder, value: any) {
     if (value === this.config.disableOn) {
       return;
     }
     if (this.config.compile) {
-      query.select(this.config.compile(value));
+      query.filter(this.config.compile(value));
     } else {
-      query.select({[this.propertyKey]: value});
+      query.filter({[this.propertyKey]: value});
     }
   }
 }

@@ -1,12 +1,12 @@
 import {SortingOrder} from '@ziqquratu/database';
 import {SortByAnnotation} from '../../src/decorators/sort';
-import {Query} from '../../src/view';
+import {QueryBuilder} from '../../src/query';
 import {expect} from 'chai';
 import 'mocha';
 
 describe('SortBy', () => {
   it('should apply sorting to query options', () => {
-    let query = new Query();
+    const query = new QueryBuilder();
     new SortByAnnotation('foo').apply(query, SortingOrder.Ascending);
 
     expect(query.options).to.be.eql({
@@ -15,7 +15,7 @@ describe('SortBy', () => {
   });
 
   it('should be able to apply more sorting filters', () => {
-    let query = new Query();
+    const query = new QueryBuilder();
     new SortByAnnotation('foo').apply(query, SortingOrder.Descending);
     new SortByAnnotation('bar').apply(query, SortingOrder.Ascending);
 
@@ -28,7 +28,7 @@ describe('SortBy', () => {
   });
 
   it('should not apply sorting when value is undefined', () => {
-    let query = new Query();
+    const query = new QueryBuilder();
     new SortByAnnotation('foo').apply(query, undefined);
 
     expect(query.options).to.be.eql({});

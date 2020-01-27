@@ -21,12 +21,12 @@ describe('Feed', () => {
     public increment = 2;
   }
 
-  let collection = new MemoryCollection('test');
+  const collection = new MemoryCollection('test');
   let feed: TestFeed;
 
   before(async () => {
     feed = new TestFeed(collection);
-    for (let doc of data) {
+    for (const doc of data) {
       await collection.upsert(doc);
     }
   });

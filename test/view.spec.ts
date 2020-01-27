@@ -6,7 +6,7 @@ import sinonChai from 'sinon-chai';
 import 'mocha';
 
 import {caching} from '../packages/caching';
-import {view, filter, sortBy, Range} from '../packages/view';
+import {view, filter, sortBy, ItemSet} from '../packages/view';
 import {
   bootstrap,
   component,
@@ -34,7 +34,7 @@ describe('view', () => {
     collection: 'test',
     monitor: ['sort', 'category']
   })
-  class TestView extends Range {
+  class TestView extends ItemSet {
     public limit = 2;
 
     @sortBy('amount')

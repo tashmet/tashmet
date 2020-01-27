@@ -1,5 +1,4 @@
 import {ItemSet} from './itemSet';
-import {Query} from './view';
 
 /**
  * An item set that acts as a feed.
@@ -40,9 +39,5 @@ export abstract class Feed<T = any> extends ItemSet<T> {
   /** Check if there are more documents to load. */
   public hasMore(): boolean {
     return this.excludedCount > 0;
-  }
-
-  protected query(): Query {
-    return super.query().limit(this.limit);
   }
 }
