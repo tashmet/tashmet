@@ -5,4 +5,4 @@ export {Feed} from './feed';
 export {View} from './view';
 export {Item} from './item';
 export {ItemSet} from './itemSet';
-export {Range, Selection, Query, QueryBuilder, QueryPropertyAnnotation} from './query';
+export {Range, Selection, Query, Cursor, QueryPropertyAnnotation} from './query';

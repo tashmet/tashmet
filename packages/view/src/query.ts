@@ -16,18 +16,18 @@ export interface Range {
   limit?: number;
 }
 
-export class QueryBuilder<T = any> implements Selection<T> {
+export class Cursor<T = any> implements Selection<T> {
   public constructor(
     public selector: object = {},
     public options: QueryOptions = {},
   ) {}
 
-  public filter(selector: object): QueryBuilder {
+  public filter(selector: object): Cursor {
     assignDeep(this.selector, selector);
     return this;
   }
 
-  public sort(key: string, order: SortingOrder): QueryBuilder {
+  public sort(key: string, order: SortingOrder): Cursor {
     if (!this.options.sort) {
       this.options.sort = {};
     }
@@ -35,12 +35,12 @@ export class QueryBuilder<T = any> implements Selection<T> {
     return this;
   }
 
-  public skip(count: number): QueryBuilder {
+  public skip(count: number): Cursor {
     this.options.offset = count;
     return this;
   }
 
-  public limit(count: number): QueryBuilder {
+  public limit(count: number): Cursor {
     this.options.limit = count;
     return this;
   }
@@ -63,7 +63,7 @@ export class QueryBuilder<T = any> implements Selection<T> {
 }
 
 export class QueryPropertyAnnotation extends Annotation {
-  public apply(query: QueryBuilder, value: any): void { return; }
+  public apply(cursor: Cursor, value: any): void { return; }
 }
 
 export abstract class Query<T = any> implements Selection<T>, Range {
@@ -90,19 +90,19 @@ export abstract class Query<T = any> implements Selection<T>, Range {
   }
 
   private compileQuery(): Selection<T> {
-    const query = new QueryBuilder();
+    const cursor = new Cursor();
 
     for (const prop of getType(this.target.constructor).properties) {
       for (const annotation of prop.getAnnotations(QueryPropertyAnnotation)) {
-        annotation.apply(query, (this.target as any)[prop.name]);
+        annotation.apply(cursor, (this.target as any)[prop.name]);
       }
     }
     if (this.target.limit) {
-      query.limit(this.target.limit);
+      cursor.limit(this.target.limit);
     }
     if (this.target.offset) {
-      query.skip(this.target.offset);
+      cursor.skip(this.target.offset);
     }
-    return query;
+    return cursor;
   }
 }

@@ -1,25 +1,25 @@
 import {SortingOrder} from '@ziqquratu/database';
 import {SortByAnnotation} from '../../src/decorators/sort';
-import {QueryBuilder} from '../../src/query';
+import {Cursor} from '../../src/query';
 import {expect} from 'chai';
 import 'mocha';
 
 describe('SortBy', () => {
   it('should apply sorting to query options', () => {
-    const query = new QueryBuilder();
-    new SortByAnnotation('foo').apply(query, SortingOrder.Ascending);
+    const cursor = new Cursor();
+    new SortByAnnotation('foo').apply(cursor, SortingOrder.Ascending);
 
-    expect(query.options).to.be.eql({
+    expect(cursor.options).to.be.eql({
        sort: {foo: SortingOrder.Ascending}
     });
   });
 
   it('should be able to apply more sorting filters', () => {
-    const query = new QueryBuilder();
-    new SortByAnnotation('foo').apply(query, SortingOrder.Descending);
-    new SortByAnnotation('bar').apply(query, SortingOrder.Ascending);
+    const cursor = new Cursor();
+    new SortByAnnotation('foo').apply(cursor, SortingOrder.Descending);
+    new SortByAnnotation('bar').apply(cursor, SortingOrder.Ascending);
 
-    expect(query.options).to.be.eql({
+    expect(cursor.options).to.be.eql({
        sort: {
          foo: SortingOrder.Descending,
          bar: SortingOrder.Ascending
@@ -28,9 +28,9 @@ describe('SortBy', () => {
   });
 
   it('should not apply sorting when value is undefined', () => {
-    const query = new QueryBuilder();
-    new SortByAnnotation('foo').apply(query, undefined);
+    const cursor = new Cursor();
+    new SortByAnnotation('foo').apply(cursor, undefined);
 
-    expect(query.options).to.be.eql({});
+    expect(cursor.options).to.be.eql({});
   });
 });

@@ -1,15 +1,15 @@
 import {propertyDecorator} from '@ziqquratu/core';
 import {SortingOrder} from '@ziqquratu/database';
-import {QueryPropertyAnnotation, QueryBuilder} from '../query';
+import {QueryPropertyAnnotation, Cursor} from '../query';
 
 export class SortByAnnotation extends QueryPropertyAnnotation {
   public constructor(private sortKey: string) {
     super();
   }
 
-  public apply(query: QueryBuilder, value: SortingOrder | undefined) {
+  public apply(cursor: Cursor, value: SortingOrder | undefined) {
     if (value !== undefined) {
-      query.sort(this.sortKey, value);
+      cursor.sort(this.sortKey, value);
     }
   }
 }
