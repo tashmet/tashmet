@@ -68,6 +68,7 @@ export class QueryPropertyAnnotation extends Annotation {
 
 export abstract class Query<T = any> implements Selection<T>, Range {
   public offset = 0;
+  public limit: number | undefined;
 
   public constructor(protected collection: Collection<T>) {}
 
