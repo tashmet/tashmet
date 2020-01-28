@@ -8,7 +8,7 @@ export interface Selection<T> {
   one(): Promise<T>;
   all(): Promise<T[]>;
   count(): Promise<number>;
-  test(doc: any): boolean;
+  test(doc: T): boolean;
 }
 
 export interface Range {
@@ -18,7 +18,7 @@ export interface Range {
 
 export class Cursor<T = any> implements Selection<T> {
   public constructor(
-    private collection: Collection,
+    private collection: Collection<T>,
     private selector: object = {},
     private options: QueryOptions = {},
   ) {}
@@ -51,7 +51,7 @@ export class Cursor<T = any> implements Selection<T> {
     return this.collection.count(this.selector);
   }
 
-  public test(doc: any): boolean {
+  public test(doc: T): boolean {
     return new mingo.Query(this.selector).test(doc);
   }
 
@@ -69,7 +69,7 @@ export class QueryPropertyAnnotation extends Annotation {
 export abstract class Query<T = any> implements Selection<T>, Range {
   public offset = 0;
 
-  public constructor(protected collection: Collection) {}
+  public constructor(protected collection: Collection<T>) {}
 
   public async one(): Promise<T> {
     return this.compileQuery().one();
@@ -83,7 +83,7 @@ export abstract class Query<T = any> implements Selection<T>, Range {
     return this.compileQuery().count();
   }
 
-  public test(doc: any): boolean {
+  public test(doc: T): boolean {
     return this.compileQuery().test(doc);
   }
 

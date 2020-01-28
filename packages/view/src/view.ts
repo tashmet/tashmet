@@ -3,7 +3,7 @@ import {Collection} from '@ziqquratu/database';
 import {Query, Range} from './query';
 
 class ViewQuery<T> extends Query {
-  public constructor(private view: View<T>, collection: Collection) {
+  public constructor(private view: View<T>, collection: Collection<T>) {
     super(collection);
   }
 
@@ -28,7 +28,7 @@ export abstract class View<T> extends EventEmitter implements Range {
   public offset = 0;
   public limit: number | undefined;
 
-  public constructor(public readonly collection: Collection) {
+  public constructor(public readonly collection: Collection<T>) {
     super();
     this.query = new ViewQuery(this, collection);
     collection.on('document-upserted', (doc: any) => {
