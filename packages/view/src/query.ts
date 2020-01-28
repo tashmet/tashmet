@@ -5,9 +5,9 @@ import {getType} from 'reflect-helper';
 const assignDeep = require('assign-deep');
 
 export interface Selection<T> {
-  one(collection: Collection<T>): Promise<T>;
-  all(collection: Collection<T>): Promise<T[]>;
-  count(collection: Collection<T>): Promise<number>;
+  one(): Promise<T>;
+  all(): Promise<T[]>;
+  count(): Promise<number>;
   test(doc: any): boolean;
 }
 
@@ -18,36 +18,37 @@ export interface Range {
 
 export class Cursor<T = any> implements Selection<T> {
   public constructor(
-    public selector: object = {},
-    public options: QueryOptions = {},
+    private collection: Collection,
+    private selector: object = {},
+    private options: QueryOptions = {},
   ) {}
 
   public filter(selector: object): Cursor {
-    return new Cursor(assignDeep({}, this.selector, selector), this.options);
+    return new Cursor(this.collection, assignDeep({}, this.selector, selector), this.options);
   }
 
   public sort(key: string, order: SortingOrder): Cursor {
-    return new Cursor(this.selector, assignDeep({}, this.options, {sort: {[key]: order}}));
+    return new Cursor(this.collection, this.selector, assignDeep({}, this.options, {sort: {[key]: order}}));
   }
 
   public skip(count: number): Cursor {
-    return new Cursor(this.selector, assignDeep({}, this.options, {offset: count}));
+    return new Cursor(this.collection, this.selector, assignDeep({}, this.options, {offset: count}));
   }
 
   public limit(count: number): Cursor {
-    return new Cursor(this.selector, assignDeep({}, this.options, {limit: count}));
+    return new Cursor(this.collection, this.selector, assignDeep({}, this.options, {limit: count}));
   }
 
-  public one(collection: Collection<T>): Promise<T> {
-    return collection.findOne(this.selector);
+  public one(): Promise<T> {
+    return this.collection.findOne(this.selector);
   }
 
-  public all(collection: Collection<T>): Promise<T[]> {
-    return collection.find(this.selector, this.options);
+  public all(): Promise<T[]> {
+    return this.collection.find(this.selector, this.options);
   }
 
-  public count(collection: Collection<T>): Promise<number> {
-    return collection.count(this.selector);
+  public count(): Promise<number> {
+    return this.collection.count(this.selector);
   }
 
   public test(doc: any): boolean {
@@ -64,16 +65,18 @@ export class QueryPropertyAnnotation extends Annotation {
 export abstract class Query<T = any> implements Selection<T>, Range {
   public offset = 0;
 
-  public async one(collection: Collection<T>): Promise<T> {
-    return this.compileQuery().one(collection);
+  public constructor(protected collection: Collection) {}
+
+  public async one(): Promise<T> {
+    return this.compileQuery().one();
   }
 
-  public async all(collection: Collection<T>): Promise<T[]> {
-    return this.compileQuery().all(collection);
+  public async all(): Promise<T[]> {
+    return this.compileQuery().all();
   }
 
-  public async count(collection: Collection<T>): Promise<number> {
-    return this.compileQuery().count(collection);
+  public async count(): Promise<number> {
+    return this.compileQuery().count();
   }
 
   public test(doc: any): boolean {
@@ -85,7 +88,7 @@ export abstract class Query<T = any> implements Selection<T>, Range {
   }
 
   private compileQuery(): Selection<T> {
-    let cursor = new Cursor();
+    let cursor = new Cursor(this.collection);
 
     for (const prop of getType(this.target.constructor).properties) {
       for (const annotation of prop.getAnnotations(QueryPropertyAnnotation)) {
