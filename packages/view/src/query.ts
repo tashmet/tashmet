@@ -28,15 +28,15 @@ export class Cursor<T = any> implements Selection<T> {
   }
 
   public sort(key: string, order: SortingOrder): Cursor {
-    return new Cursor(this.collection, this.selector, assignDeep({}, this.options, {sort: {[key]: order}}));
+    return this.extendOptions({sort: {[key]: order}});
   }
 
   public skip(count: number): Cursor {
-    return new Cursor(this.collection, this.selector, assignDeep({}, this.options, {offset: count}));
+    return this.extendOptions({offset: count});
   }
 
   public limit(count: number): Cursor {
-    return new Cursor(this.collection, this.selector, assignDeep({}, this.options, {limit: count}));
+    return this.extendOptions({limit: count});
   }
 
   public one(): Promise<T> {
@@ -53,6 +53,10 @@ export class Cursor<T = any> implements Selection<T> {
 
   public test(doc: any): boolean {
     return new mingo.Query(this.selector).test(doc);
+  }
+
+  private extendOptions(options: QueryOptions) {
+    return new Cursor(this.collection, this.selector, assignDeep({}, this.options, options));
   }
 }
 
