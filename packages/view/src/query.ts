@@ -23,26 +23,19 @@ export class Cursor<T = any> implements Selection<T> {
   ) {}
 
   public filter(selector: object): Cursor {
-    assignDeep(this.selector, selector);
-    return this;
+    return new Cursor(assignDeep({}, this.selector, selector), this.options);
   }
 
   public sort(key: string, order: SortingOrder): Cursor {
-    if (!this.options.sort) {
-      this.options.sort = {};
-    }
-    this.options.sort[key] = order;
-    return this;
+    return new Cursor(this.selector, assignDeep({}, this.options, {sort: {[key]: order}}));
   }
 
   public skip(count: number): Cursor {
-    this.options.offset = count;
-    return this;
+    return new Cursor(this.selector, assignDeep({}, this.options, {offset: count}));
   }
 
   public limit(count: number): Cursor {
-    this.options.limit = count;
-    return this;
+    return new Cursor(this.selector, assignDeep({}, this.options, {limit: count}));
   }
 
   public one(collection: Collection<T>): Promise<T> {
@@ -63,7 +56,9 @@ export class Cursor<T = any> implements Selection<T> {
 }
 
 export class QueryPropertyAnnotation extends Annotation {
-  public apply(cursor: Cursor, value: any): void { return; }
+  public apply(cursor: Cursor, value: any): Cursor {
+    return cursor;
+  }
 }
 
 export abstract class Query<T = any> implements Selection<T>, Range {
@@ -90,18 +85,18 @@ export abstract class Query<T = any> implements Selection<T>, Range {
   }
 
   private compileQuery(): Selection<T> {
-    const cursor = new Cursor();
+    let cursor = new Cursor();
 
     for (const prop of getType(this.target.constructor).properties) {
       for (const annotation of prop.getAnnotations(QueryPropertyAnnotation)) {
-        annotation.apply(cursor, (this.target as any)[prop.name]);
+        cursor = annotation.apply(cursor, (this.target as any)[prop.name]);
       }
     }
     if (this.target.limit) {
-      cursor.limit(this.target.limit);
+      cursor = cursor.limit(this.target.limit);
     }
     if (this.target.offset) {
-      cursor.skip(this.target.offset);
+      cursor = cursor.skip(this.target.offset);
     }
     return cursor;
   }

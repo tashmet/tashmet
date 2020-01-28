@@ -27,12 +27,12 @@ export class FilterAnnotation extends QueryPropertyAnnotation {
 
   public apply(cursor: Cursor, value: any) {
     if (value === this.config.disableOn) {
-      return;
+      return cursor;
     }
     if (this.config.compile) {
-      cursor.filter(this.config.compile(value));
+      return cursor.filter(this.config.compile(value));
     } else {
-      cursor.filter({[this.propertyKey]: value});
+      return cursor.filter({[this.propertyKey]: value});
     }
   }
 }

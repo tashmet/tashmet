@@ -9,8 +9,9 @@ export class SortByAnnotation extends QueryPropertyAnnotation {
 
   public apply(cursor: Cursor, value: SortingOrder | undefined) {
     if (value !== undefined) {
-      cursor.sort(this.sortKey, value);
+      return cursor.sort(this.sortKey, value);
     }
+    return cursor;
   }
 }
 

@@ -6,8 +6,7 @@ import 'mocha';
 
 describe('SortBy', () => {
   it('should apply sorting to query options', () => {
-    const cursor = new Cursor();
-    new SortByAnnotation('foo').apply(cursor, SortingOrder.Ascending);
+    const cursor = new SortByAnnotation('foo').apply(new Cursor(), SortingOrder.Ascending);
 
     expect(cursor.options).to.be.eql({
        sort: {foo: SortingOrder.Ascending}
@@ -15,11 +14,10 @@ describe('SortBy', () => {
   });
 
   it('should be able to apply more sorting filters', () => {
-    const cursor = new Cursor();
-    new SortByAnnotation('foo').apply(cursor, SortingOrder.Descending);
-    new SortByAnnotation('bar').apply(cursor, SortingOrder.Ascending);
+    const c1 = new SortByAnnotation('foo').apply(new Cursor(), SortingOrder.Descending);
+    const c2 = new SortByAnnotation('bar').apply(c1, SortingOrder.Ascending);
 
-    expect(cursor.options).to.be.eql({
+    expect(c2.options).to.be.eql({
        sort: {
          foo: SortingOrder.Descending,
          bar: SortingOrder.Ascending
@@ -28,8 +26,7 @@ describe('SortBy', () => {
   });
 
   it('should not apply sorting when value is undefined', () => {
-    const cursor = new Cursor();
-    new SortByAnnotation('foo').apply(cursor, undefined);
+    const cursor = new SortByAnnotation('foo').apply(new Cursor(), undefined);
 
     expect(cursor.options).to.be.eql({});
   });
