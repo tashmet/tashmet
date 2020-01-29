@@ -33,7 +33,7 @@ describe('HttpCollection', () => {
 
   describe('count', () => {
     it('should get count from "x-total-count" header', async () => {
-      expect(col.count({_id: 'foo'})).to.eventually.eql(1);
+      expect(col.find({_id: 'foo'}).count()).to.eventually.eql(1);
     });
   });
 
