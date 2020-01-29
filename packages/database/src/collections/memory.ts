@@ -1,9 +1,33 @@
-import {Collection, CollectionFactory, QueryOptions} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, SortingOrder} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
-export class MemoryCollection extends EventEmitter implements Collection {
+export class MemoryCollectionCursor<T> implements Cursor<T> {
+  public constructor(private cursor: mingo.Cursor<T>) {}
+
+  public sort(key: string, order: SortingOrder): Cursor<T> {
+    return new MemoryCollectionCursor(this.cursor.sort({[key]: order}));
+  }
+
+  public skip(count: number): Cursor<T> {
+    return new MemoryCollectionCursor(this.cursor.skip(count));
+  }
+
+  public limit(count: number): Cursor<T> {
+    return new MemoryCollectionCursor(this.cursor.limit(count));
+  }
+
+  public async toArray(): Promise<T[]> {
+    return this.cursor.all();
+  }
+
+  public async count(): Promise<number> {
+    return this.cursor.count();
+  }
+}
+
+export class MemoryCollection<U = any> extends EventEmitter implements Collection<U> {
   private collection: any[] = [];
 
   public constructor(public readonly name: string) {
@@ -14,12 +38,12 @@ export class MemoryCollection extends EventEmitter implements Collection {
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
 
-  public async find(selector: object = {}, options: QueryOptions = {}): Promise<any[]> {
-    return this.cursor(selector, options).all();
+  public find<T extends U = any>(selector: object = {}): Cursor<T> {
+    return new MemoryCollectionCursor<T>(mingo.find(this.collection, selector));
   }
 
   public async findOne(selector: object): Promise<any> {
-    const result = await this.find(selector);
+    const result = await this.find(selector).limit(1).toArray();
     if (result.length > 0) {
       return result[0];
     } else {
@@ -43,33 +67,14 @@ export class MemoryCollection extends EventEmitter implements Collection {
     return Promise.resolve(obj);
   }
 
-  public async remove(selector: object): Promise<any[]> {
-    const affected = await this.find(selector);
+  public async delete(selector: object): Promise<any[]> {
+    const affected = await this.find(selector).toArray();
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
     for (const doc of affected) {
       this.emit('document-removed', doc);
     }
     return affected;
-  }
-
-  public async count(selector?: object): Promise<number> {
-    return this.cursor(selector).count();
-  }
-
-  public cursor(selector: object = {}, options: QueryOptions = {}): mingo.Cursor<any> {
-    let cursor = mingo.find(this.collection, selector);
-
-    if (options.sort) {
-      cursor = cursor.sort(options.sort);
-    }
-    if (options.offset) {
-      cursor = cursor.skip(options.offset);
-    }
-    if (options.limit) {
-      cursor = cursor.limit(options.limit);
-    }
-    return cursor;
   }
 }
 
