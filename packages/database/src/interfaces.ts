@@ -5,6 +5,18 @@ export enum SortingOrder {
   Descending = -1
 }
 
+export interface Cursor<T> {
+  sort(key: string, order: SortingOrder): Cursor<T>;
+
+  skip(count: number): Cursor<T>;
+
+  limit(count: number): Cursor<T>;
+
+  toArray(): Promise<T[]>;
+
+  count(): Promise<number>;
+}
+
 /**
  *
  */
@@ -48,10 +60,9 @@ export interface Collection<U = any> {
    * Find documents in the collection.
    *
    * @param selector The selector which documents are matched against.
-   * @param options A set of options determining sorting order, limit and offset.
-   * @returns A promise for the list of matching documents.
+   * @returns A cursor.
    */
-  find<T extends U = any>(selector?: object, options?: QueryOptions): Promise<T[]>;
+  find<T extends U = any>(selector?: object): Cursor<T>;
 
   /**
    * Find a single document in the collection.
@@ -68,15 +79,7 @@ export interface Collection<U = any> {
    * @param selector The selector which documents are matched against.
    * @returns A list of all the documents that were removed.
    */
-  remove<T extends U = any>(selector: object): Promise<T[]>;
-
-  /**
-   * Get the number of documents in the collection that matches a given selector.
-   *
-   * @param selector The selector which documents are matched against.
-   * @returns A promise for the document count.
-   */
-  count(selector?: object): Promise<number>;
+  delete<T extends U = any>(selector: object): Promise<T[]>;
 
   /**
    * Listen for when a document in the collection has been added or changed.
