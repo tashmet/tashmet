@@ -96,7 +96,7 @@ export class CachingMiddleware extends Middleware {
   }
 
   public find(next: (selector: object) => Cursor<any>) {
-    return async (selector?: any) => {
+    return (selector?: any) => {
       return new CachingCursor(this.evaluators, this.cache, next, selector);
     };
   }
