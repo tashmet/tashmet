@@ -14,7 +14,7 @@ export interface Cursor<T> {
 
   toArray(): Promise<T[]>;
 
-  count(): Promise<number>;
+  count(applySkipLimit?: boolean): Promise<number>;
 }
 
 /**

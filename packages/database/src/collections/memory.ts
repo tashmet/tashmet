@@ -4,26 +4,32 @@ import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
 export class MemoryCollectionCursor<T> implements Cursor<T> {
-  public constructor(private cursor: mingo.Cursor<T>) {}
+  public constructor(
+    private cursor: mingo.Cursor<T>,
+    private selCursor: mingo.Cursor<T>
+  ) {}
 
   public sort(key: string, order: SortingOrder): Cursor<T> {
-    return new MemoryCollectionCursor(this.cursor.sort({[key]: order}));
+    this.cursor.sort({[key]: order});
+    return this;
   }
 
   public skip(count: number): Cursor<T> {
-    return new MemoryCollectionCursor(this.cursor.skip(count));
+    this.cursor.skip(count);
+    return this;
   }
 
   public limit(count: number): Cursor<T> {
-    return new MemoryCollectionCursor(this.cursor.limit(count));
+    this.cursor.limit(count);
+    return this;
   }
 
   public async toArray(): Promise<T[]> {
     return this.cursor.all();
   }
 
-  public async count(): Promise<number> {
-    return this.cursor.count();
+  public async count(applySkipLimit = false): Promise<number> {
+    return applySkipLimit ? this.cursor.count() : this.selCursor.count();
   }
 }
 
@@ -39,7 +45,10 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
   }
 
   public find<T extends U = any>(selector: object = {}): Cursor<T> {
-    return new MemoryCollectionCursor<T>(mingo.find(this.collection, selector));
+    return new MemoryCollectionCursor<T>(
+      mingo.find(this.collection, selector),
+      mingo.find(this.collection, selector)
+    );
   }
 
   public async findOne(selector: object): Promise<any> {

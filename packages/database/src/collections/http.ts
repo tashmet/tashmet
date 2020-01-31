@@ -1,16 +1,18 @@
-import {Collection, CollectionFactory, Cursor, QueryOptions, SortingOrder} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, QueryOptions} from '../interfaces';
+import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 
 const io = require('socket.io-client');
-const assignDeep = require('assign-deep');
+
+export type MakeQueryParams = (selector: object, options: QueryOptions) => {[name: string]: string};
 
 export interface HttpCollectionConfig {
   path: string;
 
-  queryParams?: (selector: object, options: QueryOptions) => {[name: string]: string};
+  queryParams?: MakeQueryParams;
 }
 
-export function queryParams(selector: object, options: QueryOptions): {[name: string]: string} {
+export const queryParams = (selector: object, options: QueryOptions): {[name: string]: string} => {
   const params: {[name: string]: string} = {};
   if (Object.keys(selector).length > 0) {
     params['selector'] = JSON.stringify(selector);
@@ -21,24 +23,13 @@ export function queryParams(selector: object, options: QueryOptions): {[name: st
   return params;
 }
 
-export class HttpCollectionCursor<T = any> implements Cursor<T> {
+export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
-    private queryParams: (selector: object, options: QueryOptions) => {[name: string]: string},
+    private queryParams: MakeQueryParams,
     private path: string,
-    private selector: object = {},
-    private options: QueryOptions = {},
-  ) {}
-
-  public sort(key: string, order: SortingOrder): Cursor<T> {
-    return this.extendOptions({sort: {[key]: order}});
-  }
-
-  public skip(count: number): Cursor<T> {
-    return this.extendOptions({offset: count});
-  }
-
-  public limit(count: number): Cursor<T> {
-    return this.extendOptions({limit: count});
+    selector: object = {},
+  ) {
+    super(selector);
   }
 
   public async toArray(): Promise<T[]> {
@@ -49,20 +40,16 @@ export class HttpCollectionCursor<T = any> implements Cursor<T> {
     return await resp.json();
   }
 
-  public async count(): Promise<number> {
-    const resp = await fetch(this.serializeQuery(this.selector), {method: 'HEAD'});
+  public async count(applySkipLimit: boolean): Promise<number> {
+    const resp = await fetch(
+      this.serializeQuery(this.selector, applySkipLimit ? this.options : {}), {method: 'HEAD'}
+    );
 
     const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
       throw new Error('Failed to get "x-total-count" header');
     }
     return parseInt(totalCount, 10);
-  }
-
-  private extendOptions(options: QueryOptions) {
-    return new HttpCollectionCursor(
-      this.queryParams, this.path, this.selector, assignDeep({}, this.options, options)
-    );
   }
 
   private serializeQuery(selector?: object, options?: QueryOptions): string {
