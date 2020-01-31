@@ -52,7 +52,7 @@ export abstract class View<T> extends EventEmitter implements Range {
   public abstract refresh(): Promise<T>;
 
   private async onDocumentChanged(doc: any) {
-    if (this.query.test(doc)) {
+    if (this.query.selector.test(doc)) {
       return this.refresh();
     }
   }
