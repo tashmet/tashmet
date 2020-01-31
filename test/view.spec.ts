@@ -76,7 +76,7 @@ describe('view', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    await collection.remove({});
+    await collection.delete({});
     for (const doc of data) {
       await collection.upsert(doc);
     }
@@ -99,7 +99,7 @@ describe('view', () => {
     });
 
     it('should initially have documents', () => {
-      expect(sut.data.map(d => d._id)).to.eql([4, 5]);
+      return expect(sut.data.map(d => d._id)).to.eql([4, 5]);
     });
 
     it('should update when document matching selector is added', (done) => {
@@ -147,7 +147,7 @@ describe('view', () => {
         expect(docs.map(d => d._id)).to.eql([4, 5]);
         done();
       });
-      collection.remove({_id: 1});
+      collection.delete({_id: 1});
     });
 
     it('should update when document matching query options is removed', (done) => {
@@ -157,14 +157,14 @@ describe('view', () => {
         expect(docs.map(d => d._id)).to.eql([4, 1]);
         done();
       });
-      collection.remove({_id: 5});
+      collection.delete({_id: 5});
     });
 
     it('should not update when document outside view is removed', (done) => {
       const spy = sandbox.spy();
       sut.on('item-set-updated', spy);
 
-      collection.remove({_id: 2});
+      collection.delete({_id: 2});
 
       setTimeout(() => {
         expect(spy).to.have.callCount(0);

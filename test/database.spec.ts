@@ -32,7 +32,7 @@ describe('database', () => {
 
   it('should have registered collection in configuration', async () => {
     const collection = db.collection('test');
-    expect(collection.count()).to.eventually.eql(2);
+    expect(collection.find().count()).to.eventually.eql(2);
   });
 
   it('should fail to create collection with existing name', () => {
@@ -56,7 +56,7 @@ describe('database', () => {
         expect(collection.name).to.eql('test');
         done();
       });
-      db.collection('test').remove({name: 'doc3'});
+      db.collection('test').delete({name: 'doc3'});
     });
   });
 });
