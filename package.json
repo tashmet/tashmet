@@ -8,7 +8,9 @@
     "clean": "rimraf packages/*/dist dist",
     "commit": "git-cz",
     "lint": "lerna run --no-bail lint",
-    "test": "lerna run test && mocha --exit -r ts-node/register 'test/**/*.ts'"
+    "test": "npm run test:packages && npm run test:root",
+    "test:packages": "lerna run test",
+    "test:root": "mocha --exit -r ts-node/register 'test/**/*.ts'"
   },
   "author": "Björn Andersson",
   "license": "MIT",
