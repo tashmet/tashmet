@@ -1,4 +1,4 @@
-import {Collection, CollectionFactory, Cursor, SortingOrder} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, SortingOrder, QueryOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
@@ -28,7 +28,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
     return this.cursor.all();
   }
 
-  public async count(applySkipLimit = false): Promise<number> {
+  public async count(applySkipLimit = true): Promise<number> {
     return applySkipLimit ? this.cursor.count() : this.selCursor.count();
   }
 }

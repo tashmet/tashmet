@@ -23,7 +23,7 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
 
   public abstract toArray(): Promise<T[]>;
 
-  public abstract count(applySkipLimit: boolean): Promise<number>;
+  public abstract count(applySkipLimit?: boolean): Promise<number>;
 
   private extendOptions(options: QueryOptions): Cursor<T> {
     assignDeep(this.options, options);

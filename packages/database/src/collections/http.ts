@@ -40,7 +40,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
     return await resp.json();
   }
 
-  public async count(applySkipLimit: boolean): Promise<number> {
+  public async count(applySkipLimit = true): Promise<number> {
     const resp = await fetch(
       this.serializeQuery(this.selector, applySkipLimit ? this.options : {}), {method: 'HEAD'}
     );

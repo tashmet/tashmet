@@ -32,7 +32,7 @@ export class CachingCursor extends AbstractCursor<any> {
     super(selector);
   }
 
-  public async count(applySkipLimit?: boolean) {
+  public async count(applySkipLimit = true) {
     const cursor = this.evaluators.some(e => e.isCached(this.selector))
       ? this.cache.find(this.selector)
       : this.next(this.selector);
