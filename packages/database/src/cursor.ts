@@ -10,7 +10,7 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
   ) {}
 
   public sort(key: string, order: SortingOrder): Cursor<T> {
-    return this.extendOptions({sort: {[key]: order}});
+    return this.extendOptions({sort: [[key, order]]});
   }
 
   public skip(count: number): Cursor<T> {

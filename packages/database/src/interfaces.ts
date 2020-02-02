@@ -22,9 +22,9 @@ export interface Cursor<T> {
  */
 export interface QueryOptions {
   /**
-   * Sort by one or more properties in ascending or descending order.
+   * Set to sort the documents coming back from the query. Array of indexes, [['a', 1]] etc.
    */
-  sort?: {[key: string]: SortingOrder};
+  sort?: [string, SortingOrder][];
 
   /**
    * Skip the first number of documents from the results.
