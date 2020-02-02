@@ -6,14 +6,23 @@ export enum SortingOrder {
 }
 
 export interface Cursor<T> {
+  /** Sets the sort order of the cursor query. */
   sort(key: string, order: SortingOrder): Cursor<T>;
 
+  /** Set the skip for the cursor. */
   skip(count: number): Cursor<T>;
 
+  /** Set the limit for the cursor. */
   limit(count: number): Cursor<T>;
 
+  /** Returns an array of documents. */
   toArray(): Promise<T[]>;
 
+  /**
+   * Get the count of documents for this cursor
+   *
+   * @param applySkipLimit Should the count command apply limit and skip settings on the cursor.
+   */
   count(applySkipLimit?: boolean): Promise<number>;
 }
 
