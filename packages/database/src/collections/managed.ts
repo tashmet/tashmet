@@ -8,12 +8,21 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
   ) {
     super();
 
-    source.on('document-upserted', doc => this.emit('document-upserted', doc));
-    source.on('document-removed', doc => this.emit('document-removed', doc));
-    source.on('document-error', err => this.emit('document-error', err));
+    source.on('document-upserted', async doc => {
+      this.emit('document-upserted', await this.onDocumentUpserted(doc));
+    });
+    source.on('document-removed', async doc => {
+      this.emit('document-removed', await this.onDocumentRemoved(doc));
+    });
+    source.on('document-error', async err => {
+      this.emit('document-error', await this.onDocumentError(err));
+    });
 
     for (const mw of middleware.reverse()) {
-      this.use(mw);
+      this.use(mw, ['find', 'findOne', 'upsert', 'delete']);
+    }
+    for (const mw of middleware) {
+      this.use(mw, ['onDocumentUpserted', 'onDocumentRemoved', 'onDocumentError']);
     }
   }
 
@@ -37,11 +46,23 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.delete(selector);
   }
 
-  private use(mw: any) {
-    for (const prop of Object.getOwnPropertyNames(mw).concat(Object.getOwnPropertyNames(mw.__proto__))) {
-      if (typeof mw[prop] === 'function' && prop !== 'constructor' && (this as any)[prop]) {
-        const f = (this as any)[prop];
-        (this as any)[prop] = mw[prop](f.bind(this));
+  public async onDocumentUpserted(doc: any): Promise<any> {
+    return doc;
+  }
+  
+  public async onDocumentRemoved(doc: any): Promise<any> {
+    return doc;
+  }
+  
+  public async onDocumentError(err: Error): Promise<Error> {
+    return err;
+  }
+
+  private use(mw: any, methodNames: string[]) {
+    for (const method of methodNames) {
+      if (typeof mw[method] === 'function' && (this as any)[method]) {
+        const f = (this as any)[method];
+        (this as any)[method] = mw[method](f.bind(this));
       }
     }
   }

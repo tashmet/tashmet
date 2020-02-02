@@ -100,4 +100,16 @@ export class CachingMiddleware extends Middleware {
       return new CachingCursor(this.evaluators, this.cache, next, selector);
     };
   }
+
+  public onDocumentUpserted(next: any) {
+    return async (doc: any) => {
+      return next(await this.cache.upsert(doc));
+    }
+  }
+
+  public onDocumentRemoved(next: any) {
+    return async (doc: any) => {
+      return next(await this.cache.delete(doc));
+    }
+  }
 }

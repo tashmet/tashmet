@@ -110,8 +110,16 @@ export class DocumentError extends Error {
   }
 }
 
-export class Middleware<T = any> {
+export abstract class Middleware<T = any> {
   public constructor(protected source: Collection<T>) {}
+  
+  find?(next: (selector?: object) => Cursor<T>): (selector?: object) => Cursor<T>;
+  findOne?(next: (selector: object) => Promise<T>): (selector: object) => Promise<T>;
+  upsert?(next: (doc: T) => Promise<T>): (doc: T) => Promise<T>;
+  delete?(next: (doc: T) => Promise<T>): (doc: T) => Promise<T>;
+  onDocumentUpserted?(next: (doc: T) => Promise<T>): (doc: T) => Promise<T>;
+  onDocumentRemoved?(next: (doc: T) => Promise<T>): (doc: T) => Promise<T>;
+  onDocumentError?(next: (err: DocumentError) => Promise<T>): (err: DocumentError) => Promise<DocumentError>;
 }
 
 export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {
