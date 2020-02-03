@@ -1,4 +1,4 @@
-import {MemoryCollection, SortingOrder} from '@ziqquratu/database';
+import {MemoryCollection, SortingDirection} from '@ziqquratu/database';
 import {SortByAnnotation} from '../../src/decorators/sort';
 import {expect} from 'chai';
 import chai from 'chai';
@@ -25,9 +25,9 @@ describe('SortBy', () => {
   it('should apply sorting to query options', async () => {
     const cursor = collection.find();
     const sortSpy = sandbox.spy(cursor, 'sort');
-    new SortByAnnotation('foo').apply(cursor, SortingOrder.Ascending);
+    new SortByAnnotation('foo').apply(cursor, SortingDirection.Ascending);
 
-    expect(sortSpy).to.have.been.calledWith('foo', SortingOrder.Ascending);
+    expect(sortSpy).to.have.been.calledWith('foo', SortingDirection.Ascending);
   });
 
   it('should not apply sorting when value is undefined', async () => {

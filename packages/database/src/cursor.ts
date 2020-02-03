@@ -1,6 +1,6 @@
 
 import mingo from 'mingo';
-import {Cursor, QueryOptions, SortingOrder} from './interfaces';
+import {Cursor, QueryOptions, SortingDirection} from './interfaces';
 const assignDeep = require('assign-deep');
 
 export abstract class AbstractCursor<T> implements Cursor<T> {
@@ -9,8 +9,8 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
     protected options: QueryOptions = {},
   ) {}
 
-  public sort(key: string, order: SortingOrder): Cursor<T> {
-    return this.extendOptions({sort: [[key, order]]});
+  public sort(key: string, direction: SortingDirection): Cursor<T> {
+    return this.extendOptions({sort: [[key, direction]]});
   }
 
   public skip(count: number): Cursor<T> {

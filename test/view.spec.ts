@@ -15,7 +15,7 @@ import {
   Database,
   DatabaseConfig,
   memory,
-  SortingOrder,
+  SortingDirection,
 } from '../packages/ziqquratu';
 
 chai.use(chaiAsPromised);
@@ -38,7 +38,7 @@ describe('view', () => {
     public limit = 2;
 
     @sortBy('amount')
-    public sort = SortingOrder.Descending;
+    public sort = SortingDirection.Descending;
 
     @filter({
       compile: value => ({'item.category': value}),
@@ -181,7 +181,7 @@ describe('view', () => {
         expect(docs.map(d => d._id)).to.eql([1, 3]);
         done();
       });
-      sut.sort = SortingOrder.Ascending;
+      sut.sort = SortingDirection.Ascending;
     });
   });
 

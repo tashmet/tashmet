@@ -67,8 +67,8 @@ export class CachingCursor extends AbstractCursor<any> {
 
   private applyTo(cursor: Cursor<any>): Cursor<any> {
     if (this.options.sort) {
-      for (const [key, order] of this.options.sort) {
-        cursor.sort(key, order);
+      for (const [key, direction] of this.options.sort) {
+        cursor.sort(key, direction);
       }
     }
     if (this.options.offset) {

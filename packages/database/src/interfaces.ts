@@ -1,13 +1,13 @@
 import {Factory} from '@ziqquratu/core';
 
-export enum SortingOrder {
+export enum SortingDirection {
   Ascending = 1,
   Descending = -1
 }
 
 export interface Cursor<T> {
   /** Sets the sort order of the cursor query. */
-  sort(key: string, order: SortingOrder): Cursor<T>;
+  sort(key: string, direction: SortingDirection): Cursor<T>;
 
   /** Set the skip for the cursor. */
   skip(count: number): Cursor<T>;
@@ -33,7 +33,7 @@ export interface QueryOptions {
   /**
    * Set to sort the documents coming back from the query. Array of indexes, [['a', 1]] etc.
    */
-  sort?: [string, SortingOrder][];
+  sort?: [string, SortingDirection][];
 
   /**
    * Skip the first number of documents from the results.
@@ -121,7 +121,7 @@ export class DocumentError extends Error {
 
 export abstract class Middleware<T = any> {
   public constructor(protected source: Collection<T>) {}
-  
+
   find?(next: (selector?: object) => Cursor<T>): (selector?: object) => Cursor<T>;
   findOne?(next: (selector: object) => Promise<T>): (selector: object) => Promise<T>;
   upsert?(next: (doc: T) => Promise<T>): (doc: T) => Promise<T>;

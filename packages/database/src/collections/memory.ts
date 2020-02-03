@@ -1,4 +1,4 @@
-import {Collection, CollectionFactory, Cursor, SortingOrder, QueryOptions} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, SortingDirection} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
@@ -9,8 +9,8 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
     private selCursor: mingo.Cursor<T>
   ) {}
 
-  public sort(key: string, order: SortingOrder): Cursor<T> {
-    this.cursor.sort({[key]: order});
+  public sort(key: string, direction: SortingDirection): Cursor<T> {
+    this.cursor.sort({[key]: direction});
     return this;
   }
 
