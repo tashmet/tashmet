@@ -101,15 +101,11 @@ export class CachingMiddleware extends Middleware {
     };
   }
 
-  public onDocumentUpserted(next: any) {
-    return async (doc: any) => {
-      return next(await this.cache.upsert(doc));
-    }
+  public onDocumentUpserted(next: (doc: any) => void) {
+    return async (doc: any) => next(await this.cache.upsert(doc));
   }
 
-  public onDocumentRemoved(next: any) {
-    return async (doc: any) => {
-      return next(await this.cache.delete(doc));
-    }
+  public onDocumentRemoved(next: (doc: any) => void) {
+    return async (doc: any) => next(await this.cache.delete(doc));
   }
 }

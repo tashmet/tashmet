@@ -8,14 +8,14 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
   ) {
     super();
 
-    source.on('document-upserted', async doc => {
-      this.emit('document-upserted', await this.onDocumentUpserted(doc));
+    source.on('document-upserted', doc => {
+      this.onDocumentUpserted(doc);
     });
-    source.on('document-removed', async doc => {
-      this.emit('document-removed', await this.onDocumentRemoved(doc));
+    source.on('document-removed', doc => {
+      this.onDocumentRemoved(doc);
     });
-    source.on('document-error', async err => {
-      this.emit('document-error', await this.onDocumentError(err));
+    source.on('document-error', err => {
+      this.onDocumentError(err);
     });
 
     for (const mw of middleware.reverse()) {
@@ -46,16 +46,16 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.delete(selector);
   }
 
-  public async onDocumentUpserted(doc: any): Promise<any> {
-    return doc;
+  public async onDocumentUpserted(doc: any) {
+    this.emit('document-upserted', doc);
   }
   
-  public async onDocumentRemoved(doc: any): Promise<any> {
-    return doc;
+  public async onDocumentRemoved(doc: any) {
+    this.emit('document-removed', doc);
   }
   
-  public async onDocumentError(err: Error): Promise<Error> {
-    return err;
+  public async onDocumentError(err: Error) {
+    this.emit('document-error', err);
   }
 
   private use(mw: any, methodNames: string[]) {
