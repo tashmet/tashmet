@@ -1,4 +1,4 @@
-import {Collection, Cursor, Middleware, QueryOptions, AbstractCursor} from '@ziqquratu/database';
+import {Collection, Cursor, QueryOptions, AbstractCursor} from '@ziqquratu/database';
 
 export abstract class CacheEvaluator {
   public add(doc: any): void {
@@ -78,34 +78,5 @@ export class CachingCursor extends AbstractCursor<any> {
       cursor.limit(this.options.limit);
     }
     return cursor;
-  }
-}
-
-export class CachingMiddleware extends Middleware {
-  public constructor(
-    source: Collection,
-    private cache: Collection,
-    private evaluators: CacheEvaluator[]
-  ) {
-    super(source);
-
-    for (const evaluator of this.evaluators) {
-      cache.on('document-upserted', doc => evaluator.add(doc));
-      cache.on('document-removed', doc => evaluator.remove(doc));
-    }
-  }
-
-  public find(next: (selector: object) => Cursor<any>) {
-    return (selector?: any) => {
-      return new CachingCursor(this.evaluators, this.cache, next, selector);
-    };
-  }
-
-  public onDocumentUpserted(next: (doc: any) => void) {
-    return async (doc: any) => next(await this.cache.upsert(doc));
-  }
-
-  public onDocumentRemoved(next: (doc: any) => void) {
-    return async (doc: any) => next(await this.cache.delete(doc));
   }
 }
