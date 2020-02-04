@@ -20,9 +20,7 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
           return next(doc);
         },
         'document-removed': async (next, doc) => {
-          try {
-            await cache.deleteOne({_id: doc._id});
-          } catch (err) {}
+          await cache.deleteOne({_id: doc._id});
           return next(doc);
         }
       },

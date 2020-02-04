@@ -52,8 +52,8 @@ describe('MemoryCollection', () => {
   });
 
   describe('findOne', () => {
-    it('should throw when document is not found', () => {
-      return expect(col.findOne({_id: 7})).to.eventually.be.rejectedWith('');
+    it('should return null when document is not found', () => {
+      return expect(col.findOne({_id: 7})).to.eventually.eql(null);
     });
     it('should return the document when found', async () => {
       const doc = await col.findOne({_id: 1});

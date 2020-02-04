@@ -77,19 +77,17 @@ export interface Collection<U = any> {
    * Find a single document in the collection.
    *
    * @param selector The selector which documents are matched against.
-   * @returns A promise for the first matching document if one was found.
-   * @throws DocumentError if no document was found.
+   * @returns A promise for the first matching document if one was found, null otherwise
    */
-  findOne<T extends U = any>(selector: object): Promise<T>;
+  findOne<T extends U = any>(selector: object): Promise<T | null>;
 
   /**
    * Delete a document from a collection
    *
    * @param selector The Filter used to select the document to remove
-   * @returns The removed document if found
-   * @throws DocumentError if no document was found.
+   * @returns The removed document if found, null otherwise
    */
-  deleteOne<T extends U = any>(selector: object): Promise<T>;
+  deleteOne<T extends U = any>(selector: object): Promise<T | null>;
 
   /**
    * Delete multiple documents from a collection
@@ -138,7 +136,7 @@ export interface MethodMiddleware<T = any> {
   find?: (next: (selector?: object) => Cursor<T>, selector?: object) => Cursor<T>;
   findOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
   upsert?: (next: (doc: T) => Promise<T>, doc: T) => Promise<T>;
-  deleteOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
+  deleteOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T | null>;
   deleteMany?: (next: (selector: object) => Promise<T[]>, selector: object) => Promise<T[]>;
 }
 

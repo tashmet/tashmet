@@ -99,7 +99,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   public async findOne(selector: object): Promise<any> {
     const docs = await this.find(selector).limit(1).toArray();
     if (docs.length === 0) {
-      throw new Error('Document not found');
+      return null;
     }
     return docs[0];
   }
@@ -126,8 +126,11 @@ export class HttpCollection extends EventEmitter implements Collection {
 
   public async deleteOne(selector: object): Promise<any> {
     const doc = await this.findOne(selector);
-    await this.deleteOneById(doc._id);
-    return doc;
+    if (doc) {
+      await this.deleteOneById(doc._id);
+      return doc;
+    }
+    return null;
   }
 
   public async deleteMany(selector: object): Promise<any[]> {

@@ -56,7 +56,7 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     if (result.length > 0) {
       return result[0];
     } else {
-      throw new Error('Failed to find document in collection');
+      return null;
     }
   }
 
@@ -78,8 +78,10 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
 
   public async deleteOne(selector: object): Promise<any> {
     const affected = await this.findOne(selector);
-    this.collection = this.collection.filter(doc => doc._id !== affected._id);
-    this.emit('document-removed', affected);
+    if (affected) {
+      this.collection = this.collection.filter(doc => doc._id !== affected._id);
+      this.emit('document-removed', affected);
+    }
     return affected;
   }
 
