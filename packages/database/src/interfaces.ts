@@ -128,12 +128,23 @@ export class DocumentError extends Error {
   }
 }
 
-export interface Middleware<T = any> {
+export interface EventMiddleware<T = any> {
+  'document-upserted'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
+  'document-removed'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
+  'document-error'?: (next: (err: DocumentError) => Promise<void>, err: DocumentError) => Promise<void>;
+}
+
+export interface MethodMiddleware<T = any> {
   find?: (next: (selector?: object) => Cursor<T>, selector?: object) => Cursor<T>;
   findOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
   upsert?: (next: (doc: T) => Promise<T>, doc: T) => Promise<T>;
   deleteOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
   deleteMany?: (next: (selector: object) => Promise<T[]>, selector: object) => Promise<T[]>;
+}
+
+export interface Middleware<T = any> {
+  methods?: MethodMiddleware;
+  events?: EventMiddleware;
 }
 
 export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {

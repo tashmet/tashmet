@@ -14,20 +14,23 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
     }
 
     return {
-      find: (next, selector) => {
-        return new CachingCursor(evaluators, cache, next, selector || {});
+      events: {
+        'document-upserted': async (next, doc) => {
+          await cache.upsert(doc);
+          return next(doc);
+        },
+        'document-removed': async (next, doc) => {
+          try {
+            await cache.deleteOne({_id: doc._id});
+          } catch (err) {}
+          return next(doc);
+        }
       },
-      upsert: async (next, doc) => {
-        return next(await cache.upsert(doc));
-      },
-      deleteOne: async (next, selector) => {
-        await cache.deleteOne(selector);
-        return next(selector);
-      },
-      deleteMany: async (next, selector) => {
-        await cache.deleteMany(selector);
-        return next(selector);
-      },
+      methods: {
+        find: (next, selector) => {
+          return new CachingCursor(evaluators, cache, next, selector || {});
+        },
+      }
     }
   }
 }
