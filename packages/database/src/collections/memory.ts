@@ -1,4 +1,4 @@
-import {Collection, CollectionFactory, Cursor, SortingDirection} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, SortingDirection, ReplaceOneOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
@@ -60,20 +60,22 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     }
   }
 
-  public insertOne(doc: any): Promise<any> {
+  public async insertOne(doc: any): Promise<any> {
     if (!doc.hasOwnProperty('_id')) {
       doc._id = new ObjectID().toHexString();
       this.collection.push(doc);
     } else {
       const index = this.collection.findIndex(o => o._id === doc._id);
       if (index >= 0) {
-        this.collection[index] = doc;
+        throw new Error(
+          `Insertion failed: A document with ID '${doc._id}' already exists in '${this.name}'`
+        );
       } else {
         this.collection.push(doc);
       }
     }
     this.emit('document-upserted', doc);
-    return Promise.resolve(doc);
+    return doc;
   }
 
   public async insertMany(docs: any[]): Promise<any[]> {
@@ -82,6 +84,19 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
       result.push(await this.insertOne(doc));
     }
     return result;
+  }
+
+  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
+    const old = mingo.find(this.collection, selector).next();
+    if (old) {
+      const index = this.collection.findIndex(o => o._id === old._id);
+      this.collection[index] = Object.assign({}, {_id: old._id}, doc);
+      this.emit('document-upserted', this.collection[index]);
+      return this.collection[index];
+    } else if (options.upsert) {
+      return this.insertOne(doc);
+    }
+    return null;
   }
 
   public async deleteOne(selector: object): Promise<any> {

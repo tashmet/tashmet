@@ -1,4 +1,4 @@
-import {Collection, CollectionFactory, Cursor, QueryOptions} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions} from '../interfaces';
 import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 
@@ -130,6 +130,11 @@ export class HttpCollection extends EventEmitter implements Collection {
       result.push(await this.insertOne(doc));
     }
     return result;
+  }
+
+  // TODO: Implement
+  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
+    return doc;
   }
 
   public async deleteOne(selector: object): Promise<any> {

@@ -23,7 +23,7 @@ describe('MemoryCollection', () => {
     await col.deleteMany({});
   });
 
-  describe('upsert', () => {
+  describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
       const doc = await col.insertOne(
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 }
@@ -31,16 +31,38 @@ describe('MemoryCollection', () => {
       expect(doc.amount).to.eql(10);
       expect(doc).to.haveOwnProperty('_id');
     });
+    it('should throw when trying to insert a document with already existing ID', () => {
+      return expect(col.insertOne(
+        {_id: 1, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
+      )).to.eventually.be.rejected;
+    });
+  });
+
+  describe('replaceOne', () => {
     it('should update a single document', async () => {
-      const doc1 = await col.insertOne(
-        {item: { category: 'brownies', type: 'blondie' }, amount: 10 }
+      const doc = await col.replaceOne(
+        {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
-      const doc2 = await col.insertOne(
-        {_id: doc1._id, item: { category: 'brownies', type: 'blondie' }, amount: 20 }
+      expect(doc._id).to.eql(1);
+      expect(doc.amount).to.eql(20);
+    });
+    it('should return null if no document matched selector', async () => {
+      const doc = await col.replaceOne(
+        {_id: 6}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
-      expect(doc1._id).to.eql(doc2._id);
-      expect(doc1.amount).to.eql(10);
-      expect(doc2.amount).to.eql(20);
+      expect(doc).to.eql(null);
+    });
+    it('should completely replace document', async () => {
+      const doc = await col.replaceOne(
+        {_id: 1}, { amount: 20 }
+      );
+      expect(doc.item).to.eql(undefined);
+    });
+    it('should upsert when specified', async () => {
+      const doc = await col.replaceOne(
+        {_id: 6}, { amount: 20 }, {upsert: true}
+      );
+      expect(doc.amount).to.eql(20);
     });
   });
 

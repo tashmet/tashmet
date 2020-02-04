@@ -46,6 +46,11 @@ export interface QueryOptions {
   limit?: number;
 }
 
+export interface ReplaceOneOptions {
+  /** When true, creates a new document if no document matches the query. */
+  upsert?: boolean;
+}
+
 /**
  * A collection of documents.
  */
@@ -72,6 +77,18 @@ export interface Collection<U = any> {
    * @returns A promise for the upserted documents
    */
   insertMany<T extends U = any>(docs: T[]): Promise<T[]>;
+
+  /**
+   * Insert a document into the collection.
+   *
+   * If the document already exists it will be updated.
+   *
+   * @param selector The Filter used to select the document to replace
+   * @param doc The Document that replaces the matching document
+   * @param options Optional settings
+   * @returns A promise for the upserted document.
+   */
+  replaceOne<T extends U = any>(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T>;
 
   /**
    * Find documents in the collection.

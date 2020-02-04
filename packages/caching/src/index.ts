@@ -16,7 +16,7 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
     return {
       events: {
         'document-upserted': async (next, doc) => {
-          await cache.insertOne(doc);
+          await cache.replaceOne({_id: doc._id}, doc, {upsert: true});
           return next(doc);
         },
         'document-removed': async (next, doc) => {

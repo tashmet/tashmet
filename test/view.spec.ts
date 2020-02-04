@@ -133,9 +133,7 @@ describe('view', () => {
         done();
       });
 
-      collection.insertOne(
-        {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 35 }
-      );
+      collection.replaceOne({_id: 1}, {item: { category: 'cake', type: 'chiffon' }, amount: 35 });
     });
 
     it('should update when document matching selector is removed', (done) => {

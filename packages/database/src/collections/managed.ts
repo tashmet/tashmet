@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {Collection, Cursor, DocumentError, Middleware} from '../interfaces';
+import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
@@ -56,6 +56,10 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
 
   public insertMany(docs: any[]): Promise<any[]> {
     return this.source.insertMany(docs);
+  }
+
+  public async replaceOne(selector: object, doc: any, options?: ReplaceOneOptions): Promise<any> {
+    return this.source.replaceOne(selector, doc, options);
   }
 
   public deleteOne(selector: object): Promise<any> {
