@@ -124,6 +124,14 @@ export class HttpCollection extends EventEmitter implements Collection {
     }
   }
 
+  public async insertMany(docs: any[]): Promise<any[]> {
+    const result: any[] = [];
+    for (const doc of docs) {
+      result.push(await this.insertOne(doc));
+    }
+    return result;
+  }
+
   public async deleteOne(selector: object): Promise<any> {
     const doc = await this.findOne(selector);
     if (doc) {

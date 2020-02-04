@@ -66,6 +66,14 @@ export interface Collection<U = any> {
   insertOne<T extends U = any>(doc: T): Promise<T>;
 
   /**
+   * Insert multiple documents into the collection
+   *
+   * @param docs The documents to insert
+   * @returns A promise for the upserted documents
+   */
+  insertMany<T extends U = any>(docs: T[]): Promise<T[]>;
+
+  /**
    * Find documents in the collection.
    *
    * @param selector The selector which documents are matched against.

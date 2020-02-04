@@ -60,20 +60,28 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     }
   }
 
-  public insertOne(obj: any): Promise<any> {
-    if (!obj.hasOwnProperty('_id')) {
-      obj._id = new ObjectID().toHexString();
-      this.collection.push(obj);
+  public insertOne(doc: any): Promise<any> {
+    if (!doc.hasOwnProperty('_id')) {
+      doc._id = new ObjectID().toHexString();
+      this.collection.push(doc);
     } else {
-      const index = this.collection.findIndex(o => o._id === obj._id);
+      const index = this.collection.findIndex(o => o._id === doc._id);
       if (index >= 0) {
-        this.collection[index] = obj;
+        this.collection[index] = doc;
       } else {
-        this.collection.push(obj);
+        this.collection.push(doc);
       }
     }
-    this.emit('document-upserted', obj);
-    return Promise.resolve(obj);
+    this.emit('document-upserted', doc);
+    return Promise.resolve(doc);
+  }
+
+  public async insertMany(docs: any[]): Promise<any[]> {
+    const result: any[] = [];
+    for (const doc of docs) {
+      result.push(await this.insertOne(doc));
+    }
+    return result;
   }
 
   public async deleteOne(selector: object): Promise<any> {
@@ -103,10 +111,7 @@ export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
 
   public create(name: string) {
     const collection = new MemoryCollection(name);
-
-    for (const doc of this.docs) {
-      collection.insertOne(doc);
-    }
+    collection.insertMany(this.docs);
     return collection;
   }
 }

@@ -77,9 +77,7 @@ describe('view', () => {
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
     await collection.deleteMany({});
-    for (const doc of data) {
-      await collection.insertOne(doc);
-    }
+    await collection.insertMany(data);
   });
 
   afterEach(() => {

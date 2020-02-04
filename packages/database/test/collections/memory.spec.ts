@@ -10,11 +10,13 @@ describe('MemoryCollection', () => {
   const col = new MemoryCollection('test');
 
   beforeEach(async () => {
-    await col.insertOne({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
-    await col.insertOne({_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 });
-    await col.insertOne({_id: 3, item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 });
-    await col.insertOne({_id: 4, item: { category: 'cake', type: 'lemon' }, amount: 30 });
-    await col.insertOne({_id: 5, item: { category: 'cake', type: 'carrot' }, amount: 20 });
+    await col.insertMany([
+      {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 },
+      {_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 },
+      {_id: 3, item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 },
+      {_id: 4, item: { category: 'cake', type: 'lemon' }, amount: 30 },
+      {_id: 5, item: { category: 'cake', type: 'carrot' }, amount: 20 },
+    ]);
   });
 
   afterEach(async () => {
