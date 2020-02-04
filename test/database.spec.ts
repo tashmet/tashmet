@@ -56,7 +56,7 @@ describe('database', () => {
         expect(collection.name).to.eql('test');
         done();
       });
-      db.collection('test').delete({name: 'doc3'});
+      db.collection('test').deleteOne({name: 'doc3'});
     });
   });
 });

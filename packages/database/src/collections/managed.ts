@@ -19,7 +19,7 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     });
 
     for (const mw of middleware.reverse()) {
-      this.use(mw, ['find', 'findOne', 'upsert', 'delete']);
+      this.use(mw, ['find', 'findOne', 'upsert', 'deleteOne', 'deleteMany']);
     }
   }
 
@@ -39,8 +39,12 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.upsert(obj);
   }
 
-  public delete(selector: object): Promise<any[]> {
-    return this.source.delete(selector);
+  public deleteOne(selector: object): Promise<any> {
+    return this.source.deleteOne(selector);
+  }
+
+  public deleteMany(selector: object): Promise<any[]> {
+    return this.source.deleteMany(selector);
   }
 
   private use(mw: any, methodNames: string[]) {

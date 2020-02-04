@@ -83,12 +83,21 @@ export interface Collection<U = any> {
   findOne<T extends U = any>(selector: object): Promise<T>;
 
   /**
-   * Remove all documents matching selector from collection.
+   * Delete a document from a collection
    *
-   * @param selector The selector which documents are matched against.
-   * @returns A list of all the documents that were removed.
+   * @param selector The Filter used to select the document to remove
+   * @returns The removed document if found
+   * @throws DocumentError if no document was found.
    */
-  delete<T extends U = any>(selector: object): Promise<T[]>;
+  deleteOne<T extends U = any>(selector: object): Promise<T>;
+
+  /**
+   * Delete multiple documents from a collection
+   *
+   * @param selector The Filter used to select the documents to remove
+   * @returns A list of all the documents that were removed
+   */
+  deleteMany<T extends U = any>(selector: object): Promise<T[]>;
 
   /**
    * Listen for when a document in the collection has been added or changed.
@@ -123,7 +132,8 @@ export interface Middleware<T = any> {
   find?: (next: (selector?: object) => Cursor<T>, selector?: object) => Cursor<T>;
   findOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
   upsert?: (next: (doc: T) => Promise<T>, doc: T) => Promise<T>;
-  delete?: (next: (selector: object) => Promise<T[]>, selector: object) => Promise<T[]>;
+  deleteOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
+  deleteMany?: (next: (selector: object) => Promise<T[]>, selector: object) => Promise<T[]>;
 }
 
 export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {

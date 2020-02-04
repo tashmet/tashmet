@@ -14,12 +14,18 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
     }
 
     return {
-      find: (next, selector) => new CachingCursor(evaluators, cache, next, selector || {}),
+      find: (next, selector) => {
+        return new CachingCursor(evaluators, cache, next, selector || {});
+      },
       upsert: async (next, doc) => {
         return next(await cache.upsert(doc));
       },
-      delete: async (next, selector) => {
-        await cache.delete(selector);
+      deleteOne: async (next, selector) => {
+        await cache.deleteOne(selector);
+        return next(selector);
+      },
+      deleteMany: async (next, selector) => {
+        await cache.deleteMany(selector);
         return next(selector);
       },
     }

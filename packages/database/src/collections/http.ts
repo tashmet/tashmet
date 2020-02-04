@@ -124,17 +124,27 @@ export class HttpCollection extends EventEmitter implements Collection {
     }
   }
 
-  public async delete(selector: object): Promise<any[]> {
+  public async deleteOne(selector: object): Promise<any> {
+    const doc = await this.findOne(selector);
+    await this.deleteOneById(doc._id);
+    return doc;
+  }
+
+  public async deleteMany(selector: object): Promise<any[]> {
     const docs = await this.find(selector).toArray();
     for (const doc of docs) {
-      const resp = await fetch(this.config.path + '/' + doc._id, {
-        method: 'DELETE'
-      });
-      if (!resp.ok) {
-        throw new Error('Failed to delete: ' + doc._id);
-      }
+      await this.deleteOneById(doc._id);
     }
     return docs;
+  }
+
+  private async deleteOneById(id: string): Promise<void> {
+    const resp = await fetch(this.config.path + '/' + id, {
+      method: 'DELETE'
+    });
+    if (!resp.ok) {
+      throw new Error('Failed to delete: ' + id);
+    }
   }
 }
 

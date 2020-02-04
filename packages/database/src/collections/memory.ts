@@ -76,7 +76,14 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     return Promise.resolve(obj);
   }
 
-  public async delete(selector: object): Promise<any[]> {
+  public async deleteOne(selector: object): Promise<any> {
+    const affected = await this.findOne(selector);
+    this.collection = this.collection.filter(doc => doc._id !== affected._id);
+    this.emit('document-removed', affected);
+    return affected;
+  }
+
+  public async deleteMany(selector: object): Promise<any[]> {
     const affected = await this.find(selector).toArray();
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);

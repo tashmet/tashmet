@@ -18,7 +18,7 @@ describe('MemoryCollection', () => {
   });
 
   afterEach(async () => {
-    await col.delete({});
+    await col.deleteMany({});
   });
 
   describe('upsert', () => {
@@ -87,18 +87,18 @@ describe('MemoryCollection', () => {
 
   describe('remove', () => {
     it('should return empty list when no documents match selector', () => {
-      return expect(col.delete({_id: 7})).to.eventually.be.empty;
+      return expect(col.deleteMany({_id: 7})).to.eventually.be.empty;
     });
     it('should return a list of deleted documents', async () => {
-      const docs = await col.delete({'item.category': 'cookies'});
+      const docs = await col.deleteMany({'item.category': 'cookies'});
       expect(docs).to.have.length(2);
     });
     it('should have removed selected documents', async () => {
-      await col.delete({'item.category': 'cookies'});
+      await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find({'item.category': 'cookies'}).count()).to.eventually.eql(0);
     });
     it('should not remove other documents', async () => {
-      await col.delete({'item.category': 'cookies'});
+      await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
     });
   });
