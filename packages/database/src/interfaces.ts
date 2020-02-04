@@ -63,30 +63,33 @@ export interface Collection<U = any> {
   /**
    * Insert a document into the collection.
    *
-   * If the document already exists it will be updated.
+   * If the document passed in do not contain the _id field, one will be added to it
    *
    * @param doc The document to insert.
-   * @returns A promise for the upserted document.
+   * @returns A promise for the inserted document.
+   * @throws Error if a document with the same ID already exists
    */
   insertOne<T extends U = any>(doc: T): Promise<T>;
 
   /**
    * Insert multiple documents into the collection
+   * 
+   * If documents passed in do not contain the _id field, one will be added to
+   * each of the documents missing it
    *
    * @param docs The documents to insert
-   * @returns A promise for the upserted documents
+   * @returns A promise for the inserted documents
+   * @throws Error if a document with the same ID already exists
    */
   insertMany<T extends U = any>(docs: T[]): Promise<T[]>;
 
   /**
-   * Insert a document into the collection.
-   *
-   * If the document already exists it will be updated.
+   * Replace a document in a collection with another document
    *
    * @param selector The Filter used to select the document to replace
    * @param doc The Document that replaces the matching document
    * @param options Optional settings
-   * @returns A promise for the upserted document.
+   * @returns A promise for the new document
    */
   replaceOne<T extends U = any>(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T>;
 
