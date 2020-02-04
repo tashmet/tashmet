@@ -47,7 +47,7 @@ describe('database', () => {
         expect(collection.name).to.eql('test');
         done();
       });
-      db.collection('test').upsert({name: 'doc3'});
+      db.collection('test').insertOne({name: 'doc3'});
     });
 
     it('should be emitted when a document is removed', (done) => {

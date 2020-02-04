@@ -78,7 +78,7 @@ describe('view', () => {
     sandbox = sinon.createSandbox();
     await collection.deleteMany({});
     for (const doc of data) {
-      await collection.upsert(doc);
+      await collection.insertOne(doc);
     }
   });
 
@@ -110,7 +110,7 @@ describe('view', () => {
         done();
       });
 
-      collection.upsert(
+      collection.insertOne(
         {_id: 6, item: { category: 'cake', type: 'pound'}, amount: 60 });
     });
 
@@ -118,7 +118,7 @@ describe('view', () => {
       const spy = sandbox.spy();
       sut.on('item-set-updated', spy);
 
-      collection.upsert(
+      collection.insertOne(
         {_id: 7, item: { category: 'cookies', type: 'gingerbread'}, amount: 25 });
 
       setTimeout(() => {
@@ -135,7 +135,7 @@ describe('view', () => {
         done();
       });
 
-      collection.upsert(
+      collection.insertOne(
         {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 35 }
       );
     });

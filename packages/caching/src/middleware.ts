@@ -46,7 +46,7 @@ export class CachingCursor extends AbstractCursor<any> {
     if (!this.isCached()) {
       const docs = await this.next(this.selector).toArray();
       for (const doc of docs) {
-        await this.cache.upsert(doc);
+        await this.cache.insertOne(doc);
       }
       for (const evaluator of this.evaluators) {
         evaluator.success(this.selector, this.options);

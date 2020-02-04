@@ -60,7 +60,7 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     }
   }
 
-  public upsert(obj: any): Promise<any> {
+  public insertOne(obj: any): Promise<any> {
     if (!obj.hasOwnProperty('_id')) {
       obj._id = new ObjectID().toHexString();
       this.collection.push(obj);
@@ -105,7 +105,7 @@ export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
     const collection = new MemoryCollection(name);
 
     for (const doc of this.docs) {
-      collection.upsert(doc);
+      collection.insertOne(doc);
     }
     return collection;
   }

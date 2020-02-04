@@ -63,7 +63,7 @@ export interface Collection<U = any> {
    * @param doc The document to insert.
    * @returns A promise for the upserted document.
    */
-  upsert<T extends U = any>(doc: T): Promise<T>;
+  insertOne<T extends U = any>(doc: T): Promise<T>;
 
   /**
    * Find documents in the collection.

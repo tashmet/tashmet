@@ -50,8 +50,8 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.findOne(selector);
   }
 
-  public upsert(obj: any): Promise<any> {
-    return this.source.upsert(obj);
+  public insertOne(obj: any): Promise<any> {
+    return this.source.insertOne(obj);
   }
 
   public deleteOne(selector: object): Promise<any> {

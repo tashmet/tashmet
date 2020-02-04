@@ -104,7 +104,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     return docs[0];
   }
 
-  public async upsert(doc: any): Promise<any> {
+  public async insertOne(doc: any): Promise<any> {
     const exists = (await this.find({_id: doc._id}).count()) === 1;
     let path = this.config.path;
     if (exists) {

@@ -48,10 +48,10 @@ describe('HttpCollection', () => {
     });
 
     it('should POST if document does not exist on server', async () => {
-      expect(col.upsert({_id: 'bar'})).to.eventually.eql({_id: 'bar', server: 'added'});
+      expect(col.insertOne({_id: 'bar'})).to.eventually.eql({_id: 'bar', server: 'added'});
     });
     it('should PUT if document already exists on server', async () => {
-      expect(col.upsert({_id: 'foo'})).to.eventually.eql({_id: 'foo', server: 'updated'});
+      expect(col.insertOne({_id: 'foo'})).to.eventually.eql({_id: 'foo', server: 'updated'});
     });
   });
 });

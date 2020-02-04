@@ -10,11 +10,11 @@ describe('MemoryCollection', () => {
   const col = new MemoryCollection('test');
 
   beforeEach(async () => {
-    await col.upsert({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
-    await col.upsert({_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 });
-    await col.upsert({_id: 3, item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 });
-    await col.upsert({_id: 4, item: { category: 'cake', type: 'lemon' }, amount: 30 });
-    await col.upsert({_id: 5, item: { category: 'cake', type: 'carrot' }, amount: 20 });
+    await col.insertOne({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+    await col.insertOne({_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 });
+    await col.insertOne({_id: 3, item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 });
+    await col.insertOne({_id: 4, item: { category: 'cake', type: 'lemon' }, amount: 30 });
+    await col.insertOne({_id: 5, item: { category: 'cake', type: 'carrot' }, amount: 20 });
   });
 
   afterEach(async () => {
@@ -23,17 +23,17 @@ describe('MemoryCollection', () => {
 
   describe('upsert', () => {
     it('should add a single document and give it an id', async () => {
-      const doc = await col.upsert(
+      const doc = await col.insertOne(
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
       expect(doc.amount).to.eql(10);
       expect(doc).to.haveOwnProperty('_id');
     });
     it('should update a single document', async () => {
-      const doc1 = await col.upsert(
+      const doc1 = await col.insertOne(
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
-      const doc2 = await col.upsert(
+      const doc2 = await col.insertOne(
         {_id: doc1._id, item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
       expect(doc1._id).to.eql(doc2._id);

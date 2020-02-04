@@ -27,7 +27,7 @@ describe('Feed', () => {
   before(async () => {
     feed = new TestFeed(collection);
     for (const doc of data) {
-      await collection.upsert(doc);
+      await collection.insertOne(doc);
     }
   });
 
