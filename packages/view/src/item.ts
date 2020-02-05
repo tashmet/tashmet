@@ -4,8 +4,11 @@ import {View} from './view';
  * A view monitoring a single document.
  */
 export abstract class Item<T = any> extends View<T> {
+  public readonly limit = 1;
+
   public async refresh(): Promise<T> {
-    this._data = await this.query.one();
+    const result = await this.query.cursor.toArray();
+    this._data = result.length > 0 ? result[0] : undefined;
     this.emit('item-updated', this._data);
     return this._data;
   }

@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {Collection, Middleware, QueryOptions} from '../interfaces';
+import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
@@ -8,12 +8,33 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
   ) {
     super();
 
-    source.on('document-upserted', doc => this.emit('document-upserted', doc));
-    source.on('document-removed', doc => this.emit('document-removed', doc));
-    source.on('document-error', err => this.emit('document-error', err));
+    const emitters = {
+      'document-upserted': 'emitDocumentUpserted',
+      'document-removed': 'emitDocumentRemoved',
+      'document-error': 'emitDocumentError',
+    };
+
+    source.on('document-upserted', doc => {
+      this.emitDocumentUpserted(doc);
+    });
+    source.on('document-removed', doc => {
+      this.emitDocumentRemoved(doc);
+    });
+    source.on('document-error', err => {
+      this.emitDocumentError(err);
+    });
 
     for (const mw of middleware.reverse()) {
-      this.use(mw);
+      this.use(mw.methods || {}, ['find', 'findOne', 'upsert', 'deleteOne', 'deleteMany']);
+    }
+    for (const mw of middleware) {
+      if (mw.events) {
+        for (const event of Object.keys(emitters)) {
+          if ((mw.events as any)[event]) {
+            this.proxy((mw.events as any)[event], (emitters as any)[event]);
+          }
+        }
+      }
     }
   }
 
@@ -21,31 +42,55 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.name;
   }
 
-  public async find(selector: object = {}, options: QueryOptions = {}): Promise<any[]> {
-    return this.source.find(selector, options);
+  public find(selector: object = {}): Cursor<any> {
+    return this.source.find(selector);
   }
 
   public async findOne(selector: object): Promise<any> {
     return this.source.findOne(selector);
   }
 
-  public upsert(obj: any): Promise<any> {
-    return this.source.upsert(obj);
+  public insertOne(doc: any): Promise<any> {
+    return this.source.insertOne(doc);
   }
 
-  public async remove(selector: object): Promise<any[]> {
-    return this.source.remove(selector);
+  public insertMany(docs: any[]): Promise<any[]> {
+    return this.source.insertMany(docs);
   }
 
-  public async count(selector?: object): Promise<number> {
-    return this.source.count(selector);
+  public async replaceOne(selector: object, doc: any, options?: ReplaceOneOptions): Promise<any> {
+    return this.source.replaceOne(selector, doc, options);
   }
 
-  private use(mw: any) {
-    for (const prop of Object.getOwnPropertyNames(mw).concat(Object.getOwnPropertyNames(mw.__proto__))) {
-      if (typeof mw[prop] === 'function' && prop !== 'constructor' && (this as any)[prop]) {
-        const f = (this as any)[prop];
-        (this as any)[prop] = mw[prop](f.bind(this));
+  public deleteOne(selector: object): Promise<any> {
+    return this.source.deleteOne(selector);
+  }
+
+  public deleteMany(selector: object): Promise<any[]> {
+    return this.source.deleteMany(selector);
+  }
+
+  private emitDocumentUpserted(doc: any) {
+    this.emit('document-upserted', doc);
+  }
+
+  private emitDocumentRemoved(doc: any) {
+    this.emit('document-removed', doc);
+  }
+
+  private emitDocumentError(err: DocumentError) {
+    this.emit('document-error', err);
+  }
+
+  private proxy(fn: Function, methodName: string) {
+    const f = (this as any)[methodName];
+    (this as any)[methodName] = (...args: any[]) => fn(f.bind(this), ...args);
+  }
+
+  private use(mw: any, methodNames: string[]) {
+    for (const method of methodNames) {
+      if (typeof mw[method] === 'function' && (this as any)[method]) {
+        this.proxy(mw[method], method);
       }
     }
   }

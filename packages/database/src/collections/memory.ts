@@ -1,9 +1,39 @@
-import {Collection, CollectionFactory, QueryOptions} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, SortingDirection, ReplaceOneOptions} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
-export class MemoryCollection extends EventEmitter implements Collection {
+export class MemoryCollectionCursor<T> implements Cursor<T> {
+  public constructor(
+    private cursor: mingo.Cursor<T>,
+    private selCursor: mingo.Cursor<T>
+  ) {}
+
+  public sort(key: string, direction: SortingDirection): Cursor<T> {
+    this.cursor.sort({[key]: direction});
+    return this;
+  }
+
+  public skip(count: number): Cursor<T> {
+    this.cursor.skip(count);
+    return this;
+  }
+
+  public limit(count: number): Cursor<T> {
+    this.cursor.limit(count);
+    return this;
+  }
+
+  public async toArray(): Promise<T[]> {
+    return this.cursor.all();
+  }
+
+  public async count(applySkipLimit = true): Promise<number> {
+    return applySkipLimit ? this.cursor.count() : this.selCursor.count();
+  }
+}
+
+export class MemoryCollection<U = any> extends EventEmitter implements Collection<U> {
   private collection: any[] = [];
 
   public constructor(public readonly name: string) {
@@ -14,62 +44,78 @@ export class MemoryCollection extends EventEmitter implements Collection {
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
 
-  public async find(selector: object = {}, options: QueryOptions = {}): Promise<any[]> {
-    return this.cursor(selector, options).all();
+  public find<T extends U = any>(selector: object = {}): Cursor<T> {
+    return new MemoryCollectionCursor<T>(
+      mingo.find(this.collection, selector),
+      mingo.find(this.collection, selector)
+    );
   }
 
   public async findOne(selector: object): Promise<any> {
-    const result = await this.find(selector);
+    const result = await this.find(selector).limit(1).toArray();
     if (result.length > 0) {
       return result[0];
     } else {
-      throw new Error('Failed to find document in collection');
+      return null;
     }
   }
 
-  public upsert(obj: any): Promise<any> {
-    if (!obj.hasOwnProperty('_id')) {
-      obj._id = new ObjectID().toHexString();
-      this.collection.push(obj);
+  public async insertOne(doc: any): Promise<any> {
+    if (!doc.hasOwnProperty('_id')) {
+      doc._id = new ObjectID().toHexString();
+      this.collection.push(doc);
     } else {
-      const index = this.collection.findIndex(o => o._id === obj._id);
+      const index = this.collection.findIndex(o => o._id === doc._id);
       if (index >= 0) {
-        this.collection[index] = obj;
+        throw new Error(
+          `Insertion failed: A document with ID '${doc._id}' already exists in '${this.name}'`
+        );
       } else {
-        this.collection.push(obj);
+        this.collection.push(doc);
       }
     }
-    this.emit('document-upserted', obj);
-    return Promise.resolve(obj);
+    this.emit('document-upserted', doc);
+    return doc;
   }
 
-  public async remove(selector: object): Promise<any[]> {
-    const affected = await this.find(selector);
+  public async insertMany(docs: any[]): Promise<any[]> {
+    const result: any[] = [];
+    for (const doc of docs) {
+      result.push(await this.insertOne(doc));
+    }
+    return result;
+  }
+
+  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
+    const old = mingo.find(this.collection, selector).next();
+    if (old) {
+      const index = this.collection.findIndex(o => o._id === old._id);
+      this.collection[index] = Object.assign({}, {_id: old._id}, doc);
+      this.emit('document-upserted', this.collection[index]);
+      return this.collection[index];
+    } else if (options.upsert) {
+      return this.insertOne(doc);
+    }
+    return null;
+  }
+
+  public async deleteOne(selector: object): Promise<any> {
+    const affected = await this.findOne(selector);
+    if (affected) {
+      this.collection = this.collection.filter(doc => doc._id !== affected._id);
+      this.emit('document-removed', affected);
+    }
+    return affected;
+  }
+
+  public async deleteMany(selector: object): Promise<any[]> {
+    const affected = await this.find(selector).toArray();
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
     for (const doc of affected) {
       this.emit('document-removed', doc);
     }
     return affected;
-  }
-
-  public async count(selector?: object): Promise<number> {
-    return this.cursor(selector).count();
-  }
-
-  public cursor(selector: object = {}, options: QueryOptions = {}): mingo.Cursor<any> {
-    let cursor = mingo.find(this.collection, selector);
-
-    if (options.sort) {
-      cursor = cursor.sort(options.sort);
-    }
-    if (options.offset) {
-      cursor = cursor.skip(options.offset);
-    }
-    if (options.limit) {
-      cursor = cursor.limit(options.limit);
-    }
-    return cursor;
   }
 }
 
@@ -80,10 +126,7 @@ export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
 
   public create(name: string) {
     const collection = new MemoryCollection(name);
-
-    for (const doc of this.docs) {
-      collection.upsert(doc);
-    }
+    collection.insertMany(this.docs);
     return collection;
   }
 }

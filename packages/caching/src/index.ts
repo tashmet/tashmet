@@ -1,20 +1,35 @@
-import {Collection, Middleware, MemoryCollection, MiddlewareFactory} from '@ziqquratu/database';
-import {CachingMiddleware, CachingEndpoint} from './middleware';
+import {Collection, MemoryCollection, Middleware, MiddlewareFactory} from '@ziqquratu/database';
 import {IDCache} from './id';
 import {QueryCache} from './query';
+import {CachingCursor} from './middleware';
 
 export class CachingMiddlewareFactory extends MiddlewareFactory {
-  public create(source: Collection): Middleware[] {
+  public create(source: Collection): Middleware {
+    const evaluators = [new QueryCache(), new IDCache()];
     const cache = new MemoryCollection(source.name);
 
-    source.on('document-upserted', doc => cache.upsert(doc));
-    source.on('document-removed', doc => cache.remove({_id: doc._id}));
+    for (const evaluator of evaluators) {
+      cache.on('document-upserted', doc => evaluator.add(doc));
+      cache.on('document-removed', doc => evaluator.remove(doc));
+    }
 
-    return [
-      new CachingEndpoint(source, cache),
-      new CachingMiddleware(source, cache, new QueryCache()),
-      new CachingMiddleware(source, cache, new IDCache()),
-    ];
+    return {
+      events: {
+        'document-upserted': async (next, doc) => {
+          await cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+          return next(doc);
+        },
+        'document-removed': async (next, doc) => {
+          await cache.deleteOne({_id: doc._id});
+          return next(doc);
+        }
+      },
+      methods: {
+        find: (next, selector) => {
+          return new CachingCursor(evaluators, cache, next, selector || {});
+        },
+      }
+    }
   }
 }
 

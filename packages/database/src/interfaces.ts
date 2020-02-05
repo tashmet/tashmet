@@ -1,8 +1,29 @@
 import {Factory} from '@ziqquratu/core';
 
-export enum SortingOrder {
+export enum SortingDirection {
   Ascending = 1,
   Descending = -1
+}
+
+export interface Cursor<T> {
+  /** Sets the sort order of the cursor query. */
+  sort(key: string, direction: SortingDirection): Cursor<T>;
+
+  /** Set the skip for the cursor. */
+  skip(count: number): Cursor<T>;
+
+  /** Set the limit for the cursor. */
+  limit(count: number): Cursor<T>;
+
+  /** Returns an array of documents. */
+  toArray(): Promise<T[]>;
+
+  /**
+   * Get the count of documents for this cursor
+   *
+   * @param applySkipLimit Should the count command apply limit and skip settings on the cursor.
+   */
+  count(applySkipLimit?: boolean): Promise<number>;
 }
 
 /**
@@ -10,9 +31,9 @@ export enum SortingOrder {
  */
 export interface QueryOptions {
   /**
-   * Sort by one or more properties in ascending or descending order.
+   * Set to sort the documents coming back from the query. Array of indexes, [['a', 1]] etc.
    */
-  sort?: {[key: string]: SortingOrder};
+  sort?: [string, SortingDirection][];
 
   /**
    * Skip the first number of documents from the results.
@@ -23,6 +44,11 @@ export interface QueryOptions {
    * Limit the number of items that are fetched.
    */
   limit?: number;
+}
+
+export interface ReplaceOneOptions {
+  /** When true, creates a new document if no document matches the query. */
+  upsert?: boolean;
 }
 
 /**
@@ -37,46 +63,67 @@ export interface Collection<U = any> {
   /**
    * Insert a document into the collection.
    *
-   * If the document already exists it will be updated.
+   * If the document passed in do not contain the _id field, one will be added to it
    *
    * @param doc The document to insert.
-   * @returns A promise for the upserted document.
+   * @returns A promise for the inserted document.
+   * @throws Error if a document with the same ID already exists
    */
-  upsert<T extends U = any>(doc: T): Promise<T>;
+  insertOne<T extends U = any>(doc: T): Promise<T>;
+
+  /**
+   * Insert multiple documents into the collection
+   * 
+   * If documents passed in do not contain the _id field, one will be added to
+   * each of the documents missing it
+   *
+   * @param docs The documents to insert
+   * @returns A promise for the inserted documents
+   * @throws Error if a document with the same ID already exists
+   */
+  insertMany<T extends U = any>(docs: T[]): Promise<T[]>;
+
+  /**
+   * Replace a document in a collection with another document
+   *
+   * @param selector The Filter used to select the document to replace
+   * @param doc The Document that replaces the matching document
+   * @param options Optional settings
+   * @returns A promise for the new document
+   */
+  replaceOne<T extends U = any>(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T>;
 
   /**
    * Find documents in the collection.
    *
    * @param selector The selector which documents are matched against.
-   * @param options A set of options determining sorting order, limit and offset.
-   * @returns A promise for the list of matching documents.
+   * @returns A cursor.
    */
-  find<T extends U = any>(selector?: object, options?: QueryOptions): Promise<T[]>;
+  find<T extends U = any>(selector?: object): Cursor<T>;
 
   /**
    * Find a single document in the collection.
    *
    * @param selector The selector which documents are matched against.
-   * @returns A promise for the first matching document if one was found.
-   * @throws DocumentError if no document was found.
+   * @returns A promise for the first matching document if one was found, null otherwise
    */
-  findOne<T extends U = any>(selector: object): Promise<T>;
+  findOne<T extends U = any>(selector: object): Promise<T | null>;
 
   /**
-   * Remove all documents matching selector from collection.
+   * Delete a document from a collection
    *
-   * @param selector The selector which documents are matched against.
-   * @returns A list of all the documents that were removed.
+   * @param selector The Filter used to select the document to remove
+   * @returns The removed document if found, null otherwise
    */
-  remove<T extends U = any>(selector: object): Promise<T[]>;
+  deleteOne<T extends U = any>(selector: object): Promise<T | null>;
 
   /**
-   * Get the number of documents in the collection that matches a given selector.
+   * Delete multiple documents from a collection
    *
-   * @param selector The selector which documents are matched against.
-   * @returns A promise for the document count.
+   * @param selector The Filter used to select the documents to remove
+   * @returns A list of all the documents that were removed
    */
-  count(selector?: object): Promise<number>;
+  deleteMany<T extends U = any>(selector: object): Promise<T[]>;
 
   /**
    * Listen for when a document in the collection has been added or changed.
@@ -107,8 +154,23 @@ export class DocumentError extends Error {
   }
 }
 
-export class Middleware<T = any> {
-  public constructor(protected source: Collection<T>) {}
+export interface EventMiddleware<T = any> {
+  'document-upserted'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
+  'document-removed'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
+  'document-error'?: (next: (err: DocumentError) => Promise<void>, err: DocumentError) => Promise<void>;
+}
+
+export interface MethodMiddleware<T = any> {
+  find?: (next: (selector?: object) => Cursor<T>, selector?: object) => Cursor<T>;
+  findOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
+  upsert?: (next: (doc: T) => Promise<T>, doc: T) => Promise<T>;
+  deleteOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T | null>;
+  deleteMany?: (next: (selector: object) => Promise<T[]>, selector: object) => Promise<T[]>;
+}
+
+export interface Middleware<T = any> {
+  methods?: MethodMiddleware;
+  events?: EventMiddleware;
 }
 
 export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {

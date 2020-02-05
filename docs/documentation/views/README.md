@@ -56,7 +56,7 @@ A view can have multiple properties that define which documents should be includ
 @view({collection: 'posts', monitor: ['dateSort']})
 class MyView extends ItemSet {
   @sortBy('datePublished')
-  public dateSort = SortingOrder.Ascending;
+  public dateSort = SortingDirection.Ascending;
 }
 ```
 
@@ -67,6 +67,6 @@ view.on('item-set-updated', docs => {
   // docs here will now be sorted in descending order.
 });
 
-view.dateSort = SortingOrder.Descending;
+view.dateSort = SortingDirection.Descending;
 ```
 

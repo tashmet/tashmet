@@ -1,4 +1,4 @@
-import {Collection, Middleware, QueryOptions} from '@ziqquratu/database';
+import {Collection, Cursor, QueryOptions, AbstractCursor} from '@ziqquratu/database';
 
 export abstract class CacheEvaluator {
   public add(doc: any): void {
@@ -22,58 +22,61 @@ export abstract class CacheEvaluator {
   }
 }
 
-export class CachingMiddleware extends Middleware {
+export class CachingCursor extends AbstractCursor<any> {
   public constructor(
-    source: Collection,
+    private evaluators: CacheEvaluator[],
     private cache: Collection,
-    private evaluator: CacheEvaluator
+    private next: (selector: object) => Cursor<any>,
+    selector: object
   ) {
-    super(source);
-
-    cache.on('document-upserted', doc => this.evaluator.add(doc));
-    cache.on('document-removed', doc => this.evaluator.remove(doc));
+    super(selector);
   }
 
-  public find(next: Function) {
-    return async (selector?: any, options?: QueryOptions) => {
-      this.evaluator.optimize(selector || {}, options);
-      if (this.evaluator.isCached(selector, options)) {
-        return [];
+  public async count(applySkipLimit = true) {
+    const cursor = this.evaluators.some(e => e.isCached(this.selector))
+      ? this.cache.find(this.selector)
+      : this.next(this.selector);
+
+    return this.applyTo(cursor).count(applySkipLimit);
+  }
+
+  public async toArray(): Promise<any[]> {
+    const cacheCursor = this.applyTo(this.cache.find(this.selector));
+
+    if (!this.isCached()) {
+      const docs = await this.next(this.selector).toArray();
+      for (const doc of docs) {
+        await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
       }
-      const docs = await next(selector, options);
-      this.evaluator.success(selector, options);
-      return docs;
-    };
-  }
-
-  public count(next: Function) {
-    return async (selector?: any) => {
-      return this.evaluator.isCached(selector) ? this.cache.count(selector) : next(selector);
-    };
-  }
-}
-
-export class CachingEndpoint extends Middleware {
-  public constructor(
-    source: Collection,
-    private cache: Collection
-  ) {
-    super(source);
-  }
-
-  public find(next: Function) {
-    return async (selector?: any, options?: QueryOptions) => {
-      const originalSelector = this.clone(selector);
-      const originalOptions = this.clone(options);
-
-      for (const doc of await next(selector, options)) {
-        await this.cache.upsert(doc);
+      for (const evaluator of this.evaluators) {
+        evaluator.success(this.selector, this.options);
       }
-      return this.cache.find(originalSelector, originalOptions);
-    };
+    }
+    return cacheCursor.toArray();
   }
 
-  private clone<T>(obj: T): T {
-    return obj ? JSON.parse(JSON.stringify(obj)) : undefined;
+  private isCached(): boolean {
+    for (const evaluator of this.evaluators) {
+      evaluator.optimize(this.selector || {}, this.options);
+      if (evaluator.isCached(this.selector, this.options)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private applyTo(cursor: Cursor<any>): Cursor<any> {
+    if (this.options.sort) {
+      for (const [key, direction] of this.options.sort) {
+        cursor.sort(key, direction);
+      }
+    }
+    if (this.options.offset) {
+      cursor.skip(this.options.offset);
+    }
+    if (this.options.limit) {
+      cursor.limit(this.options.limit);
+    }
+    return cursor;
   }
 }

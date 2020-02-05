@@ -1,13 +1,13 @@
 import {propertyDecorator} from '@ziqquratu/core';
-import {SortingOrder} from '@ziqquratu/database';
-import {QueryPropertyAnnotation, Cursor} from '../query';
+import {Cursor, SortingDirection} from '@ziqquratu/database';
+import {CursorPropertyAnnotation} from '../query';
 
-export class SortByAnnotation extends QueryPropertyAnnotation {
+export class SortByAnnotation extends CursorPropertyAnnotation {
   public constructor(private sortKey: string) {
     super();
   }
 
-  public apply(cursor: Cursor, value: SortingOrder | undefined) {
+  public apply(cursor: Cursor<any>, value: SortingDirection | undefined) {
     if (value !== undefined) {
       return cursor.sort(this.sortKey, value);
     }
@@ -26,9 +26,9 @@ export class SortByAnnotation extends QueryPropertyAnnotation {
  * ```typescript
  * class MyView extends View {
  *   @sortBy('datePublished')
- *   public dateSort = SortingOrder.Descending;
+ *   public dateSort = SortingDirection.Descending;
  * }
  * ```
  */
 export const sortBy = (key: string) =>
-  propertyDecorator<SortingOrder | undefined>(() => new SortByAnnotation(key));
+  propertyDecorator<SortingDirection | undefined>(() => new SortByAnnotation(key));

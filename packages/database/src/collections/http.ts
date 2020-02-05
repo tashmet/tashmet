@@ -1,16 +1,18 @@
-import {Collection, QueryOptions} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions} from '../interfaces';
+import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
-import {CollectionFactory} from '../interfaces';
 
 const io = require('socket.io-client');
+
+export type MakeQueryParams = (selector: object, options: QueryOptions) => {[name: string]: string};
 
 export interface HttpCollectionConfig {
   path: string;
 
-  queryParams?: (selector: object, options: QueryOptions) => {[name: string]: string};
+  queryParams?: MakeQueryParams;
 }
 
-export function queryParams(selector: object, options: QueryOptions): {[name: string]: string} {
+export const queryParams = (selector: object, options: QueryOptions): {[name: string]: string} => {
   const params: {[name: string]: string} = {};
   if (Object.keys(selector).length > 0) {
     params['selector'] = JSON.stringify(selector);
@@ -19,6 +21,49 @@ export function queryParams(selector: object, options: QueryOptions): {[name: st
     params['options'] = JSON.stringify(options);
   }
   return params;
+}
+
+export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
+  public constructor(
+    private queryParams: MakeQueryParams,
+    private path: string,
+    selector: object = {},
+  ) {
+    super(selector);
+  }
+
+  public async toArray(): Promise<T[]> {
+    const resp = await fetch(this.serializeQuery(this.selector, this.options));
+    if (!resp.ok) {
+      throw new Error('Failed to contact server');
+    }
+    return await resp.json();
+  }
+
+  public async count(applySkipLimit = true): Promise<number> {
+    const resp = await fetch(
+      this.serializeQuery(this.selector, applySkipLimit ? this.options : {}), {method: 'HEAD'}
+    );
+
+    const totalCount = resp.headers.get('x-total-count');
+    if (!totalCount) {
+      throw new Error('Failed to get "x-total-count" header');
+    }
+    return parseInt(totalCount, 10);
+  }
+
+  private serializeQuery(selector?: object, options?: QueryOptions): string {
+    const params = this.queryParams(selector || {}, options || {});
+
+    let query = this.path;
+    if (Object.keys(params).length > 0) {
+      const esc = encodeURIComponent;
+      query = query + '?' + Object.keys(params)
+          .map(k => esc(k) + '=' + esc(params[k]))
+          .join('&');
+    }
+    return query;
+  }
 }
 
 export class HttpCollection extends EventEmitter implements Collection {
@@ -47,76 +92,87 @@ export class HttpCollection extends EventEmitter implements Collection {
     return `http collection '${this.name}' at '${this.config.path}'`;
   }
 
-  public async find(selector?: object, options?: QueryOptions): Promise<any[]> {
-    const resp = await fetch(this.serializeQuery(selector, options));
-    if (!resp.ok) {
-      throw new Error('Failed to contact server');
-    }
-    return await resp.json();
+  public find(selector?: object): Cursor<any> {
+    return new HttpCollectionCursor(this.queryParams, this.config.path, selector);
   }
 
   public async findOne(selector: object): Promise<any> {
-    const docs = await this.find(selector, {limit: 1});
+    const docs = await this.find(selector).limit(1).toArray();
     if (docs.length === 0) {
-      throw new Error('Document not found');
+      return null;
     }
     return docs[0];
   }
 
-  public async upsert(doc: any): Promise<any> {
-    const exists = (await this.count({_id: doc._id})) === 1;
-    let path = this.config.path;
-    if (exists) {
-      path = path + '/' + doc._id;
-    }
-    const resp = await fetch(path, {
-      body: JSON.stringify(doc),
-      headers: {
-        'content-type': 'application/json'
-      },
-      method: exists ? 'PUT' : 'POST'
-    });
-    if (resp.ok) {
-      return resp.json();
-    } else {
-      throw new Error('Failed to upsert');
-    }
+  public async insertOne(doc: any): Promise<any> {
+    return this.post(doc);
   }
 
-  public async count(selector?: object): Promise<number> {
-    const resp = await fetch(this.serializeQuery(selector), {method: 'HEAD'});
-
-    const totalCount = resp.headers.get('x-total-count');
-    if (!totalCount) {
-      throw new Error('Failed to get "x-total-count" header');
-    }
-    return parseInt(totalCount, 10);
-  }
-
-  public async remove(selector: object): Promise<any[]> {
-    const docs = await this.find(selector);
+  public async insertMany(docs: any[]): Promise<any[]> {
+    const result: any[] = [];
     for (const doc of docs) {
-      const resp = await fetch(this.config.path + '/' + doc._id, {
-        method: 'DELETE'
-      });
-      if (!resp.ok) {
-        throw new Error('Failed to delete: ' + doc._id);
-      }
+      result.push(await this.insertOne(doc));
+    }
+    return result;
+  }
+
+  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
+    const old = await this.findOne(selector);
+    if (old) {
+      return this.put(Object.assign({_id: old._id}, doc), old._id);
+    } else if (options.upsert) {
+      return this.insertOne(doc);
+    }
+    return null;
+  }
+
+  public async deleteOne(selector: object): Promise<any> {
+    const doc = await this.findOne(selector);
+    if (doc) {
+      await this.deleteOneById(doc._id);
+      return doc;
+    }
+    return null;
+  }
+
+  public async deleteMany(selector: object): Promise<any[]> {
+    const docs = await this.find(selector).toArray();
+    for (const doc of docs) {
+      await this.deleteOneById(doc._id);
     }
     return docs;
   }
 
-  private serializeQuery(selector?: object, options?: QueryOptions): string {
-    const params = this.queryParams(selector || {}, options || {});
-
-    let query = this.config.path;
-    if (Object.keys(params).length > 0) {
-      const esc = encodeURIComponent;
-      query = query + '?' + Object.keys(params)
-          .map(k => esc(k) + '=' + esc(params[k]))
-          .join('&');
+  private async deleteOneById(id: string): Promise<void> {
+    const resp = await fetch(this.config.path + '/' + id, {
+      method: 'DELETE'
+    });
+    if (!resp.ok) {
+      throw new Error('Failed to delete: ' + id);
     }
-    return query;
+  }
+
+  private async put(doc: any, id: string) {
+    return this.send('PUT', `${this.config.path}/${id}`, doc);
+  }
+
+  private async post(doc: any) {
+    return this.send('POST', this.config.path, doc);
+  }
+
+  private async send(method: 'POST' | 'PUT', path: string, doc: any) {
+    const resp = await fetch(path, {
+      body: JSON.stringify(doc),
+      method,
+      headers: {
+        'content-type': 'application/json'
+      },
+    });
+    if (resp.ok) {
+      return resp.json();
+    } else {
+      throw new Error(await resp.text());
+    }
   }
 }
 

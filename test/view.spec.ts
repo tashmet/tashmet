@@ -15,7 +15,7 @@ import {
   Database,
   DatabaseConfig,
   memory,
-  SortingOrder,
+  SortingDirection,
 } from '../packages/ziqquratu';
 
 chai.use(chaiAsPromised);
@@ -38,7 +38,7 @@ describe('view', () => {
     public limit = 2;
 
     @sortBy('amount')
-    public sort = SortingOrder.Descending;
+    public sort = SortingDirection.Descending;
 
     @filter({
       compile: value => ({'item.category': value}),
@@ -76,10 +76,8 @@ describe('view', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    await collection.remove({});
-    for (const doc of data) {
-      await collection.upsert(doc);
-    }
+    await collection.deleteMany({});
+    await collection.insertMany(data);
   });
 
   afterEach(() => {
@@ -99,7 +97,7 @@ describe('view', () => {
     });
 
     it('should initially have documents', () => {
-      expect(sut.data.map(d => d._id)).to.eql([4, 5]);
+      return expect(sut.data.map(d => d._id)).to.eql([4, 5]);
     });
 
     it('should update when document matching selector is added', (done) => {
@@ -110,7 +108,7 @@ describe('view', () => {
         done();
       });
 
-      collection.upsert(
+      collection.insertOne(
         {_id: 6, item: { category: 'cake', type: 'pound'}, amount: 60 });
     });
 
@@ -118,7 +116,7 @@ describe('view', () => {
       const spy = sandbox.spy();
       sut.on('item-set-updated', spy);
 
-      collection.upsert(
+      collection.insertOne(
         {_id: 7, item: { category: 'cookies', type: 'gingerbread'}, amount: 25 });
 
       setTimeout(() => {
@@ -135,9 +133,7 @@ describe('view', () => {
         done();
       });
 
-      collection.upsert(
-        {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 35 }
-      );
+      collection.replaceOne({_id: 1}, {item: { category: 'cake', type: 'chiffon' }, amount: 35 });
     });
 
     it('should update when document matching selector is removed', (done) => {
@@ -147,7 +143,7 @@ describe('view', () => {
         expect(docs.map(d => d._id)).to.eql([4, 5]);
         done();
       });
-      collection.remove({_id: 1});
+      collection.deleteOne({_id: 1});
     });
 
     it('should update when document matching query options is removed', (done) => {
@@ -157,14 +153,14 @@ describe('view', () => {
         expect(docs.map(d => d._id)).to.eql([4, 1]);
         done();
       });
-      collection.remove({_id: 5});
+      collection.deleteOne({_id: 5});
     });
 
     it('should not update when document outside view is removed', (done) => {
       const spy = sandbox.spy();
       sut.on('item-set-updated', spy);
 
-      collection.remove({_id: 2});
+      collection.deleteOne({_id: 2});
 
       setTimeout(() => {
         expect(spy).to.have.callCount(0);
@@ -181,7 +177,7 @@ describe('view', () => {
         expect(docs.map(d => d._id)).to.eql([1, 3]);
         done();
       });
-      sut.sort = SortingOrder.Ascending;
+      sut.sort = SortingDirection.Ascending;
     });
   });
 

@@ -7,7 +7,7 @@ Sorting articles according to their publication date could look as following:
 ```typescript
 class MyView extends View {
   @sortBy('datePublished')
-  public dateSort = SortingOrder.Descending;
+  public dateSort = SortingDirection.Descending;
 }
 ```
 

@@ -26,9 +26,7 @@ describe('Feed', () => {
 
   before(async () => {
     feed = new TestFeed(collection);
-    for (const doc of data) {
-      await collection.upsert(doc);
-    }
+    await collection.insertMany(data);
   });
 
   it('should initially have number of documents equal to limit', () => {
