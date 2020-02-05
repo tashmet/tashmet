@@ -105,22 +105,17 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async insertOne(doc: any): Promise<any> {
-    const exists = (await this.find({_id: doc._id}).count()) === 1;
-    let path = this.config.path;
-    if (exists) {
-      path = path + '/' + doc._id;
-    }
-    const resp = await fetch(path, {
+    const resp = await fetch(this.config.path, {
       body: JSON.stringify(doc),
       headers: {
         'content-type': 'application/json'
       },
-      method: exists ? 'PUT' : 'POST'
+      method: 'POST'
     });
     if (resp.ok) {
       return resp.json();
     } else {
-      throw new Error('Failed to upsert');
+      throw new Error(await resp.text());
     }
   }
 
@@ -132,9 +127,25 @@ export class HttpCollection extends EventEmitter implements Collection {
     return result;
   }
 
-  // TODO: Implement
   public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
-    return doc;
+    const old = await this.findOne(selector);
+    if (old) {
+      const resp = await fetch(`${this.config.path}/${old._id}`, {
+        body: JSON.stringify(Object.assign({}, {_id: old._id}, doc)),
+        method: 'PUT',
+        headers: {
+          'content-type': 'application/json'
+        },
+      });
+      if (resp.ok) {
+        return resp.json();
+      } else {
+        throw new Error(await resp.text());
+      }
+    } else if (options.upsert) {
+      return this.insertOne(doc);
+    }
+    return null;
   }
 
   public async deleteOne(selector: object): Promise<any> {
