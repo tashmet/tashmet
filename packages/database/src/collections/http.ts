@@ -105,18 +105,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public async insertOne(doc: any): Promise<any> {
-    const resp = await fetch(this.config.path, {
-      body: JSON.stringify(doc),
-      headers: {
-        'content-type': 'application/json'
-      },
-      method: 'POST'
-    });
-    if (resp.ok) {
-      return resp.json();
-    } else {
-      throw new Error(await resp.text());
-    }
+    return this.post(doc);
   }
 
   public async insertMany(docs: any[]): Promise<any[]> {
@@ -130,18 +119,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
     const old = await this.findOne(selector);
     if (old) {
-      const resp = await fetch(`${this.config.path}/${old._id}`, {
-        body: JSON.stringify(Object.assign({}, {_id: old._id}, doc)),
-        method: 'PUT',
-        headers: {
-          'content-type': 'application/json'
-        },
-      });
-      if (resp.ok) {
-        return resp.json();
-      } else {
-        throw new Error(await resp.text());
-      }
+      return this.put(Object.assign({_id: old._id}, doc), old._id);
     } else if (options.upsert) {
       return this.insertOne(doc);
     }
@@ -171,6 +149,29 @@ export class HttpCollection extends EventEmitter implements Collection {
     });
     if (!resp.ok) {
       throw new Error('Failed to delete: ' + id);
+    }
+  }
+
+  private async put(doc: any, id: string) {
+    return this.send('PUT', `${this.config.path}/${id}`, doc);
+  }
+
+  private async post(doc: any) {
+    return this.send('POST', this.config.path, doc);
+  }
+
+  private async send(method: 'POST' | 'PUT', path: string, doc: any) {
+    const resp = await fetch(path, {
+      body: JSON.stringify(doc),
+      method,
+      headers: {
+        'content-type': 'application/json'
+      },
+    });
+    if (resp.ok) {
+      return resp.json();
+    } else {
+      throw new Error(await resp.text());
     }
   }
 }
