@@ -4,9 +4,17 @@ import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import fetchMock from 'fetch-mock';
+import { QueryOptions } from '../../dist';
 
 chai.use(require('chai-fetch-mock'));
 chai.use(chaiAsPromised);
+
+function uri(path: string, selector: object, options?: QueryOptions) {
+  const s = encodeURIComponent(JSON.stringify(selector));
+  const o = encodeURIComponent(JSON.stringify(options));
+
+  return options ? `${path}?selector=${s}&options=${o}` : `${path}?selector=${s}`
+}
 
 function matchBody(body: any) {
   return (url: string, opts: any) => opts.body === JSON.stringify(body);
@@ -16,13 +24,10 @@ describe('HttpCollection', () => {
   const col = new HttpCollection('test', {path: '/api/test'});
 
   before(() => {
-    // find({_id: 'foo'}).count()
-    fetchMock.head('/api/test?selector=%7B%22_id%22%3A%22foo%22%7D', {
+    fetchMock.head(uri('/api/test', {_id: 'foo'}), {
       headers: {'x-total-count': '1'}
     });
-
-    // find({_id: 'foo'}).toArray()
-    fetchMock.get('/api/test?selector=%7B%22_id%22%3A%22foo%22%7D', {
+    fetchMock.get(uri('/api/test', {_id: 'foo'}), {
       body: {_id: 'foo'},
       headers: {'x-total-count': '1'}
     });
@@ -61,12 +66,10 @@ describe('HttpCollection', () => {
 
   describe('replaceOne', () => {
     before(() => {
-      // findOne({_id: 'foo'})
-      fetchMock.get('/api/test?selector=%7B%22_id%22%3A%22foo%22%7D&options=%7B%22limit%22%3A1%7D', {
+      fetchMock.get(uri('/api/test', {_id: 'foo'}, {limit: 1}), {
         body: [{_id: 'foo'}],
       });
-      // findOne({_id: 'bar'})
-      fetchMock.get('/api/test?selector=%7B%22_id%22%3A%22bar%22%7D&options=%7B%22limit%22%3A1%7D', {
+      fetchMock.get(uri('/api/test', {_id: 'bar'}, {limit: 1}), {
         body: [],
       });
       fetchMock.post(matchBody({_id: 'bar'}), {body: {_id: 'bar', server: 'added'}});
