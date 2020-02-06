@@ -38,6 +38,26 @@ describe('MemoryCollection', () => {
     });
   });
 
+  describe('insertMany', () => {
+    it('should add a multiple documents and give them ids', async () => {
+      const docs = await col.insertMany([
+        {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
+        {item: { category: 'brownies', type: 'baked' }, amount: 12 },
+      ]);
+      expect(docs.length).to.eql(2);
+      expect(docs[0].amount).to.eql(10);
+      expect(docs[1].amount).to.eql(12);
+      expect(docs[0]).to.haveOwnProperty('_id');
+      expect(docs[1]).to.haveOwnProperty('_id');
+    });
+    it('should throw when trying to insert a document with already existing ID', () => {
+      return expect(col.insertMany([
+        {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
+        {_id: 1, item: { category: 'brownies', type: 'baked' }, amount: 12 },
+      ])).to.eventually.be.rejected;
+    });
+  });
+
   describe('replaceOne', () => {
     it('should update a single document', async () => {
       const doc = await col.replaceOne(
