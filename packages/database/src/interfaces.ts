@@ -73,7 +73,7 @@ export interface Collection<U = any> {
 
   /**
    * Insert multiple documents into the collection
-   * 
+   *
    * If documents passed in do not contain the _id field, one will be added to
    * each of the documents missing it
    *
@@ -169,8 +169,11 @@ export interface MethodMiddleware<T = any> {
 }
 
 export interface Middleware<T = any> {
-  methods?: MethodMiddleware;
-  events?: EventMiddleware;
+  /** Middleware intercepting method calls on collection. */
+  methods?: MethodMiddleware<T>;
+
+  /** Middleware intercepting events emitted from collection. */
+  events?: EventMiddleware<T>;
 }
 
 export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {
