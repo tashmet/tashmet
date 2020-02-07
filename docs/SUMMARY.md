@@ -21,6 +21,7 @@
     * [Memory](documentation/database/collections/memory.md)
     * [Http](documentation/database/collections/http.md)
 * [Views](documentation/views/README.md)
+  * [Queries](documentation/views/queries.md)
   * [View classes](documentation/views/view-classes.md)
   * [Filtering](documentation/views/filtering.md)
   * [Sorting](documentation/views/sorting.md)
