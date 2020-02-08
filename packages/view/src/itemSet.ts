@@ -1,11 +1,19 @@
 import {View} from './view';
+import {makeCursor} from './query';
 
 /**
  * A view monitoring a list of documents.
  */
-export abstract class ItemSet<T = any> extends View<T[]> {
+export abstract class ItemSet<T = any> extends View<T> {
   protected _data: T[] = [];
   private _totalCount = 0;
+
+  /**
+   * List of documents in this view.
+   */
+  public get data(): T[] {
+    return this._data;
+  }
 
   /**
    * The total number of documents matching the view's selector, disregarding its query options.
@@ -22,8 +30,8 @@ export abstract class ItemSet<T = any> extends View<T[]> {
   }
 
   public async refresh(): Promise<T[]> {
-    this._data = await this.query.cursor.toArray();
-    this._totalCount = await this.query.cursor.count(false);
+    this._data = await makeCursor<T>(this, this.collection).toArray();
+    this._totalCount = await makeCursor<T>(this, this.collection).count(false);
     this.emit('item-set-updated', this._data, this._totalCount);
     return this._data;
   }

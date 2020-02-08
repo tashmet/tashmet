@@ -9,9 +9,8 @@ export class SortByAnnotation extends CursorPropertyAnnotation {
 
   public apply(cursor: Cursor<any>, value: SortingDirection | undefined) {
     if (value !== undefined) {
-      return cursor.sort(this.sortKey, value);
+      cursor.sort(this.sortKey, value);
     }
-    return cursor;
   }
 }
 

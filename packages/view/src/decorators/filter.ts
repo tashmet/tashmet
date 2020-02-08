@@ -28,12 +28,12 @@ export class FilterAnnotation extends SelectorPropertyAnnotation {
 
   public apply(selector: Selector, value: any) {
     if (value === this.config.disableOn) {
-      return selector;
+      return;
     }
     if (this.config.compile) {
-      return selector.filter(this.config.compile(value));
+      selector.filter(this.config.compile(value));
     } else {
-      return selector.filter({[this.propertyKey]: value});
+      selector.filter({[this.propertyKey]: value});
     }
   }
 }

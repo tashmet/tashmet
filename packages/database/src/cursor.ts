@@ -35,7 +35,8 @@ export class Selector {
   public constructor(public value: any = {}) {}
 
   public filter(value: any): Selector {
-    return new Selector(assignDeep({}, this.value, value));
+    assignDeep(this.value, value);
+    return this;
   }
 
   public test(doc: any): boolean {

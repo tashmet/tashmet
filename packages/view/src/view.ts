@@ -1,17 +1,6 @@
 import {EventEmitter} from 'eventemitter3';
 import {Collection} from '@ziqquratu/database';
-import {Query, Range} from './query';
-
-class ViewQuery<T> extends Query {
-  public constructor(private view: View<T>, collection: Collection<T>) {
-    super(collection);
-  }
-
-  protected get target() {
-    return this.view;
-  }
-}
-
+import {makeSelector} from './query';
 
 /**
  * A view representing a subset of documents within a collection.
@@ -22,37 +11,27 @@ class ViewQuery<T> extends Query {
  * having been changed) a selector object and query options are passed through each filter and
  * finally used to query the collection.
  */
-export abstract class View<T> extends EventEmitter implements Range {
-  protected _data: T;
-  protected query: Query;
-  public offset = 0;
+export abstract class View<T> extends EventEmitter {
+  public skip = 0;
   public limit: number | undefined;
 
   public constructor(public readonly collection: Collection<T>) {
     super();
-    this.query = new ViewQuery(this, collection);
-    collection.on('document-upserted', (doc: any) => {
+    collection.on('document-upserted', (doc: T) => {
       this.onDocumentChanged(doc);
     });
-    collection.on('document-removed', (doc: any) => {
+    collection.on('document-removed', (doc: T) => {
       this.onDocumentChanged(doc);
     });
-  }
-
-  /**
-   * A document or list of documents in this view.
-   */
-  public get data(): T {
-    return this._data;
   }
 
   /**
    * Manually trigger a refresh of the view.
    */
-  public abstract refresh(): Promise<T>;
+  public abstract refresh(): Promise<T | T[] | null>;
 
-  private async onDocumentChanged(doc: any) {
-    if (this.query.selector.test(doc)) {
+  private async onDocumentChanged(doc: T) {
+    if (makeSelector(this).test(doc)) {
       return this.refresh();
     }
   }
