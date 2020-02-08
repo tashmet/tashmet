@@ -1,11 +1,73 @@
-# View classes
+# Views
 
-## Item
+Just like queries, views are defined as a class with decorated properties. Unlike a query though, a view additionally allows us to track the documents that are produced by it. Therefore a view needs to be associated with a collection when it is created and also needs to extend one of several available base classed depending on the kind of view we want to work with.
 
-The most basic type of view is one that monitors a single document.
+## Defining a view
+
+A view is defined as a class extending one of the view classes and annotated by the view decorator. Here we define a view that should track a set of documents in the 'posts' collection.
 
 ```typescript
 @view({collection: 'posts'})
+class MyView extends ItemSet {}
+```
+
+Once the class is decorated it can be added to the providers of a component and injected into a consuming class.
+
+```typescript
+@component({
+  providers: [MyView]
+})
+class Application {}
+```
+
+## Usage
+
+Once a view is defined and provided we can inject and use it in another class and consume the documents it contains. To fetch the documents into the view it first needs to be refreshed.
+
+```typescript
+@provider({
+  inject: [MyView]
+})
+class ViewConsumer {
+  public constructor(private view: MyView) {}
+
+  public async render() {
+    await this.view.refresh();
+    console.log(this.view.data);
+  }
+}
+```
+
+### Monitoring changes
+
+A view can have multiple properties that define which documents should be included \([filtering](filtering.md)\) and how they should be ordered \([sorting](sorting.md)\). These properties can be monitored so that a change automatically refreshes the data.
+
+```typescript
+@view({collection: 'posts', monitor: ['dateSort']})
+class MyView extends ItemSet {
+  @sortBy('datePublished')
+  public dateSort = SortingDirection.Ascending;
+}
+```
+
+In the above example a sorting property was added to the view. This will sort the documents on the _datePublished_ key in ascending order. By specifying the _dateSort_ property to be monitored we make sure that the view is refreshed as soon as the sorting order has been changed.
+
+```typescript
+view.on('item-set-updated', docs => {
+  // docs here will now be sorted in descending order.
+});
+
+view.dateSort = SortingDirection.Descending;
+```
+
+## Base classes
+
+### Item
+
+A view that monitors a single document.
+
+```typescript
+@view({collection: 'posts', monitor: ['_id']})
 class SinglePost extends Item {
   @filter() public _id = 'foo';
 }
@@ -13,23 +75,29 @@ class SinglePost extends Item {
 
 The above view will contain a single document where the id matches the one specified in the filter
 
-## Range
+{% hint style="info" %}
+When a user changes the \_id so that a new document is contained in the view, an **item-updated** event is emitted with the new document from the view.
+{% endhint %}
 
-An item set that limits the range of documents.
+### ItemSet
 
-The range view allows us to limit the number of documents displayed in the view to a specific range of the result set.
-
-The range is configured by supplying an offset and a optional limit. Here we create a filter that will limit the view to the first 10 matching documents in the collection. Note that omitting the offset in this case would yield the same result.
+A view that monitors a subset of documents.
 
 ```typescript
-@view({collection: 'posts'})
-class MyRange extends Range {
-  public offset = 0;
-  public limit = 10;
+@view({collection: 'posts', monitor: ['dateSort']})
+class SortedPosts extends ItemSet {
+  @sortBy('datePublished')
+  public dateSort = SortingOrder.Descending;
 }
 ```
 
-## Feed
+The above view will contain every document in the collection sorted by _datePublished_ in descending order.
+
+{% hint style="info" %}
+When a user changes the sorting order or a document is upserted to or removed from the collection, an **item-set-updated** event is emitted with the new documents now contained in the view.
+{% endhint %}
+
+### Feed
 
 An item set that acts as a feed.
 
@@ -43,7 +111,7 @@ class MyFeed extends Feed {
 }
 ```
 
-Provided that the collection has enough documents available the above feed will make sure that the view has only 10 documents initially. Calling loadMore\(\) will increase the capacity to 1
+Provided that the collection has enough documents available the above feed will make sure that the view has only 10 documents initially. Calling **loadMore** will increase the capacity to 15.
 
 ```typescript
 view.loadMore()

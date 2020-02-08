@@ -2,7 +2,7 @@
 
 ## Stored queries
 
-Usually when we want to retrieve a set of documents from a collection we do it based on some state in our application. Take for instance a blog where we want to display a certain amount of posts of a given category sorted by publishing date. It would be natural to represent this state like follows.
+Usually when we want to retrieve a set of documents from a collection we do it based on some state in our application. Take for instance a blog where we want to display a certain amount of posts of a given category sorted by publishing date. It would be natural to represent this state as follows.
 
 ```typescript
 interface PostFilter {
