@@ -4,18 +4,18 @@ Just like queries, views are defined as a class with decorated properties. Unlik
 
 ## Defining a view
 
-A view is defined as a class extending one of the view classes and annotated by the view decorator. Here we define a view that should track a set of documents in the 'posts' collection.
+A view is defined as a class extending one of the view classes and annotated by the view decorator. Here we define a view that should track a set of documents in a collection named 'posts'.
 
 ```typescript
 @view({collection: 'posts'})
-class MyView extends ItemSet {}
+class Posts extends ItemSet {}
 ```
 
 Once the class is decorated it can be added to the providers of a component and injected into a consuming class.
 
 ```typescript
 @component({
-  providers: [MyView]
+  providers: [Posts]
 })
 class Application {}
 ```
@@ -26,10 +26,10 @@ Once a view is defined and provided we can inject and use it in another class an
 
 ```typescript
 @provider({
-  inject: [MyView]
+  inject: [Posts]
 })
 class ViewConsumer {
-  public constructor(private view: MyView) {}
+  public constructor(private view: Posts) {}
 
   public async render() {
     await this.view.refresh();
@@ -44,7 +44,7 @@ A view can have multiple properties that define which documents should be includ
 
 ```typescript
 @view({collection: 'posts', monitor: ['dateSort']})
-class MyView extends ItemSet {
+class Posts extends ItemSet {
   @sortBy('datePublished')
   public dateSort = SortingDirection.Ascending;
 }
@@ -85,7 +85,7 @@ A view that monitors a subset of documents.
 
 ```typescript
 @view({collection: 'posts', monitor: ['dateSort']})
-class SortedPosts extends ItemSet {
+class Posts extends ItemSet {
   @sortBy('datePublished')
   public dateSort = SortingOrder.Descending;
 }
@@ -105,7 +105,7 @@ This item set is suited for where a list of items are shown and the user has the
 
 ```typescript
 @view({collection: 'posts'})
-class MyFeed extends Feed {
+class PostFeed extends Feed {
   public limit = 10;
   public increment = 5;
 }
