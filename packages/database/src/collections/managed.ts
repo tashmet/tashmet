@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions} from '../interfaces';
+import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions, QueryOptions} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
@@ -42,8 +42,8 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.name;
   }
 
-  public find(selector: object = {}): Cursor<any> {
-    return this.source.find(selector);
+  public find(selector: object = {}, options: QueryOptions = {}): Cursor<any> {
+    return this.source.find(selector, options);
   }
 
   public async findOne(selector: object): Promise<any> {

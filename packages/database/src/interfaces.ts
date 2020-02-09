@@ -5,9 +5,20 @@ export enum SortingDirection {
   Descending = -1
 }
 
+export type SortingMap = {[key: string]: SortingDirection};
+export type SortingKey = string | string[] | SortingMap;
+
 export interface Cursor<T> {
-  /** Sets the sort order of the cursor query. */
-  sort(key: string, direction: SortingDirection): Cursor<T>;
+  /**
+   * Sets the sort order of the cursor query.
+   * 
+   * If the key is either a string or list of strings the direction will be given by the second
+   * argument or default to ascending order.
+   * 
+   * If the key is given as a key-value map the sorting direction for each of the keys will be
+   * determined by its value and the direction argument can be omitted.
+   */
+  sort(key: SortingKey, direction?: SortingDirection): Cursor<T>;
 
   /** Set the skip for the cursor. */
   skip(count: number): Cursor<T>;
@@ -31,9 +42,9 @@ export interface Cursor<T> {
  */
 export interface QueryOptions {
   /**
-   * Set to sort the documents coming back from the query. Array of indexes, [['a', 1]] etc.
+   * Set to sort the documents coming back from the query. Key-value map, ex. {a: 1, b: -1}
    */
-  sort?: [string, SortingDirection][];
+  sort?: SortingMap;
 
   /**
    * Skip the first number of documents from the results.
@@ -99,7 +110,7 @@ export interface Collection<U = any> {
    * @param selector The selector which documents are matched against.
    * @returns A cursor.
    */
-  find<T extends U = any>(selector?: object): Cursor<T>;
+  find<T extends U = any>(selector?: object, options?: QueryOptions): Cursor<T>;
 
   /**
    * Find a single document in the collection.

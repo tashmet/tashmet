@@ -1,27 +1,45 @@
-import {Collection, CollectionFactory, Cursor, SortingDirection, ReplaceOneOptions} from '../interfaces';
+import {
+  Collection,
+  CollectionFactory,
+  Cursor,
+  ReplaceOneOptions,
+  QueryOptions,
+  SortingKey,
+  SortingDirection
+} from '../interfaces';
+import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
-export class MemoryCollectionCursor<T> implements Cursor<T> {
-  public constructor(
-    private cursor: mingo.Cursor<T>,
-    private selCursor: mingo.Cursor<T>
-  ) {}
+export class MemoryCollectionCursor<T> extends AbstractCursor<T> {
+  private cursor: mingo.Cursor<T>;
+  private selCursor: mingo.Cursor<T>;
 
-  public sort(key: string, direction: SortingDirection): Cursor<T> {
-    this.cursor.sort({[key]: direction});
-    return this;
+  public constructor(
+    collection: any[],
+    selector: any,
+    options: QueryOptions,
+  ) {
+    super(selector, options);
+    this.cursor = mingo.find(collection, selector);
+    this.selCursor = mingo.find(collection, selector);
+    AbstractCursor.applyOptions(this, options);
+  }
+
+  public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
+    this.cursor.sort(this.sortingMap(key, direction));
+    return super.sort(key, direction);
   }
 
   public skip(count: number): Cursor<T> {
     this.cursor.skip(count);
-    return this;
+    return super.skip(count);
   }
 
   public limit(count: number): Cursor<T> {
     this.cursor.limit(count);
-    return this;
+    return super.limit(count);
   }
 
   public async toArray(): Promise<T[]> {
@@ -44,11 +62,8 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
 
-  public find<T extends U = any>(selector: object = {}): Cursor<T> {
-    return new MemoryCollectionCursor<T>(
-      mingo.find(this.collection, selector),
-      mingo.find(this.collection, selector)
-    );
+  public find<T extends U = any>(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
+    return new MemoryCollectionCursor<T>(this.collection, selector, options);
   }
 
   public async findOne(selector: object): Promise<any> {

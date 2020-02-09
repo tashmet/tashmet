@@ -1,51 +1,15 @@
 import mingo from 'mingo';
-import {Cursor, QueryOptions, SortingDirection} from './interfaces';
+import {Cursor, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
 const assignDeep = require('assign-deep');
 
 export abstract class AbstractCursor<T> implements Cursor<T> {
   public constructor(
     protected selector: object,
-    options: QueryOptions = {},
-  ) {
-    AbstractCursor.applyOptions(this, options);
-  }
-
-  public abstract sort(key: string, direction: SortingDirection): Cursor<T>;
-
-  public abstract skip(count: number): Cursor<T>;
-
-  public abstract limit(count: number): Cursor<T>;
-
-  public abstract toArray(): Promise<T[]>;
-
-  public abstract count(applySkipLimit?: boolean): Promise<number>;
-
-  public static applyOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
-    if (options.sort) {
-      for (const [key, direction] of options.sort) {
-        cursor.sort(key, direction);
-      }
-    }
-    if (options.skip) {
-      cursor.skip(options.skip);
-    }
-    if (options.limit) {
-      cursor.limit(options.limit);
-    }
-    return cursor;
-  }
-}
-
-export abstract class CursorWithOptions<T> extends AbstractCursor<T> {
-  public constructor(
-    selector: object,
     protected options: QueryOptions = {},
-  ) {
-    super(selector);
-  }
+  ) {}
 
-  public sort(key: string, direction: SortingDirection): Cursor<T> {
-    return this.extendOptions({sort: [[key, direction]]});
+  public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
+    return this.extendOptions({sort: this.sortingMap(key, direction)});
   }
 
   public skip(count: number): Cursor<T> {
@@ -56,10 +20,38 @@ export abstract class CursorWithOptions<T> extends AbstractCursor<T> {
     return this.extendOptions({limit: count});
   }
 
+  public abstract toArray(): Promise<T[]>;
+
+  public abstract count(applySkipLimit?: boolean): Promise<number>;
+
+  public static applyOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
+    if (options.sort) {
+      cursor.sort(options.sort);
+    }
+    if (options.skip) {
+      cursor.skip(options.skip);
+    }
+    if (options.limit) {
+      cursor.limit(options.limit);
+    }
+    return cursor;
+  }
+
+  protected sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {
+    if (typeof key === 'string') {
+      return {[key]: direction || 1};
+    }
+    if (Array.isArray(key)) {
+      return key.reduce((o, k) => Object.assign(o, {[k]: direction || 1}), {});
+    }
+    return key;
+  }
+  
   private extendOptions(options: QueryOptions): Cursor<T> {
-    assignDeep(this.options, options);
+    Object.assign(this.options, options);
     return this;
   }
+
 }
 
 export class Selector {

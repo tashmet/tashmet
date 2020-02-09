@@ -1,4 +1,4 @@
-import {Collection, Cursor, QueryOptions, CursorWithOptions, AbstractCursor} from '@ziqquratu/database';
+import {Collection, Cursor, QueryOptions, AbstractCursor} from '@ziqquratu/database';
 
 export abstract class CacheEvaluator {
   public add(doc: any): void {
@@ -22,7 +22,7 @@ export abstract class CacheEvaluator {
   }
 }
 
-export class CachingCursor extends CursorWithOptions<any> {
+export class CachingCursor extends AbstractCursor<any> {
   public constructor(
     private evaluators: CacheEvaluator[],
     private cache: Collection,

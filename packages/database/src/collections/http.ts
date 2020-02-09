@@ -1,5 +1,5 @@
 import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions} from '../interfaces';
-import {CursorWithOptions} from '../cursor';
+import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 
 const io = require('socket.io-client');
@@ -23,13 +23,14 @@ export const queryParams = (selector: object, options: QueryOptions): {[name: st
   return params;
 }
 
-export class HttpCollectionCursor<T = any> extends CursorWithOptions<T> {
+export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
     private queryParams: MakeQueryParams,
     private path: string,
     selector: object = {},
+    options: QueryOptions = {},
   ) {
-    super(selector);
+    super(selector, options);
   }
 
   public async toArray(): Promise<T[]> {

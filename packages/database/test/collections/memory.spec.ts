@@ -118,12 +118,25 @@ describe('MemoryCollection', () => {
       const docs = await col.find({_id: {$in: [1, 2, 7]}}).toArray();
       expect(docs).to.have.length(2);
     });
-    it('should do sorting', async () => {
-      const docs = await col.find().sort('item.category', 1).sort('item.type', 1).toArray();
+    it('should do sorting with key', async () => {
+      const docs = await col.find().sort('amount', 1).toArray();
+      expect(docs[0].item.type).to.eql('chiffon');
+    });
+    it('should do sorting with map', async () => {
+      const docs = await col.find().sort({'item.category': 1, 'item.type': 1}).toArray();
+      expect(docs[0].item.type).to.eql('carrot');
+    });
+    it('should do sorting with array', async () => {
+      const docs = await col.find().sort(['item.category', 'item.type'], 1).toArray();
       expect(docs[0].item.type).to.eql('carrot');
     });
     it('should do offset and limiting', async () => {
       const docs = await col.find().sort('amount', -1).skip(1).limit(1).toArray();
+      expect(docs).to.have.length(1);
+      expect(docs[0].item.type).to.eql('lemon');
+    });
+    it('should accept query options', async () => {
+      const docs = await col.find({}, {sort: {amount: -1}, skip: 1, limit: 1}).toArray();
       expect(docs).to.have.length(1);
       expect(docs[0].item.type).to.eql('lemon');
     });

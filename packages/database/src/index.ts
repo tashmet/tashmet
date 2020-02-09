@@ -2,7 +2,7 @@ import {component, Logger, Provider} from '@ziqquratu/core';
 
 export {memory, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
-export {AbstractCursor, CursorWithOptions, Selector} from './cursor';
+export {AbstractCursor, Selector} from './cursor';
 export * from './interfaces';
 
 import {DatabaseConfig} from './interfaces';
