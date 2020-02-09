@@ -25,8 +25,8 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
         }
       },
       methods: {
-        find: (next, selector) => {
-          return new CachingCursor(evaluators, cache, next, selector || {});
+        find: (next, selector, options) => {
+          return new CachingCursor(evaluators, cache, next, selector, options);
         },
       }
     }

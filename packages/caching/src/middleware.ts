@@ -27,9 +27,10 @@ export class CachingCursor extends AbstractCursor<any> {
     private evaluators: CacheEvaluator[],
     private cache: Collection,
     private findInNext: (selector: object) => Cursor<any>,
-    selector: object
+    selector: object = {},
+    options: QueryOptions = {},
   ) {
-    super(selector);
+    super(selector, options);
   }
 
   public async count(applySkipLimit = true) {

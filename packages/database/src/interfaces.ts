@@ -180,11 +180,31 @@ export interface EventMiddleware<T = any> {
 }
 
 export interface MethodMiddleware<T = any> {
-  find?: (next: (selector?: object) => Cursor<T>, selector?: object) => Cursor<T>;
-  findOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T>;
-  upsert?: (next: (doc: T) => Promise<T>, doc: T) => Promise<T>;
-  deleteOne?: (next: (selector: object) => Promise<T>, selector: object) => Promise<T | null>;
-  deleteMany?: (next: (selector: object) => Promise<T[]>, selector: object) => Promise<T[]>;
+  find?: (
+    next: (selector?: object, options?: QueryOptions) => Cursor<T>,
+    selector?: object,
+    options?: QueryOptions
+  ) => Cursor<T>;
+
+  findOne?: (
+    next: (selector: object) => Promise<T>,
+    selector: object
+  ) => Promise<T>;
+
+  upsert?: (
+    next: (doc: T) => Promise<T>,
+    doc: T
+  ) => Promise<T>;
+
+  deleteOne?: (
+    next: (selector: object) => Promise<T>,
+    selector: object
+  ) => Promise<T | null>;
+
+  deleteMany?: (
+    next: (selector: object) => Promise<T[]>,
+    selector: object
+  ) => Promise<T[]>;
 }
 
 export interface Middleware<T = any> {
