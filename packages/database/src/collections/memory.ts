@@ -7,39 +7,36 @@ import {
   SortingKey,
   SortingDirection
 } from '../interfaces';
-import {AbstractCursor} from '../cursor';
+import {applyQueryOptions, sortingMap} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
-export class MemoryCollectionCursor<T> extends AbstractCursor<T> {
+export class MemoryCollectionCursor<T> implements Cursor<T> {
   private cursor: mingo.Cursor<T>;
-  private selCursor: mingo.Cursor<T>;
 
   public constructor(
-    collection: any[],
-    selector: any,
+    private collection: any[],
+    private selector: any,
     options: QueryOptions,
   ) {
-    super(selector, options);
     this.cursor = mingo.find(collection, selector);
-    this.selCursor = mingo.find(collection, selector);
-    AbstractCursor.applyOptions(this, options);
+    applyQueryOptions(this, options);
   }
 
   public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
-    this.cursor.sort(AbstractCursor.sortingMap(key, direction));
-    return super.sort(key, direction);
+    this.cursor.sort(sortingMap(key, direction));
+    return this;
   }
 
   public skip(count: number): Cursor<T> {
     this.cursor.skip(count);
-    return super.skip(count);
+    return this;
   }
 
   public limit(count: number): Cursor<T> {
     this.cursor.limit(count);
-    return super.limit(count);
+    return this;
   }
 
   public async next(): Promise<T | null> {
@@ -55,7 +52,7 @@ export class MemoryCollectionCursor<T> extends AbstractCursor<T> {
   }
 
   public async count(applySkipLimit = true): Promise<number> {
-    return applySkipLimit ? this.cursor.count() : this.selCursor.count();
+    return applySkipLimit ? this.cursor.count() : mingo.find(this.collection, this.selector).count();
   }
 }
 

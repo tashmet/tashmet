@@ -1,4 +1,4 @@
-import {Collection, Cursor, QueryOptions, AbstractCursor} from '@ziqquratu/database';
+import {Collection, Cursor, QueryOptions, applyQueryOptions, AbstractCursor} from '@ziqquratu/database';
 
 export abstract class CacheEvaluator {
   public add(doc: any): void {
@@ -37,11 +37,11 @@ export class CachingCursor extends AbstractCursor<any> {
       ? this.cache.find(this.selector)
       : this.findInNext(this.selector);
 
-    return AbstractCursor.applyOptions(cursor, this.options).count(applySkipLimit);
+    return applyQueryOptions(cursor, this.options).count(applySkipLimit);
   }
 
   public async toArray(): Promise<any[]> {
-    const cacheCursor = AbstractCursor.applyOptions(this.cache.find(this.selector), this.options);
+    const cacheCursor = applyQueryOptions(this.cache.find(this.selector), this.options);
 
     if (!this.isCached()) {
       const docs = await this.findInNext(this.selector).toArray();
