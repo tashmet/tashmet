@@ -190,9 +190,9 @@ export interface MethodMiddleware<T = any> {
   ) => Cursor<T>;
 
   findOne?: (
-    next: (selector: object) => Promise<T>,
+    next: (selector: object) => Promise<T | null>,
     selector: object
-  ) => Promise<T>;
+  ) => Promise<T | null>;
 
   insertOne?: (
     next: (doc: T) => Promise<T>,
