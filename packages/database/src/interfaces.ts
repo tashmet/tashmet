@@ -38,7 +38,7 @@ export interface QueryOptions {
   /**
    * Skip the first number of documents from the results.
    */
-  offset?: number;
+  skip?: number;
 
   /**
    * Limit the number of items that are fetched.
