@@ -8,16 +8,13 @@ export abstract class Item<T = any> extends View<T> {
   protected _data: T | null;
   public readonly limit = 1;
 
-  /**
-   * The document in this view.
-   */
+  /** The document in this view */
   public get data(): T | null {
     return this._data;
   }
 
   public async refresh(): Promise<T | null> {
-    const result = await makeCursor(this, this.collection).toArray();
-    this._data = result.length > 0 ? result[0] : null;
+    this._data = await makeCursor(this, this.collection).next();
     this.emit('item-updated', this._data);
     return this._data;
   }
