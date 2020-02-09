@@ -40,7 +40,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 
   public async next(): Promise<T | null> {
-    return this.cursor.next();
+    return this.cursor.next() || null;
   }
   
   public async hasNext(): Promise<boolean> {

@@ -140,6 +140,13 @@ describe('MemoryCollection', () => {
       expect(docs).to.have.length(1);
       expect(docs[0].item.type).to.eql('lemon');
     });
+    it('should be able to iterate', async () => {
+      const cursor = col.find().sort('amount', -1).skip(1).limit(1);
+      expect(await cursor.hasNext()).to.be.true;
+      expect((await cursor.next()).item.type).to.eql('lemon');
+      expect(await cursor.hasNext()).to.be.false;
+      expect(await cursor.next()).to.eql(null);
+    });
   });
 
   describe('remove', () => {
