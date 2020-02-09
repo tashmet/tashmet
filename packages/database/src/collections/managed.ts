@@ -25,7 +25,7 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     });
 
     for (const mw of middleware.reverse()) {
-      this.use(mw.methods || {}, ['find', 'findOne', 'upsert', 'deleteOne', 'deleteMany']);
+      this.use(mw.methods || {});
     }
     for (const mw of middleware) {
       if (mw.events) {
@@ -87,8 +87,8 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     (this as any)[methodName] = (...args: any[]) => fn(f.bind(this), ...args);
   }
 
-  private use(mw: any, methodNames: string[]) {
-    for (const method of methodNames) {
+  private use(mw: any) {
+    for (const method of Object.keys(mw)) {
       if (typeof mw[method] === 'function' && (this as any)[method]) {
         this.proxy(mw[method], method);
       }
