@@ -3,7 +3,7 @@ import {expect} from 'chai';
 import 'mocha';
 
 describe('QueryCache', () => {
-  let queryCache = new QueryCache();
+  const queryCache = new QueryCache();
 
   it('should initially not have a given query cached', () => {
     expect(queryCache.isCached({})).to.eql(false);

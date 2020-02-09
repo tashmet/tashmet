@@ -3,7 +3,7 @@ import {expect} from 'chai';
 import 'mocha';
 
 describe('IDCache', () => {
-  let idCache = new IDCache();
+  const idCache = new IDCache();
 
   describe('single id', () => {
     it('should initially not have a given document cached', () => {
@@ -23,7 +23,7 @@ describe('IDCache', () => {
       expect(idCache.isCached({_id: {$in: ['foo']}})).to.eql(true);
     });
     it('should optimize partially cached query', () => {
-      let selector = {_id: {$in: ['foo', 'bar']}};
+      const selector = {_id: {$in: ['foo', 'bar']}};
       idCache.optimize(selector);
       expect(selector).to.deep.equal({_id: {$in: ['bar']}});
     });
