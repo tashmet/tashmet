@@ -204,6 +204,13 @@ export interface MethodMiddleware<T = any> {
     docs: T[]
   ) => Promise<T[]>;
 
+  replaceOne?: (
+    next: (selector: object, doc: T, options?: ReplaceOneOptions) => Promise<T | null>,
+    selector: object,
+    doc: T,
+    options?: ReplaceOneOptions
+  ) => Promise<T | null>;
+
   deleteOne?: (
     next: (selector: object) => Promise<T>,
     selector: object
