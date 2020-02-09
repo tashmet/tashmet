@@ -28,7 +28,7 @@ export class MemoryCollectionCursor<T> extends AbstractCursor<T> {
   }
 
   public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
-    this.cursor.sort(this.sortingMap(key, direction));
+    this.cursor.sort(AbstractCursor.sortingMap(key, direction));
     return super.sort(key, direction);
   }
 

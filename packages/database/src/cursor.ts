@@ -9,7 +9,7 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
   ) {}
 
   public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
-    return this.extendOptions({sort: this.sortingMap(key, direction)});
+    return this.extendOptions({sort: AbstractCursor.sortingMap(key, direction)});
   }
 
   public skip(count: number): Cursor<T> {
@@ -37,7 +37,7 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
     return cursor;
   }
 
-  protected sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {
+  public static sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {
     if (typeof key === 'string') {
       return {[key]: direction || 1};
     }
