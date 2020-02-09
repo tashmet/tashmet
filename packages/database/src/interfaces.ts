@@ -194,7 +194,7 @@ export interface MethodMiddleware<T = any> {
     selector: object
   ) => Promise<T>;
 
-  upsert?: (
+  insertOne?: (
     next: (doc: T) => Promise<T>,
     doc: T
   ) => Promise<T>;
