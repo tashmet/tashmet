@@ -199,6 +199,11 @@ export interface MethodMiddleware<T = any> {
     doc: T
   ) => Promise<T>;
 
+  insertMany?: (
+    next: (docs: T[]) => Promise<T[]>,
+    docs: T[]
+  ) => Promise<T[]>;
+
   deleteOne?: (
     next: (selector: object) => Promise<T>,
     selector: object
