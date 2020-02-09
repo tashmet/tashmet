@@ -37,6 +37,9 @@ export interface Cursor<T> {
   /** Check if there is any document still available in the cursor */
   hasNext(): Promise<boolean>;
 
+  /** Iterates over all the documents for this cursor using the iterator, callback pattern */
+  forEach(iterator: (doc: T) => void): Promise<void>;
+
   /**
    * Get the count of documents for this cursor
    *

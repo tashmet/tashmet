@@ -47,6 +47,10 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
     return this.cursor.hasNext();
   }
 
+  public async forEach(iterator: (doc: T) => void): Promise<void> {
+    return this.cursor.forEach(iterator);
+  }
+
   public async toArray(): Promise<T[]> {
     return this.cursor.all();
   }

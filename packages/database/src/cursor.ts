@@ -55,6 +55,10 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
     return false;
   }
 
+  public async forEach(iterator: (doc: T) => void): Promise<void> {
+    return (await this.toArray()).forEach(iterator);
+  }
+
   private extendOptions(options: QueryOptions): Cursor<T> {
     Object.assign(this.options, options);
     return this;
