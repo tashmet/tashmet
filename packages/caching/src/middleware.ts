@@ -26,7 +26,7 @@ export class CachingCursor extends AbstractCursor<any> {
   public constructor(
     private evaluators: CacheEvaluator[],
     private cache: Collection,
-    private next: (selector: object) => Cursor<any>,
+    private findInNext: (selector: object) => Cursor<any>,
     selector: object
   ) {
     super(selector);
@@ -35,7 +35,7 @@ export class CachingCursor extends AbstractCursor<any> {
   public async count(applySkipLimit = true) {
     const cursor = this.evaluators.some(e => e.isCached(this.selector))
       ? this.cache.find(this.selector)
-      : this.next(this.selector);
+      : this.findInNext(this.selector);
 
     return AbstractCursor.applyOptions(cursor, this.options).count(applySkipLimit);
   }
@@ -44,7 +44,7 @@ export class CachingCursor extends AbstractCursor<any> {
     const cacheCursor = AbstractCursor.applyOptions(this.cache.find(this.selector), this.options);
 
     if (!this.isCached()) {
-      const docs = await this.next(this.selector).toArray();
+      const docs = await this.findInNext(this.selector).toArray();
       for (const doc of docs) {
         await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
       }

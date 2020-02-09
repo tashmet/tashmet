@@ -30,6 +30,14 @@ export interface Cursor<T> {
   toArray(): Promise<T[]>;
 
   /**
+   * Get the next available document from the cursor, returns null if no more documents are available
+   */
+  next(): Promise<T | null>;
+
+  /** Check if there is any document still available in the cursor */
+  hasNext(): Promise<boolean>;
+
+  /**
    * Get the count of documents for this cursor
    *
    * @param applySkipLimit Should the count command apply limit and skip settings on the cursor.

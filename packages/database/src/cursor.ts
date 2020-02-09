@@ -24,6 +24,14 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
 
   public abstract count(applySkipLimit?: boolean): Promise<number>;
 
+  public async next(): Promise<T | null> {
+    return null;
+  }
+
+  public async hasNext(): Promise<boolean> {
+    return false;
+  }
+
   public static applyOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
     if (options.sort) {
       cursor.sort(options.sort);

@@ -42,6 +42,14 @@ export class MemoryCollectionCursor<T> extends AbstractCursor<T> {
     return super.limit(count);
   }
 
+  public async next(): Promise<T | null> {
+    return this.cursor.next();
+  }
+  
+  public async hasNext(): Promise<boolean> {
+    return this.cursor.hasNext();
+  }
+
   public async toArray(): Promise<T[]> {
     return this.cursor.all();
   }
