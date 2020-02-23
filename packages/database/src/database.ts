@@ -57,7 +57,7 @@ export class DatabaseService extends EventEmitter implements Database {
 
       const collection = new ManagedCollection(
         source, middlewareFactories.reduce((middleware, middlewareFactory) => {
-          return middleware.concat(middlewareFactory.create(source));
+          return middleware.concat(middlewareFactory.create(source, this));
         }, [] as Middleware[]));
 
       collection.on('document-upserted', (doc: any) => {

@@ -231,7 +231,7 @@ export interface Middleware<T = any> {
 }
 
 export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {
-  public abstract create(source: Collection): Middleware<T> | Middleware<T>[];
+  public abstract create(source: Collection, database: Database): Middleware<T> | Middleware<T>[];
 }
 
 
