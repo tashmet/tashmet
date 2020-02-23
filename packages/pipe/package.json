@@ -1,13 +1,13 @@
 {
   "name": "@ziqquratu/pipe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",
-    "test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
+    "test": "exit 0"
   },
   "keywords": [
     "ziqquratu",
@@ -29,6 +29,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@ziqquratu/core": "^1.0.0-alpha.2",
     "@ziqquratu/database": "^1.0.0"
   },
   "devDependencies": {
