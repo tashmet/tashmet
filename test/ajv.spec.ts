@@ -91,4 +91,21 @@ describe('ajv', () => {
       expect(doc.productName).to.eql('foo');
     });
   });
+
+  describe('replaceOne', () => {
+    beforeEach(async () => {
+      await collection.insertOne({productId: 1, productName: 'foo'});
+    });
+
+    it('should fail if new document does not validate', async () => {
+      return expect(collection.replaceOne({productId: 1}, {productId: 1, productName: 2}))
+        .to.eventually.be.rejectedWith("should be string");
+    });
+    it('should replace document if validation passed', async () => {
+      const res = await collection.replaceOne({productId: 1}, {productId: 1, productName: 'bar'});
+      expect(res.productName).to.eql('bar');
+      const doc = await collection.findOne({productId: 1});
+      expect(doc.productName).to.eql('bar');
+    });
+  });
 });
