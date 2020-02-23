@@ -1,0 +1,37 @@
+{
+  "name": "@ziqquratu/pipe",
+  "version": "0.1.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
+  },
+  "keywords": [
+    "ziqquratu",
+    "pipe"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ziqquratu/ziqquratu"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@ziqquratu/database": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.8"
+  }
+}
