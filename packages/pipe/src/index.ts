@@ -27,22 +27,22 @@ export class DocumentPipeMiddlewareFactory extends MiddlewareFactory {
     const mw: Required<Middleware> = {events: {}, methods: {}};
     const pipe = this.config.pipe.create(source, database);
 
-    if ('insertOne' in this.config.methods) {
-      mw.methods.insertOne = (next, doc) => next(pipe.process(doc));
+    if (this.config.methods.includes('insertOne')) {
+      mw.methods.insertOne = async (next, doc) => next(await pipe.process(doc));
     }
-    if ('insertMany' in this.config.methods) {
+    if (this.config.methods.includes('insertMany')) {
       mw.methods.insertMany = async (next, docs) =>
         next(await Promise.all(docs.map(d => pipe.process(d))));
     }
-    if ('replaceOne' in this.config.methods) {
-      mw.methods.replaceOne = (next, selector, doc, options) =>
-        next(selector, pipe.process(doc), options);
+    if (this.config.methods.includes('replaceOne')) {
+      mw.methods.replaceOne = async (next, selector, doc, options) =>
+        next(selector, await pipe.process(doc), options);
     }
-    if ('document-upserted' in this.config.events) {
-      mw.events['document-upserted'] = (next, doc) => next(pipe.process(doc));
+    if (this.config.events.includes('document-upserted')) {
+      mw.events['document-upserted'] = async (next, doc) => next(await pipe.process(doc));
     }
-    if ('document-removed' in this.config.events) {
-      mw.events['document-removed'] = (next, doc) => next(pipe.process(doc));
+    if (this.config.events.includes('document-removed')) {
+      mw.events['document-removed'] = async (next, doc) => next(await pipe.process(doc));
     }
     return mw;
   }
