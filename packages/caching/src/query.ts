@@ -2,14 +2,12 @@ import {QueryOptions} from '@ziqquratu/database';
 import {CacheEvaluator} from './middleware';
 
 export class QueryCache extends CacheEvaluator {
-  protected cachedQueries: {[query: string]: any} = {};
-
   public isCached(selector?: any, options?: QueryOptions): boolean {
-    return this.hash(selector, options) in this.cachedQueries;
+    return this.isValid(this.hash(selector, options));
   }
 
   public success(selector?: any, options?: QueryOptions) {
-    this.cachedQueries[this.hash(selector, options)] = options;
+    this.cache(this.hash(selector, options));
   }
 
   protected hash(selector: Record<string, any>, options?: QueryOptions): string {

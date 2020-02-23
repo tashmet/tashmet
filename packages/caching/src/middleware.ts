@@ -1,6 +1,10 @@
 import {Collection, Cursor, QueryOptions, applyQueryOptions, AbstractCursor} from '@ziqquratu/database';
 
 export abstract class CacheEvaluator {
+  private records: Record<string, number> = {};
+
+  public constructor(private ttl?: number) {}
+
   public add(doc: any): void {
      return;
   }
@@ -19,6 +23,26 @@ export abstract class CacheEvaluator {
 
   public success(selector: any, options?: QueryOptions): void {
     return;
+  }
+
+  protected cache(key: string) {
+    this.records[key] = this.now;
+  }
+  
+  protected invalidate(key: string) {
+    delete this.records[key];
+  }
+  
+  protected isValid(key: string): boolean {
+    return key in this.records && !this.isExpired(this.records[key]);
+  }
+
+  private isExpired(timestamp: number): boolean {
+    return this.ttl !== undefined && this.now - timestamp > (this.ttl * 1000)
+  }
+
+  private get now(): number {
+    return new Date().getTime();
   }
 }
 

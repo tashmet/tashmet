@@ -3,9 +3,17 @@ import {IDCache} from './id';
 import {QueryCache} from './query';
 import {CachingCursor} from './middleware';
 
+export interface CachingConfig {
+  ttl?: number;
+}
+
 export class CachingMiddlewareFactory extends MiddlewareFactory {
+  public constructor(
+    private config: CachingConfig
+  ) { super(); }
+
   public create(source: Collection): Middleware {
-    const evaluators = [new QueryCache(), new IDCache()];
+    const evaluators = [new QueryCache(this.config.ttl), new IDCache(this.config.ttl)];
     const cache = new MemoryCollection(source.name);
 
     for (const evaluator of evaluators) {
@@ -33,4 +41,4 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
   }
 }
 
-export const caching = () => new CachingMiddlewareFactory();
+export const caching = (config?: CachingConfig) => new CachingMiddlewareFactory(config || {});
