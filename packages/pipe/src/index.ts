@@ -44,6 +44,14 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
                 const doc = await target.next();
                 return doc ? pipe.process(doc) : null;
               };
+            } else if (propKey === 'forEach') {
+              return async (iterator: (doc: any) => void) => {
+                const promises: Promise<any>[] = [];
+                await target.forEach(doc => promises.push(pipe.process(doc).then(iterator)));
+                return Promise.all(promises);
+              };
+            } else {
+              return (...args: any[]) => (target as any)[propKey].apply(target, args);
             }
           },
         });
