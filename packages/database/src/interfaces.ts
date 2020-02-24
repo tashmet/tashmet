@@ -11,10 +11,10 @@ export type SortingKey = string | string[] | SortingMap;
 export interface Cursor<T> {
   /**
    * Sets the sort order of the cursor query.
-   * 
+   *
    * If the key is either a string or list of strings the direction will be given by the second
    * argument or default to ascending order.
-   * 
+   *
    * If the key is given as a key-value map the sorting direction for each of the keys will be
    * determined by its value and the direction argument can be omitted.
    */
@@ -314,5 +314,5 @@ export interface Database {
 }
 
 export abstract class CollectionFactory<T = any> extends Factory<Collection<T>> {
-  public abstract create(name: string): Collection<T>;
+  public abstract create(name: string, database: Database): Collection<T>;
 }

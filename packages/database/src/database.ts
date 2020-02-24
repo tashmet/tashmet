@@ -48,15 +48,15 @@ export class DatabaseService extends EventEmitter implements Database {
       let middlewareFactories = this.config.use || [];
 
       if (factory instanceof CollectionFactory) {
-        source = factory.create(name);
+        source = factory.create(name, this);
       } else {
-        source = factory.source.create(name);
+        source = factory.source.create(name, this);
         middlewareFactories = (factory.useBefore || []).concat(
           middlewareFactories, factory.use || []);
       }
 
       const collection = new ManagedCollection(
-        source, middlewareFactories.reduce((middleware, middlewareFactory) => {
+        name, source, middlewareFactories.reduce((middleware, middlewareFactory) => {
           return middleware.concat(middlewareFactory.create(source, this));
         }, [] as Middleware[]));
 

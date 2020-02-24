@@ -3,6 +3,7 @@ import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions, QueryO
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
+    public readonly name: string,
     private source: Collection<T>,
     middleware: Middleware[]
   ) {
@@ -36,10 +37,6 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
         }
       }
     }
-  }
-
-  public get name(): string {
-    return this.source.name;
   }
 
   public find(selector: object = {}, options: QueryOptions = {}): Cursor<any> {
