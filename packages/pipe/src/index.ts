@@ -1,7 +1,7 @@
 import {Factory} from '@ziqquratu/core';
 import {Middleware, MiddlewareFactory, Collection, Database} from '@ziqquratu/database';
 
-export type PipeConnectionMethod = 'insertOne' | 'insertMany' | 'replaceOne' | 'findOne';
+export type PipeConnectionMethod = 'insertOne' | 'insertMany' | 'replaceOne' | 'find' | 'findOne';
 export type PipeConnectionEvent = 'document-upserted' | 'document-removed';
 
 export interface Pipe {
@@ -29,6 +29,25 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
 
     if (this.config.methods.includes('findOne')) {
       mw.methods.findOne = async (next, selector) => pipe.process(await next(selector));
+    }
+    if (this.config.methods.includes('find')) {
+      mw.methods.find = (next, selector, options) => {
+        const cursor = next(selector, options);
+
+        return new Proxy(cursor, {
+          get: (target, propKey) => {
+            if (propKey === 'toArray') {
+              return async () =>
+                Promise.all((await target.toArray()).map(doc => pipe.process(doc)));
+            } else if (propKey === 'next') {
+              return async () => {
+                const doc = await target.next();
+                return doc ? pipe.process(doc) : null;
+              };
+            }
+          },
+        });
+      }
     }
     if (this.config.methods.includes('insertOne')) {
       mw.methods.insertOne = async (next, doc) => next(await pipe.process(doc));
