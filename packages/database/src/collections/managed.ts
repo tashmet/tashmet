@@ -39,39 +39,39 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     }
   }
 
-  public find(selector: object = {}, options: QueryOptions = {}): Cursor<any> {
+  public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
     return this.source.find(selector, options);
   }
 
-  public async findOne(selector: object): Promise<any> {
+  public async findOne(selector: object): Promise<T | null> {
     return this.source.findOne(selector);
   }
 
-  public insertOne(doc: any): Promise<any> {
+  public insertOne(doc: T): Promise<T> {
     return this.source.insertOne(doc);
   }
 
-  public insertMany(docs: any[]): Promise<any[]> {
+  public insertMany(docs: T[]): Promise<T[]> {
     return this.source.insertMany(docs);
   }
 
-  public async replaceOne(selector: object, doc: any, options?: ReplaceOneOptions): Promise<any> {
+  public async replaceOne(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T | null> {
     return this.source.replaceOne(selector, doc, options);
   }
 
-  public deleteOne(selector: object): Promise<any> {
+  public deleteOne(selector: object): Promise<T | null> {
     return this.source.deleteOne(selector);
   }
 
-  public deleteMany(selector: object): Promise<any[]> {
+  public deleteMany(selector: object): Promise<T[]> {
     return this.source.deleteMany(selector);
   }
 
-  private emitDocumentUpserted(doc: any) {
+  private emitDocumentUpserted(doc: T) {
     this.emit('document-upserted', doc);
   }
 
-  private emitDocumentRemoved(doc: any) {
+  private emitDocumentRemoved(doc: T) {
     this.emit('document-removed', doc);
   }
 

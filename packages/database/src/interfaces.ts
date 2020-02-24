@@ -76,7 +76,7 @@ export interface ReplaceOneOptions {
 /**
  * A collection of documents.
  */
-export interface Collection<U = any> {
+export interface Collection<T = any> {
   /**
    * Name of the collection.
    */
@@ -91,7 +91,7 @@ export interface Collection<U = any> {
    * @returns A promise for the inserted document.
    * @throws Error if a document with the same ID already exists
    */
-  insertOne<T extends U = any>(doc: T): Promise<T>;
+  insertOne(doc: T): Promise<T>;
 
   /**
    * Insert multiple documents into the collection
@@ -103,7 +103,7 @@ export interface Collection<U = any> {
    * @returns A promise for the inserted documents
    * @throws Error if a document with the same ID already exists
    */
-  insertMany<T extends U = any>(docs: T[]): Promise<T[]>;
+  insertMany(docs: T[]): Promise<T[]>;
 
   /**
    * Replace a document in a collection with another document
@@ -113,7 +113,7 @@ export interface Collection<U = any> {
    * @param options Optional settings
    * @returns A promise for the new document
    */
-  replaceOne<T extends U = any>(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T>;
+  replaceOne(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T | null>;
 
   /**
    * Find documents in the collection.
@@ -121,7 +121,7 @@ export interface Collection<U = any> {
    * @param selector The selector which documents are matched against.
    * @returns A cursor.
    */
-  find<T extends U = any>(selector?: object, options?: QueryOptions): Cursor<T>;
+  find(selector?: object, options?: QueryOptions): Cursor<T>;
 
   /**
    * Find a single document in the collection.
@@ -129,7 +129,7 @@ export interface Collection<U = any> {
    * @param selector The selector which documents are matched against.
    * @returns A promise for the first matching document if one was found, null otherwise
    */
-  findOne<T extends U = any>(selector: object): Promise<T | null>;
+  findOne(selector: object): Promise<T | null>;
 
   /**
    * Delete a document from a collection
@@ -137,7 +137,7 @@ export interface Collection<U = any> {
    * @param selector The Filter used to select the document to remove
    * @returns The removed document if found, null otherwise
    */
-  deleteOne<T extends U = any>(selector: object): Promise<T | null>;
+  deleteOne(selector: object): Promise<T | null>;
 
   /**
    * Delete multiple documents from a collection
@@ -145,25 +145,25 @@ export interface Collection<U = any> {
    * @param selector The Filter used to select the documents to remove
    * @returns A list of all the documents that were removed
    */
-  deleteMany<T extends U = any>(selector: object): Promise<T[]>;
+  deleteMany(selector: object): Promise<T[]>;
 
   /**
    * Listen for when a document in the collection has been added or changed.
    * The callback supplies the document.
    */
-  on(event: 'document-upserted', fn: (obj: any) => void): Collection<U>;
+  on(event: 'document-upserted', fn: (obj: any) => void): Collection<T>;
 
   /**
    * Listen for when a document in the collection has been removed.
    * The callback supplies the removed document.
    */
-  on(event: 'document-removed', fn: (obj: any) => void): Collection<U>;
+  on(event: 'document-removed', fn: (obj: any) => void): Collection<T>;
 
   /**
    * Listen for when an error was generated when loading or saving a document
    * in the collection. The callback supplies the document error.
    */
-  on(event: 'document-error', fn: (err: DocumentError) => void): Collection<U>;
+  on(event: 'document-error', fn: (err: DocumentError) => void): Collection<T>;
 
   emit(event: string, ...args: any[]): void;
 }
