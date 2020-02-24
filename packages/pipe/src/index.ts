@@ -4,9 +4,7 @@ import {Middleware, MiddlewareFactory, Collection, Database} from '@ziqquratu/da
 export type PipeConnectionMethod = 'insertOne' | 'insertMany' | 'replaceOne' | 'find' | 'findOne';
 export type PipeConnectionEvent = 'document-upserted' | 'document-removed';
 
-export interface Pipe {
-  process(doc: any): Promise<any>;
-}
+export type Pipe<In = any, Out = In> = (doc: In) => Promise<Out>;
 
 export abstract class PipeFactory extends Factory<Pipe> {
   public abstract create(source: Collection, database: Database): Pipe;
@@ -30,7 +28,7 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
       : this.config.pipe;
 
     if (this.hasMethod('findOne')) {
-      mw.methods.findOne = async (next, selector) => pipe.process(await next(selector));
+      mw.methods.findOne = async (next, selector) => pipe(await next(selector));
     }
     if (this.hasMethod('find')) {
       mw.methods.find = (next, selector, options) => {
@@ -41,16 +39,16 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
             switch (propKey) {
               case 'toArray':
                 return async () =>
-                  Promise.all((await target.toArray()).map(doc => pipe.process(doc)));
+                  Promise.all((await target.toArray()).map(doc => pipe(doc)));
               case 'next':
                 return async () => {
                   const doc = await target.next();
-                  return doc ? pipe.process(doc) : null;
+                  return doc ? pipe(doc) : null;
                 };
               case 'forEach':
                 return async (it: (doc: any) => void) => {
                   const promises: Promise<any>[] = [];
-                  await target.forEach(doc => promises.push(pipe.process(doc).then(it)));
+                  await target.forEach(doc => promises.push(pipe(doc).then(it)));
                   return Promise.all(promises);
                 };
               default:
@@ -61,21 +59,21 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
       }
     }
     if (this.hasMethod('insertOne')) {
-      mw.methods.insertOne = async (next, doc) => next(await pipe.process(doc));
+      mw.methods.insertOne = async (next, doc) => next(await pipe(doc));
     }
     if (this.hasMethod('insertMany')) {
       mw.methods.insertMany = async (next, docs) =>
-        next(await Promise.all(docs.map(d => pipe.process(d))));
+        next(await Promise.all(docs.map(d => pipe(d))));
     }
     if (this.hasMethod('replaceOne')) {
       mw.methods.replaceOne = async (next, selector, doc, options) =>
-        next(selector, await pipe.process(doc), options);
+        next(selector, await pipe(doc), options);
     }
     if (this.hasEvent('document-upserted')) {
-      mw.events['document-upserted'] = async (next, doc) => next(await pipe.process(doc));
+      mw.events['document-upserted'] = async (next, doc) => next(await pipe(doc));
     }
     if (this.hasEvent('document-removed')) {
-      mw.events['document-removed'] = async (next, doc) => next(await pipe.process(doc));
+      mw.events['document-removed'] = async (next, doc) => next(await pipe(doc));
     }
     return mw;
   }

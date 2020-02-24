@@ -14,37 +14,26 @@ export class AjvError extends Error {
   }
 }
 
-export class AjvPipe implements Pipe {
-  private validate: Ajv.ValidateFunction;
-
-  public constructor(
-    private ajv: Ajv.Ajv,
-    private database: Database,
-    private config: AjvConfig
-  ) {}
-
-  public async process(doc: any): Promise<any> {
-    if (!this.validate) {
-      this.validate = this.ajv.compile(await this.schema());
-    }
-    if (!this.validate(doc)) {
-      throw new AjvError(this.validate.errors || []);
-    }
-    return doc;
-  }
-
-  private schema(): Promise<any> {
-    return this.database.collection(this.config.collection).findOne({_id: this.config.schema});
-  }
-}
-
 export class AjvPipeFactory extends PipeFactory {
   public constructor(private config: AjvConfig) {
     super();
   }
 
   public create(source: Collection, database: Database): Pipe {
-    return new AjvPipe(new Ajv(), database, this.config);
+    const ajv = new Ajv();
+    let validate: Ajv.ValidateFunction;
+
+    return async (doc: any) => {
+      if (!validate) {
+        validate = ajv.compile(
+          await database.collection(this.config.collection).findOne({_id: this.config.schema})
+        );
+      }
+      if (!validate(doc)) {
+        throw new AjvError(validate.errors || []);
+      }
+      return doc;
+    }
   }
 }
 

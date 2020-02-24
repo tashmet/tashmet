@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import {pipeConnection, Pipe, PipeFactory} from '../packages/pipe/dist';
+import {pipeConnection} from '../packages/pipe/dist';
 import {
   bootstrap,
   component,
@@ -17,12 +17,6 @@ import {
 chai.use(chaiAsPromised);
 
 describe('pipe', () => {
-  class PlusOnePipe implements Pipe {
-    public async process(doc: any): Promise<any> {
-      return Object.assign({}, doc, {amount: doc.amount + 1});
-    }
-  }
-
   @component({
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
@@ -32,7 +26,7 @@ describe('pipe', () => {
             use: [
               pipeConnection({
                 methods: ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne'],
-                pipe: new PlusOnePipe(),
+                pipe: async doc => Object.assign({}, doc, {amount: doc.amount + 1}),
               })
             ]
           }
