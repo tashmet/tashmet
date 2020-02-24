@@ -1,26 +1,26 @@
 import {Factory} from '@ziqquratu/core';
 import {Middleware, MiddlewareFactory, Collection, Database} from '@ziqquratu/database';
 
-export type DocumentPipeMethod = 'insertOne' | 'insertMany' | 'replaceOne';
-export type DocumentPipeEvent = 'document-upserted' | 'document-removed';
+export type PipeConnectionMethod = 'insertOne' | 'insertMany' | 'replaceOne';
+export type PipeConnectionEvent = 'document-upserted' | 'document-removed';
 
-export interface DocumentPipe {
+export interface Pipe {
   process(doc: any): Promise<any>;
 }
 
-export abstract class DocumentPipeFactory extends Factory<DocumentPipe> {
-  public abstract create(source: Collection, database: Database): DocumentPipe;
+export abstract class PipeFactory extends Factory<Pipe> {
+  public abstract create(source: Collection, database: Database): Pipe;
 }
 
-export interface DocumentPipeMiddlewareConfig {
-  methods: DocumentPipeMethod[];
-  events: DocumentPipeEvent[];
-  pipe: DocumentPipeFactory;
+export interface PipeConnectionConfig {
+  methods: PipeConnectionMethod[];
+  events: PipeConnectionEvent[];
+  pipe: PipeFactory;
 }
 
-export class DocumentPipeMiddlewareFactory extends MiddlewareFactory {
+export class PipeMiddlewareFactory extends MiddlewareFactory {
   public constructor(
-    private config: DocumentPipeMiddlewareConfig
+    private config: PipeConnectionConfig
   ) { super(); }
 
   public create(source: Collection, database: Database): Middleware {
@@ -48,5 +48,5 @@ export class DocumentPipeMiddlewareFactory extends MiddlewareFactory {
   }
 }
 
-export const documentPipe = (config: DocumentPipeMiddlewareConfig) =>
-  new DocumentPipeMiddlewareFactory(config);
+export const pipeConnection = (config: PipeConnectionConfig) =>
+  new PipeMiddlewareFactory(config);

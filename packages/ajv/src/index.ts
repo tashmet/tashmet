@@ -1,5 +1,5 @@
 import {Collection, Database} from '@ziqquratu/database';
-import {DocumentPipe, DocumentPipeFactory, documentPipe} from '@ziqquratu/pipe';
+import {Pipe, PipeFactory, pipeConnection} from '@ziqquratu/pipe';
 import Ajv from 'ajv';
 
 export interface AjvConfig {
@@ -14,7 +14,7 @@ export class AjvError extends Error {
   }
 }
 
-export class AjvPipe implements DocumentPipe {
+export class AjvPipe implements Pipe {
   private validate: Ajv.ValidateFunction;
 
   public constructor(
@@ -38,18 +38,18 @@ export class AjvPipe implements DocumentPipe {
   }
 }
 
-export class AjvPipeFactory extends DocumentPipeFactory {
+export class AjvPipeFactory extends PipeFactory {
   public constructor(private config: AjvConfig) {
     super();
   }
 
-  public create(source: Collection, database: Database): DocumentPipe {
+  public create(source: Collection, database: Database): Pipe {
     return new AjvPipe(new Ajv(), database, this.config);
   }
 }
 
-export const ajv = (config: AjvConfig) => documentPipe({
+export const ajv = (config: AjvConfig) => pipeConnection({
   methods: ['insertOne', 'insertMany', 'replaceOne'],
   events: ['document-upserted'],
   pipe: new AjvPipeFactory(config),
-})
+});
