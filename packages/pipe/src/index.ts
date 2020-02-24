@@ -13,8 +13,8 @@ export abstract class PipeFactory extends Factory<Pipe> {
 }
 
 export interface PipeConnectionConfig {
-  methods: PipeConnectionMethod[];
-  events: PipeConnectionEvent[];
+  methods?: PipeConnectionMethod[];
+  events?: PipeConnectionEvent[];
   pipe: PipeFactory;
 }
 
@@ -27,10 +27,10 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
     const mw: Required<Middleware> = {events: {}, methods: {}};
     const pipe = this.config.pipe.create(source, database);
 
-    if (this.config.methods.includes('findOne')) {
+    if (this.hasMethod('findOne')) {
       mw.methods.findOne = async (next, selector) => pipe.process(await next(selector));
     }
-    if (this.config.methods.includes('find')) {
+    if (this.hasMethod('find')) {
       mw.methods.find = (next, selector, options) => {
         const cursor = next(selector, options);
 
@@ -57,24 +57,32 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
         });
       }
     }
-    if (this.config.methods.includes('insertOne')) {
+    if (this.hasMethod('insertOne')) {
       mw.methods.insertOne = async (next, doc) => next(await pipe.process(doc));
     }
-    if (this.config.methods.includes('insertMany')) {
+    if (this.hasMethod('insertMany')) {
       mw.methods.insertMany = async (next, docs) =>
         next(await Promise.all(docs.map(d => pipe.process(d))));
     }
-    if (this.config.methods.includes('replaceOne')) {
+    if (this.hasMethod('replaceOne')) {
       mw.methods.replaceOne = async (next, selector, doc, options) =>
         next(selector, await pipe.process(doc), options);
     }
-    if (this.config.events.includes('document-upserted')) {
+    if (this.hasEvent('document-upserted')) {
       mw.events['document-upserted'] = async (next, doc) => next(await pipe.process(doc));
     }
-    if (this.config.events.includes('document-removed')) {
+    if (this.hasEvent('document-removed')) {
       mw.events['document-removed'] = async (next, doc) => next(await pipe.process(doc));
     }
     return mw;
+  }
+
+  private hasMethod(method: PipeConnectionMethod): boolean {
+    return this.config.methods !== undefined && this.config.methods.includes(method);
+  }
+
+  private hasEvent(event: PipeConnectionEvent): boolean {
+    return this.config.events !== undefined && this.config.events.includes(event);
   }
 }
 
