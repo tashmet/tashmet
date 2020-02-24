@@ -37,7 +37,7 @@ describe('pipe', () => {
             source: memory(),
             use: [
               pipeConnection({
-                methods: ['find', 'findOne'],
+                methods: ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne'],
                 pipe: new PlusOnePipeFactory(),
               })
             ]
@@ -60,7 +60,28 @@ describe('pipe', () => {
 
   beforeEach(async () => {
     await collection.deleteMany({});
-    await collection.insertMany([{_id: 1, amount: 1}, {_id: 2, amount: 2}]);
+    await collection.insertMany([{_id: 1, amount: 0}, {_id: 2, amount: 1}]);
+  });
+
+  describe('insertOne', () => {
+    it('should transform document', async () => {
+      const doc = await collection.insertOne({_id: 3, amount: 3});
+      expect(doc.amount).to.eql(4);
+    });
+  });
+
+  describe('insertMany', () => {
+    it('should transform documents', async () => {
+      const docs = await collection.insertMany([{_id: 3, amount: 3}, {_id: 4, amount: 4}]);
+      expect(docs.map(d => d.amount)).to.eql([4, 5]);
+    });
+  });
+
+  describe('replaceOne', () => {
+    it('should transform document', async () => {
+      const doc = await collection.replaceOne({_id: 1}, {amount: 10});
+      expect(doc.amount).to.eql(11);
+    });
   });
 
   describe('findOne', () => {
