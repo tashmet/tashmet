@@ -38,24 +38,25 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
 
         return new Proxy(cursor, {
           get: (target, propKey) => {
-            if (propKey === 'toArray') {
-              return async () =>
-                Promise.all((await target.toArray()).map(doc => pipe.process(doc)));
-            } else if (propKey === 'next') {
-              return async () => {
-                const doc = await target.next();
-                return doc ? pipe.process(doc) : null;
-              };
-            } else if (propKey === 'forEach') {
-              return async (iterator: (doc: any) => void) => {
-                const promises: Promise<any>[] = [];
-                await target.forEach(doc => promises.push(pipe.process(doc).then(iterator)));
-                return Promise.all(promises);
-              };
-            } else {
-              return (...args: any[]) => (target as any)[propKey].apply(target, args);
+            switch (propKey) {
+              case 'toArray':
+                return async () =>
+                  Promise.all((await target.toArray()).map(doc => pipe.process(doc)));
+              case 'next':
+                return async () => {
+                  const doc = await target.next();
+                  return doc ? pipe.process(doc) : null;
+                };
+              case 'forEach':
+                return async (it: (doc: any) => void) => {
+                  const promises: Promise<any>[] = [];
+                  await target.forEach(doc => promises.push(pipe.process(doc).then(it)));
+                  return Promise.all(promises);
+                };
+              default:
+                return (...args: any[]) => (target as any)[propKey].apply(target, args);
             }
-          },
+          }
         });
       }
     }
