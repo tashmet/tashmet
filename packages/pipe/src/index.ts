@@ -15,7 +15,7 @@ export abstract class PipeFactory extends Factory<Pipe> {
 export interface PipeConnectionConfig {
   methods?: PipeConnectionMethod[];
   events?: PipeConnectionEvent[];
-  pipe: PipeFactory;
+  pipe: Pipe | PipeFactory;
 }
 
 export class PipeMiddlewareFactory extends MiddlewareFactory {
@@ -25,7 +25,9 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
 
   public create(source: Collection, database: Database): Middleware {
     const mw: Required<Middleware> = {events: {}, methods: {}};
-    const pipe = this.config.pipe.create(source, database);
+    const pipe = this.config.pipe instanceof Factory
+      ? this.config.pipe.create(source, database)
+      : this.config.pipe;
 
     if (this.hasMethod('findOne')) {
       mw.methods.findOne = async (next, selector) => pipe.process(await next(selector));

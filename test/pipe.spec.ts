@@ -23,12 +23,6 @@ describe('pipe', () => {
     }
   }
 
-  class PlusOnePipeFactory extends PipeFactory {
-    public create() {
-      return new PlusOnePipe();
-    }
-  }
-
   @component({
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
@@ -38,7 +32,7 @@ describe('pipe', () => {
             use: [
               pipeConnection({
                 methods: ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne'],
-                pipe: new PlusOnePipeFactory(),
+                pipe: new PlusOnePipe(),
               })
             ]
           }
