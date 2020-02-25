@@ -17,7 +17,6 @@ import {
 chai.use(chaiAsPromised);
 
 const schema = {
-  _id: 'product',
   $schema: 'http://json-schema.org/draft-07/schema#',
   $id: 'http://example.com/product.schema.json',
   title: 'Product',
@@ -47,7 +46,7 @@ describe('ajv', () => {
             use: [
               ajv({
                 collection: 'schemas',
-                schema: 'product'
+                schema: 'http://example.com/product.schema.json'
               })
             ],
           }

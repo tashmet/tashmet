@@ -21,13 +21,14 @@ export class AjvPipeFactory extends PipeFactory {
 
   public create(source: Collection, database: Database): Pipe {
     const ajv = new Ajv();
-    let validate: Ajv.ValidateFunction;
+    let validate: Ajv.ValidateFunction | undefined;
 
     return async (doc: any) => {
+      validate = validate || ajv
+        .addSchema(await database.collection(this.config.collection).find().toArray())
+        .getSchema(this.config.schema);
       if (!validate) {
-        validate = ajv.compile(
-          await database.collection(this.config.collection).findOne({_id: this.config.schema})
-        );
+        throw new Error('Could not compile schema: ' + this.config.schema);
       }
       if (!validate(doc)) {
         throw new AjvError(validate.errors || []);
