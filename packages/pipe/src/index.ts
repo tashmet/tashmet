@@ -1,8 +1,14 @@
 import {Factory} from '@ziqquratu/core';
 import {Middleware, MiddlewareFactory, Collection, Database} from '@ziqquratu/database';
 
-export type PipeConnectionMethod = 'insertOne' | 'insertMany' | 'replaceOne' | 'find' | 'findOne';
-export type PipeConnectionEvent = 'document-upserted' | 'document-removed';
+export type PipeHook =
+  'insertOne' |
+  'insertMany' |
+  'replaceOne' |
+  'find' |
+  'findOne' |
+  'document-upserted' |
+  'document-removed';
 
 export type Pipe<In = any, Out = In> = (doc: In) => Promise<Out>;
 
@@ -10,27 +16,22 @@ export abstract class PipeFactory extends Factory<Pipe> {
   public abstract create(source: Collection, database: Database): Pipe;
 }
 
-export interface PipeConnectionConfig {
-  methods?: PipeConnectionMethod[];
-  events?: PipeConnectionEvent[];
-  pipe: Pipe | PipeFactory;
-}
-
 export class PipeMiddlewareFactory extends MiddlewareFactory {
   public constructor(
-    private config: PipeConnectionConfig
+    private hooks: PipeHook[],
+    private pipe: Pipe | PipeFactory,
   ) { super(); }
 
   public create(source: Collection, database: Database): Middleware {
     const mw: Required<Middleware> = {events: {}, methods: {}};
-    const pipe = this.config.pipe instanceof Factory
-      ? this.config.pipe.create(source, database)
-      : this.config.pipe;
+    const pipe = this.pipe instanceof Factory
+      ? this.pipe.create(source, database)
+      : this.pipe;
 
-    if (this.hasMethod('findOne')) {
+    if (this.hasHook('findOne')) {
       mw.methods.findOne = async (next, selector) => pipe(await next(selector));
     }
-    if (this.hasMethod('find')) {
+    if (this.hasHook('find')) {
       mw.methods.find = (next, selector, options) => {
         const cursor = next(selector, options);
 
@@ -58,34 +59,30 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
         });
       }
     }
-    if (this.hasMethod('insertOne')) {
+    if (this.hasHook('insertOne')) {
       mw.methods.insertOne = async (next, doc) => next(await pipe(doc));
     }
-    if (this.hasMethod('insertMany')) {
+    if (this.hasHook('insertMany')) {
       mw.methods.insertMany = async (next, docs) =>
         next(await Promise.all(docs.map(d => pipe(d))));
     }
-    if (this.hasMethod('replaceOne')) {
+    if (this.hasHook('replaceOne')) {
       mw.methods.replaceOne = async (next, selector, doc, options) =>
         next(selector, await pipe(doc), options);
     }
-    if (this.hasEvent('document-upserted')) {
+    if (this.hasHook('document-upserted')) {
       mw.events['document-upserted'] = async (next, doc) => next(await pipe(doc));
     }
-    if (this.hasEvent('document-removed')) {
+    if (this.hasHook('document-removed')) {
       mw.events['document-removed'] = async (next, doc) => next(await pipe(doc));
     }
     return mw;
   }
 
-  private hasMethod(method: PipeConnectionMethod): boolean {
-    return this.config.methods !== undefined && this.config.methods.includes(method);
-  }
-
-  private hasEvent(event: PipeConnectionEvent): boolean {
-    return this.config.events !== undefined && this.config.events.includes(event);
+  private hasHook(hook: PipeHook): boolean {
+    return this.hooks.includes(hook);
   }
 }
 
-export const pipeConnection = (config: PipeConnectionConfig) =>
-  new PipeMiddlewareFactory(config);
+export const eachDocument = (hooks: PipeHook[], pipe: Pipe | PipeFactory) =>
+  new PipeMiddlewareFactory(hooks, pipe);

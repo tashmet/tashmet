@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import {pipeConnection} from '../packages/pipe/dist';
+import {eachDocument} from '../packages/pipe/dist';
 import {
   bootstrap,
   component,
@@ -24,10 +24,15 @@ describe('pipe', () => {
           'test': {
             source: memory(),
             use: [
-              pipeConnection({
-                methods: ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne'],
-                pipe: async doc => Object.assign({}, doc, {amount: doc.amount + 1}),
-              })
+              eachDocument([
+                'insertOne',
+                'insertMany',
+                'replaceOne',
+                'find',
+                'findOne'
+              ],
+                async doc => Object.assign({}, doc, {amount: doc.amount + 1})
+              )
             ]
           }
         }

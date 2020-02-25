@@ -1,5 +1,5 @@
 import {Collection, Database} from '@ziqquratu/database';
-import {Pipe, PipeFactory, pipeConnection} from '@ziqquratu/pipe';
+import {Pipe, PipeFactory, eachDocument} from '@ziqquratu/pipe';
 import Ajv from 'ajv';
 
 export interface AjvConfig {
@@ -37,8 +37,6 @@ export class AjvPipeFactory extends PipeFactory {
   }
 }
 
-export const ajv = (config: AjvConfig) => pipeConnection({
-  methods: ['insertOne', 'insertMany', 'replaceOne'],
-  events: ['document-upserted'],
-  pipe: new AjvPipeFactory(config),
-});
+export const ajv = (config: AjvConfig) => eachDocument(
+  ['insertOne', 'insertMany', 'replaceOne', 'document-upserted'], new AjvPipeFactory(config),
+);
