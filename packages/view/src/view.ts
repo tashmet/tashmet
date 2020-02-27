@@ -15,14 +15,17 @@ export abstract class View<T> extends EventEmitter {
   public skip = 0;
   public limit: number | undefined;
 
-  public constructor(public readonly collection: Collection<T>) {
+  public constructor(protected readonly collection: Promise<Collection<T>>) {
     super();
-    collection.on('document-upserted', (doc: T) => {
-      this.onDocumentChanged(doc);
-    });
-    collection.on('document-removed', (doc: T) => {
-      this.onDocumentChanged(doc);
-    });
+    collection.then(collection => {
+      collection.on('document-upserted', (doc: T) => {
+        this.onDocumentChanged(doc);
+      });
+      collection.on('document-removed', (doc: T) => {
+        this.onDocumentChanged(doc);
+      });
+      return collection;
+    })
   }
 
   /**

@@ -71,7 +71,7 @@ describe('view', () => {
   before(async () => {
     const app = (await bootstrap(TestComponent));
     sut = app.testView;
-    collection = app.database.collection('test');
+    collection = await app.database.collection('test');
   });
 
   beforeEach(async () => {

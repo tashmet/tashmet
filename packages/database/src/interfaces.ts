@@ -1,4 +1,4 @@
-import {Factory} from '@ziqquratu/core';
+import {Factory, AsyncFactory} from '@ziqquratu/core';
 
 export enum SortingDirection {
   Ascending = 1,
@@ -280,7 +280,7 @@ export interface Database {
    * @param name The name of the collection.
    * @returns The instance of the collection.
    */
-  collection<T = any>(name: string): Collection<T>;
+  collection<T = any>(name: string): Promise<Collection<T>>;
 
   /**
    * Create a collection.
@@ -292,7 +292,7 @@ export interface Database {
    * @returns An instance of the collection.
    */
   createCollection<T = any>(
-    name: string, factory: CollectionFactory<T> | CollectionConfig): Collection<T>;
+    name: string, factory: CollectionFactory<T> | CollectionConfig): Promise<Collection<T>>;
 
   /**
    * Listen for when a document in a collection has been added or changed.
@@ -313,6 +313,6 @@ export interface Database {
   on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): Database;
 }
 
-export abstract class CollectionFactory<T = any> extends Factory<Collection<T>> {
-  public abstract create(name: string, database: Database): Collection<T>;
+export abstract class CollectionFactory<T = any> extends AsyncFactory<Collection<T>> {
+  public abstract create(name: string, database: Database): Promise<Collection<T>>
 }

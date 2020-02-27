@@ -26,7 +26,7 @@ export class AjvPipeFactory extends PipeFactory {
     return async (doc: any) => {
       if (!validate) {
         validate = ajv.compile(
-          await database.collection(this.config.collection).findOne({_id: this.config.schema})
+          await (await database.collection(this.config.collection)).findOne({_id: this.config.schema})
         );
       }
       if (!validate(doc)) {

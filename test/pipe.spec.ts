@@ -43,7 +43,7 @@ describe('pipe', () => {
 
   before(async () => {
     const app = (await bootstrap(TestComponent));
-    collection = app.database.collection('test');
+    collection = await app.database.collection('test');
   });
 
   beforeEach(async () => {

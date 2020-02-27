@@ -25,7 +25,7 @@ describe('Feed', () => {
   let feed: TestFeed;
 
   before(async () => {
-    feed = new TestFeed(collection);
+    feed = new TestFeed(new Promise(resolve => resolve(collection)));
     await collection.insertMany(data);
   });
 
