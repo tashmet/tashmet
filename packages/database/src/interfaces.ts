@@ -285,14 +285,24 @@ export interface Database {
   /**
    * Create a collection.
    *
-   * This function will create a new instance given a name and producer / config.
+   * This function will create a new instance given a name and factory.
    *
    * @param name The name of the collection.
-   * @param factory The factory creating the collection or configuration with factory.
+   * @param factory The factory creating the collection.
    * @returns An instance of the collection.
    */
-  createCollection<T = any>(
-    name: string, factory: CollectionFactory<T> | CollectionConfig): Promise<Collection<T>>;
+  createCollection<T = any>(name: string, factory: CollectionFactory<T>): Promise<Collection<T>>;
+
+  /**
+   * Create a collection.
+   *
+   * This function will create a new instance given a name and configuration.
+   *
+   * @param name The name of the collection.
+   * @param config The configuration.
+   * @returns An instance of the collection.
+   */
+  createCollection<T = any>(name: string, config: CollectionConfig): Promise<Collection<T>>;
 
   /**
    * Listen for when a document in a collection has been added or changed.
