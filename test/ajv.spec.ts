@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import {ajv} from '../packages/ajv/dist';
+import Ajv, {ajv} from '../packages/ajv/dist';
 import {
   bootstrap,
   component,
@@ -37,6 +37,7 @@ const schema = {
 
 describe('ajv', () => {
   @component({
+    dependencies: [Ajv],
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
@@ -44,10 +45,7 @@ describe('ajv', () => {
           'products': {
             source: memory(),
             use: [
-              ajv({
-                collection: 'schemas',
-                schema: 'http://example.com/product.schema.json'
-              })
+              ajv({schema: 'http://example.com/product.schema.json'})
             ],
           }
         },

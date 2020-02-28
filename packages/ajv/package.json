@@ -29,6 +29,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@ziqquratu/core": "^1.0.0-alpha.2",
     "@ziqquratu/database": "^1.0.0",
     "@ziqquratu/pipe": "^0.2.0",
     "ajv": "^6.12.0"
