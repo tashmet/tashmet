@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Ajv, {ajv} from '../packages/ajv/dist';
+import Schema, {schema} from '../packages/schema/dist';
 import {
   bootstrap,
   component,
@@ -16,7 +16,7 @@ import {
 
 chai.use(chaiAsPromised);
 
-const schema = {
+const schemaDoc = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   $id: 'http://example.com/product.schema.json',
   title: 'Product',
@@ -35,17 +35,17 @@ const schema = {
   required: ['productId', 'productName']
 };
 
-describe('ajv', () => {
+describe('schema', () => {
   @component({
-    dependencies: [Ajv],
+    dependencies: [Schema],
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
-          'schemas': memory([schema]),
+          'schemas': memory([schemaDoc]),
           'products': {
             source: memory(),
             use: [
-              ajv({schema: 'http://example.com/product.schema.json'})
+              schema('http://example.com/product.schema.json')
             ],
           }
         },

@@ -1,5 +1,5 @@
 {
-  "name": "@ziqquratu/ajv",
+  "name": "@ziqquratu/schema",
   "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
   },
   "keywords": [
     "ziqquratu",
-    "ajv"
+    "schema"
   ],
   "author": "",
   "license": "MIT",

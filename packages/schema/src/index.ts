@@ -3,11 +3,7 @@ import {Collection, Database} from '@ziqquratu/database';
 import {Pipe, PipeFactory, eachDocument} from '@ziqquratu/pipe';
 import Ajv from 'ajv';
 
-export interface AjvConfig {
-  schema: string;
-}
-
-export interface ValidatorConfig {
+export interface ValidationConfig {
   collection: string;
 }
 
@@ -17,23 +13,23 @@ export class AjvError extends Error {
   }
 }
 
-export class AjvPipeFactory extends PipeFactory {
-  public constructor(private config: AjvConfig) {
-    super('ajv.ValidatorConfig');
+export class ValidationPipeFactory extends PipeFactory {
+  public constructor(private schemaId: string) {
+    super('schema.ValidationConfig');
   }
 
   public create(source: Collection, database: Database): Pipe {
     const ajv = new Ajv();
     let validate: Ajv.ValidateFunction | undefined;
 
-    return this.resolve((config: ValidatorConfig) => {
+    return this.resolve((config: ValidationConfig) => {
       return async (doc: any) => {
         validate = validate || ajv
           .addSchema(await (await database.collection(config.collection)).find().toArray())
-          .getSchema(this.config.schema);
+          .getSchema(this.schemaId);
 
         if (!validate) {
-          throw new Error('Could not compile schema: ' + this.config.schema);
+          throw new Error('Could not compile schema: ' + this.schemaId);
         }
         if (!validate(doc)) {
           throw new AjvError(validate.errors || []);
@@ -44,16 +40,16 @@ export class AjvPipeFactory extends PipeFactory {
   }
 }
 
-export const ajv = (config: AjvConfig) => eachDocument(
-  ['insertOne', 'insertMany', 'replaceOne', 'document-upserted'], new AjvPipeFactory(config),
+export const schema = (id: string) => eachDocument(
+  ['insertOne', 'insertMany', 'replaceOne', 'document-upserted'], new ValidationPipeFactory(id),
 );
 
 @component({
   providers: [
-    Provider.ofInstance<ValidatorConfig>('ajv.ValidatorConfig', {
+    Provider.ofInstance<ValidationConfig>('schema.ValidationConfig', {
       collection: 'schemas'
     }),
   ],
-  factories: [AjvPipeFactory]
+  factories: [ValidationPipeFactory]
 })
-export default class AjvComponent {}
+export default class Schema {}
