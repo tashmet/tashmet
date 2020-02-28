@@ -148,9 +148,9 @@ export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
     super();
   }
 
-  public create(name: string) {
+  public async create(name: string) {
     const collection = new MemoryCollection<T>(name);
-    collection.insertMany(this.docs);
+    await collection.insertMany(this.docs);
     return collection;
   }
 }

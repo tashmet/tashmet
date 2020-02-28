@@ -25,7 +25,7 @@ export class AjvPipeFactory extends PipeFactory {
 
     return async (doc: any) => {
       validate = validate || ajv
-        .addSchema(await database.collection(this.config.collection).find().toArray())
+        .addSchema(await (await database.collection(this.config.collection)).find().toArray())
         .getSchema(this.config.schema);
       if (!validate) {
         throw new Error('Could not compile schema: ' + this.config.schema);

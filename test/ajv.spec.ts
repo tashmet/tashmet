@@ -63,7 +63,7 @@ describe('ajv', () => {
 
   before(async () => {
     const app = (await bootstrap(TestComponent));
-    collection = app.database.collection('products');
+    collection = await app.database.collection('products');
   });
 
   beforeEach(async () => {

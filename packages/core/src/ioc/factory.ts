@@ -28,3 +28,5 @@ export abstract class Factory<T> {
    */
   public abstract create(...args: any[]): T;
 }
+
+export abstract class AsyncFactory<T> extends Factory<Promise<T>> {}

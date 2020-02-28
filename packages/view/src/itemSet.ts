@@ -30,8 +30,8 @@ export abstract class ItemSet<T = any> extends View<T> {
   }
 
   public async refresh(): Promise<T[]> {
-    this._data = await makeCursor<T>(this, this.collection).toArray();
-    this._totalCount = await makeCursor<T>(this, this.collection).count(false);
+    this._data = await makeCursor<T>(this, await this.collection).toArray();
+    this._totalCount = await makeCursor<T>(this, await this.collection).count(false);
     this.emit('item-set-updated', this._data, this._totalCount);
     return this._data;
   }

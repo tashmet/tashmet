@@ -31,7 +31,7 @@ describe('database', () => {
   });
 
   it('should have registered collection in configuration', async () => {
-    const collection = db.collection('test');
+    const collection = await db.collection('test');
     expect(collection.find().count()).to.eventually.eql(2);
   });
 
@@ -47,7 +47,7 @@ describe('database', () => {
         expect(collection.name).to.eql('test');
         done();
       });
-      db.collection('test').insertOne({name: 'doc3'});
+      db.collection('test').then(c => c.insertOne({name: 'doc3'}));
     });
 
     it('should be emitted when a document is removed', (done) => {
@@ -56,7 +56,7 @@ describe('database', () => {
         expect(collection.name).to.eql('test');
         done();
       });
-      db.collection('test').deleteOne({name: 'doc3'});
+      db.collection('test').then(c => c.deleteOne({name: 'doc3'}));
     });
   });
 });
