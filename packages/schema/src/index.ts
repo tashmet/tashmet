@@ -1,10 +1,17 @@
-import {component, Provider} from '@ziqquratu/core';
-import {Collection, Database} from '@ziqquratu/database';
+import {component, provider, Provider} from '@ziqquratu/core';
+import {Database} from '@ziqquratu/database';
 import {Pipe, PipeFactory, eachDocument} from '@ziqquratu/pipe';
 import Ajv from 'ajv';
 
 export interface ValidationConfig {
   collection: string;
+}
+
+export class ValidationResult {
+  public constructor(
+    public readonly success: boolean,
+    public readonly errors: Ajv.ErrorObject[]
+  ) {}
 }
 
 export class AjvError extends Error {
@@ -13,28 +20,42 @@ export class AjvError extends Error {
   }
 }
 
-export class ValidationPipeFactory extends PipeFactory {
-  public constructor(private schemaId: string) {
-    super('schema.ValidationConfig');
+@provider({
+  key: 'schema.Validator',
+  inject: ['ziqquratu.Database', 'schema.ValidationConfig']
+})
+export class Validator {
+  private ajv: Promise<Ajv.Ajv>;
+
+  public constructor(private database: Database, private config: ValidationConfig) {
+    this.ajv = new Promise(resolve => {
+      database.collection(config.collection)
+        .then(collection => collection.find().toArray())
+        .then(docs => resolve(new Ajv().addSchema(docs)));
+    });
   }
 
-  public create(source: Collection, database: Database): Pipe {
-    const ajv = new Ajv();
-    let validate: Ajv.ValidateFunction | undefined;
+  public async validate(doc: any, schemaId: string): Promise<any> {
+    const validate = (await this.ajv).getSchema(schemaId);
+    if (!validate) {
+      throw new Error('Could not compile schema: ' + schemaId);
+    }
+    if (!validate(doc)) {
+      throw new AjvError(validate.errors || []);
+    }
+    return doc;
+  }
+}
 
-    return this.resolve((config: ValidationConfig) => {
+export class ValidationPipeFactory extends PipeFactory {
+  public constructor(private schemaId: string) {
+    super('schema.Validator');
+  }
+
+  public create(): Pipe {
+    return this.resolve((validator: Validator) => {
       return async (doc: any) => {
-        validate = validate || ajv
-          .addSchema(await (await database.collection(config.collection)).find().toArray())
-          .getSchema(this.schemaId);
-
-        if (!validate) {
-          throw new Error('Could not compile schema: ' + this.schemaId);
-        }
-        if (!validate(doc)) {
-          throw new AjvError(validate.errors || []);
-        }
-        return doc;
+        return validator.validate(doc, this.schemaId);
       }
     })
   }
@@ -46,6 +67,7 @@ export const schema = (id: string) => eachDocument(
 
 @component({
   providers: [
+    Validator,
     Provider.ofInstance<ValidationConfig>('schema.ValidationConfig', {
       collection: 'schemas'
     }),
