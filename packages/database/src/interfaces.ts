@@ -159,27 +159,12 @@ export interface Collection<T = any> {
    */
   on(event: 'document-removed', fn: (obj: any) => void): Collection<T>;
 
-  /**
-   * Listen for when an error was generated when loading or saving a document
-   * in the collection. The callback supplies the document error.
-   */
-  on(event: 'document-error', fn: (err: DocumentError) => void): Collection<T>;
-
   emit(event: string, ...args: any[]): void;
-}
-
-export class DocumentError extends Error {
-  public name = 'DocumentError';
-
-  public constructor(public instance: any, message: string) {
-    super(message);
-  }
 }
 
 export interface EventMiddleware<T = any> {
   'document-upserted'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
   'document-removed'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
-  'document-error'?: (next: (err: DocumentError) => Promise<void>, err: DocumentError) => Promise<void>;
 }
 
 export interface MethodMiddleware<T = any> {
@@ -315,12 +300,6 @@ export interface Database {
    * The callback supplies the removed document and the collection it was removed from.
    */
   on(event: 'document-removed', fn: (obj: any, collection: Collection) => void): Database;
-
-  /**
-   * Listen for when an error was generated when loading or saving a document
-   * in a collection. The callback supplies the document error and the collection generating it.
-   */
-  on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): Database;
 }
 
 export abstract class CollectionFactory<T = any> extends AsyncFactory<Collection<T>> {

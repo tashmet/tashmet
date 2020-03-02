@@ -57,9 +57,6 @@ export class DatabaseService extends EventEmitter implements Database {
           collection.on('document-removed', (doc: any) => {
             this.emit('document-removed', doc, collection);
           });
-          collection.on('document-error', (err: any) => {
-            this.emit('document-error', err, collection);
-          });
           this.logger.inScope('createCollection').info(collection.toString());
           return collection;
         });
