@@ -3,6 +3,7 @@ import {component, Logger, Provider} from '@ziqquratu/core';
 export {memory, MemoryCollection} from './collections/memory';
 export {http} from './collections/http';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
+export {logging} from './logging';
 export * from './interfaces';
 
 import {DatabaseConfig} from './interfaces';
