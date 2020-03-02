@@ -10,7 +10,7 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
     return this.resolve((logger: Logger) => {
       async function log(next: (...args: any[]) => Promise<any>, ...args: any[]): Promise<any> {
         try {
-          return next(...args);
+          return await next(...args);
         } catch (err) {
           logger.inScope(source.name).error(err.message);
           throw (err);
