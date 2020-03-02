@@ -8,6 +8,7 @@ export * from './interfaces';
 
 import {DatabaseConfig} from './interfaces';
 import {DatabaseService} from './database';
+import {LoggingMiddlewareFactory} from './logging';
 
 @component({
   providers: [
@@ -21,5 +22,8 @@ import {DatabaseService} from './database';
       create: (logger: Logger) => logger.inScope('database')
     })
   ],
+  factories: [
+    LoggingMiddlewareFactory
+  ]
 })
 export default class DatabaseComponent {}
