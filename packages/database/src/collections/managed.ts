@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {Collection, Cursor, Middleware, ReplaceOneOptions, QueryOptions} from '../interfaces';
+import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions, QueryOptions} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
@@ -10,15 +10,23 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     super();
 
     const emitters = {
-      'document-upserted': 'emitDocumentUpserted',
-      'document-removed': 'emitDocumentRemoved',
+      'document-upserted': 'processDocumentUpserted',
+      'document-removed': 'processDocumentRemoved',
+      'document-error': 'emitDocumentError',
     };
 
     source.on('document-upserted', doc => {
-      this.emitDocumentUpserted(doc);
+      this.processDocumentUpserted(doc)
+        .then(doc => this.emit('document-upserted', doc))
+        .catch(err => this.emitDocumentError(err));
     });
     source.on('document-removed', doc => {
-      this.emitDocumentRemoved(doc);
+      this.processDocumentRemoved(doc)
+        .then(doc => this.emit('document-removed', doc))
+        .catch(err => this.emitDocumentError(err));
+    });
+    source.on('document-error', err => {
+      this.emitDocumentError(err);
     });
 
     for (const mw of middleware.reverse()) {
@@ -67,12 +75,16 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.deleteMany(selector);
   }
 
-  private emitDocumentUpserted(doc: T) {
-    this.emit('document-upserted', doc);
+  private async processDocumentUpserted(doc: T): Promise<T> {
+    return doc;
   }
 
-  private emitDocumentRemoved(doc: T) {
-    this.emit('document-removed', doc);
+  private async processDocumentRemoved(doc: T): Promise<T> {
+    return doc;
+  }
+
+  private emitDocumentError(err: DocumentError) {
+    this.emit('document-error', err);
   }
 
   private proxy(fn: Function, methodName: string) {
