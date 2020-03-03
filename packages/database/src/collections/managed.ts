@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {Collection, Cursor, Middleware, ReplaceOneOptions, QueryOptions} from '../interfaces';
+import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions, QueryOptions} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
@@ -12,6 +12,7 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     const emitters = {
       'document-upserted': 'emitDocumentUpserted',
       'document-removed': 'emitDocumentRemoved',
+      'document-error': 'emitDocumentError',
     };
 
     source.on('document-upserted', doc => {
@@ -19,6 +20,9 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     });
     source.on('document-removed', doc => {
       this.emitDocumentRemoved(doc);
+    });
+    source.on('document-error', err => {
+      this.emitDocumentError(err);
     });
 
     for (const mw of middleware.reverse()) {
@@ -73,6 +77,10 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
 
   private emitDocumentRemoved(doc: T) {
     this.emit('document-removed', doc);
+  }
+
+  private emitDocumentError(err: DocumentError) {
+    this.emit('document-error', err);
   }
 
   private proxy(fn: Function, methodName: string) {
