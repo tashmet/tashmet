@@ -10,16 +10,20 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     super();
 
     const emitters = {
-      'document-upserted': 'emitDocumentUpserted',
-      'document-removed': 'emitDocumentRemoved',
+      'document-upserted': 'processDocumentUpserted',
+      'document-removed': 'processDocumentRemoved',
       'document-error': 'emitDocumentError',
     };
 
     source.on('document-upserted', doc => {
-      this.emitDocumentUpserted(doc);
+      this.processDocumentUpserted(doc)
+        .then(doc => this.emit('document-upserted', doc))
+        .catch(err => this.emitDocumentError(err));
     });
     source.on('document-removed', doc => {
-      this.emitDocumentRemoved(doc);
+      this.processDocumentRemoved(doc)
+        .then(doc => this.emit('document-removed', doc))
+        .catch(err => this.emitDocumentError(err));
     });
     source.on('document-error', err => {
       this.emitDocumentError(err);
@@ -71,12 +75,12 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.deleteMany(selector);
   }
 
-  private emitDocumentUpserted(doc: T) {
-    this.emit('document-upserted', doc);
+  private async processDocumentUpserted(doc: T): Promise<T> {
+    return doc;
   }
 
-  private emitDocumentRemoved(doc: T) {
-    this.emit('document-removed', doc);
+  private async processDocumentRemoved(doc: T): Promise<T> {
+    return doc;
   }
 
   private emitDocumentError(err: DocumentError) {
