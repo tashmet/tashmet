@@ -4,7 +4,7 @@ export class ScopeLogFormatter implements LogFormatter {
   private lastScope = '';
 
   public format(event: LogEvent) {
-    const {message, timestamp, scope} = event;
+    const {message, timestamp, scope, severity} = event;
     const scopeName = scope.join('.');
     
     let output = '';
@@ -12,7 +12,7 @@ export class ScopeLogFormatter implements LogFormatter {
       output = this.formatScope(scope) + '\n';
       this.lastScope = scopeName;
     }
-    return `${output}  ${this.formatTimestamp(timestamp)} ${this.formatMessage(message)}`;
+    return `${output}  ${this.formatTimestamp(timestamp)} ${this.formatMessage(message, severity)}`;
   }
 
   protected formatTimestamp(timestamp: number): string {
@@ -24,7 +24,7 @@ export class ScopeLogFormatter implements LogFormatter {
     return scope.join('.');
   }
 
-  protected formatMessage(message: string): string {
+  protected formatMessage(message: string, severity: LogLevel): string {
     return message;
   }
 }
