@@ -1,5 +1,5 @@
 import {Logger} from '@ziqquratu/core';
-import {MiddlewareFactory, Collection} from './interfaces';
+import {MiddlewareFactory, Collection, ReplaceOneOptions} from './interfaces';
 
 export class LoggingMiddlewareFactory extends MiddlewareFactory {
   public constructor() {
@@ -8,23 +8,48 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
 
   public create(source: Collection) {
     return this.resolve((logger: Logger) => {
-      async function log(next: (...args: any[]) => Promise<any>, ...args: any[]): Promise<any> {
-        try {
-          return await next(...args);
-        } catch (err) {
-          logger.inScope(source.name).error(err.message);
-          throw (err);
+      logger = logger.inScope(source.name);
+
+      function log<T>(fn: (result: T, ...input: any[]) => void) {
+        return async (next: (...args: any[]) => Promise<T>, ...args: any[]) => {
+          try {
+            const result = await next(...args);
+            fn(result, ...args);
+            return result;
+          } catch (err) {
+            logger.error(err.message);
+            throw (err);
+          }
         }
+      }
+
+      function onInsertOne(doc: any) {
+        logger.debug(`inserted '${doc._id}'`);
+      }
+
+      function onInsertMany(docs: any[]) {
+        docs.forEach(onInsertOne);
+      }
+
+      function onReplaceOne(doc: any, selector: any, replacement: any, options: ReplaceOneOptions | undefined) {
+        logger.debug(`replaced '${doc._id}'`);
+      }
+  
+      function onDeleteOne(doc: any, selector: any) {
+        logger.debug(`deleted '${doc._id}'`);
+      }
+
+      function onDeleteMany(docs: any[], selector: any) {
+        docs.forEach(onDeleteOne);
       }
 
       return {
         methods: {
-          findOne: log,
-          insertOne: log,
-          insertMany: log,
-          replaceOne: log,
-          deleteOne: log,
-          deleteMany: log,
+          insertOne: log(onInsertOne),
+          insertMany: log(onInsertMany),
+          replaceOne: log(onReplaceOne),
+          deleteOne: log(onDeleteOne),
+          deleteMany: log(onDeleteMany),
         }
       };
     });
