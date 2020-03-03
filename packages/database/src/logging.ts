@@ -50,6 +50,12 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
           replaceOne: log(onReplaceOne),
           deleteOne: log(onDeleteOne),
           deleteMany: log(onDeleteMany),
+        },
+        events: {
+          'document-error': async (next, err) => {
+            logger.error(err.message);
+            return next(err);
+          }
         }
       };
     });
