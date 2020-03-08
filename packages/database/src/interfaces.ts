@@ -1,4 +1,4 @@
-import {Factory, AsyncFactory} from '@ziqquratu/core';
+import {AsyncFactory} from '@ziqquratu/core';
 
 export enum SortingDirection {
   Ascending = 1,
