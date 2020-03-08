@@ -182,7 +182,7 @@ export class HttpCollectionFactory extends CollectionFactory {
     super();
   }
 
-  public create(name: string) {
+  public async create(name: string) {
     return new HttpCollection(name, this.config);
   }
 }

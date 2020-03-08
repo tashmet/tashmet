@@ -1,4 +1,4 @@
-import {ScopeLogFormatter} from '@ziqquratu/core';
+import {ScopeLogFormatter, LogLevel} from '@ziqquratu/core';
 import chalk from 'chalk';
 
 export class ColoredScopeFormatter extends ScopeLogFormatter {
@@ -10,7 +10,10 @@ export class ColoredScopeFormatter extends ScopeLogFormatter {
     return chalk.blue(super.formatScope(scope));
   }
 
-  protected formatMessage(message: string): string {
+  protected formatMessage(message: string, severity: LogLevel): string {
+    if (severity === LogLevel.Error) {
+      return chalk.red(message);
+    }
     return message.replace(/'.*?'/g, m => chalk.green(m.substr(1, m.length - 2)));
   }
 }

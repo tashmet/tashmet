@@ -60,7 +60,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 }
 
-export class MemoryCollection<U = any> extends EventEmitter implements Collection<U> {
+export class MemoryCollection<T = any> extends EventEmitter implements Collection<T> {
   private collection: any[] = [];
 
   public constructor(public readonly name: string) {
@@ -71,11 +71,11 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
 
-  public find<T extends U = any>(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
+  public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
     return new MemoryCollectionCursor<T>(this.collection, selector, options);
   }
 
-  public async findOne(selector: object): Promise<any> {
+  public async findOne(selector: object): Promise<T | null> {
     const result = await this.find(selector).limit(1).toArray();
     if (result.length > 0) {
       return result[0];
@@ -84,7 +84,7 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     }
   }
 
-  public async insertOne(doc: any): Promise<any> {
+  public async insertOne(doc: any): Promise<T> {
     if (!doc.hasOwnProperty('_id')) {
       doc._id = new ObjectID().toHexString();
       this.collection.push(doc);
@@ -102,7 +102,7 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     return doc;
   }
 
-  public async insertMany(docs: any[]): Promise<any[]> {
+  public async insertMany(docs: T[]): Promise<T[]> {
     const result: any[] = [];
     for (const doc of docs) {
       result.push(await this.insertOne(doc));
@@ -110,7 +110,7 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     return result;
   }
 
-  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
+  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<T | null> {
     const old = mingo.find(this.collection, selector).next();
     if (old) {
       const index = this.collection.findIndex(o => o._id === old._id);
@@ -123,8 +123,8 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     return null;
   }
 
-  public async deleteOne(selector: object): Promise<any> {
-    const affected = await this.findOne(selector);
+  public async deleteOne(selector: object): Promise<T> {
+    const affected = await this.findOne(selector) as any;
     if (affected) {
       this.collection = this.collection.filter(doc => doc._id !== affected._id);
       this.emit('document-removed', affected);
@@ -132,8 +132,8 @@ export class MemoryCollection<U = any> extends EventEmitter implements Collectio
     return affected;
   }
 
-  public async deleteMany(selector: object): Promise<any[]> {
-    const affected = await this.find(selector).toArray();
+  public async deleteMany(selector: object): Promise<T[]> {
+    const affected = await this.find(selector).toArray() as any[];
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
     for (const doc of affected) {
@@ -148,9 +148,9 @@ export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
     super();
   }
 
-  public create(name: string) {
-    const collection = new MemoryCollection(name);
-    collection.insertMany(this.docs);
+  public async create(name: string) {
+    const collection = new MemoryCollection<T>(name);
+    await collection.insertMany(this.docs);
     return collection;
   }
 }

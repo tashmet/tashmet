@@ -14,7 +14,7 @@ export abstract class Item<T = any> extends View<T> {
   }
 
   public async refresh(): Promise<T | null> {
-    this._data = await makeCursor(this, this.collection).next();
+    this._data = await makeCursor(this, await this.collection).next();
     this.emit('item-updated', this._data);
     return this._data;
   }
