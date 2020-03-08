@@ -6,8 +6,8 @@ export class ValidationPipeFactory extends PipeFactory {
     super('schema.Validator');
   }
 
-  public create(): Pipe {
-    return this.resolve((v: Validator) => (doc: any) => v.validate(doc, this.schemaId));
+  public async create(): Promise<Pipe> {
+    return this.resolve(async (v: Validator) => (doc: any) => v.validate(doc, this.schemaId));
   }
 }
 

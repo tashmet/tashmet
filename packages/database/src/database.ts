@@ -78,12 +78,15 @@ export class DatabaseService extends EventEmitter implements Database {
       ...(this.config.use || []),
       ...(config.use || [])
     ];
-    return new ManagedCollection(name, source, this.createMiddleware(middlewareFactories, source));
+    return new ManagedCollection(name, source, await this.createMiddleware(middlewareFactories, source));
   }
 
-  private createMiddleware(factories: MiddlewareFactory[], source: Collection): Middleware[] {
-    return factories.reduce((middleware, factory) => {
+  private async createMiddleware(
+    factories: MiddlewareFactory[],
+    source: Collection
+  ): Promise<Middleware[]> {
+    return Promise.all(factories.reduce((middleware, factory) => {
       return middleware.concat(factory.create(source, this));
-    }, [] as Middleware[]);
+    }, [] as Promise<Middleware>[]));
   }
 }

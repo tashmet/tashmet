@@ -12,7 +12,7 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
     private config: CachingConfig
   ) { super(); }
 
-  public create(source: Collection): Middleware {
+  public async create(source: Collection): Promise<Middleware> {
     const evaluators = [new QueryCache(this.config.ttl), new IDCache(this.config.ttl)];
     const cache = new MemoryCollection(source.name);
 

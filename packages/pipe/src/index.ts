@@ -1,4 +1,4 @@
-import {Factory} from '@ziqquratu/core';
+import {AsyncFactory} from '@ziqquratu/core';
 import {Middleware, MiddlewareFactory, Collection, Database} from '@ziqquratu/database';
 
 export type PipeHook =
@@ -12,8 +12,8 @@ export type PipeHook =
 
 export type Pipe<In = any, Out = In> = (doc: In) => Promise<Out>;
 
-export abstract class PipeFactory extends Factory<Pipe> {
-  public abstract create(source: Collection, database: Database): Pipe;
+export abstract class PipeFactory extends AsyncFactory<Pipe> {
+  public abstract create(source: Collection, database: Database): Promise<Pipe>;
 }
 
 export class PipeMiddlewareFactory extends MiddlewareFactory {
@@ -22,10 +22,10 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
     private pipe: Pipe | PipeFactory,
   ) { super(); }
 
-  public create(source: Collection, database: Database): Middleware {
+  public async create(source: Collection, database: Database): Promise<Middleware> {
     const mw: Required<Middleware> = {events: {}, methods: {}};
-    const pipe = this.pipe instanceof Factory
-      ? this.pipe.create(source, database)
+    const pipe = this.pipe instanceof PipeFactory
+      ? await this.pipe.create(source, database)
       : this.pipe;
 
     if (this.hasHook('findOne')) {

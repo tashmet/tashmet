@@ -230,8 +230,8 @@ export interface Middleware<T = any> {
   events?: EventMiddleware<T>;
 }
 
-export abstract class MiddlewareFactory<T = any> extends Factory<Middleware<T> | Middleware<T>[]> {
-  public abstract create(source: Collection, database: Database): Middleware<T> | Middleware<T>[];
+export abstract class MiddlewareFactory<T = any> extends AsyncFactory<Middleware<T>> {
+  public abstract create(source: Collection, database: Database): Promise<Middleware<T>>;
 }
 
 

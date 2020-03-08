@@ -7,7 +7,7 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
   }
 
   public create(source: Collection) {
-    return this.resolve((logger: Logger) => {
+    return this.resolve(async (logger: Logger) => {
       logger = logger.inScope(source.name);
 
       function log<T>(fn: (result: T, ...input: any[]) => void) {
