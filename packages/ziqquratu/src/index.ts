@@ -23,6 +23,7 @@ export {
 
   // Factory
   Factory,
+  AsyncFactory,
 
   // Component
   ComponentConfig,
