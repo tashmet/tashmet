@@ -20,8 +20,8 @@ describe('MemoryCollection', () => {
   });
 
   afterEach(async () => {
-    await col.deleteMany({});
     col.removeAllListeners();
+    await col.deleteMany({});
   });
 
   describe('insertOne', () => {
@@ -191,6 +191,13 @@ describe('MemoryCollection', () => {
       await col.deleteOne({_id: 1});
       return expect(col.findOne({_id: 1})).to.eventually.be.null;
     });
+    it('should emit a document-removed event if a document was removed', (done) => {
+      col.on('document-removed', (doc) => {
+        expect(doc).to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+        done();
+      });
+      col.deleteOne({_id: 1});
+    });
   });
 
   describe('deleteMany', () => {
@@ -208,6 +215,14 @@ describe('MemoryCollection', () => {
     it('should not remove other documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
+    });
+    it('should emit a document-removed event for each removed document', async () => {
+      const docs: any[] = [];
+      col.on('document-removed', (doc) => {
+        docs.push(doc);
+      });
+      const res = await col.deleteMany({'item.category': 'cookies'});
+      return expect(res).to.eql(docs);
     });
   });
 });
