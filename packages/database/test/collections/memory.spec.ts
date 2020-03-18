@@ -179,7 +179,21 @@ describe('MemoryCollection', () => {
     });
   });
 
-  describe('remove', () => {
+  describe('deleteOne', () => {
+    it('should return null when no document match selector', () => {
+      return expect(col.deleteOne({_id: 7})).to.eventually.be.null;
+    });
+    it('should return the deleted document', async () => {
+      const doc = await col.deleteOne({_id: 1});
+      expect(doc).to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+    });
+    it('should have removed selected document', async () => {
+      await col.deleteOne({_id: 1});
+      return expect(col.findOne({_id: 1})).to.eventually.be.null;
+    });
+  });
+
+  describe('deleteMany', () => {
     it('should return empty list when no documents match selector', () => {
       return expect(col.deleteMany({_id: 7})).to.eventually.be.empty;
     });
