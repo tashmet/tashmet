@@ -1,23 +1,21 @@
 # Creating an application
 
+## Installation
+
+In your project, use npm to install the package.
+
+```text
+$ npm install @ziqquratu/ziqquratu
+```
+
 ## Your first application
 
-In the following example we will set up a database with a single in-memory collection with a couple of initial documents in it.
+In the following example we will set up a an application, create a collection and insert a document into it.
 
 ```typescript
-import {bootstrap, component, Provider, Database} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, memory, Database} from '@ziqquratu/ziqquratu';
 
 @component({
-  providers: [
-    Provider.ofInstance<Database>('ziqquratu.DatabaseConfig', {
-      collections: {
-        'posts': memory([
-          {name: 'doc1'},
-          {name: 'doc2'},
-        ])
-      }
-    }),
-  ],
   inject: ['ziqquratu.Database'],
 })
 export class Application {
@@ -26,11 +24,15 @@ export class Application {
   ) {}
 
   async run() {
-    const posts = await this.database.collection('posts').find()
-    console.log(posts);
+    let posts = await this.database.createCollection('posts', memory());
+    console.log(await posts.insertOne({
+      title: 'Hello World!'
+    }));
   }
 }
 
-bootstrap(Application).then(app => app.run()));
+bootstrap(Application).then(app => app.run());
 ```
+
+The application is defined as a component. When we bootstrap it the database is injected into its constructor and we can use it to create a collection and insert a document.
 
