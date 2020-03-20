@@ -33,7 +33,7 @@
     "@ziqquratu/database": "^1.1.0",
     "assign-deep": "^1.0.1",
     "eventemitter3": "^2.0.0",
-    "mingo": "^2.4.0",
+    "mingo": "2.4.0",
     "reflect-helper": "^1.1.1",
     "reflect-metadata": "^0.1.13"
   },
