@@ -166,6 +166,16 @@ export interface Collection<T = any> {
   on(event: 'document-error', fn: (err: DocumentError) => void): Collection<T>;
 
   emit(event: string, ...args: any[]): void;
+
+  /**
+   * Remove the listeners of a given event.
+   */
+  removeListener(event: string | symbol, fn?: Function, context?: any, once?: boolean): Collection<T>;
+
+  /**
+   * Remove all listeners, or those of the specified event.
+   */
+  removeAllListeners(event?: string | symbol): Collection<T>;
 }
 
 export class DocumentError extends Error {
