@@ -173,7 +173,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     if (resp.ok) {
       return resp.json();
     } else {
-      throw new Error(await resp.text());
+      throw new Error((await resp.json()).message);
     }
   }
 }
