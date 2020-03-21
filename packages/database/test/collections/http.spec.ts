@@ -94,18 +94,31 @@ describe('HttpCollection', () => {
     });
   });
 
-  describe('deleteOne', () => {
+  describe('delete', () => {
     before(() => {
       fetchMock.get(uri('/api/test', {_id: 'foo'}, {limit: 1}), {body: [{_id: 'foo'}]});
+      fetchMock.get(uri('/api/test', {_id: 'foo'}), {body: [{_id: 'foo'}]});
       fetchMock.delete('/api/test/foo', {status: 204});
       fetchMock.get(uri('/api/test', {_id: 'bar'}, {limit: 1}), {body: []});
+      fetchMock.get(uri('/api/test', {_id: 'bar'}), {body: []});
     });
 
-    it('should return null when no document match selector', async () => {
-      return expect(col.deleteOne({_id: 'bar'})).to.eventually.eql(null);
+    describe('deleteOne', () => {
+      it('should return null when no document match selector', async () => {
+        return expect(col.deleteOne({_id: 'bar'})).to.eventually.eql(null);
+      });
+      it('should return the deleted document', async () => {
+        return expect(col.deleteOne({_id: 'foo'})).to.eventually.eql({_id: 'foo'});
+      });
     });
-    it('should return the deleted document', async () => {
-      return expect(col.deleteOne({_id: 'foo'})).to.eventually.eql({_id: 'foo'});
+
+    describe('deleteMany', () => {
+      it('should return empty list when no documents match selector', async () => {
+        return expect(col.deleteMany({_id: 'bar'})).to.eventually.eql([]);
+      });
+      it('should return a list of deleted documents', async () => {
+        return expect(col.deleteMany({_id: 'foo'})).to.eventually.eql([{_id: 'foo'}]);
+      });
     });
-  });
+  })
 });
