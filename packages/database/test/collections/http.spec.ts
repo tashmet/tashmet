@@ -93,4 +93,19 @@ describe('HttpCollection', () => {
         .to.eventually.eql({_id: 'bar', server: 'added'});
     });
   });
+
+  describe('deleteOne', () => {
+    before(() => {
+      fetchMock.get(uri('/api/test', {_id: 'foo'}, {limit: 1}), {body: [{_id: 'foo'}]});
+      fetchMock.delete('/api/test/foo', {status: 204});
+      fetchMock.get(uri('/api/test', {_id: 'bar'}, {limit: 1}), {body: []});
+    });
+
+    it('should return null when no document match selector', async () => {
+      return expect(col.deleteOne({_id: 'bar'})).to.eventually.eql(null);
+    });
+    it('should return the deleted document', async () => {
+      return expect(col.deleteOne({_id: 'foo'})).to.eventually.eql({_id: 'foo'});
+    });
+  });
 });
