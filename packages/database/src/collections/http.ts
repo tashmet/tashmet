@@ -1,7 +1,7 @@
 import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions} from '../interfaces';
 import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
-import fetch, { Response } from 'cross-fetch';
+import 'isomorphic-fetch';
 
 const io = require('socket.io-client');
 
@@ -150,7 +150,7 @@ export class HttpCollection extends EventEmitter implements Collection {
       method: 'DELETE'
     });
     if (!resp.ok) {
-      throw this.errorFromResponse(resp);
+      throw new Error(await this.errorMessage(resp));
     }
   }
 
@@ -173,15 +173,19 @@ export class HttpCollection extends EventEmitter implements Collection {
     if (resp.ok) {
       return resp.json();
     } else {
-      throw this.errorFromResponse(resp);
+      throw new Error(await this.errorMessage(resp));
     }
   }
 
-  private async errorFromResponse(resp: Response): Promise<Error> {
+  private async errorMessage(resp: Response): Promise<string> {
     try {
-      return new Error((await resp.json()).message);
+      return (await resp.json()).message;
     } catch (err) {
-      return new Error(await resp.text());
+      try {
+        return await resp.text();
+      } catch (err) {
+        return resp.statusText;
+      }
     }
   }
 }
