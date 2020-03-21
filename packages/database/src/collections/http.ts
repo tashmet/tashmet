@@ -1,6 +1,7 @@
 import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions} from '../interfaces';
 import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
+import fetch from 'cross-fetch';
 
 const io = require('socket.io-client');
 
