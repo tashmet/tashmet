@@ -1,7 +1,7 @@
 import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions} from '../interfaces';
 import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
-import fetch from 'cross-fetch';
+import fetch, { Response } from 'cross-fetch';
 
 const io = require('socket.io-client');
 
@@ -150,7 +150,7 @@ export class HttpCollection extends EventEmitter implements Collection {
       method: 'DELETE'
     });
     if (!resp.ok) {
-      throw new Error('Failed to delete: ' + id);
+      throw this.errorFromResponse(resp);
     }
   }
 
@@ -173,7 +173,15 @@ export class HttpCollection extends EventEmitter implements Collection {
     if (resp.ok) {
       return resp.json();
     } else {
-      throw new Error((await resp.json()).message);
+      throw this.errorFromResponse(resp);
+    }
+  }
+
+  private async errorFromResponse(resp: Response): Promise<Error> {
+    try {
+      return new Error((await resp.json()).message);
+    } catch (err) {
+      return new Error(await resp.text());
     }
   }
 }
