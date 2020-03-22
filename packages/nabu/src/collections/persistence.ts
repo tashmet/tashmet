@@ -9,17 +9,14 @@ export class PersistenceCollection extends EventEmitter implements Collection {
     private cache: Collection,
   ) {
     super();
-    cache.on('document-upserted', (doc: Document) => {
-      this.emit('document-upserted', doc);
-    });
-    cache.on('document-removed', (doc: Document) => {
-      this.emit('document-removed', doc);
-    });
     adapter.on('document-updated', (id: string, data: any) => {
       this.load(id, data);
     });
-    adapter.on('document-removed', (id: string) => {
-      cache.deleteOne({_id: id});
+    adapter.on('document-removed', async (id: string) => {
+      const doc = await cache.deleteOne({_id: id});
+      if (doc) {
+        this.emit('document-removed', doc);
+      }
     });
   }
 
@@ -29,13 +26,27 @@ export class PersistenceCollection extends EventEmitter implements Collection {
 
   public async insertOne(doc: any): Promise<any> {
     const res = await this.cache.insertOne(doc);
-    await this.adapter.write([res]);
+    try {
+      await this.adapter.write([res]);
+    } catch (err) {
+      await this.cache.deleteOne({_id: doc._id});
+      throw err;
+    }
+    this.emit('document-upserted', doc);
     return res;
   }
   
   public async insertMany(docs: any[]): Promise<any[]> {
     const res = await this.cache.insertMany(docs);
-    await this.adapter.write(docs);
+    try {
+      await this.adapter.write(docs);
+    } catch (err) {
+      await this.cache.deleteMany({_id: {$in: docs.map(d => d._id)}});
+      throw err;
+    }
+    for (const doc of docs) {
+      this.emit('document-upserted', doc);
+    }
     return res;
   }
   
@@ -46,7 +57,11 @@ export class PersistenceCollection extends EventEmitter implements Collection {
         await this.adapter.remove([old._id]);
       }
       await this.adapter.write([Object.assign({}, {_id: old._id}, doc)]);
-      return this.cache.replaceOne(selector, doc, options);
+      const result = this.cache.replaceOne(selector, doc, options);
+      if (result) {
+        this.emit('document-upserted', result);
+      }
+      return result;
     } else if (options.upsert) {
       return this.insertOne(doc);
     }
@@ -65,6 +80,7 @@ export class PersistenceCollection extends EventEmitter implements Collection {
     const affected = await this.cache.deleteOne(selector);
     if (affected) {
       await this.adapter.remove([affected._id]);
+      this.emit('document-removed', affected);
     }
     return affected;
   }
@@ -72,6 +88,9 @@ export class PersistenceCollection extends EventEmitter implements Collection {
   public async deleteMany(selector: any): Promise<any[]> {
     const affected = await this.cache.deleteMany(selector);
     await this.adapter.remove(affected.map(d => d._id));
+    for (const doc of affected) {
+      this.emit('document-removed', doc);
+    }
     return affected;
   }
 
@@ -88,6 +107,10 @@ export class PersistenceCollection extends EventEmitter implements Collection {
   }
 
   private async load(id: string, doc: Record<string, any>): Promise<any> {
-    return this.cache.replaceOne({_id: id}, merge({}, doc, {_id: id}), {upsert: true});
+    const res = await this.cache.replaceOne({_id: id}, merge({}, doc, {_id: id}), {upsert: true});
+    if (res) {
+      this.emit('document-upserted', res);
+    }
+    return res;
   }
 }

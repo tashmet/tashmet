@@ -117,7 +117,7 @@ export class FileCollectionFactory extends CollectionFactory {
           this.config.path,
           fsConfig.watch ? watcher : undefined
         ),
-        new MemoryCollection(name)
+        new MemoryCollection(name, {disableEvents: true})
       ).populate();
     });
   }

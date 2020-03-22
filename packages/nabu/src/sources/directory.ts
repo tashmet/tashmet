@@ -91,7 +91,7 @@ export class DirectoryCollectionFactory extends CollectionFactory {
           this.config.create || false,
           fsConfig.watch ? watcher : undefined
         ),
-        new MemoryCollection(name)
+        new MemoryCollection(name, {disableEvents: true})
       ).populate();
     });
   }
