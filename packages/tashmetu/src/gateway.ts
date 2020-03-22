@@ -34,6 +34,9 @@ export class SocketGateway {
       nsp.on('connection', socket => {
         this.logger.inScope('connection').info(`'${name || '/'}' to ${controllerName(instance)}`);
         instance.onConnection(socket);
+        socket.on('disconnect', () => {
+          this.logger.inScope('disconnect').info(`'${name || '/'}'`);
+        });
       });
     }
   }

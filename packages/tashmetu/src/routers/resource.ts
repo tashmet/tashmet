@@ -13,26 +13,55 @@ export interface ResourceConfig {
 }
 
 export class Resource {
+  private connections: Record<string, SocketIO.Socket> = {};
+
   public constructor(
     protected collection: Collection,
     protected logger: Logger,
     protected readOnly = false
-  ) {}
+  ) {
+    this.collection.on('document-upserted', doc => this.onDocumentUpserted(doc));
+    this.collection.on('document-removed', doc => this.onDocumentRemoved(doc));
+    this.collection.on('document-error', err => this.onDocumentError(err));
+  }
+
+  private onDocumentUpserted(doc: any) {
+    for (const socket of Object.values(this.connections)) {
+      socket.emit('document-upserted', doc, this.collection.name);
+    }
+    const n = Object.keys(this.connections).length;
+    this.logger.debug(
+      `'${this.collection.name}' emitted document-upserted '${doc._id}' to '${n}' clients`
+    );
+  }
+
+  private onDocumentRemoved(doc: any) {
+    for (const socket of Object.values(this.connections)) {
+      socket.emit('document-removed', doc, this.collection.name);
+    }
+    const n = Object.keys(this.connections).length;
+    this.logger.debug(
+      `'${this.collection.name}' emitted document-removed '${doc._id}' to '${n}' clients`
+    );
+  }
+
+  private onDocumentError(err: Error) {
+    for (const socket of Object.values(this.connections)) {
+      socket.emit('document-error', err, this.collection.name);
+    }
+    const n = Object.keys(this.connections).length;
+    this.logger.debug(
+      `'${this.collection.name}' emitted document-error '${err.message}' to '${n}' clients`
+    );
+  }
 
   public onConnection(socket: SocketIO.Socket) {
-    const logger = this.logger.inScope('socket');
+    this.connections[socket.id] = socket;
+    this.logger.debug(`'${this.collection.name}' added connection: '${socket.id}'`);
 
-    this.collection.on('document-upserted', doc => {
-      socket.emit('document-upserted', doc, this.collection.name);
-      logger.info(`'${socket.nsp.name}' emitted 'document-upserted' for id '${doc._id}'`);
-    });
-    this.collection.on('document-removed', doc => {
-      socket.emit('document-removed', doc, this.collection.name);
-      logger.info(`'${socket.nsp.name}' emitted 'document-removed' for id '${doc._id}'`);
-    });
-    this.collection.on('document-error', err => {
-      socket.emit('document-error', err, this.collection.name);
-      logger.info(`'${socket.nsp.name}' emitted 'document-error' with message '${err.message}'`);
+    socket.on('disconnect', msg => {
+      delete this.connections[socket.id];
+      this.logger.debug(`'${this.collection.name}' removed connection: '${socket.id}' (${msg})`);
     });
   }
 
