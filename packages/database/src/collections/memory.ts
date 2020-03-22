@@ -12,6 +12,18 @@ import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
+export interface MemoryCollectionConfig<T = any> {
+  /** 
+   * A list of documents this collection should operate on.
+   * 
+   * If not provided an empty list will be created.
+   */
+  documents?: T[];
+
+  /** If set to true, no events will be emitted when operations are run on the collection. */
+  disableEvents?: boolean;
+}
+
 export class MemoryCollectionCursor<T> implements Cursor<T> {
   private cursor: mingo.Cursor<T>;
 
@@ -61,10 +73,14 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
 }
 
 export class MemoryCollection<T = any> extends EventEmitter implements Collection<T> {
-  private collection: any[] = [];
+  private collection: any[];
 
-  public constructor(public readonly name: string) {
+  public constructor(
+    public readonly name: string,
+    protected config: MemoryCollectionConfig = {}
+  ) {
     super();
+    this.collection = config.documents || [];
   }
 
   public toString(): string {
@@ -98,7 +114,9 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
         this.collection.push(doc);
       }
     }
-    this.emit('document-upserted', doc);
+    if (!this.config.disableEvents) {
+      this.emit('document-upserted', doc);
+    }
     return doc;
   }
 
@@ -115,7 +133,9 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
     if (old) {
       const index = this.collection.findIndex(o => o._id === old._id);
       this.collection[index] = Object.assign({}, {_id: old._id}, doc);
-      this.emit('document-upserted', this.collection[index]);
+      if (!this.config.disableEvents) {
+        this.emit('document-upserted', this.collection[index]);
+      }
       return this.collection[index];
     } else if (options.upsert) {
       return this.insertOne(doc);
@@ -127,7 +147,9 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
     const affected = await this.findOne(selector) as any;
     if (affected) {
       this.collection = this.collection.filter(doc => doc._id !== affected._id);
-      this.emit('document-removed', affected);
+      if (!this.config.disableEvents) {
+        this.emit('document-removed', affected);
+      }
     }
     return affected;
   }
@@ -136,25 +158,25 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
     const affected = await this.find(selector).toArray() as any[];
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
-    for (const doc of affected) {
-      this.emit('document-removed', doc);
+    if (!this.config.disableEvents) {
+      for (const doc of affected) {
+        this.emit('document-removed', doc);
+      }
     }
     return affected;
   }
 }
 
 export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
-  public constructor(private docs: T[] = []) {
+  public constructor(private config: MemoryCollectionConfig) {
     super();
   }
 
   public async create(name: string) {
-    const collection = new MemoryCollection<T>(name);
-    await collection.insertMany(this.docs);
-    return collection;
+    return new MemoryCollection<T>(name, this.config);
   }
 }
 
-export function memory<T = any>(docs: T[] = []) {
-  return new MemoryCollectionFactory(docs);
+export function memory<T = any>(config: MemoryCollectionConfig<T> = {}) {
+  return new MemoryCollectionFactory(config);
 }

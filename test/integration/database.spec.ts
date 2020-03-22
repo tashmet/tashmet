@@ -14,7 +14,7 @@ describe('database', () => {
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
-          'test': memory([{name: 'doc1'}, {name: 'doc2'}])
+          'test': memory({documents: [{name: 'doc1'}, {name: 'doc2'}]})
         }
       })
     ],

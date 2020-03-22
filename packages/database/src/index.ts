@@ -1,6 +1,6 @@
 import {component, Logger, Provider} from '@ziqquratu/core';
 
-export {memory, MemoryCollection} from './collections/memory';
+export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
 export {http} from './collections/http';
 export {proxy} from './collections/proxy';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';

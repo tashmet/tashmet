@@ -41,7 +41,7 @@ describe('schema', () => {
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
-          'schemas': memory([schemaDoc]),
+          'schemas': memory({documents: [schemaDoc]}),
           'products': {
             source: memory(),
             use: [

@@ -10,7 +10,7 @@ describe('Resource', () => {
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
-          'test': memory([{_id: 'doc1'}, {_id: 'doc2'}])
+          'test': memory({documents: [{_id: 'doc1'}, {_id: 'doc2'}]})
         }
       }),
       Provider.ofInstance<ServerConfig>('tashmetu.ServerConfig', {
