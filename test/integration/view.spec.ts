@@ -5,8 +5,8 @@ import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import 'mocha';
 
-import {caching} from '../packages/caching';
-import {view, filter, sortBy, ItemSet} from '../packages/view';
+import {caching} from '../../packages/caching';
+import {view, filter, sortBy, ItemSet} from '../../packages/view';
 import {
   bootstrap,
   component,
@@ -16,7 +16,7 @@ import {
   DatabaseConfig,
   memory,
   SortingDirection,
-} from '../packages/ziqquratu';
+} from '../../packages/ziqquratu';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);

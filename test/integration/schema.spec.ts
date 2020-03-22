@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Schema, {schema} from '../packages/schema/dist';
+import Schema, {schema} from '../../packages/schema/dist';
 import {
   bootstrap,
   component,
@@ -12,7 +12,7 @@ import {
   Database,
   DatabaseConfig,
   memory,
-} from '../packages/ziqquratu/dist';
+} from '../../packages/ziqquratu/dist';
 
 chai.use(chaiAsPromised);
 

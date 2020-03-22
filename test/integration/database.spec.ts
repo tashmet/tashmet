@@ -5,7 +5,7 @@ import 'mocha';
 
 import {
   bootstrap, component, Provider, Database, DatabaseConfig, memory
-} from '../packages/ziqquratu/dist';
+} from '../../packages/ziqquratu/dist';
 
 chai.use(chaiAsPromised);
 
