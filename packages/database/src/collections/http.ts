@@ -94,8 +94,8 @@ export class HttpCollection extends EventEmitter implements Collection {
     return `http collection '${this.name}' at '${this.config.path}'`;
   }
 
-  public find(selector?: object): Cursor<any> {
-    return new HttpCollectionCursor(this.queryParams, this.config.path, selector);
+  public find(selector?: object, options?: QueryOptions): Cursor<any> {
+    return new HttpCollectionCursor(this.queryParams, this.config.path, selector, options);
   }
 
   public async findOne(selector: object): Promise<any> {
