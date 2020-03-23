@@ -5,6 +5,8 @@
 ## Getting started
 
 * [Creating an application](getting-started/application.md)
+* [Examples](getting-started/examples/README.md)
+  * [Blog](getting-started/examples/blog.md)
 
 ## Documentation
 
@@ -36,6 +38,6 @@
 
 ## Tashmetu
 
-* [Server](server.md)
-* [Controllers](controllers.md)
+* [Server](tashmetu/server.md)
+* [Controllers](tashmetu/controllers.md)
 
