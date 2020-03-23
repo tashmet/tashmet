@@ -4,11 +4,11 @@ description: Integration with Webpack
 
 # Webpack
 
-In your server you might want to incorporate the Webpack compiler to do a hot reload when working in development mode. This can be set up by providing a custom bootstrap method where you register the middleware in your server configuration.
+In your server you might want to incorporate the Webpack compiler to do hot reloads when working in development mode. This can be set up by providing a custom bootstrap method where you register the middleware in your server configuration.
 
 ```typescript
 bootstrap(Application, {}, async container => {
-  let middlware: express.RequestHandler[] = [];
+  let middleware: express.RequestHandler[] = [];
 
   if (process.env.NODE_ENV === 'development') {
     let webpack = require('webpack');
@@ -34,7 +34,7 @@ bootstrap(Application, {}, async container => {
   container.register(Provider.ofInstance<ServerConfig>(
     'tashmetu.ServerConfig', {
       middleware: {
-        '/': middlware,
+        '/': middleware,
       }
     }
   }));
