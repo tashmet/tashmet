@@ -29,15 +29,13 @@ The package exports a component that should be imported as a dependency in your 
   inject: ['tashmetu.Server']
 })
 class Application {
-  constructor(
-    private server: Server,
-  ) {}
+  constructor(private server: Server) {}
 
   public run(port: number) {
     this.server.listen(port);
   }
 }
 
-bootstrap(Application).then(app => app.listen(8080));
+bootstrap(Application).then(app => app.run(8080));
 ```
 
