@@ -1,10 +1,22 @@
 ---
-description: A simple blog with server and client
+description: A simple blog application with server and client
 ---
 
 # Blog
 
+In the following example we create a blog application that publishes blog posts written in text files with YAML front-matter. The application consists of a server and a client that needs to be run separately \(the client typically running in the browser\).
 
+### Server
+
+The server will load our blog posts from files in a directory named posts. We  specify a schema, also stored on disk, to validate against. Changes made to blog posts will be logged to the terminal using middleware. 
+
+A RESTful resource is also created to serve the posts at an API endpoint. Running the server in node should make the posts available at [http://localhost:8000/api/posts](http://localhost:8000/api/posts)
+
+### Client
+
+The client sets up the database with the collection of posts being available through an http collection. For improved performance we apply a caching middleware to all collections so that posts don't have to be fetched from server every time. In the application we acquire the collection and print out the list of posts to the console.
+
+For testing purposes you can also run the client in another terminal in node.
 
 {% tabs %}
 {% tab title="server.ts" %}
