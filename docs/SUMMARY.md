@@ -9,6 +9,7 @@
   * [Blog](getting-started/examples/blog.md)
   * [Aurelia](getting-started/examples/aurelia.md)
   * [MongoDB](getting-started/examples/mongodb.md)
+  * [Webpack](getting-started/examples/webpack.md)
 
 ## Documentation
 
