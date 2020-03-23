@@ -36,3 +36,6 @@
 
 ## Tashmetu
 
+* [Server](server.md)
+* [Controllers](controllers.md)
+
