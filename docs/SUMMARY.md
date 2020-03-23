@@ -7,6 +7,8 @@
 * [Creating an application](getting-started/application.md)
 * [Examples](getting-started/examples/README.md)
   * [Blog](getting-started/examples/blog.md)
+  * [Aurelia](getting-started/examples/aurelia.md)
+  * [MongoDB](getting-started/examples/mongodb.md)
 
 ## Documentation
 
@@ -27,9 +29,6 @@
   * [Views](documentation/views/view-classes.md)
   * [Filtering](documentation/views/filtering.md)
   * [Sorting](documentation/views/sorting.md)
-* [Integration](documentation/integration/README.md)
-  * [Aurelia](documentation/integration/aurelia.md)
-  * [MongoDB](documentation/integration/mongodb.md)
 
 ## Nabu
 

@@ -1,3 +1,7 @@
+---
+description: Integration with Aurelia
+---
+
 # Aurelia
 
 Ziqquratu offers seamless integration with [Aurelia's](https://aurelia.io/) dependency injection container. This allows services defined in components to be consumed by Aurelia and vice versa.

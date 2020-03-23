@@ -1,3 +1,7 @@
+---
+description: Integration with MongoDB
+---
+
 # MongoDB
 
 We can interface with MongoDB collections by wrapping them using this module.
