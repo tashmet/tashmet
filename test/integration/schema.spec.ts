@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Schema, {schema} from '../../packages/schema/dist';
+import Schema, {schema, ValidationFailStrategy} from '../../packages/schema/dist';
 import {
   bootstrap,
   component,
@@ -43,9 +43,14 @@ describe('schema', () => {
         collections: {
           'schemas': memory({documents: [schemaDoc]}),
           'products': {
-            source: memory(),
+            source: memory({documents: [
+              {_id: 1, productId: 10, productName: 'Valid product'},
+              {_id: 2, productName: 'Invalid product'},
+            ]}),
             use: [
-              schema('http://example.com/product.schema.json')
+              schema('http://example.com/product.schema.json', {
+                outgoing: ValidationFailStrategy.Filter
+              })
             ],
           }
         },
@@ -64,45 +69,66 @@ describe('schema', () => {
     collection = await app.database.collection('products');
   });
 
-  beforeEach(async () => {
-    await collection.deleteMany({});
-  });
-
-  describe('insertOne', () => {
-    it('should fail if document is missing productId', () => {
-      return expect(collection.insertOne({}))
-        .to.eventually.be.rejectedWith("should have required property 'productId'");
+  describe('outgoing', () => {
+    describe('findOne', () => {
+      it('should return valid document', async () => {
+        return expect(collection.findOne({_id: 1}))
+          .to.eventually.eql({_id: 1, productId: 10, productName: 'Valid product'});
+      });
+      it('should not return invalid document', async () => {
+        return expect(collection.findOne({_id: 2}))
+          .to.eventually.eql(null);
+      });
     });
-    it('should fail if productId is not a number', () => {
-      return expect(collection.insertOne({productId: 'foo'}))
-        .to.eventually.be.rejectedWith("should be integer");
-    });
-    it('should fail if document is missing productName', () => {
-      return expect(collection.insertOne({productId: 1}))
-        .to.eventually.be.rejectedWith("should have required property 'productName'");
-    });
-    it('should insert the document if validation passed', async () => {
-      const res = await collection.insertOne({productId: 1, productName: 'foo'});
-      expect(res.productName).to.eql('foo');
-      const doc = await collection.findOne({productId: 1});
-      expect(doc.productName).to.eql('foo');
+    describe('find', () => {
+      it('should return only valid documents', async () => {
+        return expect(collection.find().toArray())
+          .to.eventually.eql([{_id: 1, productId: 10, productName: 'Valid product'}]);
+      });
     });
   });
 
-  describe('replaceOne', () => {
+  describe('incoming', () => {
     beforeEach(async () => {
-      await collection.insertOne({productId: 1, productName: 'foo'});
+      await collection.deleteMany({});
     });
 
-    it('should fail if new document does not validate', async () => {
-      return expect(collection.replaceOne({productId: 1}, {productId: 1, productName: 2}))
-        .to.eventually.be.rejectedWith("should be string");
+    describe('insertOne', () => {
+      it('should fail if document is missing productId', () => {
+        return expect(collection.insertOne({}))
+          .to.eventually.be.rejectedWith("should have required property 'productId'");
+      });
+      it('should fail if productId is not a number', () => {
+        return expect(collection.insertOne({productId: 'foo'}))
+          .to.eventually.be.rejectedWith("should be integer");
+      });
+      it('should fail if document is missing productName', () => {
+        return expect(collection.insertOne({productId: 1}))
+          .to.eventually.be.rejectedWith("should have required property 'productName'");
+      });
+      it('should insert the document if validation passed', async () => {
+        const res = await collection.insertOne({productId: 1, productName: 'foo'});
+        expect(res.productName).to.eql('foo');
+        const doc = await collection.findOne({productId: 1});
+        expect(doc.productName).to.eql('foo');
+      });
     });
-    it('should replace document if validation passed', async () => {
-      const res = await collection.replaceOne({productId: 1}, {productId: 1, productName: 'bar'});
-      expect(res.productName).to.eql('bar');
-      const doc = await collection.findOne({productId: 1});
-      expect(doc.productName).to.eql('bar');
+
+    describe('replaceOne', () => {
+      beforeEach(async () => {
+        await collection.insertOne({productId: 1, productName: 'foo'});
+      });
+
+      it('should fail if new document does not validate', async () => {
+        return expect(collection.replaceOne({productId: 1}, {productId: 1, productName: 2}))
+          .to.eventually.be.rejectedWith("should be string");
+      });
+      it('should replace document if validation passed', async () => {
+        const res = await collection.replaceOne({productId: 1}, {productId: 1, productName: 'bar'});
+        expect(res.productName).to.eql('bar');
+        const doc = await collection.findOne({productId: 1});
+        expect(doc.productName).to.eql('bar');
+      });
     });
   });
 });

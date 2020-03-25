@@ -4,7 +4,7 @@ import {ValidationConfig} from './interfaces';
 import {ValidationPipeFactory} from './pipe';
 
 export * from './interfaces';
-export {schema} from './pipe';
+export {schema, ValidationFailStrategy} from './pipe';
 
 @component({
   providers: [

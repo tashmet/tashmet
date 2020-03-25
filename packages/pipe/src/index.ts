@@ -26,6 +26,11 @@ export type PipeHook =
   'document-upserted' |
   'document-removed';
 
+export type PipeFilterHook =
+  'insertMany' |
+  'find' |
+  'findOne';
+
 export type Pipe<In = any, Out = In> = (doc: In) => Promise<Out>;
 
 export abstract class PipeFactory extends AsyncFactory<Pipe> {
@@ -36,7 +41,7 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
   public constructor(
     private hooks: PipeHook[],
     private pipe: Pipe | PipeFactory,
-    private filter: boolean,
+    private filter: boolean | PipeFilterHook[],
   ) { super(); }
 
   public async create(source: Collection, database: Database): Promise<Middleware> {
@@ -49,7 +54,7 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
       mw.methods.findOne = async (next, selector) => {
         const doc = await next(selector);
         if (doc) {
-          if (!this.filter) {
+          if (!this.isFiltered('findOne')) {
             return pipe(doc);
           }
           try {
@@ -64,15 +69,16 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
     if (this.hasHook('find')) {
       mw.methods.find = (next, selector, options) => {
         const cursor = next(selector, options);
+        const filter = this.isFiltered('find');
 
-        async function toArrayProxy(target: Cursor<any>, filter: boolean) {
+        async function toArrayProxy(target: Cursor<any>) {
           const promises = (await target.toArray()).map(doc => pipe(doc));
           return filter
             ? filterResults(promises, err => source.emit('document-error', err))
             : Promise.all(promises);
         }
 
-        async function nextProxy(target: Cursor<any>, filter: boolean): Promise<any> {
+        async function nextProxy(target: Cursor<any>): Promise<any> {
           const doc = await target.next();
           if (doc) {
             if (!filter) {
@@ -82,14 +88,14 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
               return await pipe(doc);
             } catch (err) {
               source.emit('document-error', err);
-              return nextProxy(target, filter);
+              return nextProxy(target);
             }
           }
           return null;
         }
 
         async function forEachProxy(
-          target: Cursor<any>, filter: boolean, it: (doc: any) => void): Promise<any>
+          target: Cursor<any>, it: (doc: any) => void): Promise<any>
         {
           const promises: Promise<any>[] = [];
           await target.forEach(doc => promises.push(pipe(doc).then(it)));
@@ -102,11 +108,11 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
           get: (target, propKey) => {
             switch (propKey) {
               case 'toArray':
-                return async () => toArrayProxy(target, this.filter);
+                return async () => toArrayProxy(target);
               case 'next':
-                return async () => nextProxy(target, this.filter);
+                return async () => nextProxy(target);
               case 'forEach':
-                return async (it: (doc: any) => void) => forEachProxy(target, this.filter, it);
+                return async (it: (doc: any) => void) => forEachProxy(target, it);
               default:
                 return (...args: any[]) => (target as any)[propKey].apply(target, args);
             }
@@ -120,7 +126,7 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
     if (this.hasHook('insertMany')) {
       mw.methods.insertMany = async (next, docs) => {
         const promises = docs.map(d => pipe(d));
-        return this.filter
+        return this.isFiltered('insertMany')
           ? next(await filterResults(promises, err => source.emit('document-error', err)))
           : next(await Promise.all(promises));
       }
@@ -141,6 +147,10 @@ export class PipeMiddlewareFactory extends MiddlewareFactory {
   private hasHook(hook: PipeHook): boolean {
     return this.hooks.includes(hook);
   }
+
+  private isFiltered(hook: PipeFilterHook): boolean {
+    return Array.isArray(this.filter) ? this.filter.includes(hook) : this.filter;
+  }
 }
 
 export interface EachDocumentConfig {
@@ -157,8 +167,8 @@ export interface EachDocumentConfig {
    * that were successfully processed. If the pipe resolves with an error the
    * document is skipped and a document-error event is emitted from the collection.
    */
-  filter?: boolean;
+  filter?: boolean | PipeFilterHook[];
 }
 
 export const eachDocument = (config: EachDocumentConfig) =>
-  new PipeMiddlewareFactory(config.hooks, config.pipe, config.filter === true);
+  new PipeMiddlewareFactory(config.hooks, config.pipe, config.filter === undefined ? false : config.filter);
