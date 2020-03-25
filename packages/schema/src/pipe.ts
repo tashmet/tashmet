@@ -11,6 +11,7 @@ export class ValidationPipeFactory extends PipeFactory {
   }
 }
 
-export const schema = (id: string) => eachDocument(
-  ['insertOne', 'insertMany', 'replaceOne', 'document-upserted'], new ValidationPipeFactory(id),
-);
+export const schema = (id: string) => eachDocument({
+  hooks: ['insertOne', 'insertMany', 'replaceOne', 'document-upserted'],
+  pipe: new ValidationPipeFactory(id),
+});
