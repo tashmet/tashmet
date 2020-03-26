@@ -22,6 +22,7 @@
     * [Factories](documentation/core/ioc/factories.md)
   * [Reflection](documentation/core/reflection.md)
 * [Database](documentation/database/README.md)
+  * [Middleware](documentation/database/middleware.md)
   * [Collections](documentation/database/collections/README.md)
     * [Memory](documentation/database/collections/memory.md)
     * [Http](documentation/database/collections/http.md)
