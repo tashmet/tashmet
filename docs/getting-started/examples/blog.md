@@ -53,10 +53,10 @@ A RESTful resource is created to serve the posts at an API endpoint. This resour
 import {
   bootstrap, component, logging, LogLevel, Provider, DatabaseConfig,
 } from '@ziqquratu/ziqquratu';
-import {yaml, directory, json, FileSystemConfig} from '@ziqquratu/nabu';
+import {yaml, directory, FileSystemConfig} from '@ziqquratu/nabu';
 import {resource, Server, ServerConfig} from '@ziqquratu/tashmetu';
 import {terminal} from '@ziqquratu/terminal';
-import {schema} from '@ziqquratu/schema';
+import {validation, ValidationPipeStrategy} from '@ziqquratu/schema';
 
 @component({
   dependencies: [
@@ -83,7 +83,11 @@ import {schema} from '@ziqquratu/schema';
           }),
           use: [
             logging(),
-            schema('https://example.com/BlogPosting.schema.json')
+            caching(),
+            validation({
+              schema: 'https://example.com/BlogPosting.schema.yaml'
+              strategy: ValidationPipeStrategy.ErrorInFilterOut
+            }),
           ]
         }
       },
