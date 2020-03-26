@@ -34,7 +34,10 @@ export class DatabaseService extends EventEmitter implements Database {
   }
 
   public collection(name: string): Promise<Collection> {
-    return this.collections[name];
+    if (Object.keys(this.collections).includes(name)) {
+      return this.collections[name];
+    }
+    throw new Error(`No collection named: '${name}'`);
   }
 
   public createCollection<T = any>(

@@ -35,8 +35,13 @@ describe('database', () => {
     expect(collection.find().count()).to.eventually.eql(2);
   });
 
+  it('should fail to aquire a collection that does not exist', () => {
+    return expect(() => db.collection('noSuchCollection'))
+      .to.throw("No collection named: 'noSuchCollection'");
+  });
+
   it('should fail to create collection with existing name', () => {
-    expect(() => db.createCollection('test', memory()))
+    return expect(() => db.createCollection('test', memory()))
       .to.throw("A collection named 'test' already exists");
   });
 
