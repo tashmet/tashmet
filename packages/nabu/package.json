@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/nabu",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Ziqquratu file system persistence",
   "scripts": {
     "build": "tsc",
@@ -35,7 +35,7 @@
     "@types/lodash": "^4.14.149",
     "@types/mock-fs": "^4.10.0",
     "@types/showdown": "^1.9.3",
-    "@ziqquratu/ziqquratu": "^1.2.0",
+    "@ziqquratu/ziqquratu": "^1.2.1",
     "dedent": "^0.7.0",
     "mock-fs": "^4.10.4"
   },

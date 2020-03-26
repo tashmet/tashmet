@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/terminal",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@ziqquratu/core": "^1.0.0",
+    "@ziqquratu/core": "^1.0.1",
     "chalk": "^3.0.0"
   },
   "devDependencies": {
