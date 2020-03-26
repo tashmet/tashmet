@@ -24,7 +24,7 @@ Hello World!
 
 {% tab title="schemas/BlogPosting.schema.yaml" %}
 ```yaml
-"$id": https://example.com/BlogPosting.schema.json
+"$id": https://example.com/BlogPosting.schema.yaml
 "$schema": http://json-schema.org/draft-07/schema#
 title: BlogPosting
 type: object
