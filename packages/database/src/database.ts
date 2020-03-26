@@ -37,7 +37,7 @@ export class DatabaseService extends EventEmitter implements Database {
     if (Object.keys(this.collections).includes(name)) {
       return this.collections[name];
     }
-    throw new Error(`No collection named: '${name}'`);
+    throw new Error(`no collection named '${name}' exists in database`);
   }
 
   public createCollection<T = any>(
@@ -45,7 +45,7 @@ export class DatabaseService extends EventEmitter implements Database {
   {
     try {
       if (name in this.collections) {
-        throw new Error(`A collection named '${name}' already exists`);
+        throw new Error(`a collection named '${name}' already exists in database`);
       }
 
       const config: CollectionConfig = factory instanceof CollectionFactory

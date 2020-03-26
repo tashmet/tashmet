@@ -37,12 +37,12 @@ describe('database', () => {
 
   it('should fail to aquire a collection that does not exist', () => {
     return expect(() => db.collection('noSuchCollection'))
-      .to.throw("No collection named: 'noSuchCollection'");
+      .to.throw("no collection named 'noSuchCollection' exists in database");
   });
 
   it('should fail to create collection with existing name', () => {
     return expect(() => db.createCollection('test', memory()))
-      .to.throw("A collection named 'test' already exists");
+      .to.throw("a collection named 'test' already exists in database");
   });
 
   describe('event', () => {

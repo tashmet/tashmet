@@ -29,7 +29,7 @@ export class FactoryProviderAnnotation<T>
   extends InjectedProviderAnnotation<T> implements FactoryProviderConfig<T>
 {
   public create(...args: any[]): T {
-    throw Error('Create method not implemented on factory annotation');
+    throw Error('create method not implemented on factory annotation');
   }
 }
 

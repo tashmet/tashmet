@@ -39,7 +39,7 @@ export class AjvValidator {
   public async validate(doc: any, schemaId: string): Promise<any> {
     const validate = (await this.ajv).getSchema(schemaId);
     if (!validate) {
-      throw new Error('Could not compile schema: ' + schemaId);
+      throw new Error('could not compile schema: ' + schemaId);
     }
     if (!validate(doc)) {
       throw new AjvError(doc, validate.errors || []);

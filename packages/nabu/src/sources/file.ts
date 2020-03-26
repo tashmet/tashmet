@@ -42,7 +42,7 @@ export class File extends EventEmitter implements PersistenceAdapter {
     await this.read();
     for (const doc of docs) {
       if (doc._id === undefined) {
-        throw Error('Failed trying to store document without ID');
+        throw Error('failed trying to store document without ID');
       }
       this.buffer[doc._id] = omit(doc, ['_id']);
     }

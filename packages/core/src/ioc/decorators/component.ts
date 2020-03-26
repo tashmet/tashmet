@@ -70,7 +70,7 @@ class ComponentAnnotation extends BootstrapAnnotation {
     const ctr = dep instanceof Promise ? (await dep).default : dep;
 
     if (!BootstrapAnnotation.existsOnClass(ctr)) {
-      throw Error('Missing bootstrap annotation on component');
+      throw Error('missing bootstrap annotation on component');
     }
     return BootstrapAnnotation.onClass(ctr)[0];
   }

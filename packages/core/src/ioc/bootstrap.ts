@@ -18,11 +18,11 @@ export interface BootstrapConfig {
 
 export class BootstrapAnnotation extends Annotation {
   public register<T>(container: Container): Promise<void> {
-    throw Error('Bootstrap method not implemented');
+    throw Error('bootstrap method not implemented');
   }
 
   public resolve<T>(container: Container): T {
-    throw Error('Bootstrap method not implemented');
+    throw Error('bootstrap method not implemented');
   }
 }
 
@@ -50,12 +50,12 @@ export async function bootstrap<T>(
   }));
 
   if (!BootstrapAnnotation.existsOnClass(component)) {
-    throw Error('Missing bootstrap annotation on component');
+    throw Error('missing bootstrap annotation on component');
   }
   const annotation = BootstrapAnnotation.onClass(component)[0];
   await annotation.register(container);
   if (fn) {
-    logger.debug('Running custom bootstrap function');
+    logger.debug('running custom bootstrap function');
     await fn(container);
   }
   return annotation.resolve(container);

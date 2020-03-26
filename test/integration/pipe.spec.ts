@@ -127,7 +127,7 @@ describe('pipe', () => {
                   ],
                   pipe: async doc => {
                     if (doc.error) {
-                      throw new DocumentError(doc, `Error in '${doc._id}'`);
+                      throw new DocumentError(doc, `error in '${doc._id}'`);
                     }
                     return doc;
                   },
@@ -158,7 +158,7 @@ describe('pipe', () => {
     describe('insertOne', () => {
       it('should be rejected when one document fails', () => {
         return expect(collection.insertOne({_id: 3, error: true}))
-          .to.eventually.be.rejectedWith("Error in '3'");
+          .to.eventually.be.rejectedWith("error in '3'");
       });
     });
 

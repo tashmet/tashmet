@@ -37,7 +37,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   public async toArray(): Promise<T[]> {
     const resp = await fetch(this.serializeQuery(this.selector, this.options));
     if (!resp.ok) {
-      throw new Error('Failed to contact server');
+      throw new Error('failed to contact server');
     }
     return await resp.json();
   }
@@ -49,7 +49,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
 
     const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
-      throw new Error('Failed to get "x-total-count" header');
+      throw new Error('failed to get "x-total-count" header');
     }
     return parseInt(totalCount, 10);
   }

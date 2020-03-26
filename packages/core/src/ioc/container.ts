@@ -76,7 +76,7 @@ export class BasicContainer extends AbstractContainer {
     const res = this.resolvers.get(key);
 
     if (!res) {
-      throw Error('No resolver registered for key: ' + this.nameOf(key));
+      throw Error('no resolver registered for key: ' + this.nameOf(key));
     }
     return res.resolve(this);
   }
