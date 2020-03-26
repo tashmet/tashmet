@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Schema, {schema, ValidationFailStrategy} from '../../packages/schema/dist';
+import Schema, {validation, ValidationPipeStrategy} from '../../packages/schema/dist';
 import {
   bootstrap,
   component,
@@ -48,8 +48,9 @@ describe('schema', () => {
               {_id: 2, productName: 'Invalid product'},
             ]}),
             use: [
-              schema('http://example.com/product.schema.json', {
-                outgoing: ValidationFailStrategy.Filter
+              validation({
+                schema: 'http://example.com/product.schema.json',
+                strategy: ValidationPipeStrategy.ErrorInFilterOut,
               })
             ],
           }

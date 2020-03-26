@@ -1,21 +1,45 @@
 import {Pipe, PipeFactory, eachDocument, PipeHook, PipeFilterHook} from '@ziqquratu/pipe';
 import {Validator} from './interfaces';
 
-export enum ValidationFailStrategy {
-  /** Pass all documents */
-  Pass,
-  /** Reject failed documents with error  */
+/**
+ * Strategies for dealing with validation errors.
+ */
+export enum ValidationPipeStrategy {
+  /**
+   * Reject both incoming and outgoing documents with errors.
+   */
   Error,
-  /** Filter passed documents and emit document-error events for failed ones */
+
+  /**
+   * Reject incoming documents with error
+   */
+  ErrorIn,
+
+  /**
+   * Reject incoming documents with error, filter out outgoing documents.
+   */
+  ErrorInFilterOut,
+
+  /**
+   * Filter out both incoming and outgoing documents with errors.
+   */
   Filter,
+
+  /**
+   * Filter out only incoming documents with errors.
+   */
+  FilterIn,
 };
 
-export interface ValidationPipeOptions {
-  /** Strategy to apply to incoming documents (insertOne, insertMany, replaceOne) */
-  incoming?: ValidationFailStrategy;
+export interface ValidationPipeConfig {
+  /** Schema ID */
+  schema: string;
 
-  /** Strategy to apply to outgoing documents (findOne, find) */
-  outgoing?: ValidationFailStrategy;
+  /**
+   * Strategy for dealing with failing documents.
+   * @default ValidationPipeStrategy.ErrorIn
+   */
+  strategy?: ValidationPipeStrategy;
 }
 
 export class ValidationPipeFactory extends PipeFactory {
@@ -28,27 +52,33 @@ export class ValidationPipeFactory extends PipeFactory {
   }
 }
 
-export const schema = (id: string, options?: ValidationPipeOptions) => {
-  const {incoming, outgoing} = Object.assign({
-    incoming: ValidationFailStrategy.Error,
-    outgoing: ValidationFailStrategy.Pass,
-  }, options);
+export const validation = (config: ValidationPipeConfig) => {
+  const {schema, strategy} = Object.assign({
+    strategy: ValidationPipeStrategy.ErrorIn,
+  }, config);
 
   let hooks: PipeHook[] = [];
   let filter: PipeFilterHook[] = [];
-  if (incoming === ValidationFailStrategy.Error) {
-    hooks = hooks.concat(['insertOne', 'insertMany', 'replaceOne']);
+
+  switch(strategy) {
+    case ValidationPipeStrategy.Error:
+      hooks = ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne', 'document-upserted'];
+      break;
+    case ValidationPipeStrategy.ErrorIn:
+      hooks = ['insertOne', 'insertMany', 'replaceOne'];
+      break;
+    case ValidationPipeStrategy.ErrorInFilterOut:
+      hooks = ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne', 'document-upserted'];
+      filter = ['find', 'findOne'];
+      break;
+    case ValidationPipeStrategy.Filter:
+      hooks = ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne', 'document-upserted'];
+      filter = ['insertMany', 'find', 'findOne'];
+      break;
+    case ValidationPipeStrategy.FilterIn:
+      hooks = ['insertOne', 'insertMany', 'replaceOne'];
+      filter = ['insertMany'];
+      break;
   }
-  if (outgoing === ValidationFailStrategy.Error) {
-    hooks = hooks.concat(['find', 'findOne', 'document-upserted']);
-  }
-  if (incoming === ValidationFailStrategy.Filter) {
-    hooks = hooks.concat(['insertMany']);
-    filter = filter.concat(['insertMany']);
-  }
-  if (outgoing === ValidationFailStrategy.Filter) {
-    hooks = hooks.concat(['find', 'findOne']);
-    filter = filter.concat(['find', 'findOne']);
-  }
-  return eachDocument({pipe: new ValidationPipeFactory(id), hooks, filter});
+  return eachDocument({pipe: new ValidationPipeFactory(schema), hooks, filter});
 }
