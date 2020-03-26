@@ -22,26 +22,23 @@ Hello World!
 ```
 {% endtab %}
 
-{% tab title="schemas/blogPosting.schema.json" %}
-```javascript
-{
-  "$id": "https://example.com/BlogPosting.schema.json",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "BlogPosting",
-  "type": "object",
-  "required": ["articleBody", "datePublished"],
-  "properties": {
-    "articleBody": {
-      "type": "string",
-      "description": "The actual body of the article."
-    },
-    "datePublished": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Date of first broadcast/publication."
-    }
-  }
-}
+{% tab title="schemas/BlogPosting.schema.yaml" %}
+```yaml
+"$id": https://example.com/BlogPosting.schema.json
+"$schema": http://json-schema.org/draft-07/schema#
+title: BlogPosting
+type: object
+required:
+  - articleBody
+  - datePublished
+properties:
+  articleBody:
+    type: string
+    description: The actual body of the article.
+  datePublished:
+    type: string
+    format: date-time
+    description: Date of first broadcast/publication.
 ```
 {% endtab %}
 {% endtabs %}
@@ -72,8 +69,8 @@ import {schema} from '@ziqquratu/schema';
       collections: {
         'schemas': directory({
           path: 'schemas',
-          extension: 'json',
-          serializer: json(),
+          extension: 'yaml',
+          serializer: yaml(),
         }),
         'posts': {
           source: directory({
