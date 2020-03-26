@@ -29,7 +29,7 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
       this.emitDocumentError(err);
     });
 
-    for (const mw of middleware.reverse()) {
+    for (const mw of middleware.slice(0).reverse()) {
       this.use(mw.methods || {});
     }
     for (const mw of middleware) {
