@@ -71,6 +71,10 @@ describe('schema', () => {
   });
 
   describe('outgoing', () => {
+    afterEach(() => {
+      collection.removeAllListeners();
+    });
+
     describe('findOne', () => {
       it('should return valid document', async () => {
         return expect(collection.findOne({_id: 1}))
@@ -80,11 +84,30 @@ describe('schema', () => {
         return expect(collection.findOne({_id: 2}))
           .to.eventually.eql(null);
       });
+      it('should emit event for invalid document', (done) => {
+        collection.on('document-error', err => {
+          expect(err.message).to.eql(
+            "validation of '2' failed: should have required property 'productId'"
+          );
+          done();
+        });
+        collection.findOne({_id: 2});
+      });
     });
+
     describe('find', () => {
       it('should return only valid documents', async () => {
         return expect(collection.find().toArray())
           .to.eventually.eql([{_id: 1, productId: 10, productName: 'Valid product'}]);
+      });
+      it('should emit event for invalid document', (done) => {
+        collection.on('document-error', err => {
+          expect(err.message).to.eql(
+            "validation of '2' failed: should have required property 'productId'"
+          );
+          done();
+        });
+        collection.find().toArray();
       });
     });
   });
@@ -96,16 +119,19 @@ describe('schema', () => {
 
     describe('insertOne', () => {
       it('should fail if document is missing productId', () => {
-        return expect(collection.insertOne({}))
-          .to.eventually.be.rejectedWith("should have required property 'productId'");
+        return expect(collection.insertOne({})).to.eventually.be.rejectedWith(
+          "validation failed: should have required property 'productId'"
+        );
       });
       it('should fail if productId is not a number', () => {
-        return expect(collection.insertOne({productId: 'foo'}))
-          .to.eventually.be.rejectedWith("should be integer");
+        return expect(collection.insertOne({productId: 'foo'})).to.eventually.be.rejectedWith(
+          "validation failed: '.productId' should be integer"
+        );
       });
       it('should fail if document is missing productName', () => {
-        return expect(collection.insertOne({productId: 1}))
-          .to.eventually.be.rejectedWith("should have required property 'productName'");
+        return expect(collection.insertOne({productId: 1})).to.eventually.be.rejectedWith(
+          "validation failed: should have required property 'productName'"
+        );
       });
       it('should insert the document if validation passed', async () => {
         const res = await collection.insertOne({productId: 1, productName: 'foo'});
@@ -117,12 +143,12 @@ describe('schema', () => {
 
     describe('replaceOne', () => {
       beforeEach(async () => {
-        await collection.insertOne({productId: 1, productName: 'foo'});
+        await collection.insertOne({_id: 1, productId: 1, productName: 'foo'});
       });
 
       it('should fail if new document does not validate', async () => {
         return expect(collection.replaceOne({productId: 1}, {productId: 1, productName: 2}))
-          .to.eventually.be.rejectedWith("should be string");
+          .to.eventually.be.rejectedWith("validation failed: '.productName' should be string");
       });
       it('should replace document if validation passed', async () => {
         const res = await collection.replaceOne({productId: 1}, {productId: 1, productName: 'bar'});

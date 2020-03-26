@@ -4,11 +4,20 @@ import {ValidationConfig} from './interfaces';
 import Ajv from 'ajv';
 
 export class AjvError extends DocumentError {
+  private static createMessage(doc: any, error: Ajv.ErrorObject) {
+    const msg = doc._id === undefined
+      ? 'validation failed'
+      : `validation of '${doc._id}' failed`;
+    return error.dataPath === ''
+      ? `${msg}: ${error.message}`
+      : `${msg}: '${error.dataPath}' ${error.message}`;
+  }
+
   public constructor(
     doc: any,
     public readonly errors: Ajv.ErrorObject[]
   ) {
-    super(doc, `validation of '${doc._id}' failed: ${errors[0].message}`);
+    super(doc, AjvError.createMessage(doc, errors[0]));
   }
 }
 
