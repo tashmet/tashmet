@@ -61,7 +61,7 @@ npm install @ziqquratu/schema
 Schemas need to be added to their own collection. They are then referenced by the schema $id in the validation middleware. By default the validator expects to find schemas in a collection named **schemas**
 
 ```typescript
-import {validation} from '@ziqquratu/caching';
+import {validation, ValidationPipeStrategy} from '@ziqquratu/caching';
 
 // Example database config
 const databaseConfig: DatabaseConfig = {
@@ -70,7 +70,8 @@ const databaseConfig: DatabaseConfig = {
     'products': {
       use: [
         validation({
-          schema: 'http://example.com/product.schema.json'
+          schema: 'http://example.com/product.schema.json',
+          strategy: ValidationPipeStrategy.ErrorIn
         })
       ],
       source: memory(),
@@ -78,6 +79,41 @@ const databaseConfig: DatabaseConfig = {
   }
 }
 ```
+
+#### Strategies
+
+The behavior of the validation pipe can be configured by utilizing one of several strategies. The default one is called **ErrorIn** which is explicitly stated above. Here are the available strategies:
+
+```typescript
+export enum ValidationPipeStrategy {
+  /**
+   * Reject both incoming and outgoing documents with errors.
+   */
+  Error,
+
+  /**
+   * Reject incoming documents with error
+   */
+  ErrorIn,
+
+  /**
+   * Reject incoming documents with error, filter out outgoing documents.
+   */
+  ErrorInFilterOut,
+
+  /**
+   * Filter out both incoming and outgoing documents with errors.
+   */
+  Filter,
+
+  /**
+   * Filter out only incoming documents with errors.
+   */
+  FilterIn,
+};
+```
+
+To clarify the concepts, incoming documents refer to the documents provided to the operations **insertOne**, **insertMany** and **replaceOne** while outgoing documents refer to the result of the operations **find** and **findOne**.
 
 ## Chaining
 
