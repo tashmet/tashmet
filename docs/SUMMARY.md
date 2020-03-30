@@ -11,34 +11,26 @@
   * [MongoDB](getting-started/examples/mongodb.md)
   * [Webpack](getting-started/examples/webpack.md)
 
-## Documentation
+## Ziqquratu
 
-* [Core](documentation/core/README.md)
-  * [Inversion of Control](documentation/core/ioc/README.md)
-    * [Container](documentation/core/ioc/container.md)
-    * [Components](documentation/core/ioc/components.md)
-    * [Providers](documentation/core/ioc/providers.md)
-    * [Resolvers](documentation/core/ioc/resolvers.md)
-    * [Factories](documentation/core/ioc/factories.md)
-  * [Reflection](documentation/core/reflection.md)
-* [Database](documentation/database/README.md)
-  * [Middleware](documentation/database/middleware.md)
-  * [Collections](documentation/database/collections/README.md)
-    * [Memory](documentation/database/collections/memory.md)
-    * [Http](documentation/database/collections/http.md)
-* [View](documentation/views/README.md)
-  * [Queries](documentation/views/queries.md)
-  * [Views](documentation/views/view-classes.md)
-  * [Filtering](documentation/views/filtering.md)
-  * [Sorting](documentation/views/sorting.md)
-
-## Nabu
-
-* [File system storage](nabu/file-system-storage.md)
-* [Content](nabu/content.md)
-
-## Tashmetu
-
-* [Server](tashmetu/server.md)
-* [Controllers](tashmetu/controllers.md)
+* [Core](ziqquratu/core/README.md)
+  * [Inversion of Control](ziqquratu/core/ioc/README.md)
+    * [Container](ziqquratu/core/ioc/container.md)
+    * [Components](ziqquratu/core/ioc/components.md)
+    * [Providers](ziqquratu/core/ioc/providers.md)
+    * [Resolvers](ziqquratu/core/ioc/resolvers.md)
+    * [Factories](ziqquratu/core/ioc/factories.md)
+  * [Reflection](ziqquratu/core/reflection.md)
+* [Database](ziqquratu/database/README.md)
+  * [Middleware](ziqquratu/database/middleware.md)
+  * [Collections](ziqquratu/database/collections/README.md)
+    * [Memory](ziqquratu/database/collections/memory.md)
+    * [Http](ziqquratu/database/collections/http.md)
+* [View](ziqquratu/views/README.md)
+  * [Queries](ziqquratu/views/queries.md)
+  * [Views](ziqquratu/views/view-classes.md)
+  * [Filtering](ziqquratu/views/filtering.md)
+  * [Sorting](ziqquratu/views/sorting.md)
+* [Nabu](nabu.md)
+* [Tashmetu](tashmetu.md)
 

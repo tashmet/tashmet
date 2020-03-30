@@ -20,13 +20,25 @@ When running it in a web-browser you probably want to have the content rendered 
 
 ## Components
 
-The framework is split over a few main packages. This documentation covers the main one which is the database itself. The other packages are as follows
+#### [Core](ziqquratu/core/)
 
-### [Nabu](https://ziqquratu.gitbook.io/nabu/)
+Underlying library dealing with inversion of control \(dependency injection\) and reflection \(meta data and decorators\).
+
+#### [Database](ziqquratu/database/)
+
+The database including collections for storing in memory and via http.
+
+#### [View](ziqquratu/views/) <a id="view"></a>
+
+Stored queries and views monitoring subsets of documents i a collection.
+
+#### [Nabu](nabu.md)
 
 A set of tools for reading and writing content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown.
 
-### [Tashmetu](https://ziqquratu.gitbook.io/tashmetu/)
+#### [Tashmetu](tashmetu.md)
 
 An HTTP server for publishing content. It allows us to define RESTful resources that interact with the collections in our database.
+
+
 
