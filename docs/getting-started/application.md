@@ -34,5 +34,5 @@ export class Application {
 bootstrap(Application).then(app => app.run());
 ```
 
-The application is defined as a component. When we bootstrap it the database is injected into its constructor and we can use it to create a collection and insert a document.
+The application is defined as a [component](../ziqquratu/core/ioc/components.md). When we bootstrap it the database is injected into its constructor and we can use it to create a collection and insert a document.
 
