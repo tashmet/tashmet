@@ -18,7 +18,33 @@ The framework was created mainly to make it easy to share content between a serv
 
 When running it in a web-browser you probably want to have the content rendered using some front-end framework. Ziqquratu does not limit your choices here.
 
-## Components
+## Packages
+
+The project is split over a number of different packages, with most being dependent on at least the core package and the database. There is also a convenience package called simply ziqquratu that exports everything from those two packages.
+
+```typescript
+import {component} from '@ziqquratu/ziqquratu';
+
+@component()
+class Application {}
+```
+
+The only difference with importing from this package is the component, exported from the core package. When imported like above it will include a dependency on the database. Thus the above is equivalent to the following.
+
+```typescript
+import {component} from '@ziqquratu/core';
+
+@component({
+  dependencies: [
+    import('@ziqquratu/database')
+  ]
+})
+class Application {}
+```
+
+### Core packages
+
+These are the packages included in the main package
 
 #### [Core](ziqquratu/core/)
 
@@ -26,15 +52,37 @@ Underlying library dealing with inversion of control \(dependency injection\) an
 
 #### [Database](ziqquratu/database/)
 
-The database including collections for storing in memory and via http.
+The database including collections for storing in [memory](ziqquratu/database/collections/memory.md) and via [HTTP](ziqquratu/database/collections/http.md).
+
+### Middleware packages
+
+Packages containing functionality that can be plugged in to and enhance collections in the database. These are all covered in the section on [middleware](ziqquratu/database/middleware.md).
+
+#### [Caching](ziqquratu/database/middleware.md#caching)
+
+Caching middleware for collections.
+
+#### Pipe
+
+Middleware for creating pipes that can process documents in collections.
+
+#### [Schema](ziqquratu/database/middleware.md#validation)
+
+JSON schema validation middleware for collections.
+
+### Utility packages
 
 #### [View](ziqquratu/views/) <a id="view"></a>
 
-Stored queries and views monitoring subsets of documents i a collection.
+Stored queries and views monitoring subsets of documents in a collection.
+
+### Server packages
+
+These are packages that provide additional server-side functionality.
 
 #### [Nabu](nabu.md)
 
-A set of tools for reading and writing content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown.
+A set of tools for reading and writing content on disk. It allows us to store collections in files with support for common formats like JSON, YAML and Markdown.
 
 #### [Tashmetu](tashmetu.md)
 
