@@ -48,3 +48,26 @@ export const eachDocument = (config: EachDocumentConfig) => {
   }
   return new PipeMiddlewareFactory(fittings);
 }
+
+export interface IOGate {
+  /** Pipe for processing incoming documents */
+  input: Pipe;
+
+  /** Pipe for processing outgoing documents */
+  output: Pipe;
+}
+
+/**
+ * Middleware for processing incoming and outgoing documents separately
+ * 
+ * @param gate The gate containg the pipes
+ */
+export const io = (gate: IOGate) => {
+  const inputs: PipeHook[] = ['insertOne', 'insertMany', 'replaceOne'];
+  const outputs: PipeHook[] = ['find', 'findOne', 'document-upserted', 'document-removed'];
+
+  return new PipeMiddlewareFactory([
+    ...inputs.map(hook => new PipeFittingFactory(gate.input, hook)),
+    ...outputs.map(hook => new PipeFittingFactory(gate.output, hook)),
+  ]);
+}
