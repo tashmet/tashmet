@@ -1,0 +1,38 @@
+{
+  "name": "@ziqquratu/markdown",
+  "version": "0.1.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "test": "exit 0"
+  },
+  "keywords": [
+    "ziqquratu",
+    "markdown"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ziqquratu/ziqquratu"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@ziqquratu/pipe": "^1.2.1",
+    "showdown": "^1.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.8"
+  }
+}
