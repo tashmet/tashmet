@@ -67,7 +67,7 @@ export const io = (gate: IOGate) => {
   const outputs: PipeHook[] = ['find', 'findOne', 'document-upserted', 'document-removed'];
 
   return new PipeMiddlewareFactory([
-    ...inputs.map(hook => new PipeFittingFactory(gate.input, hook)),
-    ...outputs.map(hook => new PipeFittingFactory(gate.output, hook)),
+    ...inputs.map(hook => new PipeFittingFactory(gate.input.bind(gate), hook)),
+    ...outputs.map(hook => new PipeFittingFactory(gate.output.bind(gate), hook)),
   ]);
 }
