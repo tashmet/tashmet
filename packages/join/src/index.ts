@@ -16,9 +16,12 @@ class JoinPipeFactory extends PipeFactory {
 
     return async (doc: any) => {
       const clone = Object.assign({}, doc);
-      const id = doc[this.config.key];
-      const value = await foreign.findOne({_id: id});
-      clone[this.config.key] = value;
+      const ref = doc[this.config.key];
+      if (Array.isArray(ref)) {
+        clone[this.config.key] = await foreign.find({_id: {$in: ref}}).toArray();
+      } else {
+        clone[this.config.key] = await foreign.findOne({_id: ref});
+      }
       return clone;
     }
   }
@@ -34,9 +37,15 @@ class SplitPipeFactory extends PipeFactory {
 
     return async (doc: any) => {
       const clone = Object.assign({}, doc);
-      const foreignDoc = doc[this.config.key];
-      clone[this.config.key] = foreignDoc._id;
-      await foreign.replaceOne({_id: foreignDoc._id}, foreignDoc, {upsert: true});
+      const instance = doc[this.config.key];
+      if (Array.isArray(instance)) {
+        clone[this.config.key] = instance.map(o => o._id);
+      } else {
+        clone[this.config.key] = instance._id;
+      }
+      for (const o of ([] as any).concat(instance)) {
+        await foreign.replaceOne({_id: o._id}, o, {upsert: true});
+      }
       return clone;
     }
   }
