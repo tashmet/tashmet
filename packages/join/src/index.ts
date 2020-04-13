@@ -29,11 +29,14 @@ class SplitPipeFactory extends PipeFactory {
     super();
   }
 
-  public async create(): Promise<Pipe> {
+  public async create(source: Collection, database: Database): Promise<Pipe> {
+    const foreign = await database.collection(this.config.collection);
+
     return async (doc: any) => {
       const clone = Object.assign({}, doc);
-      const id = doc[this.config.key]._id;
-      clone[this.config.key] = id;
+      const foreignDoc = doc[this.config.key];
+      clone[this.config.key] = foreignDoc._id;
+      await foreign.replaceOne({_id: foreignDoc._id}, foreignDoc, {upsert: true});
       return clone;
     }
   }

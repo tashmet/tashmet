@@ -44,22 +44,33 @@ describe('join', () => {
     public constructor(public database: Database) {}
   }
 
-  let collection: Collection;
+  let posts: Collection;
+  let authors: Collection;
 
   before(async () => {
     const app = (await bootstrap(TestComponent));
-    collection = await app.database.collection('posts');
+    posts = await app.database.collection('posts');
+    authors = await app.database.collection('authors');
   });
 
   describe('outgoing', () => {
     afterEach(() => {
-      collection.removeAllListeners();
+      posts.removeAllListeners();
     });
 
     describe('findOne', () => {
       it('should join author', async () => {
-        return expect(collection.findOne({_id: 1}))
+        return expect(posts.findOne({_id: 1}))
           .to.eventually.eql({_id: 1, author: {_id: 1, name: 'John Doe'}});
+      });
+    });
+    
+    describe('insertOne', () => {
+      it('should insert new author', async () => {
+        await posts.insertOne({_id: 2, author: {_id: 2, name: 'Jane Doe'}});
+
+        return expect(authors.findOne({_id: 2}))
+          .to.eventually.eql({_id: 2, name: 'Jane Doe'});
       });
     });
   });
