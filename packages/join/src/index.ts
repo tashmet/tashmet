@@ -1,5 +1,5 @@
 import {Collection, Database} from '@ziqquratu/database';
-import {Pipe, PipeFactory, IOGate} from '@ziqquratu/pipe';
+import {Pipe, PipeFactory, IOGate, io} from '@ziqquratu/pipe';
 
 export interface JoinConfig {
   collection: string;
@@ -50,3 +50,5 @@ export class JoinGate implements IOGate {
     return new JoinPipeFactory(this.config);
   }
 }
+
+export const join = (config: JoinConfig) => io(new JoinGate(config));
