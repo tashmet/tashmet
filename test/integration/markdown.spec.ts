@@ -17,7 +17,7 @@ import {
 
 chai.use(chaiAsPromised);
 
-describe('schema', () => {
+describe('markdown', () => {
   @component({
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
