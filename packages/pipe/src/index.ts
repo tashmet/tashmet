@@ -51,10 +51,10 @@ export const eachDocument = (config: EachDocumentConfig) => {
 
 export interface IOGate {
   /** Pipe for processing incoming documents */
-  input: Pipe;
+  input: Pipe | PipeFactory;
 
   /** Pipe for processing outgoing documents */
-  output: Pipe;
+  output: Pipe | PipeFactory;
 }
 
 /**
@@ -66,8 +66,11 @@ export const io = (gate: IOGate) => {
   const inputs: PipeHook[] = ['insertOne', 'insertMany', 'replaceOne'];
   const outputs: PipeHook[] = ['find', 'findOne', 'document-upserted', 'document-removed'];
 
+  const inPipe = gate.input instanceof PipeFactory ? gate.input : gate.input.bind(gate);
+  const outPipe = gate.output instanceof PipeFactory ? gate.output : gate.output.bind(gate);
+
   return new PipeMiddlewareFactory([
-    ...inputs.map(hook => new PipeFittingFactory(gate.input.bind(gate), hook)),
-    ...outputs.map(hook => new PipeFittingFactory(gate.output.bind(gate), hook)),
+    ...inputs.map(hook => new PipeFittingFactory(inPipe, hook)),
+    ...outputs.map(hook => new PipeFittingFactory(outPipe, hook)),
   ]);
 }
