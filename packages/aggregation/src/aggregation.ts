@@ -23,7 +23,7 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
       documents: await foreign.aggregate(this.config.pipeline)
     });
 
-    async function update() {
+    const update = async () => {
       const docs = await foreign.aggregate(this.config.pipeline) as any[];
 
       await collection.deleteMany({_id: {$nin: docs.map(d => d._id)}});
@@ -31,7 +31,7 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
       for (const doc of docs) {
         const old = await collection.findOne({_id: doc._id});
         if (!old || !equal(doc, old)) {
-          collection.replaceOne({_id: doc._id}, doc, {upsert: true});
+          await collection.replaceOne({_id: doc._id}, doc, {upsert: true});
         }
       }
     }
