@@ -5,6 +5,8 @@ import {
   Database
 } from '@ziqquratu/database';
 
+const equal = require('fast-deep-equal/es6');
+
 export interface AggregationCollectionConfig {
   from: string;
   pipeline: AggregationPipeline;
@@ -17,10 +19,26 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
 
   public async create(name: string, database: Database) {
     const foreign = await database.collection(this.config.from);
-
-    return new MemoryCollection<T>(name, database, {
+    const collection = new MemoryCollection<T>(name, database, {
       documents: await foreign.aggregate(this.config.pipeline)
     });
+
+    async function update() {
+      const docs = await foreign.aggregate(this.config.pipeline) as any[];
+
+      await collection.deleteMany({_id: {$nin: docs.map(d => d._id)}});
+
+      for (const doc of docs) {
+        const old = await collection.findOne({_id: doc._id});
+        if (!old || !equal(doc, old)) {
+          collection.replaceOne({_id: doc._id}, doc, {upsert: true});
+        }
+      }
+    }
+    foreign.on('document-upserted', () => update());
+    foreign.on('document-removed', () => update());
+
+    return collection;
   }
 }
 export const aggregation = (config: AggregationCollectionConfig) =>

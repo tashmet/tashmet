@@ -31,6 +31,7 @@
   "dependencies": {
     "@ziqquratu/database": "^1.2.1",
     "@ziqquratu/pipe": "^1.2.1",
+    "fast-deep-equal": "^3.1.1",
     "mingo": "2.4.0"
   },
   "devDependencies": {
