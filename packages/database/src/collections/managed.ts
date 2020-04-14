@@ -46,6 +46,10 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
   public toString(): string {
     return this.source.toString();
   }
+  
+  public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
+    return this.source.aggregate(pipeline);
+  }
 
   public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
     return this.source.find(selector, options);

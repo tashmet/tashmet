@@ -86,6 +86,10 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
   public toString(): string {
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
+  
+  public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
+    return mingo.aggregate(this.collection, pipeline);
+  }
 
   public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
     return new MemoryCollectionCursor<T>(this.collection, selector, options);

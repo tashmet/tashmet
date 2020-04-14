@@ -94,6 +94,10 @@ export class HttpCollection extends EventEmitter implements Collection {
     return `http collection '${this.name}' at '${this.config.path}'`;
   }
 
+  public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
+    throw Error('Aggregation not supported in HTTP collection');
+  }
+
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
     return new HttpCollectionCursor(this.queryParams, this.config.path, selector, options);
   }

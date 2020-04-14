@@ -24,6 +24,10 @@ export class PersistenceCollection extends EventEmitter implements Collection {
     return `persistence collection '${this.name}' using ${this.adapter.toString()}`;
   }
 
+  public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
+    return this.cache.aggregate(pipeline);
+  }
+
   public async insertOne(doc: any): Promise<any> {
     const res = await this.cache.insertOne(doc);
     try {
