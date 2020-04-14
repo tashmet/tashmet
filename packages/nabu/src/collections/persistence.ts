@@ -1,4 +1,4 @@
-import {Collection, Cursor, ReplaceOneOptions, QueryOptions} from '@ziqquratu/ziqquratu';
+import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions} from '@ziqquratu/ziqquratu';
 import {PersistenceAdapter, ObjectMap} from '../interfaces';
 import {EventEmitter} from 'eventemitter3';
 import {merge} from 'lodash';
@@ -24,8 +24,8 @@ export class PersistenceCollection extends EventEmitter implements Collection {
     return `persistence collection '${this.name}' using ${this.adapter.toString()}`;
   }
 
-  public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
-    return this.cache.aggregate(pipeline);
+  public async aggregate(pipeline: AggregationPipeline, options?: AggregationOptions): Promise<any> {
+    return this.cache.aggregate(pipeline, options);
   }
 
   public async insertOne(doc: any): Promise<any> {

@@ -1,4 +1,4 @@
-import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions} from '../interfaces';
+import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions, AggregationPipeline} from '../interfaces';
 import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 import 'isomorphic-fetch';
@@ -94,7 +94,7 @@ export class HttpCollection extends EventEmitter implements Collection {
     return `http collection '${this.name}' at '${this.config.path}'`;
   }
 
-  public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
+  public async aggregate(pipeline: AggregationPipeline): Promise<any> {
     throw Error('Aggregation not supported in HTTP collection');
   }
 

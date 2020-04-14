@@ -6,7 +6,9 @@ import {
   QueryOptions,
   SortingKey,
   SortingDirection,
-  Database
+  Database,
+  AggregationPipeline,
+  AggregationOptions
 } from '../interfaces';
 import {applyQueryOptions, sortingMap} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
@@ -89,7 +91,7 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
   
-  public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
+  public async aggregate(pipeline: AggregationPipeline, options: AggregationOptions = {}): Promise<any> {
     for (const step of pipeline) {
       for (const op of Object.keys(step)) {
         if (op === '$lookup') {
@@ -98,7 +100,10 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
         }
       }
     }
-    return mingo.aggregate(this.collection, pipeline);
+    const result = mingo.aggregate(this.collection, pipeline);
+    return options.cursor
+      ? new MemoryCollectionCursor(result, {}, {})
+      : result;
   }
 
   public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
