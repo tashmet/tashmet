@@ -35,6 +35,8 @@
     "@types/lodash": "^4.14.149",
     "@types/mock-fs": "^4.10.0",
     "@types/showdown": "^1.9.3",
+    "@ziqquratu/core": "^1.0.1",
+    "@ziqquratu/database": "^1.2.1",
     "@ziqquratu/ziqquratu": "^1.2.1",
     "dedent": "^0.7.0",
     "mock-fs": "^4.10.4"

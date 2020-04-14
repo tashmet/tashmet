@@ -5,7 +5,8 @@ import {
   ReplaceOneOptions,
   QueryOptions,
   SortingKey,
-  SortingDirection
+  SortingDirection,
+  Database
 } from '../interfaces';
 import {applyQueryOptions, sortingMap} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
@@ -77,6 +78,7 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
 
   public constructor(
     public readonly name: string,
+    protected database: Database,
     protected config: MemoryCollectionConfig = {}
   ) {
     super();
@@ -88,6 +90,14 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
   }
   
   public async aggregate(pipeline: Record<string, any>[]): Promise<any> {
+    for (const step of pipeline) {
+      for (const op of Object.keys(step)) {
+        if (op === '$lookup') {
+          const foreignCol = await this.database.collection(step[op].from);
+          step[op].from = await foreignCol.find().toArray();
+        }
+      }
+    }
     return mingo.aggregate(this.collection, pipeline);
   }
 
@@ -176,8 +186,8 @@ export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
     super();
   }
 
-  public async create(name: string) {
-    return new MemoryCollection<T>(name, this.config);
+  public async create(name: string, database: Database) {
+    return new MemoryCollection<T>(name, database, this.config);
   }
 }
 

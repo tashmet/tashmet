@@ -1,4 +1,6 @@
 import {Collection, MemoryCollection} from '@ziqquratu/ziqquratu';
+import {DatabaseService} from '@ziqquratu/database/src/database';
+import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
 import {ObjectMap, PersistenceAdapter} from '../../../src/interfaces';
 import {PersistenceCollection} from '../../../src/collections/persistence';
 import {EventEmitter} from 'eventemitter3';
@@ -27,7 +29,9 @@ class MockPersistenceAdapter extends EventEmitter implements PersistenceAdapter 
 }
 
 describe('PersistenceCollection', () => {
-  const cache = new MemoryCollection('test');
+  const cache = new MemoryCollection(
+    'test', new DatabaseService({collections: {}}, new DefaultLogger())
+  );
   const adapter = new MockPersistenceAdapter();
   let collection: Collection;
 

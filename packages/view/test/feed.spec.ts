@@ -3,6 +3,8 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import {MemoryCollection} from '@ziqquratu/database';
+import {DatabaseService} from '@ziqquratu/database/src/database';
+import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
 import {Feed} from '../src';
 
 chai.use(chaiAsPromised);
@@ -21,7 +23,9 @@ describe('Feed', () => {
     public increment = 2;
   }
 
-  const collection = new MemoryCollection('test');
+  const collection = new MemoryCollection(
+    'test', new DatabaseService({collections: {}}, new DefaultLogger())
+  );
   let feed: TestFeed;
 
   before(async () => {

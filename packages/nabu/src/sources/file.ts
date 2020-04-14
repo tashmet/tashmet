@@ -2,7 +2,7 @@ import {FSWatcher} from 'chokidar';
 import {EventEmitter} from 'eventemitter3';
 import {cloneDeep, difference, each, intersection, isEqual, keys, omit, transform} from 'lodash';
 import * as fs from 'fs-extra';
-import {Collection, CollectionFactory, MemoryCollection} from '@ziqquratu/ziqquratu';
+import {Collection, CollectionFactory, MemoryCollection, Database} from '@ziqquratu/ziqquratu';
 import {PersistenceCollection} from '../collections/persistence';
 import {
   FileConfig, FileSystemConfig, PersistenceAdapter, ObjectMap, Serializer
@@ -109,7 +109,7 @@ export class FileCollectionFactory extends CollectionFactory {
     super('nabu.FileSystemConfig', 'chokidar.FSWatcher');
   }
 
-  public create(name: string): Promise<Collection> {
+  public create(name: string, database: Database): Promise<Collection> {
     return this.resolve(async (fsConfig: FileSystemConfig, watcher: FSWatcher) => {
       return new PersistenceCollection(
         new File(
@@ -117,7 +117,7 @@ export class FileCollectionFactory extends CollectionFactory {
           this.config.path,
           fsConfig.watch ? watcher : undefined
         ),
-        new MemoryCollection(name, {disableEvents: true})
+        new MemoryCollection(name, database, {disableEvents: true})
       ).populate();
     });
   }

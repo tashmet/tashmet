@@ -1,4 +1,6 @@
 import {MemoryCollection, SortingDirection} from '@ziqquratu/database';
+import {DatabaseService} from '@ziqquratu/database/src/database';
+import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
 import {SortByAnnotation} from '../../src/decorators/sort';
 import {expect} from 'chai';
 import chai from 'chai';
@@ -12,7 +14,9 @@ chai.use(sinonChai);
 
 describe('SortBy', () => {
   let sandbox: sinon.SinonSandbox;
-  const collection = new MemoryCollection('test');
+  const collection = new MemoryCollection(
+    'test', new DatabaseService({collections: {}}, new DefaultLogger())
+  );
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();

@@ -3,7 +3,7 @@ import {EventEmitter} from 'eventemitter3';
 import {omit} from 'lodash';
 import {basename, dirname, join} from 'path';
 import * as fs from 'fs-extra';
-import {Collection, CollectionFactory, MemoryCollection} from '@ziqquratu/ziqquratu';
+import {Collection, CollectionFactory, MemoryCollection, Database} from '@ziqquratu/ziqquratu';
 import {PersistenceCollection} from '../collections/persistence';
 import {
   DirectoryConfig, FileSystemConfig, PersistenceAdapter, ObjectMap, Serializer
@@ -81,7 +81,7 @@ export class DirectoryCollectionFactory extends CollectionFactory {
     super('nabu.FileSystemConfig', 'chokidar.FSWatcher');
   }
 
-  public create(name: string): Promise<Collection> {
+  public create(name: string, database: Database): Promise<Collection> {
     return this.resolve(async (fsConfig: FileSystemConfig, watcher: FSWatcher) => {
       return new PersistenceCollection(
         new Directory(
@@ -91,7 +91,7 @@ export class DirectoryCollectionFactory extends CollectionFactory {
           this.config.create || false,
           fsConfig.watch ? watcher : undefined
         ),
-        new MemoryCollection(name, {disableEvents: true})
+        new MemoryCollection(name, database, {disableEvents: true})
       ).populate();
     });
   }

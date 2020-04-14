@@ -1,4 +1,4 @@
-import {Collection, MemoryCollection, Middleware, MiddlewareFactory} from '@ziqquratu/database';
+import {Collection, MemoryCollection, Middleware, MiddlewareFactory, Database} from '@ziqquratu/database';
 import {IDCache} from './id';
 import {QueryCache} from './query';
 import {CachingCursor} from './middleware';
@@ -12,9 +12,9 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
     private config: CachingConfig
   ) { super(); }
 
-  public async create(source: Collection): Promise<Middleware> {
+  public async create(source: Collection, database: Database): Promise<Middleware> {
     const evaluators = [new QueryCache(this.config.ttl), new IDCache(this.config.ttl)];
-    const cache = new MemoryCollection(source.name);
+    const cache = new MemoryCollection(source.name, database);
 
     for (const evaluator of evaluators) {
       cache.on('document-upserted', doc => evaluator.add(doc));

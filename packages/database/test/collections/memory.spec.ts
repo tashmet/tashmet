@@ -1,3 +1,5 @@
+import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
+import {DatabaseService} from '../../src/database';
 import {MemoryCollection} from '../../src/collections/memory';
 import {expect} from 'chai';
 import 'mocha';
@@ -7,7 +9,9 @@ import chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 
 describe('MemoryCollection', () => {
-  const col = new MemoryCollection('test');
+  const col = new MemoryCollection(
+    'test', new DatabaseService({collections: {}}, new DefaultLogger())
+  );
 
   beforeEach(async () => {
     await col.insertMany([
