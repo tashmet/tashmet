@@ -30,7 +30,8 @@
   ],
   "dependencies": {
     "@ziqquratu/database": "^1.2.1",
-    "@ziqquratu/pipe": "^1.2.1"
+    "@ziqquratu/pipe": "^1.2.1",
+    "mingo": "2.4.0"
   },
   "devDependencies": {
     "@types/node": "^13.1.8"
