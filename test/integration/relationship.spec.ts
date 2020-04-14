@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import {join} from '../../packages/join/dist';
+import {relationship} from '../../packages/aggregation/dist';
 import {
   bootstrap,
   component,
@@ -29,9 +29,11 @@ describe('join', () => {
               {_id: 1, author: 1 },
             ]}),
             use: [
-              join({
-                collection: 'authors',
-                key: 'author',
+              relationship({
+                to: 'authors',
+                localField: 'author',
+                foreignField: '_id',
+                as: 'author',
               })
             ],
           }

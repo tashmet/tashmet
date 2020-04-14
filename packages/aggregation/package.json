@@ -1,5 +1,5 @@
 {
-  "name": "@ziqquratu/join",
+  "name": "@ziqquratu/aggregation",
   "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
   },
   "keywords": [
     "ziqquratu",
-    "join"
+    "aggregation"
   ],
   "author": "",
   "license": "MIT",
