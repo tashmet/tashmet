@@ -7,9 +7,25 @@ import {
 
 const equal = require('fast-deep-equal/es6');
 
+/** Configuration for aggregation collection */
 export interface AggregationCollectionConfig {
+  /** The name of the collection to aggregate from */
   from: string;
+
+  /** The aggregation pipeline */
   pipeline: AggregationPipeline;
+
+  /**
+   * Automatically update documents when changes are made to the collection
+   * we are aggregating from.
+   * 
+   * When sync is turned on this collection should strictly function as
+   * read-only since a sync will remove any documents that have been manually
+   * added.
+   * 
+   * @default true
+   */
+  sync?: boolean;
 }
 
 export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
@@ -35,11 +51,15 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
         }
       }
     }
-    foreign.on('document-upserted', () => update());
-    foreign.on('document-removed', () => update());
+
+    if (this.config.sync !== false) {
+      foreign.on('document-upserted', () => update());
+      foreign.on('document-removed', () => update());
+    }
 
     return collection;
   }
 }
+
 export const aggregation = (config: AggregationCollectionConfig) =>
   new AggregationCollectionFactory(config);
