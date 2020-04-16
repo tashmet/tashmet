@@ -20,7 +20,7 @@ export class JoinPipeFactory extends AggregationPipeFactory {
     const foreign = await database.collection(to);
 
     const $lookup = {from: await foreign.find().toArray(), localField, foreignField, as};
-    const $set = {[localField]: {$arrayElemAt: ['$' + localField, 0]}};
+    const $set = {[as]: {$arrayElemAt: ['$' + as, 0]}};
 
     return super.create(source, database, [{$lookup}, ...single ? [{$set}] : []]);
   }
