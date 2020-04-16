@@ -14,14 +14,14 @@ export class SetPipeFactory extends PipeFactory {
 }
 
 export class UnsetPipeFactory extends PipeFactory {
-  public constructor(private config: Record<string, any>) {
+  public constructor(private keys: string[]) {
     super();
   }
 
   public async create(): Promise<Pipe> {
     return async (doc: any) => {
       const clone = Object.assign({}, doc);
-      for (const key of Object.keys(this.config)) {
+      for (const key of this.keys) {
         delete clone[key];
       }
       return clone;
@@ -33,7 +33,7 @@ export class FieldsAggregator implements IOGate {
   public constructor(private config: Record<string, any>) {}
 
   get input(): PipeFactory {
-    return new UnsetPipeFactory(this.config);
+    return new UnsetPipeFactory(Object.keys(this.config));
   }
 
   get output(): PipeFactory {

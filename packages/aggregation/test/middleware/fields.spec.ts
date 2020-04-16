@@ -29,9 +29,7 @@ describe('fields', () => {
   });
 
   describe('UnsetPipeFactory', () => {
-    const fact = new UnsetPipeFactory({
-      name: {$concat: ['$givenName', ' ', '$familyName']},
-    });
+    const fact = new UnsetPipeFactory(['name']);
     let pipe: Pipe;
 
     before(async () => {
