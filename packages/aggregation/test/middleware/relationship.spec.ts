@@ -1,7 +1,7 @@
 import {Collection, Database, memory} from '@ziqquratu/database';
 import {DatabaseService} from '@ziqquratu/database/dist/database';
 import {DefaultLogger} from '../../../core/dist/logging/logger';
-import {JoinPipeFactory} from '../../src/middleware/relationship';
+import {JoinPipeFactory, SplitPipeFactory} from '../../src/middleware/relationship';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
@@ -51,10 +51,81 @@ describe.only('relationship', () => {
       });
       const pipe = await fact.create({} as Collection, database);
 
-      return expect(pipe({item: 'almonds', price: 12, quantity: 2}))
-        .to.eventually.eql({item: 'almonds', price: 12, quantity: 2, inventory:
-          {_id: 1, sku: 'almonds', description: 'product 1', instock: 120}
+      return expect(pipe({item: 'almonds'}))
+        .to.eventually.eql({
+          item: 'almonds',
+          inventory: {_id: 1, sku: 'almonds', description: 'product 1', instock: 120}
         });
+    });
+
+    it('should join on same key', async () => {
+      const fact = new JoinPipeFactory({
+        to: 'inventory',
+        localField: 'item',
+        foreignField: 'sku',
+        as: 'item',
+        single: true,
+      });
+      const pipe = await fact.create({} as Collection, database);
+
+      return expect(pipe({item: 'almonds'}))
+        .to.eventually.eql({
+          item: {_id: 1, sku: 'almonds', description: 'product 1', instock: 120}
+        });
+    });
+  });
+
+  describe('SplitPipeFactory', () => {
+    it('should split documents as list', async () => {
+      const fact = new SplitPipeFactory({
+        to: 'inventory',
+        localField: 'item',
+        foreignField: 'sku',
+        as: 'inventory',
+        single: false,
+      });
+      const pipe = await fact.create({} as Collection, database);
+
+      return expect(pipe({
+        item: 'almonds',
+        price: 12,
+        quantity: 2,
+        inventory: [{_id: 1, sku: 'almonds', description: 'product 1', instock: 120}]
+      }))
+        .to.eventually.eql({item: 'almonds', price: 12, quantity: 2});
+    });
+
+    it('should split a single document', async () => {
+      const fact = new SplitPipeFactory({
+        to: 'inventory',
+        localField: 'item',
+        foreignField: 'sku',
+        as: 'inventory',
+        single: true,
+      });
+      const pipe = await fact.create({} as Collection, database);
+
+      return expect(pipe({
+        item: 'almonds',
+        inventory: {_id: 1, sku: 'almonds', description: 'product 1', instock: 120}
+      }))
+        .to.eventually.eql({item: 'almonds'});
+    });
+
+    it('should split on same key', async () => {
+      const fact = new SplitPipeFactory({
+        to: 'inventory',
+        localField: 'item',
+        foreignField: 'sku',
+        as: 'item',
+        single: true,
+      });
+      const pipe = await fact.create({} as Collection, database);
+
+      return expect(pipe({
+        item: {_id: 1, sku: 'almonds', description: 'product 1', instock: 120}
+      }))
+        .to.eventually.eql({item: 'almonds'});
     });
   });
 });
