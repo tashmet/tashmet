@@ -4,6 +4,7 @@ import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { Collection, Database } from '@ziqquratu/database';
 
 chai.use(chaiAsPromised);
 
@@ -15,7 +16,7 @@ describe('fields', () => {
     let pipe: Pipe;
 
     before(async () => {
-      pipe = await fact.create();
+      pipe = await fact.create({} as Collection, {} as Database);
     });
 
     it('should add provided fields', async () => {
@@ -39,7 +40,7 @@ describe('fields', () => {
       let pipe: Pipe;
 
       before(async () => {
-        pipe = await fact.create();
+        pipe = await fact.create({} as Collection, {} as Database);
       });
 
       it('should add provided fields', async () => {
@@ -54,7 +55,7 @@ describe('fields', () => {
     let pipe: Pipe;
 
     before(async () => {
-      pipe = await fact.create();
+      pipe = await fact.create({} as Collection, {} as Database);
     });
 
     it('should unset provided fields', async () => {
@@ -76,7 +77,7 @@ describe('fields', () => {
       let pipe: Pipe;
 
       before(async () => {
-        pipe = await fact.create();
+        pipe = await fact.create({} as Collection, {} as Database);
       });
 
       it('should unset provided fields', async () => {

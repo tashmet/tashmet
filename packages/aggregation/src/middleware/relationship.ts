@@ -1,31 +1,32 @@
 import {Collection, Database} from '@ziqquratu/database';
 import {Pipe, PipeFactory, IOGate, io} from '@ziqquratu/pipe';
+import {AggregationPipeFactory} from './pipe';
 
 export interface RelationshipConfig {
   to: string;
   localField: string;
   foreignField: string;
   as: string;
+  single?: boolean;
 }
 
-class JoinPipeFactory extends PipeFactory {
+class JoinPipeFactory extends AggregationPipeFactory {
   public constructor(private config: RelationshipConfig) {
-    super();
+    super([]);
   }
 
   public async create(source: Collection, database: Database): Promise<Pipe> {
-    const foreign = await database.collection(this.config.to);
+    const {to, localField, foreignField, as, single} = this.config;
+    const foreign = await database.collection(to);
 
-    return async (doc: any) => {
-      const clone = Object.assign({}, doc);
-      const ref = doc[this.config.localField];
-      if (Array.isArray(ref)) {
-        clone[this.config.as] = await foreign.find({[this.config.foreignField]: {$in: ref}}).toArray();
-      } else {
-        clone[this.config.as] = await foreign.findOne({[this.config.foreignField]: ref});
-      }
-      return clone;
-    }
+    return super.create(source, database, [
+      {
+        $lookup: {
+          from: await foreign.find().toArray(), localField, foreignField, as,
+        }
+      },
+      ...(single ? [{$set: {[localField]: {$arrayElemAt: ['$' + localField, 0]}}}] : [])
+    ]);
   }
 }
 

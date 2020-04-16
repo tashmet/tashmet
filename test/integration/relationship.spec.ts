@@ -34,6 +34,7 @@ describe('join', () => {
                 localField: 'author',
                 foreignField: '_id',
                 as: 'author',
+                single: true,
               })
             ],
           }
