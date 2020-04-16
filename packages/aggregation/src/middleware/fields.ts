@@ -20,11 +20,8 @@ export class UnsetPipeFactory extends PipeFactory {
 
   public async create(): Promise<Pipe> {
     return async (doc: any) => {
-      const clone = Object.assign({}, doc);
-      for (const key of this.keys) {
-        delete clone[key];
-      }
-      return clone;
+      const projection = this.keys.reduce((acc, key) => Object.assign(acc, {[key]: 0}), {});
+      return mingo.aggregate([doc], [{$project: projection}])[0];
     }
   }
 }

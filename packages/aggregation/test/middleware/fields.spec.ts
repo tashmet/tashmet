@@ -26,6 +26,22 @@ describe('fields', () => {
       return expect(pipe({givenName: 'John', familyName: 'Doe', name: 'existing'}))
         .to.eventually.eql({givenName: 'John', familyName: 'Doe', name: 'John Doe'});
     });
+
+    describe('nested fields', () => {
+      const fact = new SetPipeFactory({
+        'specs.fuel_type': 'unleaded'
+      });
+      let pipe: Pipe;
+
+      before(async () => {
+        pipe = await fact.create();
+      });
+
+      it('should add provided fields', async () => {
+        return expect(pipe({type: 'car', specs: {doors: 4, wheels: 4}}))
+          .to.eventually.eql({type: 'car', specs: {doors: 4, wheels: 4, fuel_type: 'unleaded'}});
+      });
+    });
   });
 
   describe('UnsetPipeFactory', () => {
@@ -43,6 +59,20 @@ describe('fields', () => {
     it('should ignore missing fields', async () => {
       return expect(pipe({givenName: 'John', familyName: 'Doe'}))
         .to.eventually.eql({givenName: 'John', familyName: 'Doe'});
+    });
+
+    describe('nested fields', () => {
+      const fact = new UnsetPipeFactory(['specs.fuel_type']);
+      let pipe: Pipe;
+
+      before(async () => {
+        pipe = await fact.create();
+      });
+
+      it('should unset provided fields', async () => {
+        return expect(pipe({type: 'car', specs: {doors: 4, wheels: 4, fuel_type: 'unleaded'}}))
+          .to.eventually.eql({type: 'car', specs: {doors: 4, wheels: 4}});
+      });
     });
   });
 });
