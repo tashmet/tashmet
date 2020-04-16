@@ -1,30 +1,28 @@
+import {AggregationPipeline} from '@ziqquratu/database';
 import {Pipe, PipeFactory, IOGate, io} from '@ziqquratu/pipe';
 import mingo from 'mingo';
 
-export class SetPipeFactory extends PipeFactory {
-  public constructor(private config: Record<string, any>) {
+export class AggregationPipeFactory extends PipeFactory {
+  public constructor(private pipeline: AggregationPipeline) {
     super();
   }
 
   public async create(): Promise<Pipe> {
-    return async (doc: any) => {
-      return mingo.aggregate([doc], [{$set: this.config}])[0];
-    }
+    return async doc => mingo.aggregate([doc], this.pipeline)[0];
   }
 }
 
-export class UnsetPipeFactory extends PipeFactory {
-  private projection: Record<string, 0>;
-
-  public constructor(keys: string[]) {
-    super();
-    this.projection = keys.reduce((acc, key) => Object.assign(acc, {[key]: 0}), {});
+export class SetPipeFactory extends AggregationPipeFactory {
+  public constructor(config: Record<string, any>) {
+    super([{$set: config}]);
   }
+}
 
-  public async create(): Promise<Pipe> {
-    return async (doc: any) => {
-      return mingo.aggregate([doc], [{$project: this.projection}])[0];
-    }
+export class UnsetPipeFactory extends AggregationPipeFactory {
+  public constructor(keys: string[]) {
+    super([
+      {$project: keys.reduce((acc, key) => Object.assign(acc, {[key]: 0}), {})}
+    ]);
   }
 }
 
