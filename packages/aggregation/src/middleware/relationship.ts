@@ -39,6 +39,16 @@ export interface RelationshipConfig {
    * @default false
    */
   single?: boolean;
+
+  /**
+   * Upsert linked documents on store.
+   * 
+   * If set to true the linked documents from the foreign collection will be
+   * upserted when a document in the local collection is stored.
+   * 
+   * @default true
+   */
+  upsert?: boolean;
 }
 
 export class JoinPipeFactory extends AggregationPipeFactory {
@@ -63,7 +73,7 @@ export class SplitPipeFactory extends PipeFactory {
   }
 
   public async create(source: Collection, database: Database): Promise<Pipe> {
-    const {to, localField, foreignField} = this.config;
+    const {to, localField, foreignField, upsert} = this.config;
     const foreign = await database.collection(to);
 
     const asField = this.config.as;
@@ -80,8 +90,10 @@ export class SplitPipeFactory extends PipeFactory {
       } else {
         delete clone[asField];
       }
-      for (const o of ([] as any).concat(instance)) {
-        await foreign.replaceOne({_id: o._id}, o, {upsert: true});
+      if (upsert) {
+        for (const o of ([] as any).concat(instance)) {
+          await foreign.replaceOne({_id: o._id}, o, {upsert: true});
+        }
       }
       return clone;
     }
@@ -101,4 +113,8 @@ export class RelationshipAggregator implements IOGate {
 }
 
 export const relationship = (config: RelationshipConfig) =>
-  io(new RelationshipAggregator(Object.assign({as: config.localField, single: false}, config)));
+  io(new RelationshipAggregator(Object.assign({
+    as: config.localField,
+    single: false,
+    upsert: true,
+  }, config)));

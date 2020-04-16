@@ -32,6 +32,7 @@ describe.only('relationship', () => {
         foreignField: 'sku',
         as: 'inventory',
         single: false,
+        upsert: true,
       });
       const pipe = await fact.create({} as Collection, database);
 
@@ -48,6 +49,7 @@ describe.only('relationship', () => {
         foreignField: 'sku',
         as: 'inventory',
         single: true,
+        upsert: true,
       });
       const pipe = await fact.create({} as Collection, database);
 
@@ -65,6 +67,7 @@ describe.only('relationship', () => {
         foreignField: 'sku',
         as: 'item',
         single: true,
+        upsert: true,
       });
       const pipe = await fact.create({} as Collection, database);
 
@@ -83,6 +86,7 @@ describe.only('relationship', () => {
         foreignField: 'sku',
         as: 'inventory',
         single: false,
+        upsert: true,
       });
       const pipe = await fact.create({} as Collection, database);
 
@@ -102,6 +106,7 @@ describe.only('relationship', () => {
         foreignField: 'sku',
         as: 'inventory',
         single: true,
+        upsert: true,
       });
       const pipe = await fact.create({} as Collection, database);
 
@@ -119,6 +124,7 @@ describe.only('relationship', () => {
         foreignField: 'sku',
         as: 'item',
         single: true,
+        upsert: true,
       });
       const pipe = await fact.create({} as Collection, database);
 
