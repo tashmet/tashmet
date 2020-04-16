@@ -32,22 +32,22 @@ export class SplitPipeFactory extends PipeFactory {
   }
 
   public async create(source: Collection, database: Database): Promise<Pipe> {
-    const {to, localField} = this.config;
+    const {to, localField, foreignField} = this.config;
     const foreign = await database.collection(to);
 
-    const joinKey = this.config.as;
+    const asField = this.config.as;
 
     return async (doc: any) => {
       const clone = Object.assign({}, doc);
-      const instance = doc[joinKey];
-      if (joinKey === localField) {
+      const instance = doc[asField];
+      if (asField === localField) {
         if (Array.isArray(instance)) {
-          clone[joinKey] = instance.map(o => o._id);
+          clone[asField] = instance[0][foreignField];
         } else {
-          clone[joinKey] = instance._id;
+          clone[asField] = instance[foreignField];
         }
       } else {
-        delete clone[joinKey];
+        delete clone[asField];
       }
       for (const o of ([] as any).concat(instance)) {
         await foreign.replaceOne({_id: o._id}, o, {upsert: true});
