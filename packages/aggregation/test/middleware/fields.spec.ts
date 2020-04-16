@@ -26,6 +26,11 @@ describe('fields', () => {
       return expect(pipe({givenName: 'John', familyName: 'Doe', name: 'existing'}))
         .to.eventually.eql({givenName: 'John', familyName: 'Doe', name: 'John Doe'});
     });
+    it('should not mutate input document', async () => {
+      const doc = {givenName: 'John', familyName: 'Doe'};
+      await pipe(doc);
+      return expect(doc).to.eql({givenName: 'John', familyName: 'Doe'});
+    });
 
     describe('nested fields', () => {
       const fact = new SetPipeFactory({
@@ -59,6 +64,11 @@ describe('fields', () => {
     it('should ignore missing fields', async () => {
       return expect(pipe({givenName: 'John', familyName: 'Doe'}))
         .to.eventually.eql({givenName: 'John', familyName: 'Doe'});
+    });
+    it('should not mutate input document', async () => {
+      const doc = {givenName: 'John', familyName: 'Doe', name: 'John Doe'};
+      await pipe(doc);
+      return expect(doc).to.eql({givenName: 'John', familyName: 'Doe', name: 'John Doe'});
     });
 
     describe('nested fields', () => {
