@@ -1,7 +1,7 @@
 import {Pipe, PipeFactory, IOGate, io} from '@ziqquratu/pipe';
 import mingo from 'mingo';
 
-class SetPipeFactory extends PipeFactory {
+export class SetPipeFactory extends PipeFactory {
   public constructor(private config: Record<string, any>) {
     super();
   }
@@ -13,7 +13,7 @@ class SetPipeFactory extends PipeFactory {
   }
 }
 
-class UnsetPipeFactory extends PipeFactory {
+export class UnsetPipeFactory extends PipeFactory {
   public constructor(private config: Record<string, any>) {
     super();
   }
