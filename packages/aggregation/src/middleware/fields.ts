@@ -14,14 +14,16 @@ export class SetPipeFactory extends PipeFactory {
 }
 
 export class UnsetPipeFactory extends PipeFactory {
-  public constructor(private keys: string[]) {
+  private projection: Record<string, 0>;
+
+  public constructor(keys: string[]) {
     super();
+    this.projection = keys.reduce((acc, key) => Object.assign(acc, {[key]: 0}), {});
   }
 
   public async create(): Promise<Pipe> {
     return async (doc: any) => {
-      const projection = this.keys.reduce((acc, key) => Object.assign(acc, {[key]: 0}), {});
-      return mingo.aggregate([doc], [{$project: projection}])[0];
+      return mingo.aggregate([doc], [{$project: this.projection}])[0];
     }
   }
 }
