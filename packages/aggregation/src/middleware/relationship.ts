@@ -2,11 +2,42 @@ import {Collection, Database} from '@ziqquratu/database';
 import {Pipe, PipeFactory, IOGate, io} from '@ziqquratu/pipe';
 import {AggregationPipeFactory} from './pipe';
 
+/** Configuration for relatinoship */
 export interface RelationshipConfig {
+  /** The name of the foreign collection to aggregate from */
   to: string;
+
+  /**
+   * The name of the field in this collection whose value should be used to
+   * match documents in the foreign collection.
+   * 
+   * Note that the value of the local field can not be an array, only
+   * primitives are allowed.
+   */
   localField: string;
+
+  /**
+   * The name of the field in the foreign collection that the local field
+   * value should be matched against.
+   */
   foreignField: string;
+
+  /**
+   * The target field in the local collection where the matching documents
+   * should be stored.
+   * 
+   * If not set then 'localField' will be used instead.
+   */
   as?: string;
+
+  /**
+   * Only link a single document.
+   * 
+   * If set to true the result will be stored as a single document
+   * (the first match), instead of an array of documents.
+   * 
+   * @default false
+   */
   single?: boolean;
 }
 
@@ -60,11 +91,11 @@ export class SplitPipeFactory extends PipeFactory {
 export class RelationshipAggregator implements IOGate {
   public constructor(private config: Required<RelationshipConfig>) {}
 
-  get input(): PipeFactory {
+  get input() {
     return new SplitPipeFactory(this.config);
   }
 
-  get output(): PipeFactory {
+  get output() {
     return new JoinPipeFactory(this.config);
   }
 }
