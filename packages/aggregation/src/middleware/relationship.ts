@@ -6,12 +6,12 @@ export interface RelationshipConfig {
   to: string;
   localField: string;
   foreignField: string;
-  as: string;
+  as?: string;
   single?: boolean;
 }
 
-class JoinPipeFactory extends AggregationPipeFactory {
-  public constructor(private config: RelationshipConfig) {
+export class JoinPipeFactory extends AggregationPipeFactory {
+  public constructor(private config: Required<RelationshipConfig>) {
     super([]);
   }
 
@@ -26,25 +26,28 @@ class JoinPipeFactory extends AggregationPipeFactory {
   }
 }
 
-class SplitPipeFactory extends PipeFactory {
-  public constructor(private config: RelationshipConfig) {
+export class SplitPipeFactory extends PipeFactory {
+  public constructor(private config: Required<RelationshipConfig>) {
     super();
   }
 
   public async create(source: Collection, database: Database): Promise<Pipe> {
-    const foreign = await database.collection(this.config.to);
+    const {to, localField} = this.config;
+    const foreign = await database.collection(to);
+
+    const joinKey = this.config.as;
 
     return async (doc: any) => {
       const clone = Object.assign({}, doc);
-      const instance = doc[this.config.as];
-      if (this.config.as === this.config.localField) {
+      const instance = doc[joinKey];
+      if (joinKey === localField) {
         if (Array.isArray(instance)) {
-          clone[this.config.as] = instance.map(o => o._id);
+          clone[joinKey] = instance.map(o => o._id);
         } else {
-          clone[this.config.as] = instance._id;
+          clone[joinKey] = instance._id;
         }
       } else {
-        delete clone[this.config.as];
+        delete clone[joinKey];
       }
       for (const o of ([] as any).concat(instance)) {
         await foreign.replaceOne({_id: o._id}, o, {upsert: true});
@@ -55,7 +58,7 @@ class SplitPipeFactory extends PipeFactory {
 }
 
 export class RelationshipAggregator implements IOGate {
-  public constructor(private config: RelationshipConfig) {}
+  public constructor(private config: Required<RelationshipConfig>) {}
 
   get input(): PipeFactory {
     return new SplitPipeFactory(this.config);
@@ -66,4 +69,5 @@ export class RelationshipAggregator implements IOGate {
   }
 }
 
-export const relationship = (config: RelationshipConfig) => io(new RelationshipAggregator(config));
+export const relationship = (config: RelationshipConfig) =>
+  io(new RelationshipAggregator(Object.assign({as: config.localField, single: false}, config)));
