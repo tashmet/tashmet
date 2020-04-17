@@ -53,7 +53,7 @@ export interface RelationshipConfig {
 
 export class JoinPipeFactory extends AggregationPipeFactory {
   public constructor(private config: Required<RelationshipConfig>) {
-    super([]);
+    super();
   }
 
   public async create(source: Collection, database: Database): Promise<Pipe> {

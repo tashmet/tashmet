@@ -3,11 +3,13 @@ import {Pipe, PipeFactory} from '@ziqquratu/pipe';
 import mingo from 'mingo';
 
 export class AggregationPipeFactory extends PipeFactory {
-  public constructor(private pipeline: AggregationPipeline) {
+  public constructor(private pipeline: AggregationPipeline = []) {
     super();
   }
 
-  public async create(source: Collection, database: Database, pipeline: AggregationPipeline = []): Promise<Pipe> {
-    return async doc => mingo.aggregate([doc], this.pipeline.concat(pipeline))[0];
+  public async create(
+    source: Collection, database: Database, appendage: AggregationPipeline = []
+  ): Promise<Pipe> {
+    return async doc => mingo.aggregate([doc], this.pipeline.concat(appendage))[0];
   }
 }
