@@ -11,10 +11,11 @@ chai.use(chaiAsPromised);
 
 describe.only('relationship', () => {
   let database: Database;
+  let inventory: Collection;
 
   before(async () => {
     database = new DatabaseService({collections: {}}, new DefaultLogger());
-    await database.createCollection('inventory', memory({documents: [
+    inventory = await database.createCollection('inventory', memory({documents: [
       {_id: 1, sku: 'almonds', description: 'product 1', instock: 120},
       {_id: 2, sku: 'bread', description: 'product 2', instock: 80},
       {_id: 3, sku: 'cashews', description: 'product 3', instock: 60},
@@ -132,6 +133,46 @@ describe.only('relationship', () => {
         item: {_id: 1, sku: 'almonds', description: 'product 1', instock: 120}
       }))
         .to.eventually.eql({item: 'almonds'});
+    });
+
+    it('should upsert on split when configured to', async () => {
+      const fact = new SplitPipeFactory({
+        to: 'inventory',
+        localField: 'item',
+        foreignField: 'sku',
+        as: 'inventory',
+        single: true,
+        upsert: true,
+      });
+      const pipe = await fact.create({} as Collection, database);
+
+      await pipe({
+        item: 'almonds',
+        inventory: {_id: 1, sku: 'almonds', description: 'product 1', instock: 125}
+      });
+
+      return expect(inventory.findOne({_id: 1}))
+        .to.eventually.eql({_id: 1, sku: 'almonds', description: 'product 1', instock: 125});
+    });
+
+    it('should not upsert on split when configured not to', async () => {
+      const fact = new SplitPipeFactory({
+        to: 'inventory',
+        localField: 'item',
+        foreignField: 'sku',
+        as: 'inventory',
+        single: true,
+        upsert: false,
+      });
+      const pipe = await fact.create({} as Collection, database);
+
+      await pipe({
+        item: 'almonds',
+        inventory: {_id: 1, sku: 'almonds', description: 'product 1', instock: 130}
+      });
+
+      return expect(inventory.findOne({_id: 1}))
+        .to.eventually.eql({_id: 1, sku: 'almonds', description: 'product 1', instock: 125});
     });
   });
 });
