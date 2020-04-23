@@ -35,7 +35,7 @@ describe('fields', () => {
 
     describe('nested fields', () => {
       const fact = new SetPipeFactory({
-        'specs.fuel_type': 'unleaded'
+        'specs.fuelType': 'unleaded'
       });
       let pipe: Pipe;
 
@@ -45,7 +45,7 @@ describe('fields', () => {
 
       it('should add provided fields', async () => {
         return expect(pipe({type: 'car', specs: {doors: 4, wheels: 4}}))
-          .to.eventually.eql({type: 'car', specs: {doors: 4, wheels: 4, fuel_type: 'unleaded'}});
+          .to.eventually.eql({type: 'car', specs: {doors: 4, wheels: 4, fuelType: 'unleaded'}});
       });
     });
   });
@@ -73,7 +73,7 @@ describe('fields', () => {
     });
 
     describe('nested fields', () => {
-      const fact = new UnsetPipeFactory(['specs.fuel_type']);
+      const fact = new UnsetPipeFactory(['specs.fuelType']);
       let pipe: Pipe;
 
       before(async () => {
@@ -81,7 +81,7 @@ describe('fields', () => {
       });
 
       it('should unset provided fields', async () => {
-        return expect(pipe({type: 'car', specs: {doors: 4, wheels: 4, fuel_type: 'unleaded'}}))
+        return expect(pipe({type: 'car', specs: {doors: 4, wheels: 4, fuelType: 'unleaded'}}))
           .to.eventually.eql({type: 'car', specs: {doors: 4, wheels: 4}});
       });
     });
