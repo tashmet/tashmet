@@ -17,30 +17,6 @@ async function filterResults<T>(
   return fulfilled;
 }
 
-export class PipeFittingFactory {
-  public constructor(
-    private pipe: Pipe | PipeFactory,
-    private hook: PipeHook,
-    private filter: boolean = false
-  ) {}
-
-  public async create(source: Collection, database: Database): Promise<PipeFitting> {
-    const pipe = this.pipe instanceof PipeFactory
-      ? await this.pipe.create(source, database)
-      : this.pipe;
-
-    switch (this.hook) {
-      case 'insertOne': return new InsertOneFitting(pipe);
-      case 'insertMany': return new InsertManyFitting(pipe, this.filter);
-      case 'replaceOne': return new ReplaceOneFitting(pipe);
-      case 'find': return new FindFitting(pipe, this.filter);
-      case 'findOne': return new FindOneFitting(pipe, this.filter);
-      case 'document-upserted': return new DocumentUpsertedFitting(pipe);
-      case 'document-removed': return new DocumentRemovedFitting(pipe);
-    }
-  }
-}
-
 export abstract class PipeFitting {
   public constructor(
     protected pipe: Pipe,
@@ -160,5 +136,29 @@ export class DocumentUpsertedFitting extends PipeFitting  {
 export class DocumentRemovedFitting extends PipeFitting  {
   public async attach(middleware: Required<Middleware>) {
     middleware.events['document-removed'] = async (next, doc) => next(await this.pipe(doc));
+  }
+}
+
+export class PipeFittingFactory {
+  public constructor(
+    private pipe: Pipe | PipeFactory,
+    private hook: PipeHook,
+    private filter: boolean = false
+  ) {}
+
+  public async create(source: Collection, database: Database): Promise<PipeFitting> {
+    const pipe = this.pipe instanceof PipeFactory
+      ? await this.pipe.create(source, database)
+      : this.pipe;
+
+    switch (this.hook) {
+      case 'insertOne': return new InsertOneFitting(pipe);
+      case 'insertMany': return new InsertManyFitting(pipe, this.filter);
+      case 'replaceOne': return new ReplaceOneFitting(pipe);
+      case 'find': return new FindFitting(pipe, this.filter);
+      case 'findOne': return new FindOneFitting(pipe, this.filter);
+      case 'document-upserted': return new DocumentUpsertedFitting(pipe);
+      case 'document-removed': return new DocumentRemovedFitting(pipe);
+    }
   }
 }
