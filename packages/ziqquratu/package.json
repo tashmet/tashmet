@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/ziqquratu",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "@ziqquratu/core": "^1.0.1",
-    "@ziqquratu/database": "^1.2.1"
+    "@ziqquratu/database": "^1.3.0"
   },
   "devDependencies": {
     "@types/node": "^13.1.8"

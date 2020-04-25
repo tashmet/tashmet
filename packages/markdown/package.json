@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/markdown",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@ziqquratu/pipe": "^1.2.1",
+    "@ziqquratu/pipe": "^1.3.0",
     "showdown": "^1.9.1"
   },
   "devDependencies": {
