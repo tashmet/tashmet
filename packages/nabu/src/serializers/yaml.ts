@@ -131,7 +131,11 @@ export class YamlSerializer implements Serializer {
       delete doc.__content;
       return doc;
     } else {
-      return jsYaml.safeLoad(data);
+      const doc = jsYaml.safeLoad(data)
+      if (typeof doc !== 'object') {
+        throw new Error('Deserialized YAML is not an object')
+      }
+      return doc
     }
   }
 
