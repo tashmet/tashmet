@@ -4,6 +4,7 @@
   "private": true,
   "description": "Ziqquratu is an isomorphic publishing platform",
   "scripts": {
+    "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna run build",
     "clean": "rimraf packages/*/dist dist",
     "commit": "git-cz",
