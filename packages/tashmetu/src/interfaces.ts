@@ -14,7 +14,30 @@ export type Middleware =
 
 export type RouteMap = {[path: string]: Middleware};
 
-export type RouteMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+export type RouteMethod =
+  'checkout' |
+  'copy' |
+  'delete' |
+  'get' |
+  'head' |
+  'lock' |
+  'merge' |
+  'mkactivity' |
+  'mkcol' |
+  'move' |
+  'm-search' |
+  'notify' |
+  'options' |
+  'patch' |
+  'post' |
+  'purge' |
+  'put' |
+  'report' |
+  'search' |
+  'subscribe' |
+  'trace' |
+  'unlock' |
+  'unsubscribe';
 
 export interface Route {
   path?: string;

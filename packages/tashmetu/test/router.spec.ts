@@ -1,6 +1,6 @@
 import {bootstrap, component, Provider} from '@ziqquratu/ziqquratu';
 import {Server} from '../src/interfaces';
-import {get, post} from '../src/decorators';
+import {get, post, method} from '../src/decorators';
 import {ServerConfig} from '../src/interfaces';
 import Tashmetu from '../src/index';
 import express from 'express';
@@ -20,6 +20,11 @@ describe('Router', () => {
 
     @get('/')
     public async route(req: express.Request, res: express.Response): Promise<any> {
+      return {foo: this.foo};
+    }
+
+    @method('get', '/methodGet')
+    public async methodGet(req: express.Request, res: express.Response): Promise<any> {
       return {foo: this.foo};
     }
 
@@ -56,6 +61,13 @@ describe('Router', () => {
   it('should add router by resolver', () => {
     return request(app)
       .get('/route')
+      .expect(200)
+      .then(res => expect(res.body).to.eql({foo: 'bar'}));
+  });
+
+  it('should be possible to add routes by method decorator', () => {
+    return request(app)
+      .get('/route/methodGet')
       .expect(200)
       .then(res => expect(res.body).to.eql({foo: 'bar'}));
   });

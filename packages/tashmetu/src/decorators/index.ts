@@ -24,26 +24,26 @@ import {MiddlewareAnnotation} from './middleware';
 export const middleware = (config: RouteMap) =>
   classDecorator(() => new MiddlewareAnnotation(config));
 
-const method = (name: RouteMethod, path: string, mw: (RequestHandler | RequestHandlerFactory)[]) =>
+export const method = (name: RouteMethod, path: string, ...mw: (RequestHandler | RequestHandlerFactory)[]) =>
   methodDecorator<RequestHandler>((target, propertyKey) =>
     new RouterMethodAnnotation(name, path, mw, propertyKey));
 
 /** HTTP GET request handler. */
 export const get = (path: string, ...mw: (RequestHandler | RequestHandlerFactory)[]) =>
-  method('get', path, mw);
+  method('get', path, ...mw);
 
 /** HTTP POST request handler. */
 export const post = (path: string, ...mw: (RequestHandler | RequestHandlerFactory)[]) =>
-  method('post', path, mw);
+  method('post', path, ...mw);
 
 /** HTTP PUT request handler. */
 export const put = (path: string, ...mw: (RequestHandler | RequestHandlerFactory)[]) =>
-  method('put', path, mw);
+  method('put', path, ...mw);
 
 /** HTTP PATCH request handler. */
 export const patch = (path: string, ...mw: (RequestHandler | RequestHandlerFactory)[]) =>
-  method('patch', path, mw);
+  method('patch', path, ...mw);
 
 /** HTTP DELETE request handler. */
 export const del = (path: string, ...mw: (RequestHandler | RequestHandlerFactory)[]) =>
-  method('delete', path, mw);
+  method('delete', path, ...mw);
