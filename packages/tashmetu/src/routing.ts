@@ -43,6 +43,5 @@ export async function mountRoutes(r: express.Router, ...routes: Route[]): Promis
       r.use(handlers);
     }
   }
-  // console.log('mounted routes');
   return r;
 }
