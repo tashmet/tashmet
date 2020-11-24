@@ -27,9 +27,12 @@ describe('pipe', () => {
             use: [
               eachDocument({
                 hooks: [
-                  'insertOne',
-                  'insertMany',
-                  'replaceOne',
+                  'insertOneIn',
+                  'insertOneOut',
+                  'insertManyIn',
+                  'insertManyOut',
+                  'replaceOneIn',
+                  'replaceOneOut',
                   'find',
                   'findOne'
                 ],
@@ -61,21 +64,22 @@ describe('pipe', () => {
   describe('insertOne', () => {
     it('should transform document', async () => {
       const doc = await collection.insertOne({_id: 3, amount: 3});
-      expect(doc.amount).to.eql(4);
+      expect(doc.amount).to.eql(5);
     });
   });
 
   describe('insertMany', () => {
     it('should transform documents', async () => {
       const docs = await collection.insertMany([{_id: 3, amount: 3}, {_id: 4, amount: 4}]);
-      expect(docs.map(d => d.amount)).to.eql([4, 5]);
+      console.log(docs);
+      expect(docs.map(d => d.amount)).to.eql([5, 6]);
     });
   });
 
   describe('replaceOne', () => {
     it('should transform document', async () => {
       const doc = await collection.replaceOne({_id: 1}, {amount: 10});
-      expect(doc.amount).to.eql(11);
+      expect(doc.amount).to.eql(12);
     });
   });
 
@@ -119,9 +123,9 @@ describe('pipe', () => {
               use: [
                 eachDocument({
                   hooks: [
-                    'insertOne',
-                    'insertMany',
-                    'replaceOne',
+                    'insertOneIn',
+                    'insertManyIn',
+                    'replaceOneIn',
                     'find',
                     'findOne'
                   ],

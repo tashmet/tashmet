@@ -1,19 +1,18 @@
 import {Middleware, MiddlewareFactory, Collection, Database} from '@ziqquratu/database';
-import {Pipe, PipeHook, PipeFactory, PipeFilterHook} from './interfaces';
+import {Pipe, PipeHook, PipeFactory, PipeFilterHook, PipeConfig} from './interfaces';
 import {PipeFittingFactory} from './fittings';
 
 export * from './interfaces';
 
 export class PipeMiddlewareFactory extends MiddlewareFactory {
   public constructor(
-    private fittings: PipeFittingFactory[]
+    private fittingFactory: PipeFittingFactory
   ) { super(); }
 
   public async create(source: Collection, database: Database): Promise<Middleware> {
     const middleware: Required<Middleware> = {events: {}, methods: {}};
 
-    for (const fact of this.fittings) {
-      const fitting = await fact.create(source, database);
+    for (const fitting of await this.fittingFactory.create(source, database)) {
       fitting.attach(middleware, source);
     }
     return middleware;
@@ -38,15 +37,15 @@ export interface EachDocumentConfig {
 }
 
 export const eachDocument = (config: EachDocumentConfig) => {
-  const fittings: PipeFittingFactory[] = [];
+  const pipes: PipeConfig[] = [];
   for (const hook of config.hooks) {
     const filter = Array.isArray(config.filter)
       ? config.filter.includes(hook as PipeFilterHook)
       : config.filter;
 
-    fittings.push(new PipeFittingFactory(config.pipe, hook, filter))
+    pipes.push({pipe: config.pipe, hook, filter: filter || false})
   }
-  return new PipeMiddlewareFactory(fittings);
+  return new PipeMiddlewareFactory(new PipeFittingFactory(pipes));
 }
 
 export interface IOGate {
@@ -63,14 +62,16 @@ export interface IOGate {
  * @param gate The gate containg the pipes
  */
 export const io = (gate: IOGate) => {
-  const inputs: PipeHook[] = ['insertOne', 'insertMany', 'replaceOne'];
-  const outputs: PipeHook[] = ['find', 'findOne', 'document-upserted', 'document-removed'];
+  const inputs: PipeHook[] = ['insertOneIn', 'insertManyIn', 'replaceOneIn'];
+  const outputs: PipeHook[] = ['insertOneOut', 'insertManyOut', 'replaceOneOut', 'find', 'findOne', 'document-upserted', 'document-removed'];
 
   const inPipe = gate.input instanceof PipeFactory ? gate.input : gate.input.bind(gate);
   const outPipe = gate.output instanceof PipeFactory ? gate.output : gate.output.bind(gate);
 
-  return new PipeMiddlewareFactory([
-    ...inputs.map(hook => new PipeFittingFactory(inPipe, hook)),
-    ...outputs.map(hook => new PipeFittingFactory(outPipe, hook)),
-  ]);
+  const pipes = [
+    ...inputs.map(hook => ({pipe: inPipe, hook: hook, filter: false})),
+    ...outputs.map(hook => ({pipe: outPipe, hook: hook, filter: false})),
+  ]
+
+  return new PipeMiddlewareFactory(new PipeFittingFactory(pipes));
 }

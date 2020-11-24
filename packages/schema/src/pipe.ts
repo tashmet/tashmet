@@ -62,21 +62,21 @@ export const validation = (config: ValidationPipeConfig) => {
 
   switch(strategy) {
     case ValidationPipeStrategy.Error:
-      hooks = ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne', 'document-upserted'];
+      hooks = ['insertOneIn', 'insertManyIn', 'replaceOneIn', 'find', 'findOne', 'document-upserted'];
       break;
     case ValidationPipeStrategy.ErrorIn:
-      hooks = ['insertOne', 'insertMany', 'replaceOne'];
+      hooks = ['insertOneIn', 'insertManyIn', 'replaceOneIn'];
       break;
     case ValidationPipeStrategy.ErrorInFilterOut:
-      hooks = ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne', 'document-upserted'];
+      hooks = ['insertOneIn', 'insertManyIn', 'replaceOneIn', 'find', 'findOne', 'document-upserted'];
       filter = ['find', 'findOne'];
       break;
     case ValidationPipeStrategy.Filter:
-      hooks = ['insertOne', 'insertMany', 'replaceOne', 'find', 'findOne', 'document-upserted'];
+      hooks = ['insertOneIn', 'insertManyIn', 'replaceOneIn', 'find', 'findOne', 'document-upserted'];
       filter = ['insertMany', 'find', 'findOne'];
       break;
     case ValidationPipeStrategy.FilterIn:
-      hooks = ['insertOne', 'insertMany', 'replaceOne'];
+      hooks = ['insertOneIn', 'insertManyIn', 'replaceOneIn'];
       filter = ['insertMany'];
       break;
   }
