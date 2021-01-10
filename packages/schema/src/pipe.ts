@@ -1,5 +1,6 @@
 import {Pipe, PipeFactory, eachDocument, PipeHook, PipeFilterHook} from '@ziqquratu/pipe';
 import {Validator} from './interfaces';
+import mingo from 'mingo';
 
 /**
  * Strategies for dealing with validation errors.
@@ -31,9 +32,18 @@ export enum ValidationPipeStrategy {
   FilterIn,
 };
 
+export type SchemaLookup = Record<string, object>;
+
 export interface ValidationPipeConfig {
-  /** Schema ID */
-  schema: string;
+  /**
+   * Schema to be used
+   * 
+   * The name of the schema or a dictionary where the keys are names of schemas
+   * and the values are queries to be tested against the document being
+   * validated. The first matching schema will be used. Using this strategy
+   * documents with different schemas can be stored in the same collection.
+   */
+  schema: string | SchemaLookup;
 
   /**
    * Strategy for dealing with failing documents.
@@ -43,12 +53,24 @@ export interface ValidationPipeConfig {
 }
 
 export class ValidationPipeFactory extends PipeFactory {
-  public constructor(private schemaId: string) {
+  public constructor(private schema: string | SchemaLookup) {
     super('schema.Validator');
   }
 
   public async create(): Promise<Pipe> {
-    return this.resolve(async (v: Validator) => (doc: any) => v.validate(doc, this.schemaId));
+    return this.resolve(async (v: Validator) => (doc: any) => v.validate(doc, this.resolveSchema(doc)));
+  }
+
+  private resolveSchema(doc: any): string {
+    if (typeof this.schema === 'string') {
+      return this.schema;
+    }
+    for (const schemaId of Object.keys(this.schema)) {
+      if (new mingo.Query(this.schema[schemaId]).test(doc)) {
+        return schemaId;
+      }
+    }
+    throw Error(`No schema defined for document with ID: '${doc._id}'`);
   }
 }
 
