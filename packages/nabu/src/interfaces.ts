@@ -15,6 +15,14 @@ export interface Serializer {
   serialize(data: object): Promise<Buffer>;
 }
 
+export interface Channel {
+  read(): Promise<any>;
+
+  write(data: any): Promise<any>;
+
+  on(event: 'data-updated', fn: (data: any) => void): void;
+}
+
 export abstract class SerializerFactory extends Factory<Serializer> {
   public abstract create(): Serializer;
 }

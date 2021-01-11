@@ -1,5 +1,6 @@
 import {json} from '../../../src/serializers/json';
-import {File} from '../../../src/sources/file';
+import {File} from '../../../src/channels/file';
+import {Bundle} from '../../../src/sources/bundle';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -15,7 +16,7 @@ chai.use(sinonChai);
 describe('File', () => {
   const serializer = json().create();
   const watcher = chokidar.watch([], {});
-  const file = new File(serializer, 'collection.json', watcher);
+  const file = new Bundle(new File(serializer, 'collection.json', watcher));
 
   before(() => {
     mockfs({
@@ -29,7 +30,7 @@ describe('File', () => {
 
   describe('read', () => {
     it('should read documents from file system', async () => {
-      const docs = await new File(serializer, 'collection.json').read();
+      const docs = await new Bundle(new File(serializer, 'collection.json')).read();
 
       expect(docs).to.eql({
         doc1: {foo: 'bar'},
@@ -38,7 +39,7 @@ describe('File', () => {
     });
 
     it('should get an empty list of documents from file that does not exist', async () => {
-      const docs = await new File(serializer, 'noSuchFile.json').read();
+      const docs = await new Bundle(new File(serializer, 'noSuchFile.json')).read();
 
       return expect(docs).to.be.empty;
     });
@@ -46,7 +47,7 @@ describe('File', () => {
 
   describe('write', () => {
     it('should write a new collection to file', async () => {
-      await new File(serializer, 'collection.json').write([{_id: 'doc1'}]);
+      await new Bundle(new File(serializer, 'collection.json')).write([{_id: 'doc1'}]);
 
       return expect(fs.readFile('collection.json', 'utf-8')).to.eventually.eql(
         '{"doc1":{},"doc2":{"foo":"bar"}}');
