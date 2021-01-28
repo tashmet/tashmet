@@ -1,10 +1,10 @@
 import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
 import {EventEmitter} from 'eventemitter3';
-import {Duplex} from 'stream';
+import {StreamFactory} from '../pipes';
 
 export class BufferCollection extends EventEmitter implements Collection {
   public constructor(
-    private stream: Duplex,
+    private stream: StreamFactory,
     private cache: Collection,
     private bundle: boolean = false,
   ) {
@@ -82,11 +82,13 @@ export class BufferCollection extends EventEmitter implements Collection {
   }
 
   public populate(): Promise<Collection> {
+    const readable = this.stream.createReadable();
+
     return new Promise((resolve, reject) => {
-      this.stream.on('readable', () => { 
+      readable.on('readable', async () => { 
         let chunk; 
-        while (null !== (chunk = this.stream.read())) { 
-          this.read(chunk);
+        while (null !== (chunk = readable.read())) { 
+          await this.read(chunk);
         } 
         resolve(this);
       }); 
@@ -112,12 +114,15 @@ export class BufferCollection extends EventEmitter implements Collection {
   }
 
   private writeAsync(data: any): Promise<void> {
+    const writable = this.stream.createWritable();
+
     return new Promise((resolve, reject) => {
-      this.stream.write(data, err => {
+      writable.write(data, err => {
         if (err) {
           reject(err);
         } else {
           resolve();
+          writable.end();
         }
       });
     });
@@ -128,7 +133,7 @@ export interface BufferConfig {
   /**
    * Input/Output stream
    */
-  stream: Duplex;
+  stream: StreamFactory;
 
   bundle: boolean;
 }
