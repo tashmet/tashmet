@@ -21,22 +21,3 @@ class DictTransformer implements IOGate {
 }
 
 export const dict = () => new DictTransformer();
-
-/*
-class ListTransformer implements IOGate {
-  public async input(data: any) {
-    const list: any[] = [];
-    for (const key of Object.keys(data)) {
-      list.push({_id: key, ...data[key]})
-    }
-    return list;
-  }
-
-  public async output(data: any[]) {
-    return data.reduce((acc, curr) => {
-      acc[curr._id] = curr;
-      return acc;
-    }, {})
-  }
-}
-*/
