@@ -1,4 +1,4 @@
-import {FSWatcher} from 'chokidar';
+/*import {FSWatcher} from 'chokidar';
 import {Collection, CollectionFactory, MemoryCollection, Database} from '@ziqquratu/ziqquratu';
 import {PersistenceCollection} from '../collections/persistence';
 import {File} from '../channels/file';
@@ -27,3 +27,4 @@ export class FileCollectionFactory extends CollectionFactory {
 }
 
 export const file = (config: FileConfig) => new FileCollectionFactory(config);
+*/

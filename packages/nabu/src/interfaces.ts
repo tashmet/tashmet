@@ -1,4 +1,5 @@
 import {Factory} from '@ziqquratu/ziqquratu';
+import { IOGate } from '../../pipe/dist';
 
 /**
  * Serializer for reading and writing objects.
@@ -69,7 +70,9 @@ export interface FileConfig {
    * A serializer factory creating a serializer that will parse and serialize
    * documents when reading from and writing to the file system.
    */
-  serializer: SerializerFactory;
+  serializer: IOGate;
+
+  dictionary: boolean;
 }
 
 export interface FileSystemConfig {

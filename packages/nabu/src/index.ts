@@ -1,13 +1,13 @@
 export {markdown} from './converters/markdown';
-export {json} from './serializers/json';
-export {yaml, YamlConfig} from './serializers/yaml';
-export {file} from './sources/file';
+export {json} from './pipes/json';
+export {yaml, YamlConfig} from './pipes/yaml';
+export {file} from './collections/file';
 export {directory} from './sources/directory';
 export * from './interfaces';
 
 import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
 import {FileSystemConfig} from './interfaces';
-import {FileCollectionFactory} from './sources/file';
+import {FileBufferFactory} from './collections/file';
 import {DirectoryCollectionFactory} from './sources/directory';
 import * as chokidar from 'chokidar';
 
@@ -27,7 +27,7 @@ import * as chokidar from 'chokidar';
     })
   ],
   factories: [
-    FileCollectionFactory,
+    FileBufferFactory,
     DirectoryCollectionFactory,
   ]
 })
