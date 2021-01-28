@@ -5,6 +5,7 @@ import {IOGate, Pipe} from '@ziqquratu/pipe';
 const pumpify = require('pumpify');
 const duplexer = require('duplexer2');
 
+export * from './dict';
 export * from './json';
 export * from './yaml';
 

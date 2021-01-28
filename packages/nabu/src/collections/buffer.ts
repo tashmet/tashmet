@@ -1,6 +1,5 @@
 import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
 import {EventEmitter} from 'eventemitter3';
-import {merge} from 'lodash';
 import {Duplex} from 'stream';
 
 export class BufferCollection extends EventEmitter implements Collection {
@@ -82,6 +81,27 @@ export class BufferCollection extends EventEmitter implements Collection {
     return this.cache.name;
   }
 
+  public populate(): Promise<Collection> {
+    return new Promise((resolve, reject) => {
+      this.stream.on('readable', () => { 
+        let chunk; 
+        while (null !== (chunk = this.stream.read())) { 
+          this.read(chunk);
+        } 
+        resolve(this);
+      }); 
+    });
+  }
+
+  private async read(data: any) {
+    for (const doc of Array.isArray(data) ? data : [data]) {
+      const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+      if (res) {
+        this.emit('document-upserted', res);
+      }
+    }
+  }
+
   private async write(docs: any[]): Promise<void> {
     if (this.bundle) {
       return this.writeAsync(await this.cache.find().toArray());
@@ -102,14 +122,6 @@ export class BufferCollection extends EventEmitter implements Collection {
       });
     });
   }
-
-  private async load(id: string, doc: Record<string, any>): Promise<any> {
-    const res = await this.cache.replaceOne({_id: id}, merge({}, doc, {_id: id}), {upsert: true});
-    if (res) {
-      this.emit('document-upserted', res);
-    }
-    return res;
-  }
 }
 
 export interface BufferConfig {
@@ -123,14 +135,14 @@ export interface BufferConfig {
 
 export class BufferCollectionFactory extends CollectionFactory {
   constructor(private config: BufferConfig) {
-    super('nabu.FileSystemConfig', 'chokidar.FSWatcher');
+    super();
   }
 
   public async create(name: string, database: Database): Promise<Collection> {
     return new BufferCollection(this.config.stream, 
       new MemoryCollection(name, database, {disableEvents: true}),
       this.config.bundle,
-    );
+    ).populate();
   }
 }
 

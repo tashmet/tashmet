@@ -13,8 +13,10 @@ export const jsonParse: Pipe<Buffer, any> = async buffer =>
  * 
  * @param obj JSON
  */
-export const jsonSerialize: Pipe<any, Buffer> = async obj =>
-  Buffer.from(JSON.stringify(obj), 'utf-8');
+export const jsonSerialize: Pipe<any, Buffer> = async obj => {
+  console.log('json serialize')
+  return Buffer.from(JSON.stringify(obj), 'utf-8');
+}
 
 /**
  * IOGate for parsing and serializing JSON
