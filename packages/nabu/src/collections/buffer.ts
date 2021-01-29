@@ -90,8 +90,9 @@ export class BufferCollection extends EventEmitter implements Collection {
         while (null !== (chunk = readable.read())) { 
           await this.read(chunk);
         } 
-        resolve(this);
       }); 
+      readable.on('end', () => resolve(this));
+      readable.on('error', err => reject(err));
     });
   }
 
