@@ -1,4 +1,5 @@
-import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@ziqquratu/pipe';
+import {ObjectPipeTransformFactory} from './util';
 
 /**
  * JSON parsing pipe 
@@ -13,19 +14,7 @@ export const jsonParse: Pipe<Buffer, any> = async buffer =>
  * 
  * @param obj JSON
  */
-export const jsonSerialize: Pipe<any, Buffer> = async obj => {
-  console.log('json serialize')
-  return Buffer.from(JSON.stringify(obj), 'utf-8');
-}
+export const jsonSerialize: Pipe<any, Buffer> = async obj =>
+  Buffer.from(JSON.stringify(obj), 'utf-8');
 
-/**
- * IOGate for parsing and serializing JSON
- * 
- * @param obj JSON
- */
-class JsonTransformer implements IOGate {
-  input = jsonParse;
-  output = jsonSerialize;
-}
-
-export const json = () => new JsonTransformer();
+export const json = () => new ObjectPipeTransformFactory(jsonParse, jsonSerialize);

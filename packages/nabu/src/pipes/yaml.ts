@@ -1,7 +1,8 @@
-import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@ziqquratu/pipe';
 import {omit} from 'lodash';
 
 import jsYaml = require('js-yaml');
+import {ObjectPipeTransformFactory} from './util';
 const yamlFront = require('yaml-front-matter');
 
 /**
@@ -118,7 +119,7 @@ export const yamlParse: (config: YamlConfig) => Pipe<Buffer, any> = config => {
     const data = buffer.toString('utf-8');
     if (config.frontMatter) {
       const doc = yamlFront.loadFront(data);
-      let content = doc.__content.trim();
+      const content = doc.__content.trim();
       doc[config.contentKey as string] = content;
       delete doc.__content;
       return doc;
@@ -154,17 +155,7 @@ export const yamlSerialize: (config: YamlConfig) => Pipe<any, Buffer> = config =
   };
 }
 
-/**
- * IOGate for parsing and serializing YAML
- */
-class YamlTransformer implements IOGate {
-  input: Pipe;
-  output: Pipe;
-
-  public constructor(config: YamlConfig) {
-    this.input = yamlParse(config);
-    this.output = yamlSerialize(config);
-  }
+export const yaml = (config?: YamlConfig) => {
+  const cfg = Object.assign({}, defaultOptions, config)
+  return new ObjectPipeTransformFactory(yamlParse(cfg), yamlSerialize(cfg));
 }
-
-export const yaml = (config?: YamlConfig) => new YamlTransformer(Object.assign({}, defaultOptions, config));

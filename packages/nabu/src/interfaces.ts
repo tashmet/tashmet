@@ -1,5 +1,6 @@
 import {Factory} from '@ziqquratu/ziqquratu';
 import { IOGate } from '../../pipe/dist';
+import { ObjectPipeTransformFactory } from './pipes';
 
 /**
  * Serializer for reading and writing objects.
@@ -46,7 +47,7 @@ export interface DirectoryConfig {
    * A serializer factory creating a serializer that will parse and serialize
    * documents when reading from and writing to the file system.
    */
-  serializer: SerializerFactory;
+  serializer: ObjectPipeTransformFactory;
 
   /**
    * file extension of files in the directory.
@@ -70,7 +71,7 @@ export interface FileConfig {
    * A serializer factory creating a serializer that will parse and serialize
    * documents when reading from and writing to the file system.
    */
-  serializer: IOGate;
+  serializer: ObjectPipeTransformFactory;
 
   dictionary: boolean;
 }

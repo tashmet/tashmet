@@ -3,14 +3,13 @@ export {json} from './pipes/json';
 export {yaml, YamlConfig} from './pipes/yaml';
 export {buffer} from './collections/buffer';
 export {file} from './collections/file';
-export {directory} from './sources/directory';
+export {directory} from './collections/directory';
 export * from './interfaces';
 
 import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
 import {FileSystemConfig} from './interfaces';
 import {FileBufferFactory} from './collections/file';
 import {BufferCollectionFactory} from './collections/buffer';
-import {DirectoryCollectionFactory} from './sources/directory';
 import * as chokidar from 'chokidar';
 
 @component({
@@ -31,7 +30,6 @@ import * as chokidar from 'chokidar';
   factories: [
     BufferCollectionFactory,
     FileBufferFactory,
-    DirectoryCollectionFactory,
   ]
 })
 export default class Nabu {}

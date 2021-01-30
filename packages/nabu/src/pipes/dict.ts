@@ -1,5 +1,6 @@
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {omit} from 'lodash';
+import {ObjectPipeTransformFactory} from './util';
 
 export const toList: Pipe<any, any[]> = async dict => {
   return Object.keys(dict).reduce((list, key) => {
@@ -15,9 +16,4 @@ export const toDict: Pipe<any[], any> = async list => {
   }, {})
 }
 
-class DictTransformer implements IOGate {
-  input = toList;
-  output = toDict;
-}
-
-export const dict = () => new DictTransformer();
+export const dict = () => new ObjectPipeTransformFactory(toList, toDict);

@@ -1,15 +1,16 @@
-import {IOGate} from '@ziqquratu/pipe';
 import * as fs from 'fs';
-import {StreamFactory, readablePipeline, writablePipeline} from './util';
+import {ObjectPipeTransformFactory, StreamFactory} from './util';
 
 export class FileStreamFactory implements StreamFactory {
-  public constructor(private path: string, private transforms: IOGate[]) {}
+  public constructor(private path: string, private transforms: ObjectPipeTransformFactory[]) {}
 
   public createReadable() {
-    return readablePipeline(fs.createReadStream(this.path, {encoding: 'utf-8'}), this.transforms);
+    return fs.createReadStream(this.path, 'utf-8')
+      .pipe(ObjectPipeTransformFactory.inputPipeline(this.transforms));
   }
 
   public createWritable() {
-    return writablePipeline(fs.createWriteStream(this.path, {encoding: 'utf-8'}), this.transforms);
+    return ObjectPipeTransformFactory.inputPipeline(this.transforms)
+      .pipe(fs.createWriteStream(this.path, 'utf-8'));
   }
 }
