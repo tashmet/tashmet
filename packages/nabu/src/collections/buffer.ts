@@ -4,9 +4,8 @@ import {StreamFactory} from '../pipes';
 
 export class BufferCollection extends EventEmitter implements Collection {
   public constructor(
-    private stream: StreamFactory,
-    private cache: Collection,
-    private bundle: boolean = false,
+    protected stream: StreamFactory,
+    protected cache: Collection,
   ) {
     super();
   }
@@ -61,7 +60,7 @@ export class BufferCollection extends EventEmitter implements Collection {
   public async deleteOne(selector: any): Promise<any> {
     const affected = await this.cache.deleteOne(selector);
     if (affected) {
-      await this.write([{_id: affected._id}]);
+      await this.write([affected], true);
       this.emit('document-removed', affected);
     }
     return affected;
@@ -69,8 +68,7 @@ export class BufferCollection extends EventEmitter implements Collection {
 
   public async deleteMany(selector: any): Promise<any[]> {
     const affected = await this.cache.deleteMany(selector);
-    // await this.adapter.remove(affected.map(d => d._id));
-    await this.write(affected.map(d => ({_delete: d._id})));
+    await this.write(affected, true);
     for (const doc of affected) {
       this.emit('document-removed', doc);
     }
@@ -96,8 +94,13 @@ export class BufferCollection extends EventEmitter implements Collection {
     });
   }
 
-  private async read(data: any) {
-    for (const doc of Array.isArray(data) ? data : [data]) {
+  protected async read(doc: any) {
+    if (doc._delete) {
+      const res = await this.cache.deleteOne({_id: doc._id});
+      if (res) {
+        this.emit('document-removed', res);
+      }
+    } else {
       const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
       if (res) {
         this.emit('document-upserted', res);
@@ -105,16 +108,14 @@ export class BufferCollection extends EventEmitter implements Collection {
     }
   }
 
-  private async write(docs: any[]): Promise<void> {
-    if (this.bundle) {
-      return this.writeAsync(await this.cache.find().toArray());
-    }
+  protected async write(docs: any[], del = false): Promise<void> {
     for (const doc of docs) {
-      await this.writeAsync(doc);
+      const output = del ? Object.assign({}, doc, {_delete: true}) : doc;
+      await this.writeAsync(output);
     }
   }
 
-  private writeAsync(data: any): Promise<void> {
+  protected writeAsync(data: any): Promise<void> {
     const writable = this.stream.createWritable();
 
     return new Promise((resolve, reject) => {
@@ -127,6 +128,22 @@ export class BufferCollection extends EventEmitter implements Collection {
         }
       });
     });
+  }
+}
+
+export class BundleBufferCollection extends BufferCollection {
+  protected async write(): Promise<void> {
+    return this.writeAsync(await this.cache.find().toArray());
+  }
+
+  // TODO: Only replace documents that have actually changed?
+  protected async read(data: any[]) {
+    for (const doc of data) {
+      const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+      if (res) {
+        this.emit('document-upserted', res);
+      }
+    }
   }
 }
 
@@ -145,9 +162,10 @@ export class BufferCollectionFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database): Promise<Collection> {
-    return new BufferCollection(this.config.stream, 
+    const Ctr = this.config.bundle ? BundleBufferCollection : BufferCollection;
+
+    return new Ctr(this.config.stream, 
       new MemoryCollection(name, database, {disableEvents: true}),
-      this.config.bundle,
     ).populate();
   }
 }

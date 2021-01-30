@@ -2,7 +2,7 @@ import {Collection, CollectionFactory, Database} from '@ziqquratu/ziqquratu';
 import {FileConfig} from '../interfaces';
 import {buffer} from './buffer';
 import {IOGate} from '@ziqquratu/pipe';
-import { FileStreamFactory, dict } from '../pipes';
+import {FileStreamFactory, dict} from '../pipes';
 
 export class FileBufferFactory extends CollectionFactory {
   constructor(private config: FileConfig) {
