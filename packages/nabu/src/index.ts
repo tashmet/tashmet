@@ -1,4 +1,3 @@
-export {markdown} from './converters/markdown';
 export {json} from './pipes/json';
 export {yaml, YamlConfig} from './pipes/yaml';
 export {buffer} from './collections/buffer';
