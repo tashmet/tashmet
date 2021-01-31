@@ -3,12 +3,24 @@ import {pipe} from 'pipeline-pipe';
 import {Pipe} from '@ziqquratu/pipe';
 
 const pumpify = require('pumpify');
+const ternaryStream = require('ternary-stream');
 
 export interface StreamFactory {
   createReadable(...args: any[]): stream.Readable;
 
   createWritable(...args: any[]): stream.Writable;
 }
+
+export interface DocumentStreamConfig {
+  readable: () => stream.Readable;
+  writable: () => stream.Writable;
+  onDelete: () => stream.Writable;
+}
+
+export const documentStream = ({readable, writable, onDelete}: DocumentStreamConfig) => ({
+  createReadable: readable,
+  createWritable: () =>  ternaryStream((doc: any) => !doc._delete, writable, onDelete),
+}) as StreamFactory;
 
 export class ObjectPipeTransformFactory implements StreamFactory {
   public static inputPipeline(pipeFactories: ObjectPipeTransformFactory[], key?: string): stream.Transform {
