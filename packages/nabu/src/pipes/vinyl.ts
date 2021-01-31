@@ -4,8 +4,8 @@ import * as stream from 'stream';
 import {pipe} from 'pipeline-pipe';
 import {StreamFactory, ObjectPipeTransformFactory} from './util';
 import {Pipe} from '@ziqquratu/pipe';
-const pumpify = require('pumpify');
 
+const pumpify = require('pumpify');
 const ternaryStream = require('ternary-stream');
 
 const documentWrite = (writeStream: stream.Writable, deleteStream: stream.Writable): stream.Writable =>
@@ -21,22 +21,22 @@ export class VinylObjectStreamFactory implements StreamFactory {
   ) {}
 
   public createReadable() {
-    const transforms = ObjectPipeTransformFactory.inputPipeline(this.transforms, 'contents');
-    const splitContents = pipe((file: Vinyl) => ({file, contents: file.contents}));
-    const assignId = pipe(async ({file, contents}) => Object.assign(contents, {_id: await this.toId(file)}));
-
-    return pumpify.obj(this.adapter.createReadable(), splitContents, transforms, assignId);
+    return pumpify.obj(
+      this.adapter.createReadable(),
+      pipe((file: Vinyl) => ({file, contents: file.contents})),
+      ObjectPipeTransformFactory.inputPipeline(this.transforms, 'contents'),
+      pipe(async ({file, contents}) => Object.assign(contents, {_id: await this.toId(file)}))
+    );
   }
 
   public createWritable() {
-    const transforms = ObjectPipeTransformFactory.outputPipeline(this.transforms, 'contents');
-    const splitContents = pipe(doc => ({doc, contents: doc}));
-    const createVinyl = pipe(async ({doc, contents}) => new Vinyl({path: await this.toPath(doc), contents}));
-
-    return documentWrite(
-      pumpify.obj(splitContents, transforms, createVinyl, this.adapter.createWritable()),
-      pipe(this.deletePipe)
-    );
+    const writable = pumpify.obj(
+      pipe(doc => ({doc, contents: doc})),
+      ObjectPipeTransformFactory.outputPipeline(this.transforms, 'contents'),
+      pipe(async ({doc, contents}) => new Vinyl({path: await this.toPath(doc), contents})),
+      this.adapter.createWritable(),
+    )
+    return documentWrite(writable, pipe(this.deletePipe));
   }
 }
 
