@@ -8,7 +8,6 @@ export * from './interfaces';
 
 import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
 import {FileSystemConfig} from './interfaces';
-import {FileBufferFactory} from './collections/file';
 import {BufferCollectionFactory} from './collections/buffer';
 import * as chokidar from 'chokidar';
 
@@ -29,7 +28,6 @@ import * as chokidar from 'chokidar';
   ],
   factories: [
     BufferCollectionFactory,
-    FileBufferFactory,
   ]
 })
 export default class Nabu {}
