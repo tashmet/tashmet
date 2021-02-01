@@ -1,10 +1,10 @@
 import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
 import {EventEmitter} from 'eventemitter3';
 import {StreamFactory} from '../pipes';
+import * as stream from 'stream';
 
-export class BufferCollection extends EventEmitter implements Collection {
+export abstract class Buffer extends EventEmitter implements Collection {
   public constructor(
-    protected stream: StreamFactory,
     protected cache: Collection,
   ) {
     super();
@@ -79,45 +79,9 @@ export class BufferCollection extends EventEmitter implements Collection {
     return this.cache.name;
   }
 
-  public populate(): Promise<Collection> {
-    const readable = this.stream.createReadable();
+  protected abstract write(affectedDocs: any[], deletion?: boolean): Promise<void>;
 
-    return new Promise((resolve, reject) => {
-      readable.on('readable', async () => { 
-        let chunk; 
-        while (null !== (chunk = readable.read())) { 
-          await this.read(chunk);
-        } 
-      }); 
-      readable.on('end', () => resolve(this));
-      readable.on('error', err => reject(err));
-    });
-  }
-
-  protected async read(doc: any) {
-    if (doc._delete) {
-      const res = await this.cache.deleteOne({_id: doc._id});
-      if (res) {
-        this.emit('document-removed', res);
-      }
-    } else {
-      const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
-      if (res) {
-        this.emit('document-upserted', res);
-      }
-    }
-  }
-
-  protected async write(docs: any[], del = false): Promise<void> {
-    for (const doc of docs) {
-      const output = del ? Object.assign({}, doc, {_delete: true}) : doc;
-      await this.writeAsync(output);
-    }
-  }
-
-  protected writeAsync(data: any): Promise<void> {
-    const writable = this.stream.createWritable();
-
+  protected writeAsync(data: any, writable: stream.Writable): Promise<void> {
     return new Promise((resolve, reject) => {
       writable.write(data, err => {
         if (err) {
@@ -131,9 +95,43 @@ export class BufferCollection extends EventEmitter implements Collection {
   }
 }
 
-export class BundleBufferCollection extends BufferCollection {
+export class DocumentStreamBuffer extends Buffer {
+  public constructor(
+    cache: Collection,
+    private rwStream: StreamFactory,
+    private dlStream: StreamFactory
+  ) { super(cache); }
+
+  protected async write(docs: any[], deletion = false): Promise<void> {
+    for (const doc of docs) {
+      await this.writeAsync(doc, deletion ? this.dlStream.createWritable() : this.rwStream.createWritable());
+    }
+  }
+
+  public populate(): Promise<Collection> {
+    const readable = this.rwStream.createReadable();
+
+    return new Promise((resolve, reject) => {
+      readable.on('readable', async () => { 
+        let doc; 
+        while (null !== (doc = readable.read())) { 
+          const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+          if (res) {
+            this.emit('document-upserted', res);
+          }
+        } 
+      }); 
+      readable.on('end', () => resolve(this));
+      readable.on('error', err => reject(err));
+    });
+  }
+}
+
+export class CollectionStreamBuffer extends Buffer {
+  public constructor(cache: Collection, private rwStream: StreamFactory) { super(cache); }
+
   protected async write(): Promise<void> {
-    return this.writeAsync(await this.cache.find().toArray());
+    return this.writeAsync(await this.cache.find().toArray(), this.rwStream.createWritable());
   }
 
   // TODO: Only replace documents that have actually changed?
@@ -145,15 +143,33 @@ export class BundleBufferCollection extends BufferCollection {
       }
     }
   }
+
+  public populate(): Promise<Collection> {
+    const readable = this.rwStream.createReadable();
+
+    return new Promise((resolve, reject) => {
+      readable.on('readable', async () => { 
+        let docs; 
+        while (null !== (docs = readable.read())) { 
+          await this.cache.insertMany(docs);
+        } 
+      }); 
+      readable.on('end', () => resolve(this));
+      readable.on('error', err => reject(err));
+    });
+  }
 }
 
 export interface BufferConfig {
   /**
    * Input/Output stream
    */
-  stream: StreamFactory;
+  rwStream: StreamFactory;
 
-  bundle: boolean;
+  /**
+   * Deletion stream
+   */
+  dlStream?: StreamFactory;
 }
 
 export class BufferCollectionFactory extends CollectionFactory {
@@ -162,11 +178,14 @@ export class BufferCollectionFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database): Promise<Collection> {
-    const Ctr = this.config.bundle ? BundleBufferCollection : BufferCollection;
+    const { rwStream, dlStream } = this.config;
+    const cache = new MemoryCollection(name, database, {disableEvents: true});
 
-    return new Ctr(this.config.stream, 
-      new MemoryCollection(name, database, {disableEvents: true}),
-    ).populate();
+    const buffer = dlStream
+      ? new DocumentStreamBuffer(cache, rwStream, dlStream)
+      : new CollectionStreamBuffer(cache, rwStream);
+
+    return buffer.populate();
   }
 }
 

@@ -9,7 +9,6 @@ export const file = ({path, serializer, dictionary}: FileConfig) => {
   }
 
   return buffer({
-    stream: new FileStreamFactory(path, transforms),
-    bundle: true
+    rwStream: new FileStreamFactory(path, transforms),
   });
 }
