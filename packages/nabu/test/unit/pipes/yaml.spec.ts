@@ -1,4 +1,4 @@
-import {YamlSerializer} from '../../../src/serializers/yaml';
+import {yamlParser, yamlSerializer} from '../../../src/pipes/yaml';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -7,51 +7,51 @@ import dedent from 'dedent';
 
 chai.use(chaiAsPromised);
 
-describe('YamlSerializer', () => {
+describe('yaml', () => {
   describe('deserialize', () => {
     it('should provide a plain object for valid yaml', () => {
-      const ys = new YamlSerializer({});
+      const parse = yamlParser();
       const yaml = dedent`
         title: foo
         list:
           - item1
           - item2
       `;
-      return ys.deserialize(Buffer.from(yaml, 'utf-8')).then(obj => {
+      return parse(Buffer.from(yaml, 'utf-8')).then(obj => {
         expect(obj).to.eql({title: 'foo', list: ['item1', 'item2']});
       });
     });
 
     it('should reject promise with error for invalid yaml', () => {
-      const ys = new YamlSerializer({});
+      const parse = yamlParser()
       const yaml = dedent`
         foo: *unknownAlias
       `;
-      return expect(ys.deserialize(Buffer.from(yaml, 'utf-8'))).to.be.rejectedWith(Error);
+      return expect(parse(Buffer.from(yaml, 'utf-8'))).to.be.rejectedWith(Error);
     });
 
     it('should handle yaml front matter', () => {
-      const ys = new YamlSerializer({frontMatter: true});
+      const parse = yamlParser({frontMatter: true});
       const yaml = dedent`
         ---
         title: foo
         ---
         Content goes here
       `;
-      return ys.deserialize(Buffer.from(yaml, 'utf-8')).then(obj => {
+      return parse(Buffer.from(yaml, 'utf-8')).then(obj => {
         expect(obj).to.eql({title: 'foo', _content: 'Content goes here'});
       });
     });
 
     it('should store content under custom key', () => {
-      const ys = new YamlSerializer({frontMatter: true, contentKey: 'text'});
+      const parse = yamlParser({frontMatter: true, contentKey: 'text'});
       const yaml = dedent`
         ---
         title: foo
         ---
         Content goes here
       `;
-      return ys.deserialize(Buffer.from(yaml, 'utf-8')).then(obj => {
+      return parse(Buffer.from(yaml, 'utf-8')).then(obj => {
         expect(obj).to.eql({title: 'foo', text: 'Content goes here'});
       });
     });
@@ -59,7 +59,7 @@ describe('YamlSerializer', () => {
 
   describe('serialize', () => {
     it('should provide yaml data for a plain object', () => {
-      const ys = new YamlSerializer({});
+      const serialize = yamlSerializer();
       const plain = {title: 'foo', list: ['item1', 'item2']};
       const expected = dedent`
         title: foo
@@ -67,13 +67,13 @@ describe('YamlSerializer', () => {
           - item1
           - item2
       `;
-      return ys.serialize(plain).then(output => {
+      return serialize(plain).then(output => {
         expect(output.toString('utf-8').trim()).to.eql(expected.trim());
       });
     });
 
     it('should handle yaml front matter', () => {
-      const ys = new YamlSerializer({frontMatter: true});
+      const serialize = yamlSerializer({frontMatter: true});
       const plain = {title: 'foo', _content: 'Content goes here'};
       const expected = dedent`
         ---
@@ -81,13 +81,13 @@ describe('YamlSerializer', () => {
         ---
         Content goes here
       `;
-      return ys.serialize(plain).then(output => {
+      return serialize(plain).then(output => {
         expect(output.toString('utf-8').trim()).to.eql(expected.trim());
       });
     });
 
     it('should serialize content under custom key', () => {
-      const ys = new YamlSerializer({frontMatter: true, contentKey: 'text'});
+      const serialize = yamlSerializer({frontMatter: true, contentKey: 'text'});
       const plain = {title: 'foo', text: 'Content goes here'};
       const expected = dedent`
         ---
@@ -95,7 +95,7 @@ describe('YamlSerializer', () => {
         ---
         Content goes here
       `;
-      return ys.serialize(plain).then(output => {
+      return serialize(plain).then(output => {
         expect(output.toString('utf-8').trim()).to.eql(expected.trim());
       });
     });

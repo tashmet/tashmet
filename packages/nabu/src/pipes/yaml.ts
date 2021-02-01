@@ -114,13 +114,15 @@ const defaultOptions: YamlConfig = {
  * 
  * @param buffer Buffer containing raw YAML data
  */
-export const yamlParse: (config: YamlConfig) => Pipe<Buffer, any> = config => {
+export const yamlParser: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
+  const cfg = Object.assign({}, defaultOptions, config)
+
   return async buffer => {
     const data = buffer.toString('utf-8');
-    if (config.frontMatter) {
+    if (cfg.frontMatter) {
       const doc = yamlFront.loadFront(data);
       const content = doc.__content.trim();
-      doc[config.contentKey as string] = content;
+      doc[cfg.contentKey as string] = content;
       delete doc.__content;
       return doc;
     } else {
@@ -138,11 +140,13 @@ export const yamlParse: (config: YamlConfig) => Pipe<Buffer, any> = config => {
  * 
  * @param buffer Buffer containing raw YAML data
  */
-export const yamlSerialize: (config: YamlConfig) => Pipe<any, Buffer> = config => {
+export const yamlSerializer: (config?: YamlConfig) => Pipe<any, Buffer> = config => {
+  const cfg = Object.assign({}, defaultOptions, config);
+
   return async data => {
-    const options = omit(config, ['frontMatter', 'contentKey']);
-    if (config.frontMatter) {
-      const key = config.contentKey as string;
+    const options = omit(cfg, ['frontMatter', 'contentKey']);
+    if (cfg.frontMatter) {
+      const key = cfg.contentKey as string;
       const frontMatter = jsYaml.safeDump(omit(data, key), options);
       let output = '---\n' + frontMatter + '---';
       if (data[key]) {
@@ -156,6 +160,5 @@ export const yamlSerialize: (config: YamlConfig) => Pipe<any, Buffer> = config =
 }
 
 export const yaml = (config?: YamlConfig) => {
-  const cfg = Object.assign({}, defaultOptions, config)
-  return duplexPipeTransform(yamlParse(cfg), yamlSerialize(cfg));
+  return duplexPipeTransform(yamlParser(config), yamlSerializer(config));
 }

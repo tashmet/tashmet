@@ -59,6 +59,12 @@ describe('directory', () => {
 
   afterEach(async () => {
     await col.deleteMany({});
+    /*
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+      }, 1500);
+    });
+    */
     // TODO: Collection interface needs this method.
     (col as any).removeAllListeners();
   });
@@ -74,7 +80,7 @@ describe('directory', () => {
       );
       expect(doc.amount).to.eql(10);
       expect(doc).to.haveOwnProperty('_id');
-      expect(storedDoc(doc._id))
+      expect(await storedDoc(doc._id))
         .to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 10 });
     });
     it('should throw when trying to insert a document with already existing ID', () => {

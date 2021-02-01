@@ -21,7 +21,12 @@ export const directory = ({path, extension, serializer}: DirectoryConfig) => {
     }),
     dlStream: ({
       createReadable: () => new stream.Readable(),
-      createWritable: () => pipe(async doc => fs.unlinkSync(nodePath.join(path, fileName(doc)))),
+      createWritable: () => pipe(async doc => {
+        const filePath = nodePath.join(path, fileName(doc));
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      })
     }) as StreamFactory,
   });
 }

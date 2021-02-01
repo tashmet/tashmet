@@ -2,6 +2,9 @@ import {FileConfig} from '../interfaces';
 import {buffer} from './buffer';
 import {DuplexTransformFactory, chainInput, chainOutput, dict} from '../pipes';
 import * as fs from 'fs';
+import * as stream from 'stream';
+
+const pumpify = require('pumpify');
 
 export const file = ({path, serializer, dictionary}: FileConfig) => {
   const transforms: DuplexTransformFactory[] = [serializer];
@@ -11,8 +14,21 @@ export const file = ({path, serializer, dictionary}: FileConfig) => {
 
   return buffer({
     rwStream: {
-      createReadable: () => fs.createReadStream(path, 'utf-8').pipe(chainInput(transforms)),
-      createWritable: () => chainOutput(transforms).pipe(fs.createWriteStream(path, 'utf-8'))
+      createReadable: () => {
+        if (fs.existsSync(path)) {
+          return pumpify.obj(
+            fs.createReadStream(path, 'utf-8'),
+            chainInput(transforms)
+          );
+        }
+        return stream.Readable.from([])
+      },
+      createWritable: () => {
+        return pumpify.obj(
+          chainOutput(transforms),
+          fs.createWriteStream(path, 'utf-8')
+        );
+      }
     }
   });
 }

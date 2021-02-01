@@ -28,6 +28,7 @@ describe('file', () => {
             source: file({
               path: 'test/e2e/testCollection.json',
               serializer: json(),
+              dictionary: true,
             })
           }
         },

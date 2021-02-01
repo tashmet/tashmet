@@ -46,7 +46,11 @@ export abstract class Buffer extends EventEmitter implements Collection {
  
   public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
     const result = await this.cache.replaceOne(selector, doc, options);
-    return this.write([result]);
+    if (result) {
+      await this.write([result]);
+      this.emit('document-upserted', result);
+    }
+    return result;
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
@@ -83,11 +87,12 @@ export abstract class Buffer extends EventEmitter implements Collection {
 
   protected writeAsync(data: any, writable: stream.Writable): Promise<void> {
     return new Promise((resolve, reject) => {
+      writable.on('finish', () => resolve());
+
       writable.write(data, err => {
         if (err) {
           reject(err);
         } else {
-          resolve();
           writable.end();
         }
       });

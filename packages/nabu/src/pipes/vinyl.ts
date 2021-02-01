@@ -2,6 +2,7 @@ import * as vfs from 'vinyl-fs';
 import * as stream from 'stream';
 import Vinyl from 'vinyl';
 import {pipe} from 'pipeline-pipe';
+import {omit} from 'lodash';
 import {StreamFactory, chainInput, chainOutput, DuplexTransformFactory} from './util';
 
 const pumpify = require('pumpify');
@@ -29,7 +30,7 @@ export const vinyl = ({adapter, transforms, id, path}: VinylConfig) => ({
     pipe(async ({file, contents}) => Object.assign(contents, {_id: id(file)}))
   ),
   createWritable: () => pumpify.obj(
-    pipe(doc => ({doc, contents: doc})),
+    pipe(doc => ({doc, contents: omit(doc, ['_id'])})),
     chainOutput(transforms, 'contents'),
     pipe(async ({doc, contents}) => new Vinyl({path: path(doc), contents})),
     adapter.createWritable(),
