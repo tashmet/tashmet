@@ -16,8 +16,8 @@ export const directory = ({path, extension, serializer}: DirectoryConfig) => {
         dest: path
       }),
       transforms: [serializer],
-      id: async file => nodePath.basename(file.path).split('.')[0],
-      path: async doc => fileName(doc),
+      id: file => nodePath.basename(file.path).split('.')[0],
+      path: fileName,
     }),
     dlStream: ({
       createReadable: () => new stream.Readable(),
