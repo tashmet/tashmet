@@ -1,6 +1,6 @@
-import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@ziqquratu/pipe';
 import {omit} from 'lodash';
-import {ObjectPipeTransformFactory} from './util';
+import {duplexPipeTransform} from './util';
 
 export const toList: Pipe<any, any[]> = async dict => {
   return Object.keys(dict).reduce((list, key) => {
@@ -16,4 +16,4 @@ export const toDict: Pipe<any[], any> = async list => {
   }, {})
 }
 
-export const dict = () => new ObjectPipeTransformFactory(toList, toDict);
+export const dict = () => duplexPipeTransform(toList, toDict);

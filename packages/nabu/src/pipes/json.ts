@@ -1,5 +1,5 @@
 import {Pipe} from '@ziqquratu/pipe';
-import {ObjectPipeTransformFactory} from './util';
+import {duplexPipeTransform} from './util';
 
 /**
  * JSON parsing pipe 
@@ -17,4 +17,4 @@ export const jsonParse: Pipe<Buffer, any> = async buffer =>
 export const jsonSerialize: Pipe<any, Buffer> = async obj =>
   Buffer.from(JSON.stringify(obj), 'utf-8');
 
-export const json = () => new ObjectPipeTransformFactory(jsonParse, jsonSerialize);
+export const json = () => duplexPipeTransform(jsonParse, jsonSerialize);

@@ -10,39 +10,27 @@ export interface StreamFactory {
   createWritable(...args: any[]): stream.Writable;
 }
 
-export class ObjectPipeTransformFactory implements StreamFactory {
-  public static inputPipeline(pipeFactories: ObjectPipeTransformFactory[], key?: string): stream.Transform {
-    return pipeFactories.length > 1
-      ? pumpify.obj(...pipeFactories.map(pf => pf.createReadable(key)))
-      : pipeFactories[0].createReadable(key);
-  }
+export interface DuplexTransformFactory {
+  createInput(key?: string): stream.Transform;
 
-  public static outputPipeline(pipeFactories: ObjectPipeTransformFactory[], key?: string): stream.Transform {
-    return pipeFactories.length > 1
-      ? pumpify.obj(...pipeFactories.map(pf => pf.createWritable(key)).reverse())
-      : pipeFactories[0].createWritable(key);
-  }
-
-  public constructor(
-    private input: Pipe,
-    private output: Pipe,
-  ) {}
-
-  public createReadable(key?: string): stream.Readable {
-    return pipe(async data => {
-      if (key) {
-        return Object.assign(data, {[key]: await this.input(data[key])});
-      }
-      return await this.input(data);
-    });
-  }
-
-  public createWritable(key?: string): stream.Writable {
-    return pipe(async data => {
-      if (key) {
-        return Object.assign(data, {[key]: await this.output(data[key])});
-      }
-      return await this.output(data);
-    });
-  }
+  createOutput(key?: string): stream.Transform;
 }
+
+export const duplexPipeTransform = (input: Pipe, output: Pipe) => ({
+  createInput: (key?: string) => pipe(async data => key
+    ? Object.assign(data, {[key]: await input(data[key])})
+    : await input(data)
+  ),
+  createOutput: (key?: string) => pipe(async data => key
+    ? Object.assign(data, {[key]: await output(data[key])})
+    : await output(data)
+  ),
+}) as DuplexTransformFactory;
+
+export const chainInput = (transforms: DuplexTransformFactory[], key?: string) => transforms.length > 1
+  ? pumpify.obj(...transforms.map(t => t.createInput(key))) as stream.Transform
+  : transforms[0].createInput(key);
+
+export const chainOutput = (transforms: DuplexTransformFactory[], key?: string) => transforms.length > 1
+  ? pumpify.obj(...transforms.map(t => t.createOutput(key)).reverse()) as stream.Transform
+  : transforms[0].createOutput(key);

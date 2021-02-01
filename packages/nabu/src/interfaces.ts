@@ -1,4 +1,4 @@
-import { ObjectPipeTransformFactory } from './pipes';
+import {DuplexTransformFactory} from './pipes';
 
 export interface DirectoryConfig {
   /**
@@ -10,7 +10,7 @@ export interface DirectoryConfig {
    * A serializer factory creating a serializer that will parse and serialize
    * documents when reading from and writing to the file system.
    */
-  serializer: ObjectPipeTransformFactory;
+  serializer: DuplexTransformFactory;
 
   /**
    * file extension of files in the directory.
@@ -34,7 +34,7 @@ export interface FileConfig {
    * A serializer factory creating a serializer that will parse and serialize
    * documents when reading from and writing to the file system.
    */
-  serializer: ObjectPipeTransformFactory;
+  serializer: DuplexTransformFactory;
 
   dictionary: boolean;
 }

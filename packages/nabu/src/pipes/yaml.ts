@@ -2,7 +2,7 @@ import {Pipe} from '@ziqquratu/pipe';
 import {omit} from 'lodash';
 
 import jsYaml = require('js-yaml');
-import {ObjectPipeTransformFactory} from './util';
+import {duplexPipeTransform} from './util';
 const yamlFront = require('yaml-front-matter');
 
 /**
@@ -157,5 +157,5 @@ export const yamlSerialize: (config: YamlConfig) => Pipe<any, Buffer> = config =
 
 export const yaml = (config?: YamlConfig) => {
   const cfg = Object.assign({}, defaultOptions, config)
-  return new ObjectPipeTransformFactory(yamlParse(cfg), yamlSerialize(cfg));
+  return duplexPipeTransform(yamlParse(cfg), yamlSerialize(cfg));
 }
