@@ -3,7 +3,8 @@ import * as stream from 'stream';
 import Vinyl from 'vinyl';
 import {pipe} from 'pipeline-pipe';
 import {omit} from 'lodash';
-import {StreamFactory, chainInput, chainOutput, DuplexTransformFactory} from './util';
+import {StreamFactory, DuplexTransformFactory} from '../interfaces';
+import {chainInput, chainOutput} from './util';
 
 const pumpify = require('pumpify');
 

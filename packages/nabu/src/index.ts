@@ -1,8 +1,8 @@
 export {json} from './pipes/json';
 export {yaml, YamlConfig} from './pipes/yaml';
 export {buffer} from './collections/buffer';
-export {file} from './collections/file';
-export {directory} from './collections/directory';
+export {file, FileConfig} from './collections/file';
+export {directory, DirectoryConfig} from './collections/directory';
 export * from './interfaces';
 
 import {component, Logger, Provider} from '@ziqquratu/ziqquratu';

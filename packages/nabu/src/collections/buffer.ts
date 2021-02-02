@@ -1,6 +1,6 @@
 import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
 import {EventEmitter} from 'eventemitter3';
-import {StreamFactory} from '../pipes';
+import {StreamFactory} from '../interfaces';
 import * as stream from 'stream';
 
 export abstract class Buffer extends EventEmitter implements Collection {

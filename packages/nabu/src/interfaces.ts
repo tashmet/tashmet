@@ -1,42 +1,29 @@
-import {DuplexTransformFactory} from './pipes';
+import * as stream from 'stream';
 
-export interface DirectoryConfig {
-  /**
-   * Path to directory.
-   */
-  path: string;
+/** A factory for creating a duplex or transform stream */
+export interface StreamFactory {
+  /** Create a readable stream */
+  createReadable(...args: any[]): stream.Readable;
 
-  /**
-   * A serializer factory creating a serializer that will parse and serialize
-   * documents when reading from and writing to the file system.
-   */
-  serializer: DuplexTransformFactory;
-
-  /**
-   * file extension of files in the directory.
-   */
-  extension: string;
-
-  /**
-   * When set to true the directory will be created if it does not exist.
-   * (false by default).
-   */
-  create?: boolean;
+  /** Create a writable stream */
+  createWritable(...args: any[]): stream.Writable;
 }
 
-export interface FileConfig {
+/** A factory for creating a duplex transform stream */
+export interface DuplexTransformFactory {
   /**
-   * Path to file.
+   * Create stream for transforming input
+   * 
+   * @param key When set the transform will only process the content of this key
    */
-  path: string;
+  createInput(key?: string): stream.Transform;
 
   /**
-   * A serializer factory creating a serializer that will parse and serialize
-   * documents when reading from and writing to the file system.
+   * Create stream for transforming output
+   * 
+   * @param key When set the transform will only process the content of this key
    */
-  serializer: DuplexTransformFactory;
-
-  dictionary: boolean;
+  createOutput(key?: string): stream.Transform;
 }
 
 export interface FileSystemConfig {
