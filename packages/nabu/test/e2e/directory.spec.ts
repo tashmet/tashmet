@@ -59,12 +59,6 @@ describe('directory', () => {
 
   afterEach(async () => {
     await col.deleteMany({});
-    /*
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-      }, 1500);
-    });
-    */
     // TODO: Collection interface needs this method.
     (col as any).removeAllListeners();
   });
