@@ -37,6 +37,7 @@ export const file = ({path, serializer, dictionary}: FileConfig) => {
   }
 
   return buffer({
+    bundle: true,
     io: {
       createReadable: () => {
         if (fs.existsSync(path)) {

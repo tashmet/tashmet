@@ -3,9 +3,21 @@ import {EventEmitter} from 'eventemitter3';
 import {StreamFactory} from '../interfaces';
 import * as stream from 'stream';
 
+export enum BufferStreamMode {
+  Update,
+  Delete,
+  Seed,
+}
+
+export interface BufferStreamFactory extends StreamFactory {
+  createReadable(mode: BufferStreamMode): stream.Readable;
+  createWritable(mode: BufferStreamMode): stream.Writable;
+}
+
 export abstract class Buffer extends EventEmitter implements Collection {
   public constructor(
     protected cache: Collection,
+    protected io: BufferStreamFactory,
   ) {
     super();
   }
@@ -89,7 +101,23 @@ export abstract class Buffer extends EventEmitter implements Collection {
 
   protected abstract write(affectedDocs: any[], deletion?: boolean): Promise<void>;
 
-  protected writeAsync(data: any, writable: stream.Writable): Promise<void> {
+  protected createReader(mode: BufferStreamMode, handler: (doc: any) => Promise<any>) {
+    const readable = this.io.createReadable(mode);
+
+    if (readable) {
+      readable.on('readable', async () => { 
+        let doc; 
+        while (null !== (doc = readable.read())) { 
+          await handler(doc);
+        } 
+      }); 
+    }
+    return readable;
+  }
+
+  protected writeAsync(data: any, mode: BufferStreamMode): Promise<void> {
+    const writable = this.io.createWritable(mode);
+
     return new Promise((resolve, reject) => {
       writable.on('finish', () => resolve());
 
@@ -104,24 +132,16 @@ export abstract class Buffer extends EventEmitter implements Collection {
   }
 }
 
-export class DocumentStreamBuffer extends Buffer {
-  public constructor(
-    cache: Collection,
-    private io: StreamFactory,
-    private seed: stream.Readable | undefined,
-    private deletion: StreamFactory
-  ) { super(cache); }
 
+export class DocumentStreamBuffer extends Buffer {
   public populate(): Promise<Collection> {
-    const readable = this.seed;
+    const readable = this.createReader(BufferStreamMode.Seed, doc => this.insertOne(doc, false));
 
     return new Promise((resolve, reject) => {
       if (readable === undefined) {
         this.onPopulated();
         return resolve(this);
       }
-
-      this.createReader(readable, doc => this.insertOne(doc, false));
 
       readable.on('end', () => {
         this.onPopulated();
@@ -133,40 +153,28 @@ export class DocumentStreamBuffer extends Buffer {
 
   protected async write(docs: any[], deletion = false): Promise<void> {
     for (const doc of docs) {
-      await this.writeAsync(doc, deletion ? this.deletion.createWritable() : this.io.createWritable());
+      await this.writeAsync(doc, deletion ? BufferStreamMode.Delete : BufferStreamMode.Update);
     }
   }
 
-  private createReader(readable: stream.Readable, handler: (doc: any) => Promise<void>) {
-    readable.on('readable', async () => { 
-      let doc; 
-      while (null !== (doc = readable.read())) { 
-        await handler(doc);
-      } 
-    }); 
-  }
-
   private onPopulated() {
-    this.createReader(this.io.createReadable(), async doc => {
+    this.createReader(BufferStreamMode.Update, async doc => {
       const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
       if (res) {
         this.emit('document-upserted', res);
       }
     });
 
-    this.createReader(this.deletion.createReadable(), doc => this.deleteOne({_id: doc._id}, false));
+    this.createReader(BufferStreamMode.Delete, doc =>
+      this.deleteOne({_id: doc._id}, false)
+    );
   }
 }
 
-export class CollectionStreamBuffer extends Buffer {
-  public constructor(
-    cache: Collection,
-    private io: StreamFactory,
-    private seed: stream.Readable | undefined
-  ) { super(cache); }
 
+export class CollectionStreamBuffer extends Buffer {
   protected async write(): Promise<void> {
-    return this.writeAsync(await this.cache.find().toArray(), this.io.createWritable());
+    return this.writeAsync(await this.cache.find().toArray(), BufferStreamMode.Update);
   }
 
   // TODO: Only replace documents that have actually changed?
@@ -180,7 +188,7 @@ export class CollectionStreamBuffer extends Buffer {
   }
 
   public populate(): Promise<Collection> {
-    const readable = this.seed;
+    const readable = this.createReader(BufferStreamMode.Seed, docs => this.cache.insertMany(docs));
 
     return new Promise((resolve, reject) => {
       if (readable === undefined) {
@@ -203,23 +211,11 @@ export interface BufferConfig {
   /**
    * Input/Output stream
    */
-  io: StreamFactory;
+  io: BufferStreamFactory;
 
-  /**
-   * Seed stream for populating the buffer
-   * 
-   * This is an optional readable stream that, when provided, will be read
-   * to get the initial data into the buffer when the collection is created.
-   * 
-   * The collection will not be returned until this stream is fully read.
-   */
-  seed?: stream.Readable;
-
-  /**
-   * Deletion stream
-   */
-  deletion?: StreamFactory;
+  bundle: boolean;
 }
+
 
 export class BufferCollectionFactory extends CollectionFactory {
   constructor(private config: BufferConfig) {
@@ -227,12 +223,12 @@ export class BufferCollectionFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database): Promise<Collection> {
-    const { seed, io, deletion } = this.config;
+    const { io, bundle } = this.config;
     const cache = new MemoryCollection(name, database, {disableEvents: true});
 
-    const buffer = deletion
-      ? new DocumentStreamBuffer(cache, io, seed, deletion)
-      : new CollectionStreamBuffer(cache, io, seed);
+    const buffer = bundle
+      ? new CollectionStreamBuffer(cache, io)
+      : new DocumentStreamBuffer(cache, io);
 
     return buffer.populate();
   }

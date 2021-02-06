@@ -1,5 +1,5 @@
 import {StreamFactory, DuplexTransformFactory, FileSystemConfig} from '../interfaces';
-import {buffer} from './buffer';
+import {buffer, BufferStreamMode} from './buffer';
 import {vinylFSWatcher, vinylReader, vinylWriter} from '../pipes';
 import * as fs from 'fs';
 import * as nodePath from 'path';
@@ -68,36 +68,44 @@ export class DirectoryFactory extends CollectionFactory {
       watcher.on('unlink', onUnlink);
 
       return buffer({
+        bundle: false,
         io: {
-          createReadable() {
-            return vinylReader({
-              source: vinylFSWatcher({glob, watcher}),
-              transforms,
-              id
-            });
+          createReadable(mode: BufferStreamMode) {
+            switch (mode) {
+              case BufferStreamMode.Update:
+                return vinylReader({
+                  source: vinylFSWatcher({glob, watcher}),
+                  transforms,
+                  id
+                });
+              case BufferStreamMode.Seed:
+                return vinylReader({
+                  source: vfs.src(glob) as stream.Duplex,
+                  transforms,
+                  id: id,
+                });
+              case BufferStreamMode.Delete:
+                return deleteInput;
+            }
           },
-          createWritable() {
-            return vinylWriter({
-              destination: vfs.dest(path) as stream.Transform,
-              transforms,
-              path: fileName,
-            });
+          createWritable(mode: BufferStreamMode) {
+            switch (mode) {
+              case BufferStreamMode.Update:
+                return vinylWriter({
+                  destination: vfs.dest(path) as stream.Transform,
+                  transforms,
+                  path: fileName,
+                });
+              case BufferStreamMode.Delete:
+                return pipe(async doc => {
+                  const filePath = nodePath.join(path, fileName(doc));
+                  if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                  }
+                });
+            }
           }
         },
-        seed: vinylReader({
-          source: vfs.src(glob) as stream.Duplex,
-          transforms,
-          id: id,
-        }),
-        deletion: ({
-          createReadable: () => deleteInput,
-          createWritable: () => pipe(async doc => {
-            const filePath = nodePath.join(path, fileName(doc));
-            if (fs.existsSync(filePath)) {
-              fs.unlinkSync(filePath);
-            }
-          })
-        }) as StreamFactory,
       }).create(name, database);
     })
   }
