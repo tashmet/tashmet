@@ -1,7 +1,7 @@
 import {DuplexTransformFactory, FileSystemConfig} from '../interfaces';
 import {buffer, BufferStreamMode} from './buffer';
 import {vinylFSWatcher, vinylReader, vinylWriter} from '../pipes';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as vfs from 'vinyl-fs';
 import * as nodePath from 'path';
 import * as stream from 'stream';
@@ -39,13 +39,16 @@ export class DirectoryFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database) {
-    const {path, extension, serializer} = this.config;
+    const {path, extension, serializer, create} = this.config;
+    const fileName = (doc: any) => `${doc._id}.${extension}`;
+    const glob = `${path}/*.${extension}`;
+    const transforms = [serializer];
+
+    if (!fs.existsSync(path) && create) {
+      fs.mkdirpSync(path);
+    }
 
     return this.resolve((fsConfig: FileSystemConfig, watcher: chokidar.FSWatcher) => {
-      const fileName = (doc: any) => `${doc._id}.${extension}`;
-      const glob = `${path}/*.${extension}`;
-      const transforms = [serializer];
-
       watcher.add(path);
 
       const input = (source: stream.Readable) => vinylReader({
