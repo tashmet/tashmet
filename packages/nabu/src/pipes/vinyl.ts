@@ -17,8 +17,6 @@ export interface VinylFSWatcherConfig {
 }
 
 export const vinylFSWatcher = ({glob, watcher}: VinylFSWatcherConfig) => {
-  watcher.add(glob);
-
   const readable = new stream.Readable({
     objectMode: true,
     read() { return; }

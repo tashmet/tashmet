@@ -9,6 +9,7 @@ import * as vfs from 'vinyl-fs';
 import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
 import Vinyl from 'vinyl';
 import * as chokidar from 'chokidar';
+import minimatch from 'minimatch';
 
 export interface DirectoryConfig {
   /**
@@ -43,10 +44,28 @@ export class DirectoryFactory extends CollectionFactory {
     const {path, extension, serializer} = this.config;
 
     return this.resolve((fsConfig: FileSystemConfig, watcher: chokidar.FSWatcher) => {
+      const path2Id = (path: string) => nodePath.basename(path).split('.')[0];
       const fileName = (doc: any) => `${doc._id}.${extension}`;
       const glob = `${path}/*.${extension}`;
-      const id = (file: Vinyl) => nodePath.basename(file.path).split('.')[0]
+      const id = (file: Vinyl) => path2Id(file.path);
       const transforms = [serializer];
+
+      watcher.add(path);
+
+      const deleteInput = new stream.Readable({
+        objectMode: true,
+        read() { return; }
+      });
+      const onUnlink = (path: string) => {
+        for (const pattern of Array.isArray(glob) ? glob : [glob]) {
+          if (minimatch(path, pattern)) {
+            deleteInput.push({_id: path2Id(path)});
+            return;
+          }
+        }
+      }
+
+      watcher.on('unlink', onUnlink);
 
       return buffer({
         io: {
@@ -71,7 +90,7 @@ export class DirectoryFactory extends CollectionFactory {
           id: id,
         }),
         deletion: ({
-          createReadable: () => new stream.Readable(),
+          createReadable: () => deleteInput,
           createWritable: () => pipe(async doc => {
             const filePath = nodePath.join(path, fileName(doc));
             if (fs.existsSync(filePath)) {

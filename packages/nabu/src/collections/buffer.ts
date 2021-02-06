@@ -18,10 +18,12 @@ export abstract class Buffer extends EventEmitter implements Collection {
     return this.cache.aggregate(pipeline, options);
   }
 
-  public async insertOne(doc: any): Promise<any> {
+  public async insertOne(doc: any, writeThrough = true): Promise<any> {
     const res = await this.cache.insertOne(doc);
     try {
-      await this.write([res]);
+      if (writeThrough) {
+        await this.write([res]);
+      }
     } catch (err) {
       await this.cache.deleteOne({_id: doc._id});
       throw err;
@@ -61,10 +63,12 @@ export abstract class Buffer extends EventEmitter implements Collection {
     return this.cache.findOne(selector);
   }
 
-  public async deleteOne(selector: any): Promise<any> {
+  public async deleteOne(selector: any, writeThrough = true): Promise<any> {
     const affected = await this.cache.deleteOne(selector);
     if (affected) {
-      await this.write([affected], true);
+      if (writeThrough) {
+        await this.write([affected], true);
+      }
       this.emit('document-removed', affected);
     }
     return affected;
@@ -108,44 +112,49 @@ export class DocumentStreamBuffer extends Buffer {
     private deletion: StreamFactory
   ) { super(cache); }
 
+  public populate(): Promise<Collection> {
+    const readable = this.seed;
+
+    return new Promise((resolve, reject) => {
+      if (readable === undefined) {
+        this.onPopulated();
+        return resolve(this);
+      }
+
+      this.createReader(readable, doc => this.insertOne(doc, false));
+
+      readable.on('end', () => {
+        this.onPopulated();
+        return resolve(this);
+      });
+      readable.on('error', err => reject(err));
+    });
+  }
+
   protected async write(docs: any[], deletion = false): Promise<void> {
     for (const doc of docs) {
       await this.writeAsync(doc, deletion ? this.deletion.createWritable() : this.io.createWritable());
     }
   }
 
-  public populate(): Promise<Collection> {
-    const readable = this.seed;
+  private createReader(readable: stream.Readable, handler: (doc: any) => Promise<void>) {
+    readable.on('readable', async () => { 
+      let doc; 
+      while (null !== (doc = readable.read())) { 
+        await handler(doc);
+      } 
+    }); 
+  }
 
-    return new Promise((resolve, reject) => {
-      if (readable === undefined) {
-        return resolve(this);
+  private onPopulated() {
+    this.createReader(this.io.createReadable(), async doc => {
+      const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+      if (res) {
+        this.emit('document-upserted', res);
       }
-
-      readable.on('readable', async () => { 
-        let doc; 
-        while (null !== (doc = readable.read())) { 
-          const res = await this.cache.insertOne(doc);
-          if (res) {
-            this.emit('document-upserted', res);
-          }
-        } 
-      }); 
-      readable.on('end', () => {
-        resolve(this);
-        const input = this.io.createReadable();
-        input.on('readable', async () => {
-          let doc; 
-          while (null !== (doc = input.read())) { 
-            const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
-            if (res) {
-              this.emit('document-upserted', res);
-            }
-          }
-        });
-      });
-      readable.on('error', err => reject(err));
     });
+
+    this.createReader(this.deletion.createReadable(), doc => this.deleteOne({_id: doc._id}, false));
   }
 }
 
