@@ -103,40 +103,61 @@ export abstract class Buffer extends EventEmitter implements Collection {
 export class DocumentStreamBuffer extends Buffer {
   public constructor(
     cache: Collection,
-    private rwStream: StreamFactory,
-    private dlStream: StreamFactory
+    private io: StreamFactory,
+    private seed: stream.Readable | undefined,
+    private deletion: StreamFactory
   ) { super(cache); }
 
   protected async write(docs: any[], deletion = false): Promise<void> {
     for (const doc of docs) {
-      await this.writeAsync(doc, deletion ? this.dlStream.createWritable() : this.rwStream.createWritable());
+      await this.writeAsync(doc, deletion ? this.deletion.createWritable() : this.io.createWritable());
     }
   }
 
   public populate(): Promise<Collection> {
-    const readable = this.rwStream.createReadable();
+    const readable = this.seed;
 
     return new Promise((resolve, reject) => {
+      if (readable === undefined) {
+        return resolve(this);
+      }
+
       readable.on('readable', async () => { 
         let doc; 
         while (null !== (doc = readable.read())) { 
-          const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+          const res = await this.cache.insertOne(doc);
           if (res) {
             this.emit('document-upserted', res);
           }
         } 
       }); 
-      readable.on('end', () => resolve(this));
+      readable.on('end', () => {
+        resolve(this);
+        const input = this.io.createReadable();
+        input.on('readable', async () => {
+          let doc; 
+          while (null !== (doc = input.read())) { 
+            const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+            if (res) {
+              this.emit('document-upserted', res);
+            }
+          }
+        });
+      });
       readable.on('error', err => reject(err));
     });
   }
 }
 
 export class CollectionStreamBuffer extends Buffer {
-  public constructor(cache: Collection, private rwStream: StreamFactory) { super(cache); }
+  public constructor(
+    cache: Collection,
+    private io: StreamFactory,
+    private seed: stream.Readable | undefined
+  ) { super(cache); }
 
   protected async write(): Promise<void> {
-    return this.writeAsync(await this.cache.find().toArray(), this.rwStream.createWritable());
+    return this.writeAsync(await this.cache.find().toArray(), this.io.createWritable());
   }
 
   // TODO: Only replace documents that have actually changed?
@@ -150,9 +171,13 @@ export class CollectionStreamBuffer extends Buffer {
   }
 
   public populate(): Promise<Collection> {
-    const readable = this.rwStream.createReadable();
+    const readable = this.seed;
 
     return new Promise((resolve, reject) => {
+      if (readable === undefined) {
+        return resolve(this);
+      }
+
       readable.on('readable', async () => { 
         let docs; 
         while (null !== (docs = readable.read())) { 
@@ -169,12 +194,22 @@ export interface BufferConfig {
   /**
    * Input/Output stream
    */
-  rwStream: StreamFactory;
+  io: StreamFactory;
+
+  /**
+   * Seed stream for populating the buffer
+   * 
+   * This is an optional readable stream that, when provided, will be read
+   * to get the initial data into the buffer when the collection is created.
+   * 
+   * The collection will not be returned until this stream is fully read.
+   */
+  seed?: stream.Readable;
 
   /**
    * Deletion stream
    */
-  dlStream?: StreamFactory;
+  deletion?: StreamFactory;
 }
 
 export class BufferCollectionFactory extends CollectionFactory {
@@ -183,12 +218,12 @@ export class BufferCollectionFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database): Promise<Collection> {
-    const { rwStream, dlStream } = this.config;
+    const { seed, io, deletion } = this.config;
     const cache = new MemoryCollection(name, database, {disableEvents: true});
 
-    const buffer = dlStream
-      ? new DocumentStreamBuffer(cache, rwStream, dlStream)
-      : new CollectionStreamBuffer(cache, rwStream);
+    const buffer = deletion
+      ? new DocumentStreamBuffer(cache, io, seed, deletion)
+      : new CollectionStreamBuffer(cache, io, seed);
 
     return buffer.populate();
   }

@@ -37,7 +37,7 @@ export const file = ({path, serializer, dictionary}: FileConfig) => {
   }
 
   return buffer({
-    rwStream: {
+    io: {
       createReadable: () => {
         if (fs.existsSync(path)) {
           return pumpify.obj(

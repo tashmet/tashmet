@@ -1,10 +1,14 @@
-import {StreamFactory, DuplexTransformFactory} from '../interfaces';
+import {StreamFactory, DuplexTransformFactory, FileSystemConfig} from '../interfaces';
 import {buffer} from './buffer';
-import {vinyl, vinylFs} from '../pipes';
+import {vinylFSWatcher, vinylReader, vinylWriter} from '../pipes';
 import * as fs from 'fs';
 import * as nodePath from 'path';
 import * as stream from 'stream';
 import pipe from 'pipeline-pipe';
+import * as vfs from 'vinyl-fs';
+import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
+import Vinyl from 'vinyl';
+import * as chokidar from 'chokidar';
 
 export interface DirectoryConfig {
   /**
@@ -30,30 +34,59 @@ export interface DirectoryConfig {
   create?: boolean;
 }
 
+export class DirectoryFactory extends CollectionFactory {
+  public constructor(private config: DirectoryConfig) {
+    super('nabu.FileSystemConfig', 'chokidar.FSWatcher')
+  }
+
+  public async create(name: string, database: Database) {
+    const {path, extension, serializer} = this.config;
+
+    return this.resolve((fsConfig: FileSystemConfig, watcher: chokidar.FSWatcher) => {
+      const fileName = (doc: any) => `${doc._id}.${extension}`;
+      const glob = `${path}/*.${extension}`;
+      const id = (file: Vinyl) => nodePath.basename(file.path).split('.')[0]
+      const transforms = [serializer];
+
+      return buffer({
+        io: {
+          createReadable() {
+            return vinylReader({
+              source: vinylFSWatcher({glob, watcher}),
+              transforms,
+              id
+            });
+          },
+          createWritable() {
+            return vinylWriter({
+              destination: vfs.dest(path) as stream.Transform,
+              transforms,
+              path: fileName,
+            });
+          }
+        },
+        seed: vinylReader({
+          source: vfs.src(glob) as stream.Duplex,
+          transforms,
+          id: id,
+        }),
+        deletion: ({
+          createReadable: () => new stream.Readable(),
+          createWritable: () => pipe(async doc => {
+            const filePath = nodePath.join(path, fileName(doc));
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          })
+        }) as StreamFactory,
+      }).create(name, database);
+    })
+  }
+}
+
 /**
  * A collection based on files in a directory on the filesystem
  */
 export const directory = ({path, extension, serializer}: DirectoryConfig) => {
-  const fileName = (doc: any) => `${doc._id}.${extension}`;
-
-  return buffer({
-    rwStream: vinyl({
-      adapter: vinylFs({
-        src: `${path}/*.${extension}`,
-        dest: path
-      }),
-      transforms: [serializer],
-      id: file => nodePath.basename(file.path).split('.')[0],
-      path: fileName,
-    }),
-    dlStream: ({
-      createReadable: () => new stream.Readable(),
-      createWritable: () => pipe(async doc => {
-        const filePath = nodePath.join(path, fileName(doc));
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      })
-    }) as StreamFactory,
-  });
+  return new DirectoryFactory({path, extension, serializer});
 }
