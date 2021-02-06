@@ -14,23 +14,31 @@ export interface VinylFSWatcherConfig {
   glob: string | string[];
 
   watcher: chokidar.FSWatcher;
+
+  events: string[];
 }
 
-export const vinylFSWatcher = ({glob, watcher}: VinylFSWatcherConfig) => {
+export const vinylFSWatcher = ({glob, watcher, events}: VinylFSWatcherConfig) => {
   const readable = new stream.Readable({
     objectMode: true,
     read() { return; }
   });
-  const onChange = (path: string) => {
+
+  const onChange = (path: string, event: string) => {
     for (const pattern of Array.isArray(glob) ? glob : [glob]) {
       if (minimatch(path, pattern)) {
-        readable.push(new Vinyl({path: path, contents: fs.readFileSync(path)}))
+        const contents = event === 'unlink'
+          ? stream.Readable.from([Buffer.from('{}')])
+          : fs.readFileSync(path);
+
+        readable.push(new Vinyl({path: path, contents}))
       }
     }
   }
 
-  watcher.on('add', onChange);
-  watcher.on('change', onChange);
+  for (const ev of events) {
+    watcher.on(ev, path => onChange(path, ev));
+  }
 
   return readable;
 }

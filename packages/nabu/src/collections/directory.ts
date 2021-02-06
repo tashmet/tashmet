@@ -1,15 +1,13 @@
-import {StreamFactory, DuplexTransformFactory, FileSystemConfig} from '../interfaces';
+import {DuplexTransformFactory, FileSystemConfig} from '../interfaces';
 import {buffer, BufferStreamMode} from './buffer';
 import {vinylFSWatcher, vinylReader, vinylWriter} from '../pipes';
 import * as fs from 'fs';
+import * as vfs from 'vinyl-fs';
 import * as nodePath from 'path';
 import * as stream from 'stream';
-import pipe from 'pipeline-pipe';
-import * as vfs from 'vinyl-fs';
-import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
-import Vinyl from 'vinyl';
 import * as chokidar from 'chokidar';
-import minimatch from 'minimatch';
+import pipe from 'pipeline-pipe';
+import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
 
 export interface DirectoryConfig {
   /**
@@ -44,28 +42,15 @@ export class DirectoryFactory extends CollectionFactory {
     const {path, extension, serializer} = this.config;
 
     return this.resolve((fsConfig: FileSystemConfig, watcher: chokidar.FSWatcher) => {
-      const path2Id = (path: string) => nodePath.basename(path).split('.')[0];
       const fileName = (doc: any) => `${doc._id}.${extension}`;
       const glob = `${path}/*.${extension}`;
-      const id = (file: Vinyl) => path2Id(file.path);
       const transforms = [serializer];
 
       watcher.add(path);
 
-      const deleteInput = new stream.Readable({
-        objectMode: true,
-        read() { return; }
+      const input = (source: stream.Readable) => vinylReader({
+        source, transforms, id: file => nodePath.basename(file.path).split('.')[0],
       });
-      const onUnlink = (path: string) => {
-        for (const pattern of Array.isArray(glob) ? glob : [glob]) {
-          if (minimatch(path, pattern)) {
-            deleteInput.push({_id: path2Id(path)});
-            return;
-          }
-        }
-      }
-
-      watcher.on('unlink', onUnlink);
 
       return buffer({
         bundle: false,
@@ -73,19 +58,11 @@ export class DirectoryFactory extends CollectionFactory {
           createReadable(mode: BufferStreamMode) {
             switch (mode) {
               case BufferStreamMode.Update:
-                return vinylReader({
-                  source: vinylFSWatcher({glob, watcher}),
-                  transforms,
-                  id
-                });
+                return input(vinylFSWatcher({glob, watcher, events: ['add', 'change']}));
               case BufferStreamMode.Seed:
-                return vinylReader({
-                  source: vfs.src(glob) as stream.Duplex,
-                  transforms,
-                  id: id,
-                });
+                return input(vfs.src(glob) as stream.Transform)
               case BufferStreamMode.Delete:
-                return deleteInput;
+                return input(vinylFSWatcher({glob, watcher, events: ['unlink']}));
             }
           },
           createWritable(mode: BufferStreamMode) {
@@ -114,6 +91,4 @@ export class DirectoryFactory extends CollectionFactory {
 /**
  * A collection based on files in a directory on the filesystem
  */
-export const directory = ({path, extension, serializer}: DirectoryConfig) => {
-  return new DirectoryFactory({path, extension, serializer});
-}
+export const directory = (config: DirectoryConfig) => new DirectoryFactory(config);
