@@ -130,7 +130,7 @@ export class Buffer extends EventEmitter implements Collection {
       }
     });
 
-    if (this.bundle) {
+    if (!this.bundle) {
       this.createReader(BufferStreamMode.Delete, doc =>
         this.deleteOne({_id: doc._id}, false)
       );
@@ -138,7 +138,7 @@ export class Buffer extends EventEmitter implements Collection {
     return this;
   }
 
-  protected async write(affectedDocs: any[], deletion?: boolean): Promise<void> {
+  private async write(affectedDocs: any[], deletion?: boolean): Promise<void> {
     if (this.bundle) {
       return this.writeAsync(await this.cache.find().toArray(), BufferStreamMode.Update);
     } else {
@@ -148,7 +148,7 @@ export class Buffer extends EventEmitter implements Collection {
     }
   }
 
-  protected createReader(mode: BufferStreamMode, handler: (doc: any) => Promise<any>) {
+  private createReader(mode: BufferStreamMode, handler: (doc: any) => Promise<any>) {
     const readable = this.io.createReadable(mode);
 
     if (readable) {
@@ -162,7 +162,7 @@ export class Buffer extends EventEmitter implements Collection {
     return readable;
   }
 
-  protected writeAsync(data: any, mode: BufferStreamMode): Promise<void> {
+  private writeAsync(data: any, mode: BufferStreamMode): Promise<void> {
     const writable = this.io.createWritable(mode);
 
     return new Promise((resolve, reject) => {
