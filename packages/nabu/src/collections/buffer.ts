@@ -14,10 +14,11 @@ export interface BufferStreamFactory extends StreamFactory {
   createWritable(mode: BufferStreamMode): stream.Writable;
 }
 
-export abstract class Buffer extends EventEmitter implements Collection {
+export class Buffer extends EventEmitter implements Collection {
   public constructor(
     protected cache: Collection,
     protected io: BufferStreamFactory,
+    private bundle: boolean,
   ) {
     super();
   }
@@ -58,10 +59,12 @@ export abstract class Buffer extends EventEmitter implements Collection {
     return res;
   }
  
-  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
+  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}, writeThrough = true): Promise<any> {
     const result = await this.cache.replaceOne(selector, doc, options);
     if (result) {
-      await this.write([result]);
+      if (writeThrough) {
+        await this.write([result]);
+      }
       this.emit('document-upserted', result);
     }
     return result;
@@ -99,7 +102,51 @@ export abstract class Buffer extends EventEmitter implements Collection {
     return this.cache.name;
   }
 
-  protected abstract write(affectedDocs: any[], deletion?: boolean): Promise<void>;
+  public async populate(): Promise<Collection> {
+    const readable = this.createReader(BufferStreamMode.Seed, data => {
+      if (this.bundle) {
+        return this.cache.insertMany(data);
+      } else {
+        return this.cache.insertOne(data);
+      }
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      if (readable === undefined) {
+        return resolve();
+      }
+
+      readable.on('end', resolve)
+      readable.on('error', err => reject(err));
+    });
+
+    this.createReader(BufferStreamMode.Update, async data => {
+      if (this.bundle) {
+        for (const doc of data) {
+          await this.replaceOne({_id: doc._id}, doc, {upsert: true}, false);
+        }
+      } else {
+        return this.replaceOne({_id: data._id}, data, {upsert: true}, false);
+      }
+    });
+
+    if (this.bundle) {
+      this.createReader(BufferStreamMode.Delete, doc =>
+        this.deleteOne({_id: doc._id}, false)
+      );
+    }
+    return this;
+  }
+
+  protected async write(affectedDocs: any[], deletion?: boolean): Promise<void> {
+    if (this.bundle) {
+      return this.writeAsync(await this.cache.find().toArray(), BufferStreamMode.Update);
+    } else {
+      for (const doc of affectedDocs) {
+        await this.writeAsync(doc, deletion ? BufferStreamMode.Delete : BufferStreamMode.Update);
+      }
+    }
+  }
 
   protected createReader(mode: BufferStreamMode, handler: (doc: any) => Promise<any>) {
     const readable = this.io.createReadable(mode);
@@ -133,80 +180,6 @@ export abstract class Buffer extends EventEmitter implements Collection {
 }
 
 
-export class DocumentStreamBuffer extends Buffer {
-  public populate(): Promise<Collection> {
-    const readable = this.createReader(BufferStreamMode.Seed, doc => this.insertOne(doc, false));
-
-    return new Promise((resolve, reject) => {
-      if (readable === undefined) {
-        this.onPopulated();
-        return resolve(this);
-      }
-
-      readable.on('end', () => {
-        this.onPopulated();
-        return resolve(this);
-      });
-      readable.on('error', err => reject(err));
-    });
-  }
-
-  protected async write(docs: any[], deletion = false): Promise<void> {
-    for (const doc of docs) {
-      await this.writeAsync(doc, deletion ? BufferStreamMode.Delete : BufferStreamMode.Update);
-    }
-  }
-
-  private onPopulated() {
-    this.createReader(BufferStreamMode.Update, async doc => {
-      const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
-      if (res) {
-        this.emit('document-upserted', res);
-      }
-    });
-
-    this.createReader(BufferStreamMode.Delete, doc =>
-      this.deleteOne({_id: doc._id}, false)
-    );
-  }
-}
-
-
-export class CollectionStreamBuffer extends Buffer {
-  protected async write(): Promise<void> {
-    return this.writeAsync(await this.cache.find().toArray(), BufferStreamMode.Update);
-  }
-
-  // TODO: Only replace documents that have actually changed?
-  protected async read(data: any[]) {
-    for (const doc of data) {
-      const res = await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
-      if (res) {
-        this.emit('document-upserted', res);
-      }
-    }
-  }
-
-  public populate(): Promise<Collection> {
-    const readable = this.createReader(BufferStreamMode.Seed, docs => this.cache.insertMany(docs));
-
-    return new Promise((resolve, reject) => {
-      if (readable === undefined) {
-        return resolve(this);
-      }
-
-      readable.on('readable', async () => { 
-        let docs; 
-        while (null !== (docs = readable.read())) { 
-          await this.cache.insertMany(docs);
-        } 
-      }); 
-      readable.on('end', () => resolve(this));
-      readable.on('error', err => reject(err));
-    });
-  }
-}
-
 export interface BufferConfig {
   /**
    * Input/Output stream
@@ -224,13 +197,10 @@ export class BufferCollectionFactory extends CollectionFactory {
 
   public async create(name: string, database: Database): Promise<Collection> {
     const { io, bundle } = this.config;
-    const cache = new MemoryCollection(name, database, {disableEvents: true});
 
-    const buffer = bundle
-      ? new CollectionStreamBuffer(cache, io)
-      : new DocumentStreamBuffer(cache, io);
-
-    return buffer.populate();
+   return new Buffer(
+     new MemoryCollection(name, database, {disableEvents: true}), io, bundle
+   ).populate();
   }
 }
 
