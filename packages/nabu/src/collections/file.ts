@@ -1,7 +1,8 @@
 import {DuplexTransformFactory, FileSystemConfig} from '../interfaces';
 import {buffer, BufferStreamMode} from './buffer';
-import {chainInput, chainOutput, dict, vinylFSWatcher, vinylReader} from '../pipes';
+import {chainOutput, dict, vinylFSWatcher, vinylReader} from '../pipes';
 import * as fs from 'fs';
+import * as vfs from 'vinyl-fs';
 import * as stream from 'stream';
 import * as chokidar from 'chokidar';
 import { CollectionFactory, Database } from '@ziqquratu/ziqquratu';
@@ -53,10 +54,10 @@ export class FileFactory extends CollectionFactory {
             switch (mode) {
               case BufferStreamMode.Seed:
                 if (fs.existsSync(path)) {
-                  return pumpify.obj(
-                    fs.createReadStream(path, 'utf-8'),
-                    chainInput(transforms)
-                  );
+                  return vinylReader({
+                    source: vfs.src(path) as stream.Transform,
+                    transforms,
+                  });
                 }
                 return stream.Readable.from([]);
               case BufferStreamMode.Update:
