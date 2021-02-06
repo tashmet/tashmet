@@ -1,5 +1,6 @@
 import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
 import {EventEmitter} from 'eventemitter3';
+import {difference, intersection, isEqual} from 'lodash';
 import {StreamFactory} from '../interfaces';
 import * as stream from 'stream';
 
@@ -45,10 +46,12 @@ export class Buffer extends EventEmitter implements Collection {
     return res;
   }
  
-  public async insertMany(docs: any[]): Promise<any[]> {
+  public async insertMany(docs: any[], writeThrough = true): Promise<any[]> {
     const res = await this.cache.insertMany(docs);
     try {
-      await this.write(docs);
+      if (writeThrough) {
+        await this.write(docs);
+      }
     } catch (err) {
       await this.cache.deleteMany({_id: {$in: docs.map(d => d._id)}});
       throw err;
@@ -122,8 +125,31 @@ export class Buffer extends EventEmitter implements Collection {
 
     this.createReader(BufferStreamMode.Update, async data => {
       if (this.bundle) {
-        for (const doc of data) {
-          await this.replaceOne({_id: doc._id}, doc, {upsert: true}, false);
+        const bufferDocs = await this.cache.find().toArray();
+        const getIds = (docs: any[]) => docs.map(doc => doc._id);
+
+        const diff = (a: any[], b: any[]) => {
+          const ids = difference(getIds(a), getIds(b));
+          return a.filter(doc => ids.includes(doc._id));
+        }
+
+        const changed = intersection(getIds(data), getIds(bufferDocs)).reduce((acc, id) => {
+          const doc = data.find((d: any) => d._id === id);
+
+          if (!isEqual(doc, bufferDocs.find(d => d._id === id))) {
+            acc.push(doc);
+          }
+          return acc;
+        }, []);
+
+        for (const doc of diff(bufferDocs, data)) {
+          await this.deleteOne(doc, false);
+        }
+        for (const doc of changed) {
+          await this.replaceOne({_id: doc._id}, doc, {}, false);
+        }
+        for (const doc of diff(data, bufferDocs)) {
+          await this.insertOne(doc, false);
         }
       } else {
         return this.replaceOne({_id: data._id}, data, {upsert: true}, false);
@@ -136,6 +162,10 @@ export class Buffer extends EventEmitter implements Collection {
       );
     }
     return this;
+  }
+
+  private ids(docs: any[]) {
+    return docs.map(doc => doc._id);
   }
 
   private async write(affectedDocs: any[], deletion?: boolean): Promise<void> {

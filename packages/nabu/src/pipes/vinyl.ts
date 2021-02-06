@@ -51,7 +51,7 @@ export interface VinylReaderConfig {
   transforms: DuplexTransformFactory[];
 
   /** A function to determine the ID of a document read */
-  id: (file: Vinyl) => string; 
+  id?: (file: Vinyl) => string; 
 }
 
 export const vinylReader = ({source, transforms, id}: VinylReaderConfig) =>
@@ -59,7 +59,7 @@ export const vinylReader = ({source, transforms, id}: VinylReaderConfig) =>
     source,
     pipe((file: Vinyl) => ({file, contents: file.contents})),
     chainInput(transforms, 'contents'),
-    pipe(async ({file, contents}) => Object.assign(contents, {_id: id(file)}))
+    pipe(async ({file, contents}) => id ? Object.assign(contents, {_id: id(file)}) : contents)
   );
 
 

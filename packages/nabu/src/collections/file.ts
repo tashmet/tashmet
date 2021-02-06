@@ -1,6 +1,6 @@
 import {DuplexTransformFactory, FileSystemConfig} from '../interfaces';
-import {buffer} from './buffer';
-import {chainInput, chainOutput, dict} from '../pipes';
+import {buffer, BufferStreamMode} from './buffer';
+import {chainInput, chainOutput, dict, vinylFSWatcher, vinylReader} from '../pipes';
 import * as fs from 'fs';
 import * as stream from 'stream';
 import * as chokidar from 'chokidar';
@@ -49,14 +49,22 @@ export class FileFactory extends CollectionFactory {
       return buffer({
         bundle: true,
         io: {
-          createReadable: () => {
-            if (fs.existsSync(path)) {
-              return pumpify.obj(
-                fs.createReadStream(path, 'utf-8'),
-                chainInput(transforms)
-              );
+          createReadable: (mode: BufferStreamMode) => {
+            switch (mode) {
+              case BufferStreamMode.Seed:
+                if (fs.existsSync(path)) {
+                  return pumpify.obj(
+                    fs.createReadStream(path, 'utf-8'),
+                    chainInput(transforms)
+                  );
+                }
+                return stream.Readable.from([]);
+              case BufferStreamMode.Update:
+                return vinylReader({
+                  source: vinylFSWatcher({glob: path, watcher, events: ['add', 'change', 'unlink']}),
+                  transforms,
+                });
             }
-            return stream.Readable.from([]);
           },
           createWritable: () => {
             return pumpify.obj(
