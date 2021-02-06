@@ -49,7 +49,9 @@ export class DirectoryFactory extends CollectionFactory {
     }
 
     return this.resolve((fsConfig: FileSystemConfig, watcher: chokidar.FSWatcher) => {
-      watcher.add(path);
+      if (fsConfig.watch) {
+        watcher.add(path);
+      }
 
       const input = (source: stream.Readable) => vinylReader({
         source, transforms, id: file => nodePath.basename(file.path).split('.')[0],
