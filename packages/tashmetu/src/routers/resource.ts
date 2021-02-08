@@ -6,11 +6,35 @@ import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
 import {router, ControllerFactory} from '../controller';
 
+export type RequestToQuery = (req: express.Request) => any;
+
 export interface ResourceConfig {
+  /** The name of the collection */
   collection: string;
 
+  /** 
+   * If set, the resource will be in read-only mode meaning that only GET
+   * requests will be allowed.
+   * 
+   * @default false
+   */
   readOnly?: boolean;
+
+  /**
+   * Optional custom function that creates a collection find selector from the
+   * request.
+   */
+  selector?: RequestToQuery;
+
+  /**
+   * Optional custom function that creates a collection find options object
+   * from the request.
+   */
+  options?: RequestToQuery;
 }
+
+export const defaultSelector = (req: express.Request) => req.query.selector;
+export const defaultOptions = (req: express.Request) => req.query.options;
 
 export class Resource {
   private connections: Record<string, SocketIO.Socket> = {};
@@ -18,7 +42,9 @@ export class Resource {
   public constructor(
     protected collection: Collection,
     protected logger: Logger,
-    protected readOnly = false
+    protected readOnly = false,
+    protected selector: RequestToQuery = defaultSelector,
+    protected options: RequestToQuery = defaultOptions,
   ) {
     this.collection.on('document-upserted', doc => this.onDocumentUpserted(doc));
     this.collection.on('document-removed', doc => this.onDocumentRemoved(doc));
@@ -158,7 +184,9 @@ export class ResourceFactory extends ControllerFactory {
       return new Resource(
         await db.collection(this.config.collection),
         logger.inScope('Resource'),
-        this.config.readOnly
+        this.config.readOnly,
+        this.config.selector,
+        this.config.options,
       );
     });
   }
