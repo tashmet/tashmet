@@ -6,7 +6,8 @@ import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
 import {router, ControllerFactory} from '../controller';
 
-export type RequestToQuery = (req: express.Request) => any;
+export type RequestToSelector = (req: express.Request) => any;
+export type RequestToOptions = (req: express.Request) => QueryOptions;
 
 export interface ResourceConfig {
   /** The name of the collection */
@@ -24,17 +25,19 @@ export interface ResourceConfig {
    * Optional custom function that creates a collection find selector from the
    * request.
    */
-  selector?: RequestToQuery;
+  selector?: RequestToSelector;
 
   /**
    * Optional custom function that creates a collection find options object
    * from the request.
    */
-  options?: RequestToQuery;
+  options?: RequestToOptions;
 }
 
 export const defaultSelector = (req: express.Request) => req.query.selector;
-export const defaultOptions = (req: express.Request) => req.query.options;
+export const defaultOptions = (req: express.Request) => {
+  return req.query.options as QueryOptions;
+}
 
 export class Resource {
   private connections: Record<string, SocketIO.Socket> = {};
@@ -43,8 +46,8 @@ export class Resource {
     protected collection: Collection,
     protected logger: Logger,
     protected readOnly = false,
-    protected selector: RequestToQuery = defaultSelector,
-    protected options: RequestToQuery = defaultOptions,
+    protected selector: RequestToSelector = defaultSelector,
+    protected options: RequestToOptions = defaultOptions,
   ) {
     this.collection.on('document-upserted', doc => this.onDocumentUpserted(doc));
     this.collection.on('document-removed', doc => this.onDocumentRemoved(doc));
