@@ -164,10 +164,6 @@ export class Buffer extends EventEmitter implements Collection {
     return this;
   }
 
-  private ids(docs: any[]) {
-    return docs.map(doc => doc._id);
-  }
-
   private async write(affectedDocs: any[], deletion?: boolean): Promise<void> {
     if (this.bundle) {
       return this.writeAsync(await this.cache.find().toArray(), BufferStreamMode.Update);
