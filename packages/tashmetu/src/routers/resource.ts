@@ -34,9 +34,20 @@ export interface ResourceConfig {
   options?: RequestToOptions;
 }
 
-export const defaultSelector = (req: express.Request) => req.query.selector;
+
+function parseJson(input: any): Record<string, any> {
+  try {
+    return JSON.parse(input);
+  } catch (e) {
+    return {};
+  }
+}
+
+export const defaultSelector = (req: express.Request) => parseJson(req.query.selector);
+
 export const defaultOptions = (req: express.Request) => {
-  return req.query.options as QueryOptions;
+  const { sort, skip, limit } = req.query;
+  return { sort: parseJson(sort), skip, limit } as QueryOptions;
 }
 
 export class Resource {
@@ -102,13 +113,12 @@ export class Resource {
   @get('/')
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
-      const selector = this.parseJson(req.query.selector);
-      const options: QueryOptions = this.parseJson(req.query.options);
+      const selector = this.selector(req);
       const count = await this.collection.find(selector).count(false);
 
       res.setHeader('X-total-count', count.toString());
 
-      return this.collection.find(selector, options).toArray();
+      return this.collection.find(selector, this.options(req)).toArray();
     });
   }
 
@@ -165,14 +175,6 @@ export class Resource {
     } catch (err) {
       res.statusCode = 500;
       return serializeError(err);
-    }
-  }
-
-  private parseJson(input: any): Record<string, any> {
-    try {
-      return JSON.parse(input);
-    } catch (e) {
-      return {};
     }
   }
 }

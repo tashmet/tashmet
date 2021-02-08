@@ -11,9 +11,20 @@ chai.use(chaiAsPromised);
 
 function uri(path: string, selector: object, options?: QueryOptions) {
   const s = encodeURIComponent(JSON.stringify(selector));
-  const o = encodeURIComponent(JSON.stringify(options));
 
-  return options ? `${path}?selector=${s}&options=${o}` : `${path}?selector=${s}`
+  let out = `${path}?selector=${s}`;
+  if (options) {
+    if (options.sort) {
+      out = out + '&sort=' + encodeURIComponent(JSON.stringify(options));
+    }
+    if (options.skip) {
+      out = out + '&skip=' + options.skip.toString();
+    }
+    if (options.limit) {
+      out = out + '&limit=' + options.limit.toString();
+    }
+  }
+  return out;
 }
 
 function matchBody(body: any) {
