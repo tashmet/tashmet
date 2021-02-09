@@ -6,8 +6,7 @@ import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
 import {router, ControllerFactory} from '../controller';
 
-export type RequestToSelector = (req: express.Request) => any;
-export type RequestToOptions = (req: express.Request) => QueryOptions;
+export type RequestToFind = (req: express.Request, fn: (selector: any, options: QueryOptions) => void) => void;
 
 export interface ResourceConfig {
   /** The name of the collection */
@@ -22,18 +21,10 @@ export interface ResourceConfig {
   readOnly?: boolean;
 
   /**
-   * Optional custom function that creates a collection find selector from the
-   * request.
+   * Optional custom function that forms a find query from the request.
    */
-  selector?: RequestToSelector;
-
-  /**
-   * Optional custom function that creates a collection find options object
-   * from the request.
-   */
-  options?: RequestToOptions;
+  find?: RequestToFind;
 }
-
 
 function parseJson(input: any): Record<string, any> {
   try {
@@ -43,11 +34,21 @@ function parseJson(input: any): Record<string, any> {
   }
 }
 
-export const defaultSelector = (req: express.Request) => parseJson(req.query.selector);
+export const defaultFind: RequestToFind = (req, fn) => {
+  const { selector, sort, skip, limit } = req.query;
+  const options: QueryOptions = {};
 
-export const defaultOptions = (req: express.Request) => {
-  const { sort, skip, limit } = req.query;
-  return { sort: parseJson(sort), skip, limit } as QueryOptions;
+  if (sort) {
+    options.sort = parseJson(sort);
+  }
+  if (skip) {
+    options.skip = parseInt(skip as string);
+  }
+  if (limit) {
+    options.limit = parseInt(limit as string);
+  }
+
+  fn(parseJson(selector), options);
 }
 
 export class Resource {
@@ -57,8 +58,7 @@ export class Resource {
     protected collection: Collection,
     protected logger: Logger,
     protected readOnly = false,
-    protected selector: RequestToSelector = defaultSelector,
-    protected options: RequestToOptions = defaultOptions,
+    protected find: RequestToFind = defaultFind,
   ) {
     this.collection.on('document-upserted', doc => this.onDocumentUpserted(doc));
     this.collection.on('document-removed', doc => this.onDocumentRemoved(doc));
@@ -113,12 +113,18 @@ export class Resource {
   @get('/')
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
-      const selector = this.selector(req);
-      const count = await this.collection.find(selector).count(false);
+      return new Promise((resolve, reject) => {
+        this.find(req, async (selector, options) => {
+          try {
+            const count = await this.collection.find(selector).count(false);
 
-      res.setHeader('X-total-count', count.toString());
-
-      return this.collection.find(selector, this.options(req)).toArray();
+            res.setHeader('X-total-count', count.toString());
+            resolve(this.collection.find(selector, options).toArray());
+          } catch (err) {
+            reject(err);
+          }
+        })
+      });
     });
   }
 
@@ -190,8 +196,7 @@ export class ResourceFactory extends ControllerFactory {
         await db.collection(this.config.collection),
         logger.inScope('Resource'),
         this.config.readOnly,
-        this.config.selector,
-        this.config.options,
+        this.config.find,
       );
     });
   }
