@@ -7,6 +7,7 @@ import * as stream from 'stream';
 import * as chokidar from 'chokidar';
 import Vinyl from 'vinyl';
 import pipe from 'pipeline-pipe';
+import {pick} from 'lodash';
 import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
 
 const pumpify = require('pumpify');
@@ -20,6 +21,22 @@ export interface VinylFSConfig {
   destination?: string;
 
   transformer?: VinylTransformer;
+
+  /**
+   * Whether or not you want to buffer the file contents into memory.
+   * Setting to false will make file.contents a paused Stream.
+   * 
+   * @default true
+   */
+  buffer?: boolean;
+
+  /**
+   * Whether or not you want the file to be read at all.
+   * Useful for stuff like removing files. Setting to false will make file.contents = null
+   * 
+   * @default true
+   */
+  read?: boolean;
 }
 
 export class VinylFSFactory extends CollectionFactory {
@@ -35,11 +52,15 @@ export class VinylFSFactory extends CollectionFactory {
         watcher.add(source);
       }
 
+      const vinylSrcOpts: vfs.SrcOptions = pick(this.config, 'buffer', 'read');
+
       const input = (readable: stream.Readable) => transformer
         ? pumpify.obj(readable, vinylReader(transformer))
         : readable;
       const output = (writable: stream.Readable) => transformer
         ? pumpify.obj(vinylWriter(transformer), writable) : writable;
+
+      const watch = (...events: string[]) => vinylFSWatcher(Object.assign({glob: source, watcher, events}, vinylSrcOpts));
 
       return buffer({
         bundle: false,
@@ -47,11 +68,11 @@ export class VinylFSFactory extends CollectionFactory {
           createReadable(mode: BufferStreamMode) {
             switch (mode) {
               case BufferStreamMode.Update:
-                return input(vinylFSWatcher({glob: source, watcher, events: ['add', 'change']}));
+                return input(watch('add', 'change'));
               case BufferStreamMode.Seed:
-                return input(vfs.src(source) as stream.Transform);
+                return input(vfs.src(source, vinylSrcOpts) as stream.Transform);
               case BufferStreamMode.Delete:
-                return input(vinylFSWatcher({glob: source, watcher, events: ['unlink']}));
+                return input(watch('unlink'));
             }
           },
           createWritable(mode: BufferStreamMode) {

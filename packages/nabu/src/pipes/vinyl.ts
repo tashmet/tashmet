@@ -16,22 +16,35 @@ export interface VinylFSWatcherConfig {
   watcher: chokidar.FSWatcher;
 
   events: string[];
+
+  buffer?: boolean;
+
+  read?: boolean;
 }
 
-export const vinylFSWatcher = ({glob, watcher, events}: VinylFSWatcherConfig) => {
+export const vinylFSWatcher = ({glob, watcher, events, buffer, read}: VinylFSWatcherConfig) => {
   const readable = new stream.Readable({
     objectMode: true,
     read() { return; }
   });
 
   const onChange = (path: string, event: string) => {
+    const contents = () => {
+      if (event === 'unlink') {
+        return Buffer.from('{}');
+      }
+      if (read === false) {
+        return null;
+      }
+      if (buffer === false) {
+        return fs.createReadStream(path);
+      }
+      return fs.readFileSync(path);
+    }
+
     for (const pattern of Array.isArray(glob) ? glob : [glob]) {
       if (minimatch(path, pattern)) {
-        const contents = event === 'unlink'
-          ? stream.Readable.from([Buffer.from('{}')])
-          : fs.readFileSync(path);
-
-        readable.push(new Vinyl({path: path, contents}))
+        readable.push(new Vinyl({path: path, contents: contents()}))
       }
     }
   }
