@@ -45,8 +45,6 @@ export const vinylFSWatcher = ({glob, watcher, events}: VinylFSWatcherConfig) =>
 
 
 export interface VinylReaderConfig {
-  source: stream.Readable;
-
   /** Transforms for modifying file contents */
   transforms: DuplexTransformFactory[];
 
@@ -54,9 +52,8 @@ export interface VinylReaderConfig {
   id?: (file: Vinyl) => string; 
 }
 
-export const vinylReader = ({source, transforms, id}: VinylReaderConfig) =>
+export const vinylReader = ({transforms, id}: VinylReaderConfig) =>
   pumpify.obj(
-    source,
     pipe((file: Vinyl) => ({file, contents: file.contents})),
     chainInput(transforms, 'contents'),
     pipe(async ({file, contents}) => id ? Object.assign(contents, {_id: id(file)}) : contents)
@@ -64,8 +61,6 @@ export const vinylReader = ({source, transforms, id}: VinylReaderConfig) =>
 
 
 export interface VinylWriterConfig {
-  destination: stream.Writable;
-
   /** Transforms for modifying file contents */
   transforms: DuplexTransformFactory[];
 
@@ -73,10 +68,11 @@ export interface VinylWriterConfig {
   path: (doc: any) => string;
 }
 
-export const vinylWriter = ({destination, transforms, path}: VinylWriterConfig) =>
+export const vinylWriter = ({transforms, path}: VinylWriterConfig) =>
   pumpify.obj(
     pipe(doc => ({doc, contents: omit(doc, ['_id'])})),
     chainOutput(transforms, 'contents'),
     pipe(async ({doc, contents}) => new Vinyl({path: path(doc), contents})),
-    destination
   );
+
+export interface VinylTransformer extends VinylReaderConfig, VinylWriterConfig {}

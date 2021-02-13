@@ -54,17 +54,14 @@ export class FileFactory extends CollectionFactory {
             switch (mode) {
               case BufferStreamMode.Seed:
                 if (fs.existsSync(path)) {
-                  return vinylReader({
-                    source: vfs.src(path) as stream.Transform,
-                    transforms,
-                  });
+                  return pumpify.obj(vfs.src(path), vinylReader({transforms}));
                 }
                 return stream.Readable.from([]);
               case BufferStreamMode.Update:
-                return vinylReader({
-                  source: vinylFSWatcher({glob: path, watcher, events: ['add', 'change', 'unlink']}),
-                  transforms,
-                });
+                return pumpify.obj(
+                  vinylFSWatcher({glob: path, watcher, events: ['add', 'change', 'unlink']}),
+                  vinylReader({transforms})
+                );
             }
           },
           createWritable: () => {
