@@ -9,7 +9,6 @@ export * from './interfaces';
 import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
 import {FileSystemConfig} from './interfaces';
 import {BufferCollectionFactory} from './collections/buffer';
-import {DirectoryFactory} from './collections/directory';
 import {FileFactory} from './collections/file';
 import {GlobFactory} from './collections/glob';
 import * as chokidar from 'chokidar';
@@ -31,7 +30,6 @@ import * as chokidar from 'chokidar';
   ],
   factories: [
     BufferCollectionFactory,
-    DirectoryFactory,
     FileFactory,
     GlobFactory,
   ]
