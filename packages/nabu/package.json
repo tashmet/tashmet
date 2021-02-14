@@ -26,11 +26,13 @@
     "duplexer2": "^0.1.4",
     "eventemitter3": "^3.0.0",
     "fs-extra": "^8.1.0",
+    "ipfs-http-client": "^49.0.2",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
     "minimatch": "^3.0.4",
     "pipeline-pipe": "^0.1.5",
     "pumpify": "^2.0.1",
+    "stream-filter": "^2.1.0",
     "ternary-stream": "^3.0.0",
     "vinyl-fs": "^3.0.3",
     "yaml-front-matter": "^4.1.0"
