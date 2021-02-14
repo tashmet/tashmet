@@ -2,9 +2,9 @@ export {json} from './pipes/json';
 export {yaml, YamlConfig} from './pipes/yaml';
 export {buffer} from './collections/buffer';
 export {file, FileConfig} from './collections/file';
-export {directory, DirectoryConfig} from './collections/directory';
+export {directory} from './collections/directory';
 export {glob, GlobConfig} from './collections/glob';
-export {ipfs, IPFSConfig} from './collections/ipfs';
+export {ipfs, ipfsDirectory, IPFSConfig} from './collections/ipfs';
 export {vinylFS, VinylFSConfig} from './collections/vinyl';
 export * from './interfaces';
 

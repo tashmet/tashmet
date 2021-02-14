@@ -1,15 +1,17 @@
+import {DirectoryConfig} from '../interfaces';
 import {buffer, BufferStreamMode} from './buffer';
-import {ipfsReader, IPFSReaderConfig} from '../pipes';
+import {ipfsReader, ipfsWriter, IPFSTransformer} from '../pipes';
 import * as stream from 'stream';
 import pipe from 'pipeline-pipe';
 import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
+import * as nodePath from 'path';
 
 const pumpify = require('pumpify');
 
 export interface IPFSConfig {
-  cid: string | string[];
+  path: string;
 
-  transformer?: IPFSReaderConfig,
+  transformer?: IPFSTransformer,
 }
 
 export class IPFSFactory extends CollectionFactory {
@@ -18,44 +20,39 @@ export class IPFSFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database) {
-    const {cid, transformer} = this.config;
+    const {path, transformer} = this.config;
 
-    return this.resolve((ipfs: any) => {
+    return this.resolve(async (ipfs: any) => {
       const input = (readable: stream.Readable) => transformer
         ? pumpify.obj(readable, ipfsReader(transformer))
         : readable;
-      /*
-      const vinylSrcOpts: vfs.SrcOptions = pick(this.config, 'buffer', 'read');
+      const output = (writable: stream.Writable) => transformer
+        ? pumpify.obj(ipfsWriter(transformer), writable) : writable;
 
-      const output = (writable: stream.Readable) => transformer
-        ? pumpify.obj(vinylWriter(transformer), writable) : writable;
+      try {
+        await ipfs.files.mkdir(path);
+      } catch (err) {
+        // Directory already exists, do nothing.
+      }
+      const stat = await ipfs.files.stat(path);
 
-      const watch = (...events: string[]) => vinylFSWatcher(Object.assign({glob: source, watcher, events}, vinylSrcOpts));
-*/
       return buffer({
         bundle: false,
         io: {
           createReadable(mode: BufferStreamMode) {
             switch (mode) {
               case BufferStreamMode.Seed:
-                return input(stream.Readable.from(ipfs.get(cid), {objectMode: true}));
+                return input(stream.Readable.from(ipfs.get(stat.cid), {objectMode: true}));
             }
-            return new stream.Readable({objectMode: true, read() {}});
+            return stream.Readable.from([]);
           },
           createWritable(mode: BufferStreamMode) {
-            /*
             switch (mode) {
               case BufferStreamMode.Update:
-                return output(vfs.dest(destination || '.') as stream.Transform);
+                return output(pipe(data => ipfs.files.write(data.path, data.content, {create: true})))
               case BufferStreamMode.Delete:
-                return output(pipe(async (file: Vinyl) => {
-                  if (fs.existsSync(file.path)) {
-                    fs.unlinkSync(file.path);
-                  }
-                }));
+                return output(pipe(file => ipfs.files.rm(file.path)));
             }
-            */
-            return new stream.Writable({objectMode: true, write: (data) => console.log(data)});
           }
         },
       }).create(name, database);
@@ -67,3 +64,17 @@ export class IPFSFactory extends CollectionFactory {
  * A collection based on files on the filesystem based on glob pattern
  */
 export const ipfs = (config: IPFSConfig) => new IPFSFactory(config);
+
+
+/**
+ * A collection based on files in a directory on the filesystem
+ */
+export const ipfsDirectory = ({path, extension, serializer, create}: DirectoryConfig) => 
+  new IPFSFactory({
+    path,
+    transformer: {
+      transforms: [serializer],
+      id: file => nodePath.basename(file.path).split('.')[0],
+      path: doc => `/yamlposts/${doc._id}.${extension}`,
+    }
+  });

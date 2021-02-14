@@ -2,6 +2,7 @@ import {pipe} from 'pipeline-pipe';
 import {DuplexTransformFactory} from '../interfaces';
 import {chainInput, chainOutput} from './util';
 import minimatch from 'minimatch';
+import {omit} from 'lodash';
 
 const pumpify = require('pumpify');
 const filter = require('stream-filter');
@@ -27,3 +28,21 @@ export const ipfsReader = ({transforms, id}: IPFSReaderConfig) =>
     chainInput(transforms, 'content'),
     pipe(async ({file, content}) => id ? Object.assign(content, {_id: id(file)}) : content)
   );
+
+
+export interface IPFSWriterConfig {
+  /** Transforms for modifying file contents */
+  transforms: DuplexTransformFactory[];
+
+  /** A function returning the file path given a document on write */
+  path: (doc: any) => string;
+}
+
+export const ipfsWriter = ({transforms, path}: IPFSWriterConfig) =>
+  pumpify.obj(
+    pipe(doc => ({doc, content: omit(doc, ['_id'])})),
+    chainOutput(transforms, 'content'),
+    pipe(async ({doc, content}) => ({path: path(doc), content: content.toString()})),
+  );
+
+export interface IPFSTransformer extends IPFSReaderConfig, IPFSWriterConfig {}
