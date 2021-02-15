@@ -18,6 +18,7 @@ export interface BufferStreamFactory extends StreamFactory {
 export class Buffer extends EventEmitter implements Collection {
   public constructor(
     protected cache: Collection,
+    protected seed: AsyncGenerator,
     protected io: BufferStreamFactory,
     private bundle: boolean,
   ) {
@@ -212,6 +213,8 @@ export interface BufferConfig {
    */
   io: BufferStreamFactory;
 
+  seed: AsyncGenerator;
+
   bundle: boolean;
 }
 
@@ -222,10 +225,10 @@ export class BufferCollectionFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database): Promise<Collection> {
-    const { io, bundle } = this.config;
+    const { io, seed, bundle } = this.config;
 
    return new Buffer(
-     new MemoryCollection(name, database, {disableEvents: true}), io, bundle
+     new MemoryCollection(name, database, {disableEvents: true}), seed, io, bundle
    ).populate();
   }
 }

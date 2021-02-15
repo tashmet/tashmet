@@ -17,6 +17,29 @@ export const duplexPipeTransform = (input: Pipe, output: Pipe) => ({
   ),
 }) as DuplexTransformFactory;
 
+export const processKey = (pipe: Pipe, key: string) => {
+  return (async (data: any) => Object.assign(data, {[key]: await pipe(data[key])})) as Pipe
+}
+
+export const chain = (pipes: Pipe[]): Pipe => async (data: any) => {
+  let res = data;
+  for (const pipe of pipes) {
+    res = await pipe(res);
+  }
+  return res;
+}
+
+export const pipeline = (generator: AsyncGenerator, pipe: Pipe | Pipe[]) => {
+  const p = Array.isArray(pipe) ? chain(pipe) : pipe;
+
+  async function* pipelineGenerator() {
+    for await (const chunk of generator) {
+      yield await p(chunk);
+    }
+  }
+  return pipelineGenerator();
+}
+
 /** Create an input transform stream from a list of duplex transforms */
 export const chainInput = (transforms: DuplexTransformFactory[], key?: string) => transforms.length > 1
   ? pumpify.obj(...transforms.map(t => t.createInput(key))) as stream.Transform

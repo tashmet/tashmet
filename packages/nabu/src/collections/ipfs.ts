@@ -38,6 +38,7 @@ export class IPFSFactory extends CollectionFactory {
 
       return buffer({
         bundle: false,
+        seed: ipfs.get(stat.cid),
         io: {
           createReadable(mode: BufferStreamMode) {
             switch (mode) {
