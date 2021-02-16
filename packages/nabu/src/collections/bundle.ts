@@ -9,18 +9,19 @@ export abstract class BundleStreamFactory extends AsyncFactory<BundledBufferConf
 
 export interface BundleConfig {
   /**
-   * A serializer factory creating a serializer that will parse and serialize
-   * documents when reading from and writing to the file system.
+   * A serializer that will parse and serialize incoming and outgoing data.
    */
-  serializer: IOGate<Pipe>;
+  serializer?: IOGate<Pipe>;
 
   /**
-   * Store the collection as a dictionary instead of a list
+   * Stream the collection as a dictionary instead of a list
    * 
-   * If set the collection will be stored as a dictionary on disk with keys
+   * If set the collection will be streamed as a dictionary with keys
    * being the IDs of each document.
+   * 
+   * @default false
    */
-  dictionary: boolean;
+  dictionary?: boolean;
 
   stream: BundleStreamFactory;
 }
@@ -30,7 +31,11 @@ export class BundleFactory extends CollectionFactory {
 
   public async create(name: string, database: Database) {
     const {serializer, dictionary, stream} = this.config;
-    const transforms: IOGate<Pipe>[] = [serializer];
+    const transforms: IOGate<Pipe>[] = [];
+
+    if (serializer) {
+      transforms.push(serializer);
+    }
 
     if (dictionary) {
       transforms.push(dict());
