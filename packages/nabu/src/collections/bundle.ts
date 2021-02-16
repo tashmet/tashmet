@@ -1,10 +1,9 @@
-import {Buffer} from './buffer';
-import {transformOutput, dict, transformInput, Transform} from '../pipes';
 import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {difference, intersection, isEqual} from 'lodash';
-import {generateOne} from '../pipes';
+import {Buffer} from './buffer';
+import {dict, generateOne, transformOutput, transformInput, Transform} from '../pipes';
 
 export interface BundleStreamConfig {
   /**
