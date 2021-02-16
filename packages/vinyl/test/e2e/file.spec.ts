@@ -1,37 +1,35 @@
 import {bootstrap, component, Provider, Collection, DatabaseConfig, Database} from '@ziqquratu/ziqquratu';
-import {fsDirectory, shards, json} from '../../dist';
+import {bundle, json} from '@ziqquratu/nabu';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
+import {fsFile} from '../../dist';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 function storedDoc(id: string | number): any {
-  return fs.readJsonSync(`test/e2e/testCollection/${id}.json`);
+  return fs.readJsonSync(`test/e2e/testCollection.json`)[id];
 }
 
-function storedFiles(): string[] {
-  return fs.readdirSync('test/e2e/testCollection');
+function storedKeys() {
+  return Object.keys(fs.readJsonSync(`test/e2e/testCollection.json`));
 }
 
-describe('directory', () => {
+describe('file', () => {
   @component({
-    dependencies: [import('../../dist')],
+    dependencies: [import('../../src')],
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
           'test': {
-            source: shards({
+            source: bundle({
               serializer: json(),
-              stream: fsDirectory({
-                path: 'test/e2e/testCollection',
-                extension: 'json',
-                create: true,
-              })
+              dictionary: true,
+              stream: fsFile({path: 'test/e2e/testCollection.json'}),
             })
           }
         },
@@ -65,10 +63,6 @@ describe('directory', () => {
     (col as any).removeAllListeners();
   });
 
-  after(() => {
-    fs.rmdirSync('test/e2e/testCollection');
-  });
-
   describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
       const doc = await col.insertOne(
@@ -76,7 +70,7 @@ describe('directory', () => {
       );
       expect(doc.amount).to.eql(10);
       expect(doc).to.haveOwnProperty('_id');
-      expect(await storedDoc(doc._id))
+      expect(storedDoc(doc._id))
         .to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 10 });
     });
     it('should throw when trying to insert a document with already existing ID', () => {
@@ -244,11 +238,11 @@ describe('directory', () => {
       expect(doc).to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
     });
     it('should have removed selected document', async () => {
-      const storedCount = storedFiles().length;
+      const storedCount = storedKeys().length;
       await col.deleteOne({_id: 1});
       expect(col.findOne({_id: 1})).to.eventually.be.null;
-      expect(storedFiles().length).to.eql(storedCount - 1);
-      expect(storedFiles()).to.not.contain('1.json');
+      expect(storedKeys().length).to.eql(storedCount - 1);
+      expect(storedKeys()).to.not.contain('1');
     });
     it('should emit a document-removed event if a document was removed', (done) => {
       col.on('document-removed', (doc) => {
@@ -264,10 +258,10 @@ describe('directory', () => {
       return expect(col.deleteMany({_id: 7})).to.eventually.be.empty;
     });
     it('should return a list of deleted documents', async () => {
-      const storedCount = storedFiles().length;
+      const storedCount = storedKeys().length;
       const docs = await col.deleteMany({'item.category': 'cookies'});
       expect(docs).to.have.length(2);
-      expect(storedFiles().length).to.eql(storedCount - 2);
+      expect(storedKeys().length).to.eql(storedCount - 2);
     });
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});

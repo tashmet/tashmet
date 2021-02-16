@@ -1,7 +1,8 @@
+import {AsyncFactory} from '@ziqquratu/core';
+import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
+import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {Buffer} from './buffer';
 import {generateMany} from '../pipes';
-import {AsyncFactory, Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
-import {IOGate, Pipe} from '@ziqquratu/pipe';
 
 export interface ShardStreamConfig {
   /**

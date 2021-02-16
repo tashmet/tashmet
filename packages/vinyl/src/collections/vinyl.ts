@@ -1,10 +1,10 @@
 import Vinyl from 'vinyl';
 import {FileSystemConfig} from '../interfaces';
-import {ShardStreamConfig, ShardStreamFactory} from './shard';
-import {pump, vinylReader, vinylWriter} from '../pipes';
+import {vinylReader, vinylWriter} from '../util';
 import {pick} from 'lodash';
-import {VinylFS} from '../vinyl/fs';
+import {VinylFS} from '../fs';
 import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {pump, ShardStreamConfig, ShardStreamFactory} from '@ziqquratu/nabu';
 
 export interface VinylFSConfig {
   /**
@@ -39,7 +39,7 @@ export interface VinylFSConfig {
 
 export class VinylFSStreamFactory extends ShardStreamFactory {
   public constructor(private config: VinylFSConfig) {
-    super('nabu.FileSystemConfig', VinylFS)
+    super('vinyl.FileSystemConfig', VinylFS)
   }
 
   public async create(transforms: IOGate<Pipe>[]): Promise<ShardStreamConfig> {

@@ -1,9 +1,9 @@
-import {FileSystemConfig} from '../interfaces';
+import {BundleStreamFactory, pump, Transform} from '@ziqquratu/nabu';
 import Vinyl from 'vinyl';
-import {BundleStreamFactory} from './bundle';
-import {pump, vinylContents, writeToStream, Transform} from '../pipes';
 import * as fs from 'fs';
-import {VinylFS} from '../vinyl/fs';
+import {FileSystemConfig} from '../interfaces';
+import {VinylFS} from '../fs';
+import {writeToStream, vinylContents} from '../util';
 
 export interface FileStreamConfig {
   /**
@@ -14,7 +14,7 @@ export interface FileStreamConfig {
 
 export class LocalFileConfigFactory extends BundleStreamFactory {
   public constructor(private config: FileStreamConfig) {
-    super('nabu.FileSystemConfig', VinylFS)
+    super('vinyl.FileSystemConfig', VinylFS)
   }
 
   public async create(tIn: Transform, tOut: Transform) {
