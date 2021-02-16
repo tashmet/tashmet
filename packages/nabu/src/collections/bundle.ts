@@ -119,6 +119,6 @@ export class BundleBufferFactory extends CollectionFactory {
 }
 
 /**
- * A collection based on a single stream
+ * A buffered collection stored in a single location
  */
 export const bundle = (config: BundleConfig) => new BundleBufferFactory(config);

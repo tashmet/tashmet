@@ -92,6 +92,6 @@ export class ShardBufferFactory extends CollectionFactory {
 }
 
 /**
- * A collection based on a multiple streams
+ * A buffered collection based on documents in multiple locations
  */
 export const shards = (config: ShardBufferConfig) => new ShardBufferFactory(config);
