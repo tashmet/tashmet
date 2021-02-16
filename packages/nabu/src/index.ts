@@ -1,6 +1,6 @@
 export {json} from './pipes/json';
 export {yaml, YamlConfig} from './pipes/yaml';
-export {bundledBuffer, shardedBuffer} from './collections/buffer';
+export {shardedBuffer} from './collections/buffer';
 export {fsFile, FileStreamConfig} from './collections/file';
 export {bundle, BundleConfig} from './collections/bundle';
 export {directory} from './collections/directory';
@@ -11,9 +11,9 @@ export * from './interfaces';
 
 import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
 import {FileSystemConfig} from './interfaces';
-import {BundledBufferCollectionFactory, ShardedBufferCollectionFactory} from './collections/buffer';
+import {ShardedBufferCollectionFactory} from './collections/buffer';
 import {LocalFileConfigFactory} from './collections/file';
-import {BundleFactory} from './collections/bundle';
+import {BundleBufferFactory} from './collections/bundle';
 // import {IPFSFactory} from './collections/ipfs';
 import {VinylFSFactory} from './collections/vinyl';
 import {VinylFS} from './vinyl/fs';
@@ -43,9 +43,8 @@ import * as chokidar from 'chokidar';
     */
   ],
   factories: [
-    BundledBufferCollectionFactory,
+    BundleBufferFactory,
     ShardedBufferCollectionFactory,
-    BundleFactory,
     LocalFileConfigFactory,
     VinylFSFactory,
     // IPFSFactory,
