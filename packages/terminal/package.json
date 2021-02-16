@@ -29,6 +29,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@types/reflect-metadata": "^0.1.0",
     "@ziqquratu/core": "^1.0.1",
     "chalk": "^3.0.0"
   },

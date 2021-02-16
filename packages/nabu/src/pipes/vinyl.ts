@@ -1,91 +1,41 @@
 import * as fs from 'fs';
 import * as stream from 'stream';
 import Vinyl from 'vinyl';
-import {pipe} from 'pipeline-pipe';
 import {omit} from 'lodash';
-import {DuplexTransformFactory} from '../interfaces';
-import {chainInput, chainOutput} from './util';
+import {transformInput, transformOutput, pipe, makeGenerator, Transform} from './util';
 import * as chokidar from 'chokidar';
+import * as vfs from 'vinyl-fs';
 import minimatch from 'minimatch';
-
-const pumpify = require('pumpify');
-
-export interface VinylFSWatcherConfig {
-  glob: string | string[];
-
-  watcher: chokidar.FSWatcher;
-
-  events: string[];
-
-  buffer?: boolean;
-
-  read?: boolean;
-}
-
-export const vinylFSWatcher = ({glob, watcher, events, buffer, read}: VinylFSWatcherConfig) => {
-  const readable = new stream.Readable({
-    objectMode: true,
-    read() { return; }
-  });
-
-  const onChange = (path: string, event: string) => {
-    const contents = () => {
-      if (event === 'unlink') {
-        return Buffer.from('{}');
-      }
-      if (read === false) {
-        return null;
-      }
-      if (buffer === false) {
-        return fs.createReadStream(path);
-      }
-      return fs.readFileSync(path);
-    }
-
-    for (const pattern of Array.isArray(glob) ? glob : [glob]) {
-      if (minimatch(path, pattern)) {
-        readable.push(new Vinyl({path: path, contents: contents()}))
-      }
-    }
-  }
-
-  for (const ev of events) {
-    watcher.on(ev, path => onChange(path, ev));
-  }
-
-  return readable;
-}
-
+import { IOGate, Pipe } from '@ziqquratu/pipe';
 
 export interface VinylReaderConfig {
   /** Transforms for modifying file contents */
-  transforms: DuplexTransformFactory[];
+  transforms: IOGate<Pipe>[];
 
   /** A function to determine the ID of a document read */
   id?: (file: Vinyl) => string; 
 }
 
-export const vinylReader = ({transforms, id}: VinylReaderConfig) =>
-  pumpify.obj(
-    pipe((file: Vinyl) => ({file, contents: file.contents})),
-    chainInput(transforms, 'contents'),
-    pipe(async ({file, contents}) => id ? Object.assign(contents, {_id: id(file)}) : contents)
-  );
+export const vinylReader = ({transforms, id}: VinylReaderConfig) => [
+  pipe(async (file: Vinyl) => ({file, contents: file.contents})),
+  transformInput(transforms, 'contents'),
+  pipe(async ({file, contents}) => id ? Object.assign(contents, {_id: id(file)}) : contents),
+];
 
+export const vinylContents: Transform = pipe<Vinyl>(async file => file.contents);
 
 export interface VinylWriterConfig {
   /** Transforms for modifying file contents */
-  transforms: DuplexTransformFactory[];
+  transforms: IOGate<Pipe>[];
 
   /** A function returning the file path given a document on write */
   path: (doc: any) => string;
 }
 
-export const vinylWriter = ({transforms, path}: VinylWriterConfig) =>
-  pumpify.obj(
-    pipe(doc => ({doc, contents: omit(doc, ['_id'])})),
-    chainOutput(transforms, 'contents'),
-    pipe(async ({doc, contents}) => new Vinyl({path: path(doc), contents})),
-  );
+export const vinylWriter = ({transforms, path}: VinylWriterConfig) => [
+  pipe(async doc => ({doc, contents: omit(doc, ['_id'])})),
+  transformOutput(transforms, 'contents'),
+  pipe(async ({doc, contents}) => new Vinyl({path: path(doc), contents})),
+];
 
 export interface VinylTransformer extends VinylReaderConfig, VinylWriterConfig {}

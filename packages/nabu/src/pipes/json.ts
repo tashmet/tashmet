@@ -1,5 +1,4 @@
-import {Pipe} from '@ziqquratu/pipe';
-import {duplexPipeTransform} from './util';
+import {IOGate, Pipe} from '@ziqquratu/pipe';
 
 /**
  * JSON parsing pipe 
@@ -17,4 +16,4 @@ export const jsonParse: Pipe<Buffer, any> = async buffer =>
 export const jsonSerialize: Pipe<any, Buffer> = async obj =>
   Buffer.from(JSON.stringify(obj), 'utf-8');
 
-export const json = () => duplexPipeTransform(jsonParse, jsonSerialize);
+export const json = () => ({ input: jsonParse, output: jsonSerialize}) as IOGate<Pipe>;

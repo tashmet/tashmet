@@ -1,26 +1,11 @@
 import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
 import {EventEmitter} from 'eventemitter3';
 import {difference, intersection, isEqual} from 'lodash';
-import {StreamFactory} from '../interfaces';
-import * as stream from 'stream';
+import {generateMany, generateOne} from '../pipes';
 
-export enum BufferStreamMode {
-  Update,
-  Delete,
-  Seed,
-}
-
-export interface BufferStreamFactory extends StreamFactory {
-  createReadable(mode: BufferStreamMode): stream.Readable;
-  createWritable(mode: BufferStreamMode): stream.Writable;
-}
-
-export class Buffer extends EventEmitter implements Collection {
+export abstract class Buffer extends EventEmitter implements Collection {
   public constructor(
     protected cache: Collection,
-    protected seed: AsyncGenerator,
-    protected io: BufferStreamFactory,
-    private bundle: boolean,
   ) {
     super();
   }
@@ -106,131 +91,180 @@ export class Buffer extends EventEmitter implements Collection {
     return this.cache.name;
   }
 
-  public async populate(): Promise<Collection> {
-    const readable = this.createReader(BufferStreamMode.Seed, data => {
-      if (this.bundle) {
-        return this.cache.insertMany(data);
-      } else {
-        return this.cache.insertOne(data);
-      }
-    });
+  public abstract listen(): Promise<void>;
 
-    await new Promise<void>((resolve, reject) => {
-      if (readable === undefined) {
-        return resolve();
-      }
+  public abstract populate(): Promise<void>;
 
-      readable.on('end', resolve)
-      readable.on('error', err => reject(err));
-    });
+  protected abstract write(affectedDocs: any[], deletion?: boolean): Promise<void>;
+}
 
-    this.createReader(BufferStreamMode.Update, async data => {
-      if (this.bundle) {
-        const bufferDocs = await this.cache.find().toArray();
-        const getIds = (docs: any[]) => docs.map(doc => doc._id);
-
-        const diff = (a: any[], b: any[]) => {
-          const ids = difference(getIds(a), getIds(b));
-          return a.filter(doc => ids.includes(doc._id));
-        }
-
-        const changed = intersection(getIds(data), getIds(bufferDocs)).reduce((acc, id) => {
-          const doc = data.find((d: any) => d._id === id);
-
-          if (!isEqual(doc, bufferDocs.find(d => d._id === id))) {
-            acc.push(doc);
-          }
-          return acc;
-        }, []);
-
-        for (const doc of diff(bufferDocs, data)) {
-          await this.deleteOne(doc, false);
-        }
-        for (const doc of changed) {
-          await this.replaceOne({_id: doc._id}, doc, {}, false);
-        }
-        for (const doc of diff(data, bufferDocs)) {
-          await this.insertOne(doc, false);
-        }
-      } else {
-        return this.replaceOne({_id: data._id}, data, {upsert: true}, false);
-      }
-    });
-
-    if (!this.bundle) {
-      this.createReader(BufferStreamMode.Delete, doc =>
-        this.deleteOne({_id: doc._id}, false)
-      );
-    }
-    return this;
+export class BundledBuffer extends Buffer {
+  public constructor(
+    protected seed: AsyncGenerator<any>,
+    protected input: AsyncGenerator<any[]> | undefined,
+    protected output: (source: AsyncGenerator) => Promise<void>,
+    cache: Collection,
+  ) {
+    super(cache);
   }
 
-  private async write(affectedDocs: any[], deletion?: boolean): Promise<void> {
-    if (this.bundle) {
-      return this.writeAsync(await this.cache.find().toArray(), BufferStreamMode.Update);
-    } else {
-      for (const doc of affectedDocs) {
-        await this.writeAsync(doc, deletion ? BufferStreamMode.Delete : BufferStreamMode.Update);
+  public async populate() {
+    for await (const data of this.seed) {
+      await this.cache.insertMany(data as any[]);
+    }
+  }
+
+  public async listen() {
+    if (!this.input) {
+      return;
+    }
+
+    for await (const data of this.input) {
+      const bufferDocs = await this.cache.find().toArray();
+      const getIds = (docs: any[]) => docs.map(doc => doc._id);
+
+      const diff = (a: any[], b: any[]) => {
+        const ids = difference(getIds(a), getIds(b));
+        return a.filter(doc => ids.includes(doc._id));
+      }
+
+      const changed = intersection(getIds(data), getIds(bufferDocs)).reduce((acc, id) => {
+        const doc = data.find((d: any) => d._id === id);
+
+        if (!isEqual(doc, bufferDocs.find(d => d._id === id))) {
+          acc.push(doc);
+        }
+        return acc;
+      }, []);
+
+      for (const doc of diff(bufferDocs, data)) {
+        await this.deleteOne(doc, false);
+      }
+      for (const doc of changed) {
+        await this.replaceOne({_id: doc._id}, doc, {}, false);
+      }
+      for (const doc of diff(data, bufferDocs)) {
+        await this.insertOne(doc, false);
       }
     }
   }
 
-  private createReader(mode: BufferStreamMode, handler: (doc: any) => Promise<any>) {
-    const readable = this.io.createReadable(mode);
+  protected async write(): Promise<void> {
+    return this.output(generateOne(await this.cache.find().toArray()));
+  }
+}
 
-    if (readable) {
-      readable.on('readable', async () => { 
-        let doc; 
-        while (null !== (doc = readable.read())) { 
-          await handler(doc);
-        } 
-      }); 
-    }
-    return readable;
+class ShardedBuffer extends Buffer {
+  public constructor(
+    private seed: AsyncGenerator<any>,
+    private input: AsyncGenerator<any> | undefined,
+    private inputDelete: AsyncGenerator<any> | undefined,
+    private output: (source: AsyncGenerator<any>, deletion: boolean) => Promise<void>,
+    cache: Collection,
+  ) {
+    super(cache);
   }
 
-  private writeAsync(data: any, mode: BufferStreamMode): Promise<void> {
-    const writable = this.io.createWritable(mode);
+  public async populate() {
+    for await (const doc of this.seed) {
+      await this.cache.insertOne(doc);
+    }
+  }
 
-    return new Promise((resolve, reject) => {
-      writable.on('finish', () => resolve());
+  public async listen() {
+    if (!this.input) {
+      return;
+    }
 
-      writable.write(data, err => {
-        if (err) {
-          reject(err);
-        } else {
-          writable.end();
-        }
-      });
-    });
+    for await (const doc of this.input) {
+      await this.replaceOne({_id: doc._id}, doc, {upsert: true}, false);
+    }
+  }
+
+  public async listenDelete() {
+    if (!this.inputDelete) {
+      return;
+    }
+
+    for await (const doc of this.inputDelete) {
+      await this.deleteOne({_id: doc._id}, false);
+    }
+  }
+
+  protected write(affectedDocs: any[], deletion: boolean): Promise<void> {
+    return this.output(generateMany(affectedDocs), deletion);
   }
 }
 
 
-export interface BufferConfig {
+export interface BundledBufferConfig {
   /**
    * Input/Output stream
    */
-  io: BufferStreamFactory;
+  seed: AsyncGenerator<any>;
+  
+  input?: AsyncGenerator<any>;
 
-  seed: AsyncGenerator;
-
-  bundle: boolean;
+  output: (source: AsyncGenerator<any>) => Promise<void>;
 }
 
 
-export class BufferCollectionFactory extends CollectionFactory {
-  constructor(private config: BufferConfig) {
+export class BundledBufferCollectionFactory extends CollectionFactory {
+  constructor(private config: BundledBufferConfig) {
     super();
   }
 
   public async create(name: string, database: Database): Promise<Collection> {
-    const { io, seed, bundle } = this.config;
+    const { seed, input, output } = this.config;
 
-   return new Buffer(
-     new MemoryCollection(name, database, {disableEvents: true}), seed, io, bundle
-   ).populate();
+   const buffer = new BundledBuffer(
+     seed,
+     input,
+     output,
+     new MemoryCollection(name, database, {disableEvents: true}),
+   );
+   await buffer.populate();
+   buffer.listen();
+   return buffer;
   }
 }
 
-export const buffer = (config: BufferConfig) => new BufferCollectionFactory(config);
+export const bundledBuffer = (config: BundledBufferConfig) => new BundledBufferCollectionFactory(config);
+
+export interface ShardedBufferConfig {
+  /**
+   * Input/Output stream
+   */
+  seed: AsyncGenerator<any>;
+  
+  input?: AsyncGenerator<any>;
+
+  inputDelete?: AsyncGenerator<any>;
+
+  output: (source: AsyncGenerator<any>, deletion: boolean) => Promise<void>;
+}
+
+
+export class ShardedBufferCollectionFactory extends CollectionFactory {
+  constructor(private config: ShardedBufferConfig) {
+    super();
+  }
+
+  public async create(name: string, database: Database): Promise<Collection> {
+    const { seed, input, inputDelete, output } = this.config;
+
+   const buffer = new ShardedBuffer(
+     seed,
+     input,
+     inputDelete,
+     output,
+     new MemoryCollection(name, database, {disableEvents: true}),
+   );
+   await buffer.populate();
+   buffer.listen();
+   buffer.listenDelete();
+   return buffer;
+  }
+}
+
+export const shardedBuffer = (config: ShardedBufferConfig) => new ShardedBufferCollectionFactory(config);

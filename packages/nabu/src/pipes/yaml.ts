@@ -1,8 +1,7 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {omit} from 'lodash';
 
 import jsYaml = require('js-yaml');
-import {duplexPipeTransform} from './util';
 const yamlFront = require('yaml-front-matter');
 
 /**
@@ -159,6 +158,4 @@ export const yamlSerializer: (config?: YamlConfig) => Pipe<any, Buffer> = config
   };
 }
 
-export const yaml = (config?: YamlConfig) => {
-  return duplexPipeTransform(yamlParser(config), yamlSerializer(config));
-}
+export const yaml = (config?: YamlConfig): IOGate<Pipe> => ({input: yamlParser(config), output: yamlSerializer(config)});

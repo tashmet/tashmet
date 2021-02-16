@@ -1,6 +1,6 @@
-import {DuplexTransformFactory} from '../interfaces';
 import {vinylFS} from './vinyl';
 import * as nodePath from 'path';
+import { IOGate, Pipe } from '@ziqquratu/pipe';
 
 export interface GlobConfig {
   /**
@@ -12,7 +12,7 @@ export interface GlobConfig {
    * A serializer factory creating a serializer that will parse and serialize
    * documents when reading from and writing to the file system.
    */
-  serializer: DuplexTransformFactory;
+  serializer: IOGate<Pipe>;
 
   /**
    * A function that should return a path where to write a document

@@ -1,3 +1,4 @@
+import { IOGate, Pipe } from '@ziqquratu/pipe';
 import * as stream from 'stream';
 
 /** A factory for creating a duplex or transform stream */
@@ -45,7 +46,7 @@ export interface DirectoryConfig {
    * A serializer factory creating a serializer that will parse and serialize
    * documents when reading from and writing to the file system.
    */
-  serializer: DuplexTransformFactory;
+  serializer: IOGate<Pipe>;
 
   /**
    * file extension of files in the directory.

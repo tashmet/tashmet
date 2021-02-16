@@ -35,6 +35,7 @@
     "mingo": "2.4.0"
   },
   "devDependencies": {
-    "@types/node": "^13.1.8"
+    "@types/node": "^13.1.8",
+    "@types/reflect-metadata": "^0.1.0"
   }
 }

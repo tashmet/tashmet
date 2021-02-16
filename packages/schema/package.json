@@ -32,9 +32,11 @@
     "@ziqquratu/core": "^1.0.1",
     "@ziqquratu/database": "^1.3.0",
     "@ziqquratu/pipe": "^1.3.1",
-    "ajv": "^6.12.0"
+    "ajv": "^6.12.0",
+    "mingo": "^4.1.1"
   },
   "devDependencies": {
-    "@types/node": "^13.1.8"
+    "@types/node": "^13.1.8",
+    "@types/reflect-metadata": "^0.1.0"
   }
 }

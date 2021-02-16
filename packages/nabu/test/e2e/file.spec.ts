@@ -1,11 +1,11 @@
 import {bootstrap, component, Provider, Collection, DatabaseConfig, Database} from '@ziqquratu/ziqquratu';
-import {file, json} from '../../dist';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
+import {bundle, json, fsFile} from '../../src';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -20,15 +20,15 @@ function storedKeys() {
 
 describe('file', () => {
   @component({
-    dependencies: [import('../../dist')],
+    dependencies: [import('../../src')],
     providers: [
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
           'test': {
-            source: file({
-              path: 'test/e2e/testCollection.json',
+            source: bundle({
               serializer: json(),
               dictionary: true,
+              stream: fsFile({path: 'test/e2e/testCollection.json'}),
             })
           }
         },

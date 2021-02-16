@@ -48,12 +48,12 @@ export const eachDocument = (config: EachDocumentConfig) => {
   return new PipeMiddlewareFactory(new PipeFittingFactory(pipes));
 }
 
-export interface IOGate {
+export interface IOGate<T = Pipe | PipeFactory> {
   /** Pipe for processing incoming documents */
-  input: Pipe | PipeFactory;
+  input: T;
 
   /** Pipe for processing outgoing documents */
-  output: Pipe | PipeFactory;
+  output: T;
 }
 
 /**

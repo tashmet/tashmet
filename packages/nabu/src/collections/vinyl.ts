@@ -1,16 +1,9 @@
 import {FileSystemConfig} from '../interfaces';
-import {buffer, BufferStreamMode} from './buffer';
-import {vinylFSWatcher, vinylReader, VinylTransformer, vinylWriter} from '../pipes';
-import * as fs from 'fs-extra';
-import * as vfs from 'vinyl-fs';
-import * as stream from 'stream';
-import * as chokidar from 'chokidar';
-import Vinyl from 'vinyl';
-import pipe from 'pipeline-pipe';
+import {shardedBuffer} from './buffer';
+import {pump, vinylReader, VinylTransformer, vinylWriter} from '../pipes';
 import {pick} from 'lodash';
 import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
-
-const pumpify = require('pumpify');
+import { VinylFS } from '../vinyl/fs';
 
 export interface VinylFSConfig {
   /**
@@ -41,53 +34,35 @@ export interface VinylFSConfig {
 
 export class VinylFSFactory extends CollectionFactory {
   public constructor(private config: VinylFSConfig) {
-    super('nabu.FileSystemConfig', 'chokidar.FSWatcher')
+    super('nabu.FileSystemConfig', VinylFS)
   }
 
   public async create(name: string, database: Database) {
     const {source, destination, transformer} = this.config;
 
-    return this.resolve((fsConfig: FileSystemConfig, watcher: chokidar.FSWatcher) => {
-      if (fsConfig.watch) {
-        watcher.add(source);
-      }
+    return this.resolve((fsConfig: FileSystemConfig, vfs: VinylFS) => {
+      const vfsSrcOpts = pick(this.config, 'buffer', 'read');
 
-      const vinylSrcOpts: vfs.SrcOptions = pick(this.config, 'buffer', 'read');
+      const input = (gen: AsyncGenerator) => transformer
+        ? pump(gen, ...vinylReader(transformer))
+        : gen;
+      const output = (gen: AsyncGenerator): AsyncGenerator<any> => transformer
+        ? pump(gen, ...vinylWriter(transformer))
+        : gen;
 
-      const input = (readable: stream.Readable) => transformer
-        ? pumpify.obj(readable, vinylReader(transformer))
-        : readable;
-      const output = (writable: stream.Readable) => transformer
-        ? pumpify.obj(vinylWriter(transformer), writable) : writable;
+      const watch = (...events: string[]) => vfs.watch(source, events, vfsSrcOpts);
 
-      const watch = (...events: string[]) => vinylFSWatcher(Object.assign({glob: source, watcher, events}, vinylSrcOpts));
-
-      return buffer({
-        bundle: false,
-        io: {
-          createReadable(mode: BufferStreamMode) {
-            switch (mode) {
-              case BufferStreamMode.Update:
-                return input(watch('add', 'change'));
-              case BufferStreamMode.Seed:
-                return input(vfs.src(source, vinylSrcOpts) as stream.Transform);
-              case BufferStreamMode.Delete:
-                return input(watch('unlink'));
-            }
-          },
-          createWritable(mode: BufferStreamMode) {
-            switch (mode) {
-              case BufferStreamMode.Update:
-                return output(vfs.dest(destination || '.') as stream.Transform);
-              case BufferStreamMode.Delete:
-                return output(pipe(async (file: Vinyl) => {
-                  if (fs.existsSync(file.path)) {
-                    fs.unlinkSync(file.path);
-                  }
-                }));
-            }
+      return shardedBuffer({
+        seed: input(vfs.src(source, vfsSrcOpts)),
+        input: fsConfig.watch ? input(watch('add', 'change')) : undefined,
+        inputDelete: fsConfig.watch ? input(watch('unlink')) : undefined,
+        output: (source, deletion) => {
+          const files = output(source);
+          if (deletion) {
+            return vfs.remove(files);
           }
-        },
+          return vfs.write(files, destination || '.');
+        }
       }).create(name, database);
     })
   }

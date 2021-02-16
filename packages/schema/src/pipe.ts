@@ -66,7 +66,7 @@ export class ValidationPipeFactory extends PipeFactory {
       return this.schema;
     }
     for (const schemaId of Object.keys(this.schema)) {
-      if (new mingo.Query(this.schema[schemaId]).test(doc)) {
+      if (new mingo.Query(this.schema[schemaId] as any).test(doc)) {
         return schemaId;
       }
     }

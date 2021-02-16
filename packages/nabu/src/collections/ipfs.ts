@@ -1,3 +1,4 @@
+/*
 import {DirectoryConfig} from '../interfaces';
 import {buffer, BufferStreamMode} from './buffer';
 import {ipfsReader, ipfsWriter, IPFSTransformer} from '../pipes';
@@ -60,16 +61,18 @@ export class IPFSFactory extends CollectionFactory {
     })
   }
 }
+*/
 
 /**
  * A collection based on files on the filesystem based on glob pattern
  */
-export const ipfs = (config: IPFSConfig) => new IPFSFactory(config);
+// export const ipfs = (config: IPFSConfig) => new IPFSFactory(config);
 
 
 /**
  * A collection based on files in a directory on the filesystem
  */
+/*
 export const ipfsDirectory = ({path, extension, serializer, create}: DirectoryConfig) => 
   new IPFSFactory({
     path,
@@ -79,3 +82,4 @@ export const ipfsDirectory = ({path, extension, serializer, create}: DirectoryCo
       path: doc => `/yamlposts/${doc._id}.${extension}`,
     }
   });
+  */
