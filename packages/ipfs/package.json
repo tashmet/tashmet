@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "@ziqquratu/nabu": "^1.2.0",
-    "@ziqquratu/pipe": "^1.3.1"
+    "@ziqquratu/pipe": "^1.3.1",
+    "ipfs-http-client": "^49.0.2"
   },
   "devDependencies": {
     "@types/reflect-metadata": "^0.1.0",
