@@ -9,11 +9,11 @@ export interface BundleStreamConfig {
   /**
    * Input/Output stream
    */
-  seed: AsyncGenerator<any>;
+  seed?: AsyncGenerator<any[]>;
   
-  input?: AsyncGenerator<any>;
+  input?: AsyncGenerator<any[]>;
 
-  output: (source: AsyncGenerator<any>) => Promise<void>;
+  output: (source: AsyncGenerator<any[]>) => Promise<void>;
 }
 
 export abstract class BundleStreamFactory extends AsyncFactory<BundleStreamConfig> {
@@ -41,26 +41,20 @@ export interface BundleConfig {
 
 export class BundleBuffer extends Buffer {
   public constructor(
-    protected seed: AsyncGenerator<any>,
-    protected input: AsyncGenerator<any[]> | undefined,
     protected output: (source: AsyncGenerator) => Promise<void>,
     cache: Collection,
   ) {
     super(cache);
   }
 
-  public async populate() {
-    for await (const data of this.seed) {
+  public async populate(seed: AsyncGenerator<any[]>) {
+    for await (const data of seed) {
       await this.cache.insertMany(data as any[]);
     }
   }
 
-  public async listen() {
-    if (!this.input) {
-      return;
-    }
-
-    for await (const data of this.input) {
+  public async listen(input: AsyncGenerator<any[]>) {
+    for await (const data of input) {
       const bufferDocs = await this.cache.find().toArray();
       const getIds = (docs: any[]) => docs.map(doc => doc._id);
 
@@ -111,15 +105,15 @@ export class BundleBufferFactory extends CollectionFactory {
     }
 
     const {seed, input, output} = await stream.create(transformInput(transforms), transformOutput(transforms));
+    const cache = new MemoryCollection(name, database, {disableEvents: true});
+    const buffer = new BundleBuffer(output, cache);
 
-    const buffer = new BundleBuffer(
-      seed,
-      input,
-      output,
-      new MemoryCollection(name, database, {disableEvents: true}),
-    );
-    await buffer.populate();
-    buffer.listen();
+    if (seed) {
+      await buffer.populate(seed);
+    }
+    if (input) {
+      buffer.listen(input);
+    }
     return buffer;
   }
 }

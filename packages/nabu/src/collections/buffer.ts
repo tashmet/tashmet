@@ -90,10 +90,6 @@ export abstract class Buffer extends EventEmitter implements Collection {
     return this.cache.name;
   }
 
-  public abstract listen(): Promise<void>;
-
-  public abstract populate(): Promise<void>;
-
   protected abstract write(affectedDocs: any[], deletion?: boolean): Promise<void>;
 }
 
