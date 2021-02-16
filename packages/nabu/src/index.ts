@@ -1,21 +1,21 @@
 export {json} from './pipes/json';
 export {yaml, YamlConfig} from './pipes/yaml';
-export {shardedBuffer} from './collections/buffer';
+export {shards} from './collections/shard';
 export {fsFile, FileStreamConfig} from './collections/file';
 export {bundle, BundleConfig} from './collections/bundle';
-export {directory} from './collections/directory';
-export {glob, GlobConfig} from './collections/glob';
+export {fsDirectory} from './collections/directory';
+export {fsGlob, GlobConfig} from './collections/glob';
 // export {ipfs, ipfsDirectory, IPFSConfig} from './collections/ipfs';
 export {vinylFS, VinylFSConfig} from './collections/vinyl';
 export * from './interfaces';
 
 import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
 import {FileSystemConfig} from './interfaces';
-import {ShardedBufferCollectionFactory} from './collections/buffer';
+import {ShardBufferFactory} from './collections/shard';
 import {LocalFileConfigFactory} from './collections/file';
 import {BundleBufferFactory} from './collections/bundle';
 // import {IPFSFactory} from './collections/ipfs';
-import {VinylFSFactory} from './collections/vinyl';
+import {VinylFSStreamFactory} from './collections/vinyl';
 import {VinylFS} from './vinyl/fs';
 import * as chokidar from 'chokidar';
 // import ipfsClient from 'ipfs-http-client';
@@ -44,9 +44,9 @@ import * as chokidar from 'chokidar';
   ],
   factories: [
     BundleBufferFactory,
-    ShardedBufferCollectionFactory,
+    ShardBufferFactory,
     LocalFileConfigFactory,
-    VinylFSFactory,
+    VinylFSStreamFactory,
     // IPFSFactory,
   ]
 })

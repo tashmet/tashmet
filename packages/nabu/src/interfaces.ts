@@ -43,12 +43,6 @@ export interface DirectoryConfig {
   path: string;
 
   /**
-   * A serializer factory creating a serializer that will parse and serialize
-   * documents when reading from and writing to the file system.
-   */
-  serializer: IOGate<Pipe>;
-
-  /**
    * file extension of files in the directory.
    */
   extension: string;

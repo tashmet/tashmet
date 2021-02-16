@@ -1,5 +1,5 @@
 import {bootstrap, component, Provider, Collection, DatabaseConfig, Database} from '@ziqquratu/ziqquratu';
-import {directory, json} from '../../dist';
+import {fsDirectory, shards, json} from '../../dist';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -25,11 +25,13 @@ describe('directory', () => {
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
           'test': {
-            source: directory({
-              path: 'test/e2e/testCollection',
-              extension: 'json',
+            source: shards({
               serializer: json(),
-              create: true,
+              stream: fsDirectory({
+                path: 'test/e2e/testCollection',
+                extension: 'json',
+                create: true,
+              })
             })
           }
         },

@@ -1,9 +1,10 @@
+import Vinyl from 'vinyl';
 import {FileSystemConfig} from '../interfaces';
-import {shardedBuffer} from './buffer';
-import {pump, vinylReader, VinylTransformer, vinylWriter} from '../pipes';
+import {ShardStreamConfig, ShardStreamFactory} from './shard';
+import {pump, vinylReader, vinylWriter} from '../pipes';
 import {pick} from 'lodash';
-import {CollectionFactory, Database} from '@ziqquratu/ziqquratu';
-import { VinylFS } from '../vinyl/fs';
+import {VinylFS} from '../vinyl/fs';
+import {IOGate, Pipe} from '@ziqquratu/pipe';
 
 export interface VinylFSConfig {
   /**
@@ -13,7 +14,11 @@ export interface VinylFSConfig {
 
   destination?: string;
 
-  transformer?: VinylTransformer;
+  /** A function returning the file path given a document on write */
+  path: (doc: any) => string;
+  
+  /** A function to determine the ID of a document read */
+  id?: (file: Vinyl) => string; 
 
   /**
    * Whether or not you want to buffer the file contents into memory.
@@ -32,27 +37,27 @@ export interface VinylFSConfig {
   read?: boolean;
 }
 
-export class VinylFSFactory extends CollectionFactory {
+export class VinylFSStreamFactory extends ShardStreamFactory {
   public constructor(private config: VinylFSConfig) {
     super('nabu.FileSystemConfig', VinylFS)
   }
 
-  public async create(name: string, database: Database) {
-    const {source, destination, transformer} = this.config;
+  public async create(transforms: IOGate<Pipe>[]): Promise<ShardStreamConfig> {
+    const {source, destination, id, path} = this.config;
 
-    return this.resolve((fsConfig: FileSystemConfig, vfs: VinylFS) => {
+    return this.resolve(async (fsConfig: FileSystemConfig, vfs: VinylFS) => {
       const vfsSrcOpts = pick(this.config, 'buffer', 'read');
 
-      const input = (gen: AsyncGenerator) => transformer
-        ? pump(gen, ...vinylReader(transformer))
+      const input = (gen: AsyncGenerator) => transforms.length > 0
+        ? pump(gen, ...vinylReader({transforms, id}))
         : gen;
-      const output = (gen: AsyncGenerator): AsyncGenerator<any> => transformer
-        ? pump(gen, ...vinylWriter(transformer))
+      const output = (gen: AsyncGenerator): AsyncGenerator<any> => transforms.length > 0
+        ? pump(gen, ...vinylWriter({transforms, path}))
         : gen;
 
       const watch = (...events: string[]) => vfs.watch(source, events, vfsSrcOpts);
 
-      return shardedBuffer({
+      return {
         seed: input(vfs.src(source, vfsSrcOpts)),
         input: fsConfig.watch ? input(watch('add', 'change')) : undefined,
         inputDelete: fsConfig.watch ? input(watch('unlink')) : undefined,
@@ -63,7 +68,7 @@ export class VinylFSFactory extends CollectionFactory {
           }
           return vfs.write(files, destination || '.');
         }
-      }).create(name, database);
+      };
     })
   }
 }
@@ -71,4 +76,4 @@ export class VinylFSFactory extends CollectionFactory {
 /**
  * A collection based on files on the filesystem based on glob pattern
  */
-export const vinylFS = (config: VinylFSConfig) => new VinylFSFactory(config);
+export const vinylFS = (config: VinylFSConfig) => new VinylFSStreamFactory(config);

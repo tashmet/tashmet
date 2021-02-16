@@ -1,6 +1,5 @@
-import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/ziqquratu';
+import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions} from '@ziqquratu/ziqquratu';
 import {EventEmitter} from 'eventemitter3';
-import {generateMany} from '../pipes';
 
 export abstract class Buffer extends EventEmitter implements Collection {
   public constructor(
@@ -92,84 +91,3 @@ export abstract class Buffer extends EventEmitter implements Collection {
 
   protected abstract write(affectedDocs: any[], deletion?: boolean): Promise<void>;
 }
-
-
-class ShardedBuffer extends Buffer {
-  public constructor(
-    private seed: AsyncGenerator<any>,
-    private input: AsyncGenerator<any> | undefined,
-    private inputDelete: AsyncGenerator<any> | undefined,
-    private output: (source: AsyncGenerator<any>, deletion: boolean) => Promise<void>,
-    cache: Collection,
-  ) {
-    super(cache);
-  }
-
-  public async populate() {
-    for await (const doc of this.seed) {
-      await this.cache.insertOne(doc);
-    }
-  }
-
-  public async listen() {
-    if (!this.input) {
-      return;
-    }
-
-    for await (const doc of this.input) {
-      await this.replaceOne({_id: doc._id}, doc, {upsert: true}, false);
-    }
-  }
-
-  public async listenDelete() {
-    if (!this.inputDelete) {
-      return;
-    }
-
-    for await (const doc of this.inputDelete) {
-      await this.deleteOne({_id: doc._id}, false);
-    }
-  }
-
-  protected write(affectedDocs: any[], deletion: boolean): Promise<void> {
-    return this.output(generateMany(affectedDocs), deletion);
-  }
-}
-
-export interface ShardedBufferConfig {
-  /**
-   * Input/Output stream
-   */
-  seed: AsyncGenerator<any>;
-  
-  input?: AsyncGenerator<any>;
-
-  inputDelete?: AsyncGenerator<any>;
-
-  output: (source: AsyncGenerator<any>, deletion: boolean) => Promise<void>;
-}
-
-
-export class ShardedBufferCollectionFactory extends CollectionFactory {
-  constructor(private config: ShardedBufferConfig) {
-    super();
-  }
-
-  public async create(name: string, database: Database): Promise<Collection> {
-    const { seed, input, inputDelete, output } = this.config;
-
-   const buffer = new ShardedBuffer(
-     seed,
-     input,
-     inputDelete,
-     output,
-     new MemoryCollection(name, database, {disableEvents: true}),
-   );
-   await buffer.populate();
-   buffer.listen();
-   buffer.listenDelete();
-   return buffer;
-  }
-}
-
-export const shardedBuffer = (config: ShardedBufferConfig) => new ShardedBufferCollectionFactory(config);

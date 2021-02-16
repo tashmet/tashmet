@@ -1,5 +1,4 @@
-import { provider } from "@ziqquratu/ziqquratu";
-
+import {provider} from "@ziqquratu/ziqquratu";
 import Vinyl from 'vinyl';
 import {makeGenerator, writeToStream} from '../pipes';
 import * as stream from 'stream';
@@ -7,7 +6,7 @@ import * as chokidar from 'chokidar';
 import * as vfs from 'vinyl-fs';
 import * as fs from 'fs';
 import minimatch from 'minimatch';
-import { FileSystemConfig } from "../interfaces";
+import {FileSystemConfig} from "../interfaces";
 
 @provider({
   inject: ['nabu.FileSystemConfig', 'chokidar.FSWatcher'],

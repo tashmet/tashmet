@@ -1,12 +1,7 @@
-import * as fs from 'fs';
-import * as stream from 'stream';
 import Vinyl from 'vinyl';
 import {omit} from 'lodash';
-import {transformInput, transformOutput, pipe, makeGenerator, Transform} from './util';
-import * as chokidar from 'chokidar';
-import * as vfs from 'vinyl-fs';
-import minimatch from 'minimatch';
-import { IOGate, Pipe } from '@ziqquratu/pipe';
+import {transformInput, transformOutput, pipe, Transform} from './util';
+import {IOGate, Pipe} from '@ziqquratu/pipe';
 
 export interface VinylReaderConfig {
   /** Transforms for modifying file contents */
