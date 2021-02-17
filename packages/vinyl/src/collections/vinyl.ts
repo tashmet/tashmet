@@ -42,11 +42,12 @@ export class VinylFSStreamFactory extends ShardStreamFactory {
     super('vinyl.FileSystemConfig', VinylFS)
   }
 
-  public async create(transforms: IOGate<Pipe>[]): Promise<ShardStreamConfig> {
+  public async create(): Promise<ShardStreamConfig> {
     const {source, destination, id, path} = this.config;
 
     return this.resolve(async (fsConfig: FileSystemConfig, vfs: VinylFS) => {
       const vfsSrcOpts = pick(this.config, 'buffer', 'read');
+      const transforms: IOGate<Pipe>[] = [];
 
       const input = (gen: AsyncGenerator) => transforms.length > 0
         ? pump(gen, ...vinylReader({transforms, id}))
