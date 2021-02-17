@@ -42,9 +42,10 @@ export class IPFSStreamFactory extends ShardStreamFactory {
         output: async (source, deletion) => {
           for await (const file of output(source)) {
             if (deletion) {
-              return ipfs.files.rm(file.path);
+              await ipfs.files.rm(file.path);
+            } else {
+              await ipfs.files.write(file.path, file.content, {create: true});
             }
-            return ipfs.files.write(file.path, file.content, {create: true});
           }
         }
       };
