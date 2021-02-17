@@ -1,6 +1,8 @@
 export {shards, ShardStreamConfig, ShardStreamFactory} from './collections/shard';
 export {bundle, BundleConfig, BundleStreamFactory} from './collections/bundle';
+export {directory} from './collections/directory';
 export * from './pipes';
+export * from './interfaces';
 
 import {component, Logger, Provider} from '@ziqquratu/core';
 import {ShardBufferFactory} from './collections/shard';

@@ -1,6 +1,5 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
-import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {Buffer} from './buffer';
 import {generateMany} from '../pipes';
 
@@ -18,15 +17,10 @@ export interface ShardStreamConfig {
 }
 
 export abstract class ShardStreamFactory extends AsyncFactory<ShardStreamConfig> {
-  public abstract create(transforms: IOGate<Pipe>[]): Promise<ShardStreamConfig>;
+  public abstract create(): Promise<ShardStreamConfig>;
 }
 
 export interface ShardBufferConfig {
-  /**
-   * A serializer that will parse and serialize incoming and outgoing data.
-   */
-  serializer?: IOGate<Pipe>;
-
   stream: ShardStreamFactory;
 }
 
@@ -65,16 +59,9 @@ export class ShardBufferFactory extends CollectionFactory {
   public constructor(private config: ShardBufferConfig) {super()}
 
   public async create(name: string, database: Database) {
-    const {serializer, stream} = this.config;
-    const transforms: IOGate<Pipe>[] = [];
+    const {stream} = this.config;
 
-    if (serializer) {
-      transforms.push(serializer);
-    }
-
-    const {seed, input, inputDelete, output} = await stream.create(
-      transforms
-    );
+    const {seed, input, inputDelete, output} = await stream.create();
     const cache = new MemoryCollection(name, database, {disableEvents: true});
     const buffer = new ShardBuffer(output, cache);
 

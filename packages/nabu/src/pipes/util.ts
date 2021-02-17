@@ -1,6 +1,6 @@
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 
-export type Transform<T = any> = (source: AsyncGenerator) => AsyncGenerator<T>;
+export type Transform<In = any, Out = In> = (source: AsyncGenerator<In>) => AsyncGenerator<Out>;
 
 export const processKey = (pipe: Pipe, key: string) => {
   return (async (data: any) => Object.assign(data, {[key]: await pipe(data[key])})) as Pipe
@@ -33,8 +33,8 @@ export const transformOutput = (transforms: IOGate<Pipe>[], key?: string): Trans
   return pipe(key ? processKey(p, key) : p);
 }
 
-export const filter = (test: Pipe<any, boolean>): Transform => {
-  async function* gen(source: AsyncGenerator) {
+export function filter<T>(test: Pipe<T, boolean>): Transform<T, T> {
+  async function* gen(source: AsyncGenerator<T>) {
     for await (const data of source) {
       if (await test(data)) {
         yield data;
@@ -44,12 +44,12 @@ export const filter = (test: Pipe<any, boolean>): Transform => {
   return source => gen(source);
 }
 
-export const pump = (source: AsyncGenerator, ...transforms: Transform[]) => {
+export function pump<In = any, Out = In>(source: AsyncGenerator<In>, ...transforms: Transform[]) {
   let input = source;
   for (const t of transforms) {
     input = t(input)
   }
-  return input;
+  return input as AsyncGenerator<Out>;
 }
 
 export async function* generateOne(data: any) {
