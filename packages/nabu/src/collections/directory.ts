@@ -65,7 +65,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
     const output = (gen: AsyncGenerator<any>) => pump<any, File>(gen, ...tOut);
 
     return {
-      seed: input(driver.read(path)),
+      seed: input(driver.read(`${path}/*.${extension}`)),
       output: async (source, deletion) => {
         const files = output(source);
         if (deletion) {
