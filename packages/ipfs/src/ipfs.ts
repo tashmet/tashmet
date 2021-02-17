@@ -53,9 +53,11 @@ export class IPFSService implements FileAccess  {
 }
 
 export class IPFSServiceFactory extends AsyncFactory<FileAccess> {
+  public constructor(private url: string | undefined) { super(); }
+
   public async create() {
-    return new IPFSService(createClient());
+    return new IPFSService(createClient({url: this.url}));
   }
 }
 
-export const ipfs = () => new IPFSServiceFactory();
+export const ipfs = (url?: string) => new IPFSServiceFactory(url);
