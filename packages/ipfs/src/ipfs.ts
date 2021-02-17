@@ -1,26 +1,37 @@
 import { AsyncFactory } from '@ziqquratu/core';
 import {FileAccess, File, ReadableFile} from '@ziqquratu/nabu';
+import path from 'path';
+import minimatch from 'minimatch';
 
 const createClient = require('ipfs-http-client')
 
 export class IPFSService implements FileAccess  {
   public constructor(private ipfs: any) {}
 
-  public read(path: string | string[]): AsyncGenerator<ReadableFile> {
+  public read(location: string | string[]): AsyncGenerator<ReadableFile> {
     const ipfs = this.ipfs;
 
-    if (Array.isArray(path)) {
+    if (Array.isArray(location)) {
       throw Error('Multiple paths currently not supported');
     }
-    async function* gen() {
-      const stat = await ipfs.files.stat(path);
+    const dir = path.dirname(location);
 
-      for await (const file of ipfs.get(stat.cid)) {
-        yield {
-          path: file.path.replace(stat.cid, path),
-          content: file.content,
-          isDir: file.type === 'dir',
-        };
+    async function* content(filePath: string) {
+      for await (const chunk of ipfs.files.read(filePath)) {
+        yield chunk;
+      }
+    }
+
+    async function* gen() {
+      for await (const file of await ipfs.files.ls(dir)) {
+        const filePath = path.join(dir, file.name);
+        if (minimatch(filePath, location as string)) {
+          yield {
+            path: filePath,
+            content: file.type === 'file' ? content(filePath) : undefined,
+            isDir: file.type === 'dir',
+          };
+        }
       }
     }
     return gen();
