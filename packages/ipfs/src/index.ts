@@ -1,10 +1,7 @@
-export {ipfsDirectory, IPFSConfig} from './collections/directory';
-
 import {component, Logger, Provider} from '@ziqquratu/core';
-import {IPFSStreamFactory} from './collections/directory';
+import {IPFSServiceFactory} from './ipfs';
 
 const createClient = require('ipfs-http-client')
-
 
 @component({
   providers: [
@@ -16,10 +13,10 @@ const createClient = require('ipfs-http-client')
     Provider.ofFactory({
       key: 'ipfs.Client',
       create: () => createClient(),
-    })
+    }),
   ],
   factories: [
-    IPFSStreamFactory,
+    IPFSServiceFactory,
   ]
 })
 export default class IPFS {}
