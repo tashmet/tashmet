@@ -3,7 +3,7 @@ import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqqur
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {difference, intersection, isEqual} from 'lodash';
 import {Buffer} from './buffer';
-import {dict, generateOne, transformOutput, transformInput, Transform} from '../pipes';
+import {dict, generateOne, transformOutput, transformInput, pump} from '../pipes';
 
 export interface BundleStreamConfig {
   /**
@@ -17,7 +17,7 @@ export interface BundleStreamConfig {
 }
 
 export abstract class BundleStreamFactory extends AsyncFactory<BundleStreamConfig> {
-  public abstract create(tIn: Transform, tOut: Transform): Promise<BundleStreamConfig>;
+  public abstract create(): Promise<BundleStreamConfig>;
 }
 
 export interface BundleConfig {
@@ -104,15 +104,18 @@ export class BundleBufferFactory extends CollectionFactory {
       transforms.push(dict());
     }
 
-    const {seed, input, output} = await stream.create(transformInput(transforms), transformOutput(transforms));
+    const tIn = transformInput(transforms);
+    const tOut = transformOutput(transforms);
+
+    const {seed, input, output} = await stream.create();
     const cache = new MemoryCollection(name, database, {disableEvents: true});
-    const buffer = new BundleBuffer(output, cache);
+    const buffer = new BundleBuffer(out => output(pump(out, tOut)), cache);
 
     if (seed) {
-      await buffer.populate(seed);
+      await buffer.populate(pump(seed, tIn));
     }
     if (input) {
-      buffer.listen(input);
+      buffer.listen(pump(input, tIn));
     }
     return buffer;
   }
