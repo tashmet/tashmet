@@ -1,5 +1,5 @@
 import {provider, AsyncFactory} from '@ziqquratu/core';
-import {FileAccess, File, ReadableFile, pump, pipe} from '@ziqquratu/nabu';
+import {FileAccess, File, ReadableFile, pump, pipe, Transform} from '@ziqquratu/nabu';
 import Vinyl from 'vinyl';
 import {makeGenerator, writeToStream} from './util';
 import * as stream from 'stream';
@@ -71,36 +71,37 @@ export class VinylFS {
   }
 }
 
+export const vinyl2File = pipe<Vinyl, File>(async vinyl => ({
+  path: vinyl.path,
+  content: makeGenerator(vinyl.contents as stream.Readable),
+  isDir: vinyl.isDirectory()
+}));
+
+export const file2Vinyl = pipe<File, Vinyl>(async file => new Vinyl({
+  path: file.path,
+  contents: file.content,
+}));
+
 export class VinylFSService implements FileAccess  {
   public read(location: string | string[]): AsyncGenerator<ReadableFile> {
     return pump(
       makeGenerator(vfs.src(location, {buffer: false}) as stream.Transform),
-      pipe<Vinyl, File>(async file => {
-        return {
-          path: file.path,
-          content: makeGenerator(file.contents as stream.Readable),
-          isDir: file.isDirectory()
-        };
-      })
+      vinyl2File,
     );
   }
 
   //stat(path: string | string[]): AsyncGenerator<File<null>>;
 
   public async write(files: AsyncGenerator<File>): Promise<void> {
-    /*
-    for await (const file of files) {
-      await this.ipfs.files.write(file.path, file.content, {create: true});
-    }
-    */
+    return writeToStream(pump(files, file2Vinyl), vfs.dest('.') as stream.Transform);
   }
 
   public async remove(files: AsyncGenerator<File>): Promise<void> {
-    /*
     for await (const file of files) {
-      await this.ipfs.files.rm(file.path);
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
     }
-    */
   }
 }
 
