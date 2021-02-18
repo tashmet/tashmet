@@ -5,8 +5,8 @@ import minimatch from 'minimatch';
 
 const createClient = require('ipfs-http-client')
 
-export class IPFSService implements FileAccess  {
-  public constructor(private ipfs: any) {}
+export class IPFSService extends FileAccess  {
+  public constructor(private ipfs: any) { super(); }
 
   public read(location: string | string[]): AsyncGenerator<ReadableFile> {
     const ipfs = this.ipfs;
