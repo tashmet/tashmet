@@ -6,7 +6,7 @@ export const processKey = (pipe: Pipe, key: string) => {
   return (async (data: any) => Object.assign(data, {[key]: await pipe(data[key])})) as Pipe
 }
 
-export function pipe<In = any, Out = any>(pipe: Pipe<In, Out>): Transform {
+export function pipe<In = any, Out = any>(pipe: Pipe<In, Out>): Transform<In, Out> {
   async function* gen(source: AsyncGenerator<any>) {
     for await (const data of source) {
       yield await pipe(data);
