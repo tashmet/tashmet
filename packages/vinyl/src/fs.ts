@@ -1,12 +1,12 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {FileAccess, File, ReadableFile, pump, pipe} from '@ziqquratu/nabu';
+import {makeGenerator, writeToStream} from '@ziqquratu/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
 import * as chokidar from 'chokidar';
 import * as vfs from 'vinyl-fs';
 import * as fs from 'fs';
 import minimatch from 'minimatch';
-import {makeGenerator, writeToStream} from './util';
 
 
 export const vinyl2File = pipe<Vinyl, File>(async vinyl => ({
