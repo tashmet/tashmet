@@ -82,15 +82,18 @@ export const file2Vinyl = pipe<File, Vinyl>(async file => new Vinyl({
   contents: file.content,
 }));
 
-export class VinylFSService implements FileAccess  {
+
+export class VinylFSService extends FileAccess  {
+  public constructor(
+    private watcher: chokidar.FSWatcher
+  ) { super(); }
+
   public read(location: string | string[]): AsyncGenerator<ReadableFile> {
     return pump(
       makeGenerator(vfs.src(location, {buffer: false}) as stream.Transform),
       vinyl2File,
     );
   }
-
-  //stat(path: string | string[]): AsyncGenerator<File<null>>;
 
   public async write(files: AsyncGenerator<File>): Promise<void> {
     return writeToStream(pump(files, file2Vinyl), vfs.dest('.') as stream.Transform);
@@ -103,11 +106,45 @@ export class VinylFSService implements FileAccess  {
       }
     }
   }
+
+  public watch(globs: string | string[], deletion = false): AsyncGenerator<File> {
+    this.watcher.add(globs);
+
+    const readable = new stream.Readable({
+      objectMode: true,
+      read() { return; }
+    });
+
+    const onChange = (path: string, event: string) => {
+      const contents = () => {
+        if (event === 'unlink') {
+          return Buffer.from('{}');
+        }
+        return fs.createReadStream(path);
+      }
+
+      for (const pattern of Array.isArray(globs) ? globs : [globs]) {
+        if (minimatch(path, pattern)) {
+          readable.push(new Vinyl({path: path, contents: contents()}))
+        }
+      }
+    }
+
+    for (const ev of deletion ? ['unlink'] : ['add', 'change']) {
+      this.watcher.on(ev, path => onChange(path, ev));
+    }
+
+    return pump(makeGenerator(readable), vinyl2File);
+  }
 }
 
 export class VinylFSServiceFactory extends AsyncFactory<FileAccess> {
+  public constructor() {
+    super('chokidar.FSWatcher');
+  }
+
   public async create() {
-    return new VinylFSService();
+    return this.resolve(async (watcher: chokidar.FSWatcher) => new VinylFSService(watcher));
   }
 }
 
