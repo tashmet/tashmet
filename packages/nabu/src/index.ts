@@ -1,6 +1,7 @@
 export {shards, ShardStreamConfig, ShardStreamFactory} from './collections/shard';
 export {bundle, BundleConfig, BundleStreamFactory} from './collections/bundle';
 export {directory} from './collections/directory';
+export {file} from './collections/file';
 export * from './pipes';
 export * from './interfaces';
 
