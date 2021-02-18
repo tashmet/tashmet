@@ -32,6 +32,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
     const fileName = (doc: any) => `${doc._id}.${extension}`;
     const resolveId = ((file: File) => nodePath.basename(file.path).split('.')[0])
     const resolvePath = ((doc: any) => nodePath.join(path, fileName(doc)));
+    const glob = `${path}/*.${extension}`;
 
     const tIn: Transform[] = [];
     const tOut: Transform[] = [];
@@ -64,8 +65,13 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
     const input = (gen: AsyncGenerator<File>) => pump<File, any>(gen, ...tIn);
     const output = (gen: AsyncGenerator<any>) => pump<any, File>(gen, ...tOut);
 
+    const watch = driver.watch(glob);
+    const watchDelete = driver.watch(glob, true);
+
     return {
       seed: input(driver.read(`${path}/*.${extension}`)),
+      input: watch ? input(watch) : undefined,
+      inputDelete: watchDelete ? input(watchDelete) : undefined,
       output: async (source, deletion) => {
         const files = output(source);
         if (deletion) {
