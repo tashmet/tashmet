@@ -113,7 +113,7 @@ const defaultOptions: YamlConfig = {
  * 
  * @param buffer Buffer containing raw YAML data
  */
-export const yamlParser: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
+export const fromYamlr: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
   const cfg = Object.assign({}, defaultOptions, config)
 
   return async buffer => {
@@ -139,7 +139,7 @@ export const yamlParser: (config?: YamlConfig) => Pipe<Buffer, any> = config => 
  * 
  * @param buffer Buffer containing raw YAML data
  */
-export const yamlSerializer: (config?: YamlConfig) => Pipe<any, Buffer> = config => {
+export const toYamlr: (config?: YamlConfig) => Pipe<any, Buffer> = config => {
   const cfg = Object.assign({}, defaultOptions, config);
 
   return async data => {
@@ -158,4 +158,4 @@ export const yamlSerializer: (config?: YamlConfig) => Pipe<any, Buffer> = config
   };
 }
 
-export const yaml = (config?: YamlConfig): IOGate<Pipe> => ({input: yamlParser(config), output: yamlSerializer(config)});
+export const yaml = (config?: YamlConfig): IOGate<Pipe> => ({input: fromYamlr(config), output: toYamlr(config)});
