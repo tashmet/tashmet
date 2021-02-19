@@ -19,3 +19,5 @@ export abstract class FileAccess {
     return null;
   }
 }
+
+export type GeneratorSink<T = any, TReturn = any> = (gen: AsyncGenerator<T>) => Promise<TReturn>;

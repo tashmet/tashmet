@@ -25,7 +25,7 @@ class PipeableAsyncGenerator<T = unknown, TReturn = any, TNext = unknown> implem
     return new PipeableAsyncGenerator<Out>(t.apply(this as any));
   }
 
-  public sink(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TReturn>): Promise<TReturn> {
+  public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
     return writable(this);
   }
 }
