@@ -3,7 +3,7 @@ import {Cursor} from '@ziqquratu/database';
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {File, FileAccess} from '../interfaces';
 import {toBufferedFile, toFile, toFileSystem} from './file';
-import {Transform, pipe, FilterTransform, transformInput, transformOutput} from './transform';
+import {Transform, pipe, FilterTransform, transformInput, transformOutput, ArrayBundleTransform} from './transform';
 
 export class BaseGenerator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
   public [Symbol.asyncIterator]: any;
@@ -25,12 +25,20 @@ export class BaseGenerator<T = unknown, TReturn = any, TNext = unknown> implemen
     return new BaseGenerator<Out>(t.apply(this as any));
   }
 
-  public filter(test: Pipe<T, boolean>) {
-    return this.pipe(new FilterTransform(test));
+  public collect() {
+    return new BaseGenerator(new ArrayBundleTransform<T>().apply(this));
+  }
+
+  public filter(test: Pipe<T, boolean>): this {
+    return new (this.constructor as any)(new FilterTransform(test).apply(this));
   }
 
   public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
     return writable(this);
+  }
+
+  public toFile(path: string | ((data: T) => string)) {
+    return new ParsedFileGenerator(this.pipe(toFile(path)));
   }
 }
 
@@ -69,10 +77,6 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> extends Base
       input = t.apply(input)
     }
     return new Generator(input as AsyncGenerator<Out>);
-  }
-
-  public toFile(path: string) {
-    return new FileGenerator(this.pipe(toFile(path)));
   }
 }
 

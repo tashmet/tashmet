@@ -18,8 +18,8 @@ export function toBufferedFile<T>(): Transform<File<T>, File<Buffer>> {
   });
 }
 
-export function toFile(path: string): Pipe<Buffer, File<Buffer>> {
-  return async buffer => ({path, content: buffer, isDir: false});
+export function toFile<T>(path: string | ((data: T) => string)): Pipe<T, File<T>> {
+  return async content => ({path: typeof path === 'string' ? path : path(content), content, isDir: false});
 }
 
 export function toFileSystem(protocol: AsyncFactory<FileAccess>): GeneratorSink<File, void> {
