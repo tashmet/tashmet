@@ -1,5 +1,5 @@
 import {AsyncFactory} from '@ziqquratu/core';
-import {FileAccess, File, ReadableFile, pump, pipe} from '@ziqquratu/nabu';
+import {FileAccess, File, ReadableFile, Generator, pipe} from '@ziqquratu/nabu';
 import {makeGenerator, writeToStream} from '@ziqquratu/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
@@ -27,14 +27,14 @@ export class VinylFSService extends FileAccess  {
   ) { super(); }
 
   public read(location: string | string[]): AsyncGenerator<ReadableFile> {
-    return pump(
+    return Generator.pump(
       makeGenerator(vfs.src(location, {buffer: false}) as stream.Transform),
       vinyl2File,
     );
   }
 
   public async write(files: AsyncGenerator<File>): Promise<void> {
-    return writeToStream(pump(files, file2Vinyl), vfs.dest('.') as stream.Transform);
+    return writeToStream(Generator.pump(files, file2Vinyl), vfs.dest('.') as stream.Transform);
   }
 
   public async remove(files: AsyncGenerator<File>): Promise<void> {
@@ -72,7 +72,7 @@ export class VinylFSService extends FileAccess  {
       this.watcher.on(ev, path => onChange(path, ev));
     }
 
-    return pump(makeGenerator(readable), vinyl2File);
+    return Generator.pump(makeGenerator(readable), vinyl2File);
   }
 }
 
