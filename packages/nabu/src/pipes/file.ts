@@ -1,7 +1,7 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
 import {File, FileAccess, GeneratorSink, ReadableFile} from '../interfaces';
-import {pipe, Transform, Generator} from '../pipes';
+import {pipe, Transform} from '../pipes';
 
 export function toBufferedFile(): Transform<ReadableFile, File<Buffer>> {
   return pipe<File>(async file => {
@@ -27,17 +27,4 @@ export function toFileSystem(protocol: AsyncFactory<FileAccess>): GeneratorSink<
     const fa = await protocol.create();
     return fa.write(files);
   }
-}
-
-export function fromFileSystem(
-  path: string | string[], protocol: AsyncFactory<FileAccess>
-): Generator<ReadableFile>
-{
-  async function* gen() {
-    const fa = await protocol.create();
-    for await (const file of fa.read(path)) {
-      yield file;
-    }
-  }
-  return new Generator(gen());
 }

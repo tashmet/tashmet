@@ -1,5 +1,7 @@
+import {AsyncFactory} from '@ziqquratu/core';
 import {Cursor} from '@ziqquratu/database';
 import {Pipe} from '@ziqquratu/pipe';
+import {FileAccess, ReadableFile} from '../interfaces';
 import {Transform, pipe} from './transform';
 
 export class Generator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
@@ -41,6 +43,16 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
       }
     }
     return new Generator(generateMany());
+  }
+
+  public static fromFS(path: string | string[], protocol: AsyncFactory<FileAccess>): Generator<ReadableFile> {
+    async function* gen() {
+      const fa = await protocol.create();
+      for await (const file of fa.read(path)) {
+        yield file;
+      }
+    }
+    return new Generator(gen());
   }
 
   public static pump<In = any, Out = In>(source: AsyncGenerator<In>, ...transforms: Transform[]) {
