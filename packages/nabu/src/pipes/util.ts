@@ -5,7 +5,7 @@ export abstract class Transform<In = any, Out = In> {
   public abstract apply(gen: AsyncGenerator<In, any, In>): AsyncGenerator<Out, any, Out>;
 }
 
-class PipeableAsyncGenerator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
+export class PipeableAsyncGenerator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
   public [Symbol.asyncIterator]: any;
   public next: (...args: [] | [TNext]) => Promise<IteratorResult<T, TReturn>>;
   public return: any;
@@ -87,7 +87,8 @@ export class ArrayBundleTransform<T> extends Transform<T, T[]> {
   }
 }
 
-export const processKey = (pipe: Pipe, key: string) => {
+export const onKey = (key: string, ...pipes: Pipe[]) => {
+  const pipe = chain(pipes);
   return (async (data: any) => Object.assign(data, {[key]: await pipe(data[key])})) as Pipe
 }
 
@@ -103,12 +104,12 @@ export const chain = (pipes: Pipe[]): Pipe => async (data: any) => {
 
 export const transformInput = (transforms: IOGate<Pipe>[], key?: string): Transform => {
   const p = chain(transforms.map(t => t.input));
-  return pipe(key ? processKey(p, key) : p);
+  return pipe(key ? onKey(key, p) : p);
 }
 
 export const transformOutput = (transforms: IOGate<Pipe>[], key?: string): Transform => {
   const p = chain(transforms.map(t => t.output).reverse());
-  return pipe(key ? processKey(p, key) : p);
+  return pipe(key ? onKey(key, p) : p);
 }
 
 export function filter<T>(test: Pipe<T, boolean>) { return new FilterTransform<T>(test); }
