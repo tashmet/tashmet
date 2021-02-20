@@ -1,7 +1,7 @@
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 
 export abstract class Transform<In = any, Out = In> {
-  public abstract apply(gen: AsyncGenerator<In, any, In>): AsyncGenerator<Out, any, Out>;
+  public abstract apply(gen: AsyncGenerator<In>): AsyncGenerator<Out>;
 }
 
 export class PipeTransform<In = any, Out = In> extends Transform<In, Out> {
@@ -75,4 +75,5 @@ export const transformOutput = (transforms: IOGate<Pipe>[], key?: string): Trans
 }
 
 export function filter<T>(test: Pipe<T, boolean>) { return new FilterTransform<T>(test); }
+
 export function toArrayBundle<T>() { return new ArrayBundleTransform<T>(); }
