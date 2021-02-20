@@ -8,11 +8,11 @@ export function toList(): Pipe<any, any[]> {
   }, [] as any[])
 }
 
-export function toDict(): Pipe<any[], any> {
+export function toDict<T extends object>(): Pipe<T[], Record<string, T>> {
   return async list => list.reduce((acc, item) => {
-    acc[item._id] = omit(item, ['_id']);
+    acc[(item as any)._id] = omit(item, ['_id']);
     return acc;
-  }, {})
+  }, {} as any)
 }
 
 export const dict = () => ({ input: toList(), output: toDict() }) as IOGate<Pipe>;
