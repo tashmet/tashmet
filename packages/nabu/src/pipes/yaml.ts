@@ -1,4 +1,4 @@
-import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@ziqquratu/pipe';
 import {omit} from 'lodash';
 
 import jsYaml = require('js-yaml');
@@ -113,7 +113,7 @@ const defaultOptions: YamlConfig = {
  * 
  * @param buffer Buffer containing raw YAML data
  */
-export const fromYamlr: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
+export const fromYaml: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
   const cfg = Object.assign({}, defaultOptions, config)
 
   return async buffer => {
@@ -139,7 +139,7 @@ export const fromYamlr: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
  * 
  * @param buffer Buffer containing raw YAML data
  */
-export const toYamlr: (config?: YamlConfig) => Pipe<any, Buffer> = config => {
+export const toYaml: (config?: YamlConfig) => Pipe<any, Buffer> = config => {
   const cfg = Object.assign({}, defaultOptions, config);
 
   return async data => {
@@ -158,4 +158,3 @@ export const toYamlr: (config?: YamlConfig) => Pipe<any, Buffer> = config => {
   };
 }
 
-export const yaml = (config?: YamlConfig): IOGate<Pipe> => ({input: fromYamlr(config), output: toYamlr(config)});

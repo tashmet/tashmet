@@ -1,7 +1,9 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
 import {File, FileAccess} from '../interfaces'
-import {pipe, Generator, toBufferedFile} from '../pipes';
+import * as Pipes from '../pipes';
+import {Generator} from '../generator';
+import {pipe} from '../transform';
 
 export interface FileStreamConfig {
   path: string;
@@ -20,7 +22,7 @@ export class FileStreamFactory extends BundleStreamFactory {
     const extractContent = pipe<File, any>(async file => file.content);
     const createFile = pipe<Buffer, File>(async buf => ({path, content: buf, isDir: false}));
 
-    const input = (gen: AsyncGenerator<File>) => Generator.pump<File, any>(gen, toBufferedFile(), extractContent);
+    const input = (gen: AsyncGenerator<File>) => Generator.pump<File, any>(gen, Pipes.File.read(), extractContent);
     const output = (gen: AsyncGenerator<any>) => Generator.pump<any, File>(gen, createFile);
 
     const watch = driver.watch(path);

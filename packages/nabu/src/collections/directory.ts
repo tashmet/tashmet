@@ -3,7 +3,9 @@ import {IOGate, Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, FileAccess} from '../interfaces'
-import {pipe, Generator, toBufferedFile, transformInput, filter, Transform, transformOutput} from '../pipes';
+import * as Pipes from '../pipes';
+import {Generator} from '../generator';
+import {pipe, transformInput, filter, Transform, transformOutput} from '../transform';
 
 export interface FileContentConfig {
   serializer?: IOGate<Pipe>;
@@ -39,7 +41,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
 
     if (content) {
       tIn.push(
-        toBufferedFile(),
+        Pipes.File.read(),
         filter<File>(async file => !file.isDir),
       );
       if (typeof content !== 'boolean' && content.serializer) {

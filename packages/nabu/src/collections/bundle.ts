@@ -3,7 +3,9 @@ import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqqur
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {difference, intersection, isEqual} from 'lodash';
 import {Buffer} from './buffer';
-import {dict, Generator, transformOutput, transformInput} from '../pipes';
+import {Generator} from '../generator';
+import {transformOutput, transformInput} from '../transform';
+import {dict} from '../gates';
 
 export interface BundleStreamConfig {
   /**
