@@ -18,7 +18,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@ziqquratu/nabu": "^1.2.0"
+  },
   "devDependencies": {
     "@types/reflect-metadata": "^0.1.0"
   },

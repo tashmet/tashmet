@@ -1,4 +1,5 @@
 import * as stream from 'stream';
+import {Generator} from '@ziqquratu/nabu';
 
 async function signalEnd(reader: stream.Readable) {
   return new Promise(resolve => {
@@ -16,7 +17,7 @@ export function makeGenerator<T>(
   readable: stream.Readable,
 ): AsyncGenerator<T, void, unknown> {
 
-  return (async function* genFn() {
+  async function* gen() {
     await signalReadable(readable);
     const endPromise = signalEnd(readable);
 
@@ -27,7 +28,8 @@ export function makeGenerator<T>(
       } 
       await Promise.race([endPromise, signalReadable(readable)]);
     }
-  })();
+  }
+  return new Generator(gen());
 }
 
 export function makeStream<T>(generator: AsyncGenerator): stream.Readable {
