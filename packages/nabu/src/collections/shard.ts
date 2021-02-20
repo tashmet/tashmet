@@ -1,7 +1,7 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
 import {Buffer} from './buffer';
-import {generateMany} from '../pipes';
+import {Generator} from '../pipes';
 
 export interface ShardStreamConfig {
   /**
@@ -51,7 +51,7 @@ class ShardBuffer extends Buffer {
   }
 
   protected write(affectedDocs: any[], deletion: boolean): Promise<void> {
-    return this.output(generateMany(affectedDocs), deletion);
+    return this.output(Generator.fromMany(affectedDocs), deletion);
   }
 }
 

@@ -3,7 +3,7 @@ import {IOGate, Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, FileAccess} from '../interfaces'
-import {pipe, pump, toBufferedFile, transformInput, filter, Transform, transformOutput} from '../pipes';
+import {pipe, Generator, toBufferedFile, transformInput, filter, Transform, transformOutput} from '../pipes';
 
 export interface FileContentConfig {
   serializer?: IOGate<Pipe>;
@@ -62,8 +62,8 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
       }
     }
 
-    const input = (gen: AsyncGenerator<File>) => pump<File, any>(gen, ...tIn);
-    const output = (gen: AsyncGenerator<any>) => pump<any, File>(gen, ...tOut);
+    const input = (gen: AsyncGenerator<File>) => Generator.pump<File, any>(gen, ...tIn);
+    const output = (gen: AsyncGenerator<any>) => Generator.pump<any, File>(gen, ...tOut);
 
     const watch = driver.watch(glob);
     const watchDelete = driver.watch(glob, true);
