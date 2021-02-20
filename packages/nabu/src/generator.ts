@@ -2,7 +2,7 @@ import {AsyncFactory} from '@ziqquratu/core';
 import {Cursor} from '@ziqquratu/database';
 import {Pipe} from '@ziqquratu/pipe';
 import {File, FileAccess} from './interfaces';
-import {Transform, pipe, FilterTransform, ArrayBundleTransform} from './transform';
+import {Transform, pipe, FilterTransform, Reducer} from './transform';
 
 export class Generator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
   public [Symbol.asyncIterator]: any;
@@ -72,8 +72,15 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
     return new Generator<Out>(t.apply(this as any));
   }
 
+  public reduce<Out>(fn: (acc: Out, value: T) => Out, initial: Out): Generator<Out> {
+    return this.pipe(new Reducer(fn, initial));
+  }
+
   public collect() {
-    return this.pipe(new ArrayBundleTransform<T>());
+    return this.reduce<T[]>((acc, value) => {
+      acc.push(value);
+      return acc;
+    }, []);
   }
 
   public filter(test: Pipe<T, boolean>) {

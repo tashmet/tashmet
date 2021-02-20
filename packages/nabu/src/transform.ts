@@ -36,14 +36,21 @@ export class FilterTransform<T> extends Transform<T> {
   }
 }
 
-export class ArrayBundleTransform<T> extends Transform<T, T[]> {
-  public apply(source: AsyncGenerator<T>) {
+export class Reducer<In, Out> extends Transform<In, Out> {
+  public constructor(
+    private reduce: (acc: Out, value: In) => Out,
+    private initial: Out,
+  ) { super(); }
+
+  public apply(source: AsyncGenerator<In>) {
+    const { initial, reduce } = this;
+
     async function* gen() {
-      const list: T[] = []
+      let acc: Out = initial;
       for await (const data of source) {
-        list.push(data);
+        acc = reduce(acc, data);
       }
-      yield list;
+      yield acc;
     }
     return gen();
   }
@@ -76,4 +83,6 @@ export const transformOutput = (transforms: IOGate<Pipe>[], key?: string): Trans
 
 export function filter<T>(test: Pipe<T, boolean>) { return new FilterTransform<T>(test); }
 
-export function toArrayBundle<T>() { return new ArrayBundleTransform<T>(); }
+export function reduce<In, Out>(fn: (acc: Out, value: In) => Out, initial: Out) {
+  return new Reducer<In, Out>(fn, initial);
+}
