@@ -76,15 +76,11 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
 
 export class FileGenerator<T, TReturn = any, TNext = any> extends Generator<File<T>, TReturn, TNext> {
   public read() {
-    return new FileGenerator(this.pipe(toBufferedFile()));
+    return new BufferedFileGenerator(this.pipe(toBufferedFile()));
   }
 
   public write(protocol: AsyncFactory<FileAccess>) {
     return this.sink(toFileSystem(protocol));
-  }
-
-  public parse<Out = any>(serializer: IOGate<Pipe>) {
-    return new FileGenerator(this.pipe<File<Out>>(transformInput([serializer], 'content')));
   }
 
   public serialize(serializer: IOGate<Pipe>) {
@@ -103,5 +99,13 @@ export class FileGenerator<T, TReturn = any, TNext = any> extends Generator<File
       }
     }
     return new FileGenerator(gen());
+  }
+}
+
+export class BufferedFileGenerator<TReturn = any, TNext = any>
+  extends FileGenerator<Buffer, TReturn, TNext>
+{
+  public parse<Out = any>(serializer: IOGate<Pipe>) {
+    return new FileGenerator(this.pipe<File<Out>>(transformInput([serializer], 'content')));
   }
 }
