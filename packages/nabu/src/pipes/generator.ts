@@ -5,7 +5,7 @@ import {File, FileAccess} from '../interfaces';
 import {toBufferedFile, toFile, toFileSystem} from './file';
 import {Transform, pipe, FilterTransform, transformInput, transformOutput} from './transform';
 
-export class Generator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
+export class BaseGenerator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
   public [Symbol.asyncIterator]: any;
   public next: (...args: [] | [TNext]) => Promise<IteratorResult<T, TReturn>>;
   public return: any;
@@ -18,6 +18,23 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
     this[Symbol.asyncIterator] = gen[Symbol.asyncIterator];
   }
 
+  public pipe<Out>(t: Transform<T, Out> | Pipe<T, Out>): BaseGenerator<Out> {
+    if (!(t instanceof Transform)) {
+      t = pipe(t);
+    }
+    return new BaseGenerator<Out>(t.apply(this as any));
+  }
+
+  public filter(test: Pipe<T, boolean>) {
+    return this.pipe(new FilterTransform(test));
+  }
+
+  public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
+    return writable(this);
+  }
+}
+
+export class Generator<T = unknown, TReturn = any, TNext = unknown> extends BaseGenerator<T, TReturn, TNext> {
   public static fromCursor<T>(cursor: Cursor<T>) {
     async function *cursorGenerator() {
       while (await cursor.hasNext()) {
@@ -54,37 +71,20 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
     return new Generator(input as AsyncGenerator<Out>);
   }
 
-  public pipe<Out>(t: Transform<T, Out> | Pipe<T, Out>): Generator<Out> {
-    if (!(t instanceof Transform)) {
-      t = pipe(t);
-    }
-    return new Generator<Out>(t.apply(this as any));
-  }
-
-  public filter(test: Pipe<T, boolean>) {
-    return this.pipe(new FilterTransform(test));
-  }
-
   public toFile(path: string) {
     return new FileGenerator(this.pipe(toFile(path)));
   }
-
-  public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
-    return writable(this);
-  }
 }
 
-export class FileGenerator<T, TReturn = any, TNext = any> extends Generator<File<T>, TReturn, TNext> {
+export class FileGenerator<T, TReturn = any, TNext = any> extends BaseGenerator<File<T>, TReturn, TNext> {
   public read() {
     return new BufferedFileGenerator(this.pipe(toBufferedFile()));
   }
 
-  public write(protocol: AsyncFactory<FileAccess>) {
-    return this.sink(toFileSystem(protocol));
-  }
-
-  public serialize(serializer: IOGate<Pipe>) {
-    return new FileGenerator(this.pipe<File<Buffer>>(transformOutput([serializer], 'content')));
+  public rename(path: string | ((file: File) => string)): this {
+    return new (this.constructor as any)(
+      this.pipe(async file => ({...file, path: typeof path === 'string' ? path : path(file)}))
+    );
   }
 
   public content() {
@@ -106,6 +106,18 @@ export class BufferedFileGenerator<TReturn = any, TNext = any>
   extends FileGenerator<Buffer, TReturn, TNext>
 {
   public parse<Out = any>(serializer: IOGate<Pipe>) {
-    return new FileGenerator(this.pipe<File<Out>>(transformInput([serializer], 'content')));
+    return new ParsedFileGenerator(this.pipe<File<Out>>(transformInput([serializer], 'content')));
+  }
+
+  public write(protocol: AsyncFactory<FileAccess>) {
+    return this.sink(toFileSystem(protocol));
+  }
+}
+
+export class ParsedFileGenerator<T, TReturn = any, TNext = any>
+  extends FileGenerator<T, TReturn, TNext>
+{
+  public serialize(serializer: IOGate<Pipe>) {
+    return new BufferedFileGenerator(this.pipe<File<Buffer>>(transformOutput([serializer], 'content')));
   }
 }
