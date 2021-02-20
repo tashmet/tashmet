@@ -1,45 +1,47 @@
 import * as stream from 'stream';
-import {Generator} from '@ziqquratu/nabu';
+import {Generator, GeneratorSink} from '@ziqquratu/nabu';
 
-async function signalEnd(reader: stream.Readable) {
+type Readable = stream.Readable | NodeJS.ReadStream | NodeJS.ReadWriteStream;
+type Writable = stream.Writable | NodeJS.WriteStream | NodeJS.ReadWriteStream;
+
+async function signalEnd(reader: stream.Readable | NodeJS.ReadWriteStream) {
   return new Promise(resolve => {
     reader.once("end", resolve);
   });
 }
 
-async function signalReadable(reader: stream.Readable) {
+async function signalReadable(reader: Readable) {
   return new Promise(resolve => {
     reader.once("readable", resolve);
   });
 }
 
-export function makeGenerator<T>(
-  readable: stream.Readable,
-): AsyncGenerator<T, void, unknown> {
+export class Stream {
+  public static toGenerator<T>(readable: Readable) {
+    async function* gen() {
+      await signalReadable(readable);
+      const endPromise = signalEnd(readable);
 
-  async function* gen() {
-    await signalReadable(readable);
-    const endPromise = signalEnd(readable);
-
-    while (readable.readable) {
-      let chunk;
-      while (null !== (chunk = readable.read())) { 
-        yield chunk;
-      } 
-      await Promise.race([endPromise, signalReadable(readable)]);
+      while (readable.readable) {
+        let chunk;
+        while (null !== (chunk = readable.read())) {
+          yield chunk;
+        }
+        await Promise.race([endPromise, signalReadable(readable)]);
+      }
     }
+    return new Generator<T>(gen());
   }
-  return new Generator(gen());
-}
 
-export function makeStream<T>(generator: AsyncGenerator): stream.Readable {
-  return stream.Readable.from(generator);
-}
+  public static fromGenerator<T>(generator: AsyncGenerator): stream.Readable {
+    return stream.Readable.from(generator);
+  }
 
-export function writeToStream(src: AsyncGenerator, dest: stream.Writable): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    makeStream(src).pipe(dest)
-      .on('finish', resolve)
-      .on('error', reject);
-  });
+  public static toSink<T = any, TReturn = any>(dest: Writable): GeneratorSink<T, TReturn> {
+    return generator => new Promise<TReturn>((resolve, reject) => {
+      Stream.fromGenerator(generator).pipe(dest)
+        .on('finish', resolve)
+        .on('error', reject);
+    });
+  }
 }
