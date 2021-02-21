@@ -1,12 +1,12 @@
 import {bootstrap, component, Provider, Collection, DatabaseConfig, Database} from '@ziqquratu/ziqquratu';
-import {bundle, json} from '@ziqquratu/nabu';
+import {file, json} from '@ziqquratu/nabu';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
-import {fsFile} from '../../dist';
+import {vinylfs} from '../../dist';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -26,10 +26,11 @@ describe('file', () => {
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
           'test': {
-            source: bundle({
+            source: file({
+              driver: vinylfs(),
+              path: 'test/e2e/testCollection.json',
               serializer: json(),
               dictionary: true,
-              stream: fsFile({path: 'test/e2e/testCollection.json'}),
             })
           }
         },

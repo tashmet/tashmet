@@ -1,6 +1,6 @@
 import {bootstrap, component, Provider, Collection, DatabaseConfig, Database} from '@ziqquratu/ziqquratu';
-import {shards, json} from '@ziqquratu/nabu';
-import {fsDirectory} from '../../dist';
+import {directory, json} from '@ziqquratu/nabu';
+import {vinylfs} from '../../dist';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -26,13 +26,14 @@ describe('directory', () => {
       Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
         collections: {
           'test': {
-            source: shards({
-              serializer: json(),
-              stream: fsDirectory({
-                path: 'test/e2e/testCollection',
-                extension: 'json',
-                create: true,
-              })
+            source: directory({
+              driver: vinylfs(),
+              path: 'test/e2e/testCollection',
+              extension: 'json',
+              content: {
+                serializer: json(),
+                extract: true,
+              }
             })
           }
         },
