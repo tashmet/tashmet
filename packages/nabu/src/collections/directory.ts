@@ -43,7 +43,9 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
       let gen = new Generator(source);
 
       if (content) {
-        gen = gen.filter(async file => !file.isDir).pipe(Pipes.File.read());
+        gen = gen
+          .filter(async file => !file.isDir)
+          .pipe(Pipes.File.read());
 
         if (typeof content !== 'boolean' && content.serializer) {
           gen = gen
@@ -62,6 +64,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
       if (content && typeof content !== 'boolean' && content.serializer) {
         gen = gen
           .pipe(content.extract ? Pipes.File.create(resolvePath) : Pipes.identity())
+          .pipe(Pipes.onKey('content', Pipes.omitKeys('_id')))
           .pipe(content.beforeSerialize || Pipes.identity())
           .pipe(Pipes.File.serialize(content.serializer));
       }
