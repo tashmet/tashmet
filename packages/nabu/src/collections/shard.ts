@@ -55,7 +55,7 @@ class ShardBuffer extends BufferCollection {
   }
 }
 
-export class ShardBufferFactory extends CollectionFactory {
+export class ShardBufferFactory<T> extends CollectionFactory<T> {
   public constructor(private config: ShardBufferConfig) {super()}
 
   public async create(name: string, database: Database) {
@@ -81,4 +81,6 @@ export class ShardBufferFactory extends CollectionFactory {
 /**
  * A buffered collection based on documents in multiple locations
  */
-export const shards = (config: ShardBufferConfig) => new ShardBufferFactory(config);
+export function shards<T = any>(config: ShardBufferConfig) {
+  return new ShardBufferFactory<T>(config);
+}

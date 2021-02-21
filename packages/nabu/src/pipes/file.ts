@@ -51,7 +51,7 @@ export function write(protocol: AsyncFactory<FileAccess>): GeneratorSink<File<Bu
  * @param serializer
  */
 export function parse<T = any>(serializer: IOGate<Pipe>): Pipe<File<Buffer>, File<T>> {
-  return onKey('content', input(serializer));
+  return onKey('content', input<Buffer, T>(serializer));
 }
 
 /**
@@ -63,7 +63,7 @@ export function parse<T = any>(serializer: IOGate<Pipe>): Pipe<File<Buffer>, Fil
  * @param serializer
  */
 export function serialize<T>(serializer: IOGate<Pipe>): Pipe<File<T>, File<Buffer>> {
-  return onKey('content', output(serializer))
+  return onKey('content', output<T, Buffer>(serializer))
 }
 
 /**

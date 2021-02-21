@@ -6,24 +6,28 @@ import {File, FileAccess} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
-export interface FileContentConfig {
+export interface FileContentConfig<T> {
   serializer?: IOGate<Pipe>;
 
   extract?: boolean;
+
+  afterParse?: Pipe<File<T>>;
+
+  beforeSerialize?: Pipe<File<T>>;
 }
 
-export interface DirectoryConfig {
+export interface DirectoryConfig<T> {
   path: string;
 
   extension: string;
 
   driver: AsyncFactory<FileAccess>;
 
-  content?: FileContentConfig | boolean;
+  content?: FileContentConfig<T> | boolean;
 }
 
 export class DirectoryStreamFactory extends ShardStreamFactory {
-  public constructor(private config: DirectoryConfig) {
+  public constructor(private config: DirectoryConfig<any>) {
     super()
   }
 
@@ -42,13 +46,11 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
         gen = gen.filter(async file => !file.isDir).pipe(Pipes.File.read());
 
         if (typeof content !== 'boolean' && content.serializer) {
-          gen = gen.pipe(Pipes.File.parse(content.serializer));
-
-          if (content.extract) {
-            gen = gen
-              .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
-              .pipe(Pipes.File.content())
-          }
+          gen = gen
+            .pipe(Pipes.File.parse(content.serializer))
+            .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
+            .pipe(content.afterParse || Pipes.identity())
+            .pipe(content.extract ? Pipes.File.content() : Pipes.identity())
         }
       }
       return gen;
@@ -58,11 +60,10 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
       let gen = new Generator(source);
 
       if (content && typeof content !== 'boolean' && content.serializer) {
-        if (content.extract){
-          gen = gen.pipe(Pipes.File.create(resolvePath));
-        }
-
-        gen = gen.pipe(Pipes.File.serialize(content.serializer));
+        gen = gen
+          .pipe(content.extract ? Pipes.File.create(resolvePath) : Pipes.identity())
+          .pipe(content.beforeSerialize || Pipes.identity())
+          .pipe(Pipes.File.serialize(content.serializer));
       }
       return gen;
     }
@@ -86,6 +87,8 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
   }
 }
 
-export const directory = (config: DirectoryConfig) => shards({
-  stream: new DirectoryStreamFactory(config)
-});
+export function directory<T = any>(config: DirectoryConfig<T>) {
+  return shards<T>({
+    stream: new DirectoryStreamFactory(config)
+  });
+}
