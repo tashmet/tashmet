@@ -1,11 +1,8 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
-import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {difference, intersection, isEqual} from 'lodash';
 import {BufferCollection} from './buffer';
 import {Generator} from '../generator';
-import * as Pipes from '../pipes';
-import {dict} from '../gates';
 
 export interface BundleStreamConfig<T> {
   /**
@@ -23,22 +20,7 @@ export abstract class BundleStreamFactory<T> extends AsyncFactory<BundleStreamCo
 }
 
 export interface BundleConfig {
-  /**
-   * A serializer that will parse and serialize incoming and outgoing data.
-   */
-  serializer?: IOGate<Pipe>;
-
-  /**
-   * Stream the collection as a dictionary instead of a list
-   * 
-   * If set the collection will be streamed as a dictionary with keys
-   * being the IDs of each document.
-   * 
-   * @default false
-   */
-  dictionary?: boolean;
-
-  stream: BundleStreamFactory<Buffer>;
+  stream: BundleStreamFactory<any[]>;
 }
 
 export class BundleBuffer extends BufferCollection {
@@ -95,29 +77,17 @@ export class BundleBufferFactory extends CollectionFactory {
   public constructor(private config: BundleConfig) {super()}
 
   public async create(name: string, database: Database) {
-    const {serializer, dictionary, stream} = this.config;
-    const transforms: IOGate<Pipe>[] = [];
-
-    if (serializer) {
-      transforms.push(serializer);
-    }
-
-    if (dictionary) {
-      transforms.push(dict());
-    }
-
-    const tIn = Pipes.input(...transforms);
-    const tOut = Pipes.output(...transforms);
+    const {stream} = this.config;
 
     const {seed, input, output} = await stream.create();
     const cache = new MemoryCollection(name, database, {disableEvents: true});
-    const buffer = new BundleBuffer(out => output(Generator.pump(out, tOut)), cache);
+    const buffer = new BundleBuffer(output, cache);
 
     if (seed) {
-      await buffer.populate(Generator.pump(seed, tIn));
+      await buffer.populate(seed);
     }
     if (input) {
-      buffer.listen(Generator.pump(input, tIn));
+      buffer.listen(input);
     }
     return buffer;
   }

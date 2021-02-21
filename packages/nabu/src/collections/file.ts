@@ -1,29 +1,50 @@
 import {AsyncFactory} from '@ziqquratu/core';
-import {BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
+import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
 import {File, FileAccess} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
+import {IOGate, Pipe} from '@ziqquratu/pipe';
 
-export interface FileStreamConfig {
+export interface FileConfig {
   path: string;
+
+  /**
+   * A serializer that will parse and serialize incoming and outgoing data.
+   */
+  serializer: IOGate<Pipe>;
+
+  /**
+   * Stream the collection as a dictionary instead of a list
+   * 
+   * If set the collection will be streamed as a dictionary with keys
+   * being the IDs of each document.
+   * 
+   * @default false
+   */
+  dictionary?: boolean;
 
   driver: AsyncFactory<FileAccess>;
 }
 
-export class FileStreamFactory extends BundleStreamFactory<Buffer> {
-  public constructor(private config: FileStreamConfig) {
+export class FileStreamFactory extends BundleStreamFactory<any> {
+  public constructor(private config: FileConfig) {
     super()
   }
 
-  public async create(): Promise<BundleStreamConfig<Buffer>> {
-    const {path} = this.config;
+  public async create(): Promise<BundleStreamConfig<any>> {
+    const {path, serializer, dictionary} = this.config;
     const driver = await this.config.driver.create();
 
-    const input = (gen: AsyncGenerator<File>) => new Generator(gen)
+    const input = (source: AsyncGenerator<File>) => new Generator(source)
       .pipe(Pipes.File.read())
-      .pipe(Pipes.File.content());
-    const output = (gen: AsyncGenerator<any>) => new Generator(gen)
-      .pipe(Pipes.File.create(path));
+      .pipe(Pipes.File.parse(serializer))
+      .pipe(Pipes.File.content())
+      .pipe(Pipes.conditional(dictionary !== undefined, Pipes.toList()))
+
+    const output = (source: AsyncGenerator<any>) => new Generator(source)
+      .pipe(Pipes.conditional(dictionary !== undefined, Pipes.toDict()))
+      .pipe(Pipes.File.create(path))
+      .pipe(Pipes.File.serialize(serializer));
 
     const watch = driver.watch(path);
 
@@ -35,5 +56,6 @@ export class FileStreamFactory extends BundleStreamFactory<Buffer> {
   }
 }
 
-export const file = (config: FileStreamConfig) => 
-  new FileStreamFactory(config);
+export const file = (config: FileConfig) => bundle({
+  stream: new FileStreamFactory(config)
+});

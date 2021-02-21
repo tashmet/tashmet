@@ -15,10 +15,17 @@ export const onKey = (key: string, ...pipes: Pipe[]) => {
 
 export const input = (...transforms: IOGate<Pipe>[]): Pipe => {
   return chain(transforms.map(t => t.input));
-  //return pipe(key ? onKey(key, p) : p);
 }
 
 export const output = (...transforms: IOGate<Pipe>[]): Pipe => {
   return chain(transforms.map(t => t.output).reverse());
-  //return pipe(key ? onKey(key, p) : p);
+}
+
+export function conditional<In, Out>(condition: boolean, pipe: Pipe<In, Out>): Pipe<In, In | Out> {
+  return async data => {
+    if (condition) {
+      return pipe(data);
+    }
+    return data;
+  }
 }
