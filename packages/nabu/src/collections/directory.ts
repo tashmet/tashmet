@@ -1,7 +1,7 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
-import {ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
+import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, FileAccess} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
@@ -12,7 +12,7 @@ export interface FileContentConfig {
   extract?: boolean;
 }
 
-export interface DirectoryStreamConfig {
+export interface DirectoryConfig {
   path: string;
 
   extension: string;
@@ -23,7 +23,7 @@ export interface DirectoryStreamConfig {
 }
 
 export class DirectoryStreamFactory extends ShardStreamFactory {
-  public constructor(private config: DirectoryStreamConfig) {
+  public constructor(private config: DirectoryConfig) {
     super()
   }
 
@@ -86,5 +86,6 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
   }
 }
 
-export const directory = (config: DirectoryStreamConfig) => 
-  new DirectoryStreamFactory(config);
+export const directory = (config: DirectoryConfig) => shards({
+  stream: new DirectoryStreamFactory(config)
+});
