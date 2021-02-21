@@ -5,7 +5,6 @@ import {ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, FileAccess} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
-import {transformInput, transformOutput} from '../transform';
 
 export interface FileContentConfig {
   serializer?: IOGate<Pipe>;
@@ -43,7 +42,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
         gen = gen.filter(async file => !file.isDir).pipe(Pipes.File.read());
 
         if (typeof content !== 'boolean' && content.serializer) {
-          gen = gen.pipe(transformInput([content.serializer], 'content'));
+          gen = gen.pipe(Pipes.File.parse(content.serializer));
 
           if (content.extract) {
             gen = gen
@@ -63,7 +62,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
           gen = gen.pipe(Pipes.File.create(resolvePath));
         }
 
-        gen = gen.pipe(transformOutput([content.serializer], 'content'));
+        gen = gen.pipe(Pipes.File.serialize(content.serializer));
       }
       return gen;
     }

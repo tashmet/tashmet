@@ -1,7 +1,8 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {File, FileAccess, GeneratorSink} from '../interfaces';
-import {pipe, Transform, transformInput, transformOutput} from '../transform';
+import {pipe, Transform} from '../transform';
+import {input, onKey, output} from './common';
 
 export function read<T>(): Transform<File<T>, File<Buffer>> {
   return pipe<File>(async file => {
@@ -30,11 +31,11 @@ export function write(protocol: AsyncFactory<FileAccess>): GeneratorSink<File, v
 }
 
 export function parse<T = any>(serializer: IOGate<Pipe>): Transform<File<Buffer>, File<T>> {
-  return transformInput([serializer], 'content');
+  return onKey('content', input(serializer));
 }
 
 export function serialize<T>(serializer: IOGate<Pipe>): Transform<File<T>, File<Buffer>> {
-  return transformOutput([serializer], 'content');
+  return onKey('content', output(serializer))
 }
 
 export function rename<T>(path: string | ((file: File) => string)): Pipe<File<T>> {

@@ -4,7 +4,7 @@ import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {difference, intersection, isEqual} from 'lodash';
 import {BufferCollection} from './buffer';
 import {Generator} from '../generator';
-import {transformOutput, transformInput} from '../transform';
+import * as Pipes from '../pipes';
 import {dict} from '../gates';
 
 export interface BundleStreamConfig<T> {
@@ -106,8 +106,8 @@ export class BundleBufferFactory extends CollectionFactory {
       transforms.push(dict());
     }
 
-    const tIn = transformInput(transforms);
-    const tOut = transformOutput(transforms);
+    const tIn = Pipes.input(...transforms);
+    const tOut = Pipes.output(...transforms);
 
     const {seed, input, output} = await stream.create();
     const cache = new MemoryCollection(name, database, {disableEvents: true});
