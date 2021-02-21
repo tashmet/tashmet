@@ -2,24 +2,24 @@ import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {difference, intersection, isEqual} from 'lodash';
-import {Buffer} from './buffer';
+import {BufferCollection} from './buffer';
 import {Generator} from '../generator';
 import {transformOutput, transformInput} from '../transform';
 import {dict} from '../gates';
 
-export interface BundleStreamConfig {
+export interface BundleStreamConfig<T> {
   /**
    * Input/Output stream
    */
-  seed?: AsyncGenerator<any[]>;
+  seed?: AsyncGenerator<T>;
   
-  input?: AsyncGenerator<any[]>;
+  input?: AsyncGenerator<T>;
 
-  output: (source: AsyncGenerator<any[]>) => Promise<void>;
+  output: (source: AsyncGenerator<T>) => Promise<void>;
 }
 
-export abstract class BundleStreamFactory extends AsyncFactory<BundleStreamConfig> {
-  public abstract create(): Promise<BundleStreamConfig>;
+export abstract class BundleStreamFactory<T> extends AsyncFactory<BundleStreamConfig<T>> {
+  public abstract create(): Promise<BundleStreamConfig<T>>;
 }
 
 export interface BundleConfig {
@@ -38,10 +38,10 @@ export interface BundleConfig {
    */
   dictionary?: boolean;
 
-  stream: BundleStreamFactory;
+  stream: BundleStreamFactory<Buffer>;
 }
 
-export class BundleBuffer extends Buffer {
+export class BundleBuffer extends BufferCollection {
   public constructor(
     protected output: (source: AsyncGenerator) => Promise<void>,
     cache: Collection,

@@ -1,7 +1,7 @@
 import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions} from '@ziqquratu/database';
 import {EventEmitter} from 'eventemitter3';
 
-export abstract class Buffer extends EventEmitter implements Collection {
+export abstract class BufferCollection extends EventEmitter implements Collection {
   public constructor(
     protected cache: Collection,
   ) {

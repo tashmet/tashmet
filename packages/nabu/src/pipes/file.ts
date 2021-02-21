@@ -44,3 +44,9 @@ export function rename<T>(path: string | ((file: File) => string)): Pipe<File<T>
 export function content<T>(): Pipe<File<T>, T> {
   return async file => file.content;
 }
+
+export function assignContent<In extends object, T extends object>(
+  content: (file: File<In>) => T): Pipe<File<In>, File<In & T>>
+{
+  return async file => ({...file, content: Object.assign({}, file.content, content(file))});
+}

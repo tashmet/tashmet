@@ -1,6 +1,6 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
-import {Buffer} from './buffer';
+import {BufferCollection} from './buffer';
 import {Generator} from '../generator';
 
 export interface ShardStreamConfig {
@@ -24,7 +24,7 @@ export interface ShardBufferConfig {
   stream: ShardStreamFactory;
 }
 
-class ShardBuffer extends Buffer {
+class ShardBuffer extends BufferCollection {
   public constructor(
     private output: (source: AsyncGenerator<any>, deletion: boolean) => Promise<void>,
     cache: Collection,

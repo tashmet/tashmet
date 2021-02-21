@@ -5,7 +5,7 @@ import {ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, FileAccess} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
-import {pipe, transformInput, filter, Transform, transformOutput} from '../transform';
+import {transformInput, transformOutput} from '../transform';
 
 export interface FileContentConfig {
   serializer?: IOGate<Pipe>;
@@ -32,40 +32,41 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
     const {path, content, extension} = this.config;
     const driver = await this.config.driver.create();
     const fileName = (doc: any) => `${doc._id}.${extension}`;
-    const resolveId = ((file: File) => nodePath.basename(file.path).split('.')[0])
-    const resolvePath = ((doc: any) => nodePath.join(path, fileName(doc)));
+    const resolveId = (file: File) => nodePath.basename(file.path).split('.')[0];
+    const resolvePath = (doc: any) => nodePath.join(path, fileName(doc));
     const glob = `${path}/*.${extension}`;
 
-    const tIn: Transform[] = [];
-    const tOut: Transform[] = [];
+    const input = (source: AsyncGenerator<File>) => {
+      let gen = new Generator(source);
 
-    if (content) {
-      tIn.push(
-        Pipes.File.read(),
-        filter<File>(async file => !file.isDir),
-      );
-      if (typeof content !== 'boolean' && content.serializer) {
-        tIn.push(transformInput([content.serializer], 'content'));
+      if (content) {
+        gen = gen.filter(async file => !file.isDir).pipe(Pipes.File.read());
 
-        if (content.extract) {
-          tIn.push(
-            pipe<File>(async file => {
-              return resolveId
-                ? {...file, content: Object.assign({}, file.content, {_id: resolveId(file)})}
-                : file;
-            }),
-            pipe<File>(async file => file.content),
-          );
-          tOut.push(
-            pipe<any, File>(async doc => ({path: resolvePath(doc), content: doc, isDir: false})),
-          )
+        if (typeof content !== 'boolean' && content.serializer) {
+          gen = gen.pipe(transformInput([content.serializer], 'content'));
+
+          if (content.extract) {
+            gen = gen
+              .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
+              .pipe(Pipes.File.content())
+          }
         }
-        tOut.push(transformOutput([content.serializer], 'content'));
       }
+      return gen;
     }
 
-    const input = (gen: AsyncGenerator<File>) => Generator.pump<File, any>(gen, ...tIn);
-    const output = (gen: AsyncGenerator<any>) => Generator.pump<any, File>(gen, ...tOut);
+    const output = (source: AsyncGenerator<any>) => {
+      let gen = new Generator(source);
+
+      if (content && typeof content !== 'boolean' && content.serializer) {
+        if (content.extract){
+          gen = gen.pipe(Pipes.File.create(resolvePath));
+        }
+
+        gen = gen.pipe(transformOutput([content.serializer], 'content'));
+      }
+      return gen;
+    }
 
     const watch = driver.watch(glob);
     const watchDelete = driver.watch(glob, true);
