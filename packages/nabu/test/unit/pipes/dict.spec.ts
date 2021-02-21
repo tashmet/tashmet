@@ -13,7 +13,7 @@ describe('dict', () => {
         doc1: {title: 'foo'},
         doc2: {title: 'bar'},
       };
-      return toList(dict).then(list => {
+      return toList()(dict).then(list => {
         expect(list).to.eql([
           {_id: 'doc1', title: 'foo'},
           {_id: 'doc2', title: 'bar'}
@@ -22,7 +22,7 @@ describe('dict', () => {
     });
 
     it('should do nothing given a list', () => {
-      return toList([{_id: 'doc1'}]).then(list => {
+      return toList()([{_id: 'doc1'}] as any).then(list => {
         expect(list).to.eql([{_id: 'doc1'}]);
       })
     });
@@ -34,7 +34,7 @@ describe('dict', () => {
         {_id: 'doc1', title: 'foo'},
         {_id: 'doc2', title: 'bar'},
       ];
-      return toDict(list).then(dict => {
+      return toDict()(list).then(dict => {
         expect(dict).to.eql({
           doc1: {title: 'foo'},
           doc2: {title: 'bar'},

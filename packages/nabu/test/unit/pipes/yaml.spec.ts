@@ -1,4 +1,4 @@
-import {fromYamlr, toYamlr} from '../../../src/pipes/yaml';
+import {fromYaml, toYaml} from '../../../src/pipes/yaml';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -10,7 +10,7 @@ chai.use(chaiAsPromised);
 describe('yaml', () => {
   describe('deserialize', () => {
     it('should provide a plain object for valid yaml', () => {
-      const parse = fromYamlr();
+      const parse = fromYaml();
       const yaml = dedent`
         title: foo
         list:
@@ -23,7 +23,7 @@ describe('yaml', () => {
     });
 
     it('should reject promise with error for invalid yaml', () => {
-      const parse = fromYamlr()
+      const parse = fromYaml()
       const yaml = dedent`
         foo: *unknownAlias
       `;
@@ -31,7 +31,7 @@ describe('yaml', () => {
     });
 
     it('should handle yaml front matter', () => {
-      const parse = fromYamlr({frontMatter: true});
+      const parse = fromYaml({frontMatter: true});
       const yaml = dedent`
         ---
         title: foo
@@ -44,7 +44,7 @@ describe('yaml', () => {
     });
 
     it('should store content under custom key', () => {
-      const parse = fromYamlr({frontMatter: true, contentKey: 'text'});
+      const parse = fromYaml({frontMatter: true, contentKey: 'text'});
       const yaml = dedent`
         ---
         title: foo
@@ -59,7 +59,7 @@ describe('yaml', () => {
 
   describe('serialize', () => {
     it('should provide yaml data for a plain object', () => {
-      const serialize = toYamlr();
+      const serialize = toYaml();
       const plain = {title: 'foo', list: ['item1', 'item2']};
       const expected = dedent`
         title: foo
@@ -73,7 +73,7 @@ describe('yaml', () => {
     });
 
     it('should handle yaml front matter', () => {
-      const serialize = toYamlr({frontMatter: true});
+      const serialize = toYaml({frontMatter: true});
       const plain = {title: 'foo', _content: 'Content goes here'};
       const expected = dedent`
         ---
@@ -87,7 +87,7 @@ describe('yaml', () => {
     });
 
     it('should serialize content under custom key', () => {
-      const serialize = toYamlr({frontMatter: true, contentKey: 'text'});
+      const serialize = toYaml({frontMatter: true, contentKey: 'text'});
       const plain = {title: 'foo', text: 'Content goes here'};
       const expected = dedent`
         ---
