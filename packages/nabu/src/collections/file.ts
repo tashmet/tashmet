@@ -39,8 +39,10 @@ export class FileStreamFactory<T extends object> extends BundleStreamFactory<T> 
       .pipe(Pipes.File.parse(serializer))
       .pipe(Pipes.File.content())
       .pipe(dictionary ? Pipes.toList<T>() : Pipes.identity<T>())
+      .pipe(Pipes.disperse())
 
-    const output = (source: AsyncGenerator<T[]>) => new Generator(source)
+    const output = (source: AsyncGenerator<T>) => new Generator(source)
+      .pipe(Pipes.collect())
       .pipe(dictionary ? Pipes.toDict<T>() : Pipes.identity<T>())
       .pipe(Pipes.File.create(path))
       .pipe(Pipes.File.serialize(serializer));

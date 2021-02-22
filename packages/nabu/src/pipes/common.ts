@@ -1,5 +1,6 @@
 import {IOGate, Pipe} from '@ziqquratu/pipe';
 import {omit} from 'lodash';
+import {Disperser, FilterTransform, PipeTransform, Reducer} from '../transform';
 
 export const chain = (pipes: Pipe[]): Pipe => async (data: any) => {
   let res = data;
@@ -37,3 +38,20 @@ export function omitKeys<T extends object, K extends (string | number | symbol)[
 {
   return async obj => omit(obj, keys) as any;
 }
+
+export function pipe<In = any, Out = any>(pipe: Pipe<In, Out>) { return new PipeTransform(pipe); }
+
+export function filter<T>(test: Pipe<T, boolean>) { return new FilterTransform<T>(test); }
+
+export function reduce<In, Out>(fn: (acc: Out, value: In) => Out, initial: Out) {
+  return new Reducer<In, Out>(fn, initial);
+}
+
+export function collect<T>() {
+  return reduce<T, T[]>((acc, value) => {
+    acc.push(value);
+    return acc;
+  }, []);
+}
+
+export function disperse<T>() { return new Disperser<T>(); }

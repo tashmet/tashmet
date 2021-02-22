@@ -56,10 +56,15 @@ export class Reducer<In, Out> extends Transform<In, Out> {
   }
 }
 
-export function pipe<In = any, Out = any>(pipe: Pipe<In, Out>) { return new PipeTransform(pipe); }
-
-export function filter<T>(test: Pipe<T, boolean>) { return new FilterTransform<T>(test); }
-
-export function reduce<In, Out>(fn: (acc: Out, value: In) => Out, initial: Out) {
-  return new Reducer<In, Out>(fn, initial);
+export class Disperser<T> extends Transform<T[], T> {
+  public apply(source: AsyncGenerator<T[]>) {
+    async function* gen() {
+      for await (const data of source) {
+        for (const chunk of data) {
+          yield chunk;
+        }
+      }
+    }
+    return gen();
+  }
 }

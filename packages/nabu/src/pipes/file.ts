@@ -1,7 +1,8 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
 import {File, FileAccess, GeneratorSink, Serializer} from '../interfaces';
-import {pipe, Transform} from '../transform';
+import {pipe} from '../pipes';
+import {Transform} from '../transform';
 import {input, onKey, output} from './common';
 
 export function read<T>(): Transform<File<T>, File<Buffer>> {

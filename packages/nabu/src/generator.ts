@@ -1,8 +1,10 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Cursor} from '@ziqquratu/database';
 import {Pipe} from '@ziqquratu/pipe';
+import toArray from '@async-generators/to-array';
 import {File, FileAccess} from './interfaces';
-import {Transform, pipe, FilterTransform, Reducer} from './transform';
+import {Transform, FilterTransform, Reducer} from './transform';
+import {pipe} from './pipes';
 
 export class Generator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
   public [Symbol.asyncIterator]: any;
@@ -76,18 +78,15 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
     return this.pipe(new Reducer(fn, initial));
   }
 
-  public collect() {
-    return this.reduce<T[]>((acc, value) => {
-      acc.push(value);
-      return acc;
-    }, []);
-  }
-
   public filter(test: Pipe<T, boolean>) {
     return this.pipe(new FilterTransform(test));
   }
 
   public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
     return writable(this);
+  }
+
+  public toArray(): Promise<T[]> {
+    return toArray(this);
   }
 }
