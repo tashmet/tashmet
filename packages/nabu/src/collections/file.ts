@@ -1,16 +1,16 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
-import {File, FileAccess, Serializer} from '../interfaces'
+import {FileAccess, ReadableFile, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
-export interface FileConfig<T> {
+export interface FileConfig<T extends object> {
   path: string;
 
   /**
    * A serializer that will parse and serialize incoming and outgoing data.
    */
-  serializer: Serializer<T>;
+  serializer: Serializer<T[] | Record<string, T>>;
 
   /**
    * Stream the collection as a dictionary instead of a list
@@ -25,7 +25,7 @@ export interface FileConfig<T> {
   driver: AsyncFactory<FileAccess>;
 }
 
-export class FileStreamFactory<T> extends BundleStreamFactory<T> {
+export class FileStreamFactory<T extends object> extends BundleStreamFactory<T> {
   public constructor(private config: FileConfig<T>) {
     super()
   }
@@ -34,14 +34,14 @@ export class FileStreamFactory<T> extends BundleStreamFactory<T> {
     const {path, serializer, dictionary} = this.config;
     const driver = await this.config.driver.create();
 
-    const input = (source: AsyncGenerator<File>) => new Generator(source)
+    const input = (source: AsyncGenerator<ReadableFile>) => new Generator(source)
       .pipe(Pipes.File.read())
       .pipe(Pipes.File.parse(serializer))
       .pipe(Pipes.File.content())
       .pipe(dictionary ? Pipes.toList<T>() : Pipes.identity<T>())
 
-    const output = (source: AsyncGenerator<any>) => new Generator(source)
-      .pipe(dictionary ? Pipes.toDict() : Pipes.identity())
+    const output = (source: AsyncGenerator<T[]>) => new Generator(source)
+      .pipe(dictionary ? Pipes.toDict<T>() : Pipes.identity<T>())
       .pipe(Pipes.File.create(path))
       .pipe(Pipes.File.serialize(serializer));
 
@@ -55,7 +55,7 @@ export class FileStreamFactory<T> extends BundleStreamFactory<T> {
   }
 }
 
-export function file<T>(config: FileConfig<T>) {
+export function file<T extends object>(config: FileConfig<T>) {
   return bundle<T>({
     stream: new FileStreamFactory<T>(config)
   });

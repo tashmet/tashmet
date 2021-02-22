@@ -1,5 +1,5 @@
 import {AsyncFactory} from '@ziqquratu/core';
-import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@ziqquratu/pipe';
 import {File, FileAccess, GeneratorSink, Serializer} from '../interfaces';
 import {pipe, Transform} from '../transform';
 import {input, onKey, output} from './common';
