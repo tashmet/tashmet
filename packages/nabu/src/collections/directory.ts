@@ -6,11 +6,11 @@ import {File, FileAccess, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
-export interface FileContentConfig<T> {
+export interface FileContentConfig<T, TStored = T> {
   /**
    * The serializer used to parsing and serializing the content, ie json() or yaml().
    */
-  serializer?: Serializer<T>;
+  serializer?: Serializer<TStored>;
 
   /**
    * Extract the content from the file object before adding it to the collection
@@ -21,7 +21,7 @@ export interface FileContentConfig<T> {
    * An optional pipe that can modify incoming files (and their content)
    * after the content has been parsed.
    */
-  afterParse?: Pipe<File<T>>;
+  afterParse?: Pipe<File<TStored>, File<T>>;
 
   /**
    * An optional pipe that can modify outgoing files (and their content)
@@ -30,10 +30,10 @@ export interface FileContentConfig<T> {
    * This is a good opportunity to, for instance, remove run-time data that
    * does not need to be persisted.
    */
-  beforeSerialize?: Pipe<File<T>>;
+  beforeSerialize?: Pipe<File<T>, File<TStored>>;
 }
 
-export interface DirectoryConfig<T> {
+export interface DirectoryConfig<T, TStored = T> {
   /**
    * Path to the directory to where the files reside
    */
@@ -62,7 +62,7 @@ export interface DirectoryConfig<T> {
    * If the content should be parsed a configuration for how to do that can be
    * given instead.
    */
-  content?: FileContentConfig<T> | boolean;
+  content?: FileContentConfig<T, TStored> | boolean;
 }
 
 export class DirectoryStreamFactory extends ShardStreamFactory {
@@ -138,7 +138,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
  * 
  * @param config 
  */
-export function directory<T = any>(config: DirectoryConfig<T>) {
+export function directory<T = any, TStored = T>(config: DirectoryConfig<T, TStored>) {
   return shards<T>({
     stream: new DirectoryStreamFactory(config)
   });
