@@ -8,19 +8,19 @@ export interface BundleStreamConfig<T> {
   /**
    * Input/Output stream
    */
-  seed?: AsyncGenerator<T>;
+  seed?: AsyncGenerator<T[]>;
   
-  input?: AsyncGenerator<T>;
+  input?: AsyncGenerator<T[]>;
 
-  output: (source: AsyncGenerator<T>) => Promise<void>;
+  output: (source: AsyncGenerator<T[]>) => Promise<void>;
 }
 
 export abstract class BundleStreamFactory<T> extends AsyncFactory<BundleStreamConfig<T>> {
   public abstract create(): Promise<BundleStreamConfig<T>>;
 }
 
-export interface BundleConfig {
-  stream: BundleStreamFactory<any[]>;
+export interface BundleConfig<T> {
+  stream: BundleStreamFactory<T>;
 }
 
 export class BundleBuffer extends BufferCollection {
@@ -73,8 +73,8 @@ export class BundleBuffer extends BufferCollection {
   }
 }
 
-export class BundleBufferFactory extends CollectionFactory {
-  public constructor(private config: BundleConfig) {super()}
+export class BundleBufferFactory<T> extends CollectionFactory<T> {
+  public constructor(private config: BundleConfig<T>) {super()}
 
   public async create(name: string, database: Database) {
     const {stream} = this.config;
@@ -96,4 +96,6 @@ export class BundleBufferFactory extends CollectionFactory {
 /**
  * A buffered collection stored in a single location
  */
-export const bundle = (config: BundleConfig) => new BundleBufferFactory(config);
+export function bundle<T>(config: BundleConfig<T>) {
+  return new BundleBufferFactory<T>(config);
+}

@@ -1,6 +1,6 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {IOGate, Pipe} from '@ziqquratu/pipe';
-import {File, FileAccess, GeneratorSink} from '../interfaces';
+import {File, FileAccess, GeneratorSink, Serializer} from '../interfaces';
 import {pipe, Transform} from '../transform';
 import {input, onKey, output} from './common';
 
@@ -50,7 +50,7 @@ export function write(protocol: AsyncFactory<FileAccess>): GeneratorSink<File<Bu
  *
  * @param serializer
  */
-export function parse<T = any>(serializer: IOGate<Pipe>): Pipe<File<Buffer>, File<T>> {
+export function parse<T = any>(serializer: Serializer<T>): Pipe<File<Buffer>, File<T>> {
   return onKey('content', input<Buffer, T>(serializer));
 }
 
@@ -62,7 +62,7 @@ export function parse<T = any>(serializer: IOGate<Pipe>): Pipe<File<Buffer>, Fil
  *
  * @param serializer
  */
-export function serialize<T>(serializer: IOGate<Pipe>): Pipe<File<T>, File<Buffer>> {
+export function serialize<T>(serializer: Serializer<T>): Pipe<File<T>, File<Buffer>> {
   return onKey('content', output<T, Buffer>(serializer))
 }
 

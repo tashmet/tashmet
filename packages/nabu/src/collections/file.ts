@@ -1,17 +1,16 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
-import {File, FileAccess} from '../interfaces'
+import {File, FileAccess, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
-import {IOGate, Pipe} from '@ziqquratu/pipe';
 
-export interface FileConfig {
+export interface FileConfig<T> {
   path: string;
 
   /**
    * A serializer that will parse and serialize incoming and outgoing data.
    */
-  serializer: IOGate<Pipe>;
+  serializer: Serializer<T>;
 
   /**
    * Stream the collection as a dictionary instead of a list
@@ -26,12 +25,12 @@ export interface FileConfig {
   driver: AsyncFactory<FileAccess>;
 }
 
-export class FileStreamFactory extends BundleStreamFactory<any> {
-  public constructor(private config: FileConfig) {
+export class FileStreamFactory<T> extends BundleStreamFactory<T> {
+  public constructor(private config: FileConfig<T>) {
     super()
   }
 
-  public async create(): Promise<BundleStreamConfig<any>> {
+  public async create(): Promise<BundleStreamConfig<T>> {
     const {path, serializer, dictionary} = this.config;
     const driver = await this.config.driver.create();
 
@@ -39,7 +38,7 @@ export class FileStreamFactory extends BundleStreamFactory<any> {
       .pipe(Pipes.File.read())
       .pipe(Pipes.File.parse(serializer))
       .pipe(Pipes.File.content())
-      .pipe(dictionary ? Pipes.toList() : Pipes.identity())
+      .pipe(dictionary ? Pipes.toList<T>() : Pipes.identity<T>())
 
     const output = (source: AsyncGenerator<any>) => new Generator(source)
       .pipe(dictionary ? Pipes.toDict() : Pipes.identity())
@@ -56,6 +55,8 @@ export class FileStreamFactory extends BundleStreamFactory<any> {
   }
 }
 
-export const file = (config: FileConfig) => bundle({
-  stream: new FileStreamFactory(config)
-});
+export function file<T>(config: FileConfig<T>) {
+  return bundle<T>({
+    stream: new FileStreamFactory<T>(config)
+  });
+}
