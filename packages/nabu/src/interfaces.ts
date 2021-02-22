@@ -1,3 +1,5 @@
+import {IOGate, Pipe} from "@ziqquratu/pipe";
+
 export interface File<T = any> {
   path: string;
   content: T;
@@ -21,3 +23,8 @@ export abstract class FileAccess {
 }
 
 export type GeneratorSink<T = any, TReturn = any> = (gen: AsyncGenerator<T>) => Promise<TReturn>;
+
+export interface Serializer<T = any> extends IOGate<Pipe> {
+  input: Pipe<Buffer, T>;
+  output: Pipe<T, Buffer>;
+}

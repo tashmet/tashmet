@@ -1,13 +1,13 @@
 import {AsyncFactory} from '@ziqquratu/core';
-import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
-import {File, FileAccess} from '../interfaces'
+import {File, FileAccess, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
 export interface FileContentConfig<T> {
-  serializer?: IOGate<Pipe>;
+  serializer?: Serializer<T>;
 
   extract?: boolean;
 
