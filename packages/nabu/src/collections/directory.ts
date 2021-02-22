@@ -7,22 +7,61 @@ import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
 export interface FileContentConfig<T> {
+  /**
+   * The serializer used to parsing and serializing the content, ie json() or yaml().
+   */
   serializer?: Serializer<T>;
 
+  /**
+   * Extract the content from the file object before adding it to the collection
+   */
   extract?: boolean;
 
+  /**
+   * An optional pipe that can modify incoming files (and their content)
+   * after the content has been parsed.
+   */
   afterParse?: Pipe<File<T>>;
 
+  /**
+   * An optional pipe that can modify outgoing files (and their content)
+   * before the content is serialized and written to the file system.
+   * 
+   * This is a good opportunity to, for instance, remove run-time data that
+   * does not need to be persisted.
+   */
   beforeSerialize?: Pipe<File<T>>;
 }
 
 export interface DirectoryConfig<T> {
+  /**
+   * Path to the directory to where the files reside
+   */
   path: string;
 
-  extension: string;
+  /**
+   * Extension of the files.
+   * 
+   * Should be provided without a dot, ie 'json' or 'yaml' etc. This both serves
+   * as a filter for incoming files, as well as a basis for determining the 
+   * name of outgoing files if the content is extracted.
+   */
+  extension?: string;
 
+  /**
+   * The underlying file system driver to use.
+   */
   driver: AsyncFactory<FileAccess>;
 
+  /**
+   * Strategy for reading and writing content
+   * 
+   * When set to false, content will be an async generator that can be consumed
+   * at a later point and when true the content will be read into a buffer.
+   * 
+   * If the content should be parsed a configuration for how to do that can be
+   * given instead.
+   */
   content?: FileContentConfig<T> | boolean;
 }
 
@@ -37,7 +76,11 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
     const fileName = (doc: any) => `${doc._id}.${extension}`;
     const resolveId = (file: File) => nodePath.basename(file.path).split('.')[0];
     const resolvePath = (doc: any) => nodePath.join(path, fileName(doc));
-    const glob = `${path}/*.${extension}`;
+    const glob = extension ? `${path}/*.${extension}` : path;
+
+    if (!extension && (typeof content !== 'boolean' && content?.extract)) {
+      throw Error('"extension" must be set when extracting content');
+    }
 
     const input = (source: AsyncGenerator<File>) => {
       let gen = new Generator(source);
@@ -90,6 +133,11 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
   }
 }
 
+/**
+ * A collection based on files in a directory on a file-system
+ * 
+ * @param config 
+ */
 export function directory<T = any>(config: DirectoryConfig<T>) {
   return shards<T>({
     stream: new DirectoryStreamFactory(config)
