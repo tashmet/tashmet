@@ -76,7 +76,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
     const fileName = (doc: any) => `${doc._id}.${extension}`;
     const resolveId = (file: File) => nodePath.basename(file.path).split('.')[0];
     const resolvePath = (doc: any) => nodePath.join(path, fileName(doc));
-    const glob = extension ? `${path}/*.${extension}` : path;
+    const glob = extension ? `${path}/*.${extension}` : `${path}/*`;
 
     if (!extension && (typeof content !== 'boolean' && content?.extract)) {
       throw Error('"extension" must be set when extracting content');
@@ -118,7 +118,7 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
     const watchDelete = driver.watch(glob, true);
 
     return {
-      seed: input(driver.read(`${path}/*.${extension}`)),
+      seed: input(driver.read(glob)),
       input: watch ? input(watch) : undefined,
       inputDelete: watchDelete ? input(watchDelete) : undefined,
       output: async (source, deletion) => {
