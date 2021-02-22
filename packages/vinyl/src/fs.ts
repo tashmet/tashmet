@@ -1,5 +1,6 @@
 import {AsyncFactory} from '@ziqquratu/core';
-import {FileAccess, File, ReadableFile, Generator, pipe} from '@ziqquratu/nabu';
+import {Pipe} from '@ziqquratu/pipe';
+import {FileAccess, File, ReadableFile, Generator} from '@ziqquratu/nabu';
 import {Stream} from '@ziqquratu/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
@@ -9,16 +10,20 @@ import * as fs from 'fs';
 import minimatch from 'minimatch';
 
 
-export const vinyl2File = pipe<Vinyl, File>(async vinyl => ({
-  path: vinyl.path,
-  content: Stream.toGenerator(vinyl.contents as stream.Readable),
-  isDir: vinyl.isDirectory()
-}));
+export function fromVinyl(): Pipe<Vinyl, File> {
+  return async vinyl => ({
+    path: vinyl.path,
+    content: Stream.toGenerator(vinyl.contents as stream.Readable),
+    isDir: vinyl.isDirectory()
+  });
+}
 
-export const file2Vinyl = pipe<File, Vinyl>(async file => new Vinyl({
-  path: file.path,
-  contents: file.content,
-}));
+export function toVinyl(): Pipe<File, Vinyl> {
+  return async file => new Vinyl({
+    path: file.path,
+    contents: file.content,
+  });
+}
 
 
 export class VinylFSService extends FileAccess  {
@@ -28,12 +33,12 @@ export class VinylFSService extends FileAccess  {
 
   public read(location: string | string[]): AsyncGenerator<ReadableFile> {
     return Stream.toGenerator<Vinyl>(vfs.src(location, {buffer: false}))
-      .pipe<File>(vinyl2File);
+      .pipe<File>(fromVinyl());
   }
 
   public async write(files: AsyncGenerator<File>): Promise<void> {
     return new Generator(files)
-      .pipe(file2Vinyl)
+      .pipe(toVinyl())
       .sink(Stream.toSink(vfs.dest('.')));
   }
 
@@ -72,7 +77,7 @@ export class VinylFSService extends FileAccess  {
       this.watcher.on(ev, path => onChange(path, ev));
     }
 
-    return Stream.toGenerator(readable).pipe<File>(vinyl2File);
+    return Stream.toGenerator(readable).pipe<File>(fromVinyl());
   }
 }
 
