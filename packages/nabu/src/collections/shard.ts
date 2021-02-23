@@ -3,48 +3,48 @@ import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqqur
 import {BufferCollection} from './buffer';
 import {Generator} from '../generator';
 
-export interface ShardStreamConfig {
+export interface ShardStreamConfig<T> {
   /**
    * Input/Output stream
    */
-  seed?: AsyncGenerator<any>;
+  seed?: Generator<T>;
   
-  input?: AsyncGenerator<any>;
+  input?: Generator<T>;
 
-  inputDelete?: AsyncGenerator<any>;
+  inputDelete?: Generator<Partial<T>>;
 
-  output: (source: AsyncGenerator<any>, deletion: boolean) => Promise<void>;
+  output: (source: Generator<T>, deletion: boolean) => Promise<void>;
 }
 
-export abstract class ShardStreamFactory extends AsyncFactory<ShardStreamConfig> {
-  public abstract create(): Promise<ShardStreamConfig>;
+export abstract class ShardStreamFactory<T> extends AsyncFactory<ShardStreamConfig<T>> {
+  public abstract create(): Promise<ShardStreamConfig<T>>;
 }
 
-export interface ShardBufferConfig {
-  stream: ShardStreamFactory;
+export interface ShardBufferConfig<T> {
+  stream: ShardStreamFactory<T>;
 }
 
-class ShardBuffer extends BufferCollection {
+class ShardBuffer<T> extends BufferCollection<T> {
   public constructor(
-    private output: (source: AsyncGenerator<any>, deletion: boolean) => Promise<void>,
+    private output: (source: Generator<T>, deletion: boolean) => Promise<void>,
     cache: Collection,
   ) {
     super(cache);
   }
 
-  public async populate(seed: AsyncGenerator<any>) {
+  public async populate(seed: Generator<T>) {
     for await (const doc of seed) {
       await this.cache.insertOne(doc);
     }
   }
 
-  public async listen(input: AsyncGenerator<any>) {
+  public async listen(input: Generator<T>) {
     for await (const doc of input) {
       await this.replaceOne({_id: doc._id}, doc, {upsert: true}, false);
     }
   }
 
-  public async listenDelete(input: AsyncGenerator<any>) {
+  public async listenDelete(input: Generator<Partial<T>>) {
     for await (const doc of input) {
       await this.deleteOne({_id: doc._id}, false);
     }
@@ -56,7 +56,7 @@ class ShardBuffer extends BufferCollection {
 }
 
 export class ShardBufferFactory<T> extends CollectionFactory<T> {
-  public constructor(private config: ShardBufferConfig) {super()}
+  public constructor(private config: ShardBufferConfig<T>) {super()}
 
   public async create(name: string, database: Database) {
     const {stream} = this.config;
@@ -81,6 +81,6 @@ export class ShardBufferFactory<T> extends CollectionFactory<T> {
 /**
  * A buffered collection based on documents in multiple locations
  */
-export function shards<T = any>(config: ShardBufferConfig) {
+export function shards<T = any>(config: ShardBufferConfig<T>) {
   return new ShardBufferFactory<T>(config);
 }

@@ -6,16 +6,14 @@ import {File, FileAccess, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
 export interface FileContentConfig<T, TStored = T> {
   /**
    * The serializer used to parsing and serializing the content, ie json() or yaml().
    */
-  serializer?: Serializer<TStored>;
-
-  /**
-   * Extract the content from the file object before adding it to the collection
-   */
-  extract?: boolean;
+  serializer: Serializer<TStored>;
 
   /**
    * An optional pipe that can modify incoming files (and their content)
@@ -33,7 +31,7 @@ export interface FileContentConfig<T, TStored = T> {
   beforeSerialize?: Pipe<File<T>, File<TStored>>;
 }
 
-export interface DirectoryConfig<T, TStored = T> {
+export interface DirectoryConfig {
   /**
    * Path to the directory to where the files reside
    */
@@ -46,13 +44,18 @@ export interface DirectoryConfig<T, TStored = T> {
    * as a filter for incoming files, as well as a basis for determining the 
    * name of outgoing files if the content is extracted.
    */
-  extension?: string;
+  extension: string;
 
   /**
    * The underlying file system driver to use.
    */
   driver: AsyncFactory<FileAccess>;
 
+}
+
+export interface DirectoryFilesConfig<T = any, TStored = T> extends
+  PartialBy<DirectoryConfig, 'extension'>
+{
   /**
    * Strategy for reading and writing content
    * 
@@ -65,53 +68,48 @@ export interface DirectoryConfig<T, TStored = T> {
   content?: FileContentConfig<T, TStored> | boolean;
 }
 
-export class DirectoryStreamFactory extends ShardStreamFactory {
-  public constructor(private config: DirectoryConfig<any>) {
+export interface DirectoryContentConfig<T = any, TStored = T> extends
+  DirectoryConfig,
+  FileContentConfig<T, TStored>
+{}
+
+export class DirectoryStreamFactory<T> extends ShardStreamFactory<T> {
+  public constructor(protected config: DirectoryFilesConfig<any>) {
     super()
   }
 
-  public async create(): Promise<ShardStreamConfig> {
+  public async create(): Promise<ShardStreamConfig<any>> {
     const {path, content, extension} = this.config;
     const driver = await this.config.driver.create();
-    const fileName = (doc: any) => `${doc._id}.${extension}`;
     const resolveId = (file: File) => nodePath.basename(file.path).split('.')[0];
-    const resolvePath = (doc: any) => nodePath.join(path, fileName(doc));
     const glob = extension ? `${path}/*.${extension}` : `${path}/*`;
 
-    if (!extension && (typeof content !== 'boolean' && content?.extract)) {
-      throw Error('"extension" must be set when extracting content');
-    }
-
-    const input = (source: AsyncGenerator<File>) => {
-      let gen = new Generator(source);
-
-      if (content) {
-        gen = gen
-          .filter(async file => !file.isDir)
-          .pipe(Pipes.File.read());
-
-        if (typeof content !== 'boolean' && content.serializer) {
-          gen = gen
-            .pipe(Pipes.File.parse(content.serializer))
-            .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
-            .pipe(content.afterParse || Pipes.identity())
-            .pipe(content.extract ? Pipes.File.content() : Pipes.identity())
-        }
+    const input = (source: Generator<File>) => {
+      if (!content) {
+        return source;
       }
-      return gen;
+
+      source = source
+        .pipe(Pipes.filter(async file => !file.isDir))
+        .pipe(Pipes.File.read())
+
+      if (content && typeof content !== 'boolean') {
+        source = source
+          .pipe(Pipes.File.parse(content.serializer))
+          .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
+          .pipe(content.afterParse || Pipes.identity())
+      }
+      return source;
     }
 
-    const output = (source: AsyncGenerator<any>) => {
-      let gen = new Generator(source);
-
-      if (content && typeof content !== 'boolean' && content.serializer) {
-        gen = gen
-          .pipe(content.extract ? Pipes.File.create(resolvePath) : Pipes.identity())
+    const output = (source: Generator<any>) => {
+      if (content && typeof content !== 'boolean') {
+        return source
           .pipe(Pipes.onKey('content', Pipes.omitKeys('_id')))
-          .pipe(content.beforeSerialize || Pipes.identity())
+          .pipe(content.beforeSerialize || Pipes.identity<T>())
           .pipe(Pipes.File.serialize(content.serializer));
       }
-      return gen;
+      return source;
     }
 
     const watch = driver.watch(glob);
@@ -133,13 +131,44 @@ export class DirectoryStreamFactory extends ShardStreamFactory {
   }
 }
 
+export class DirectoryContentStreamFactory<T> extends DirectoryStreamFactory<T> {
+  public constructor({path, extension, driver, ...content}: DirectoryContentConfig<any>) {
+    super({path: path, extension: extension, driver: driver, content: content});
+  }
+
+  public async create(): Promise<ShardStreamConfig<any>> {
+    const {path,  extension} = this.config;
+    const fileName = (doc: any) => `${doc._id}.${extension}`;
+    const stream = await super.create();
+    const resolvePath = (doc: any) => nodePath.join(path, fileName(doc));
+
+    const input = (source: Generator<File<T>>) =>
+      source.pipe(Pipes.File.content());
+
+    const output = (source: Generator<T>) =>
+      source.pipe(Pipes.File.create(resolvePath));
+
+    return {
+      seed: stream.seed ? input(stream.seed) : undefined,
+      input: stream.input ? input(stream.input) : undefined,
+      output: (source, deletion) => stream.output(output(source), deletion),
+    }
+  }
+}
+
 /**
  * A collection based on files in a directory on a file-system
  * 
  * @param config 
  */
-export function directory<T = any, TStored = T>(config: DirectoryConfig<T, TStored>) {
-  return shards<T>({
+export function directoryFiles<T = any, TStored = T>(config: DirectoryFilesConfig<T, TStored>) {
+  return shards<File<T>>({
     stream: new DirectoryStreamFactory(config)
+  });
+}
+
+export function directoryContent<T = any, TStored = T>(config: DirectoryContentConfig<T, TStored>) {
+  return shards<T>({
+    stream: new DirectoryContentStreamFactory(config),
   });
 }

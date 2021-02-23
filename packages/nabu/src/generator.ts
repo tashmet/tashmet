@@ -3,7 +3,7 @@ import {Cursor} from '@ziqquratu/database';
 import {Pipe} from '@ziqquratu/pipe';
 import toArray from '@async-generators/to-array';
 import {File, FileAccess} from './interfaces';
-import {Transform, FilterTransform, Reducer} from './transform';
+import {Transform} from './transform';
 import {pipe} from './pipes';
 
 export class Generator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
@@ -59,27 +59,11 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
     return new Generator(generateMany());
   }
 
-  public static pump<In = any, Out = In>(source: AsyncGenerator<In>, ...transforms: Transform[]) {
-    let input = source;
-    for (const t of transforms) {
-      input = t.apply(input)
-    }
-    return new Generator(input as AsyncGenerator<Out>);
-  }
-
   public pipe<Out>(t: Transform<T, Out> | Pipe<T, Out>): Generator<Out> {
     if (!(t instanceof Transform)) {
       t = pipe(t);
     }
     return new Generator<Out>(t.apply(this as any));
-  }
-
-  public reduce<Out>(fn: (acc: Out, value: T) => Out, initial: Out): Generator<Out> {
-    return this.pipe(new Reducer(fn, initial));
-  }
-
-  public filter(test: Pipe<T, boolean>) {
-    return this.pipe(new FilterTransform(test));
   }
 
   public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {

@@ -4,7 +4,7 @@ import {BundleBufferFactory} from './collections/bundle';
 
 export {shards, ShardStreamConfig, ShardStreamFactory} from './collections/shard';
 export {bundle, BundleConfig, BundleStreamFactory} from './collections/bundle';
-export {directory} from './collections/directory';
+export {directoryContent, directoryFiles} from './collections/directory';
 export {file} from './collections/file';
 export * from './interfaces';
 export * from './generator';

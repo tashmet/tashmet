@@ -1,4 +1,5 @@
 import {IOGate, Pipe} from "@ziqquratu/pipe";
+import {Generator} from "./generator";
 
 export interface File<T = any> {
   path: string;
@@ -9,15 +10,13 @@ export interface File<T = any> {
 export type ReadableFile = File<AsyncGenerator<Buffer> | undefined>;
 
 export abstract class FileAccess {
-  public abstract read(path: string | string[]): AsyncGenerator<ReadableFile>;
-
-  //stat(path: string | string[]): AsyncGenerator<File<null>>;
+  public abstract read(path: string | string[]): Generator<ReadableFile>;
 
   public abstract write(files: AsyncGenerator<File<Buffer>>): Promise<void>;
 
   public abstract remove(files: AsyncGenerator<File>): Promise<void>;
 
-  public watch(globs: string | string[], deletion?: boolean): AsyncGenerator<File> | null {
+  public watch(globs: string | string[], deletion?: boolean): Generator<File> | null {
     return null;
   }
 }
