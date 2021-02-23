@@ -1,5 +1,5 @@
-import { AsyncFactory } from '@ziqquratu/core';
-import {FileAccess, File, ReadableFile} from '@ziqquratu/nabu';
+import {AsyncFactory} from '@ziqquratu/core';
+import {FileAccess, File, ReadableFile, Generator} from '@ziqquratu/nabu';
 import path from 'path';
 import minimatch from 'minimatch';
 
@@ -8,7 +8,7 @@ const createClient = require('ipfs-http-client')
 export class IPFSService extends FileAccess  {
   public constructor(private ipfs: any) { super(); }
 
-  public read(location: string | string[]): AsyncGenerator<ReadableFile> {
+  public read(location: string | string[]): Generator<ReadableFile> {
     const ipfs = this.ipfs;
 
     if (Array.isArray(location)) {
@@ -34,7 +34,7 @@ export class IPFSService extends FileAccess  {
         }
       }
     }
-    return gen();
+    return new Generator(gen());
   }
 
   //stat(path: string | string[]): AsyncGenerator<File<null>>;
