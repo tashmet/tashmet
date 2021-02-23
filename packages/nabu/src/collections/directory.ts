@@ -2,7 +2,7 @@ import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
-import {File, FileAccess, Serializer} from '../interfaces'
+import {File, FileAccess, ReadableFile, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
@@ -81,36 +81,21 @@ export class DirectoryStreamFactory<T> extends ShardStreamFactory<T> {
   public async create(): Promise<ShardStreamConfig<any>> {
     const {path, content, extension} = this.config;
     const driver = await this.config.driver.create();
-    const resolveId = (file: File) => nodePath.basename(file.path).split('.')[0];
     const glob = extension ? `${path}/*.${extension}` : `${path}/*`;
 
     const input = (source: Generator<File>) => {
       if (!content) {
         return source;
       }
-
-      source = source
-        .pipe(Pipes.filter(async file => !file.isDir))
-        .pipe(Pipes.File.read())
-
-      if (content && typeof content !== 'boolean') {
-        source = source
-          .pipe(Pipes.File.parse(content.serializer))
-          .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
-          .pipe(content.afterParse || Pipes.identity())
+      if (typeof content !== 'boolean') {
+        return this.contentParser(this.fileReader(source), content);
       }
-      return source;
+      return this.fileReader(source);
     }
 
-    const output = (source: Generator<any>) => {
-      if (content && typeof content !== 'boolean') {
-        return source
-          .pipe(Pipes.onKey('content', Pipes.omitKeys('_id')))
-          .pipe(content.beforeSerialize || Pipes.identity<T>())
-          .pipe(Pipes.File.serialize(content.serializer));
-      }
-      return source;
-    }
+    const output = (source: Generator<any>) => content && typeof content !== 'boolean'
+      ? this.contentSerializer(source, content)
+      : source;
 
     const watch = driver.watch(glob);
     const watchDelete = driver.watch(glob, true);
@@ -129,6 +114,29 @@ export class DirectoryStreamFactory<T> extends ShardStreamFactory<T> {
       }
     };
   }
+
+  private fileReader(source: Generator<ReadableFile>) {
+    return source
+      .pipe(Pipes.filter(async file => !file.isDir))
+      .pipe(Pipes.File.read())
+  }
+
+  private contentParser(source: Generator<File<Buffer>>, content: FileContentConfig<any>) {
+    const resolveId = (file: File) => nodePath.basename(file.path).split('.')[0];
+
+    return source
+      .pipe(Pipes.File.parse(content.serializer))
+      .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
+      .pipe(content.afterParse || Pipes.identity())
+  }
+
+  private contentSerializer(source: Generator<File<any>>, content: FileContentConfig<any>) {
+    return source
+      .pipe(Pipes.onKey('content', Pipes.omitKeys('_id')))
+      .pipe(content.beforeSerialize || Pipes.identity<T>())
+      .pipe(Pipes.File.serialize(content.serializer));
+  }
+
 }
 
 export class DirectoryContentStreamFactory<T> extends DirectoryStreamFactory<T> {

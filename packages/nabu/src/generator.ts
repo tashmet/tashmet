@@ -66,6 +66,13 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
     return new Generator<Out>(t.apply(this as any));
   }
 
+  public branch<Out>(predicate: boolean, fn: (gen: Generator<T>) => Generator<Out>): Generator<T | Out> {
+    if (!predicate) {
+      return this;
+    }
+    return fn(this);
+  }
+
   public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
     return writable(this);
   }
