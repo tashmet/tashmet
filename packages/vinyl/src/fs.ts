@@ -31,7 +31,7 @@ export class VinylFSService extends FileAccess  {
     private watcher: chokidar.FSWatcher
   ) { super(); }
 
-  public read(location: string | string[]): AsyncGenerator<ReadableFile> {
+  public read(location: string | string[]): Generator<ReadableFile> {
     return Stream.toGenerator<Vinyl>(vfs.src(location, {buffer: false}))
       .pipe<File>(fromVinyl());
   }
@@ -50,7 +50,7 @@ export class VinylFSService extends FileAccess  {
     }
   }
 
-  public watch(globs: string | string[], deletion = false): AsyncGenerator<File> {
+  public watch(globs: string | string[], deletion = false): Generator<File> {
     this.watcher.add(globs);
 
     const readable = new stream.Readable({
