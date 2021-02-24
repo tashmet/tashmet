@@ -1,5 +1,4 @@
 import {AsyncFactory} from '@ziqquratu/core';
-import {Pipe} from '@ziqquratu/pipe';
 import {FileAccess, File, ReadableFile, Pipeline} from '@ziqquratu/nabu';
 import {Stream} from '@ziqquratu/stream';
 import Vinyl from 'vinyl';
@@ -8,22 +7,7 @@ import * as chokidar from 'chokidar';
 import * as vfs from 'vinyl-fs';
 import * as fs from 'fs';
 import minimatch from 'minimatch';
-
-
-export function fromVinyl(): Pipe<Vinyl, File> {
-  return async vinyl => ({
-    path: vinyl.path,
-    content: Stream.toPipeline(vinyl.contents as stream.Readable),
-    isDir: vinyl.isDirectory()
-  });
-}
-
-export function toVinyl(): Pipe<File, Vinyl> {
-  return async file => new Vinyl({
-    path: file.path,
-    contents: file.content,
-  });
-}
+import * as Pipes from './pipes';
 
 
 export class VinylFSService extends FileAccess  {
@@ -33,12 +17,12 @@ export class VinylFSService extends FileAccess  {
 
   public read(location: string | string[]): Pipeline<ReadableFile> {
     return Stream.toPipeline<Vinyl>(vfs.src(location, {buffer: false}))
-      .pipe<File>(fromVinyl());
+      .pipe<File>(Pipes.fromVinyl());
   }
 
   public async write(files: Pipeline<File>): Promise<void> {
     return files
-      .pipe(toVinyl())
+      .pipe(Pipes.toVinyl())
       .sink(Stream.toSink(vfs.dest('.')));
   }
 
@@ -77,7 +61,7 @@ export class VinylFSService extends FileAccess  {
       this.watcher.on(ev, path => onChange(path, ev));
     }
 
-    return Stream.toPipeline(readable).pipe<File>(fromVinyl());
+    return Stream.toPipeline(readable).pipe<File>(Pipes.fromVinyl());
   }
 }
 
