@@ -3,9 +3,9 @@ import {Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {shards} from '../collections/shard';
 import {GlobStreamFactory, GlobContentStreamFactory} from '../collections/glob';
-import {ExtractedFileContentConfig, File, FileAccess, FileContentConfig, MultiFilesWithContentConfig, PartialBy} from '../interfaces'
+import {ExtractedFileContentConfig, File, FileContentConfig, MultiFilesConfig, MultiFilesWithContentConfig, PartialBy} from '../interfaces'
 
-export interface DirectoryConfig {
+export interface DirectoryConfig<T> extends MultiFilesConfig<T> {
   /**
    * Path to the directory to where the files reside
    */
@@ -19,21 +19,14 @@ export interface DirectoryConfig {
    * name of outgoing files if the content is extracted.
    */
   extension: string;
-
-  /**
-   * The underlying file system driver to use.
-   */
-  driver: AsyncFactory<FileAccess>;
 }
 
 export type DirectoryFilesConfig<T = any, TStored = T> =
-  PartialBy<DirectoryConfig, 'extension'> & MultiFilesWithContentConfig<T, TStored>;
+  PartialBy<DirectoryConfig<T>, 'extension'> & MultiFilesWithContentConfig<T, TStored>;
 
 export type DirectoryContentConfig<T = any, TStored = T> =
-  DirectoryConfig & FileContentConfig<T, TStored> & ExtractedFileContentConfig<T>;
+  DirectoryConfig<T> & FileContentConfig<T, TStored> & ExtractedFileContentConfig<T>;
 
-export const directoryIdResolver: Pipe<File, string> = async file =>
-  nodePath.basename(file.path).split('.')[0]
 
 /**
  * A collection based on files in a directory on a file-system
@@ -45,23 +38,24 @@ export function directoryFiles<T = any, TStored = T>({path, extension, driver}: 
     stream: new GlobStreamFactory({
       driver,
       pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
-      resolveId: directoryIdResolver,
     })
   });
 }
 
 export function directoryContent<T = any, TStored = T>(
-  {path, extension, driver, serializer, resolvePath}: DirectoryContentConfig<T, TStored>)
+  {path, extension, driver, serializer, resolveId, resolvePath}: DirectoryContentConfig<T, TStored>)
 {
   const fileName = (doc: any) => `${doc._id}.${extension}`;
   const defaultPathResolver = async (doc: any) => nodePath.join(path, fileName(doc));
+  const defaultIdResolver: Pipe<File, string> = async file =>
+    nodePath.basename(file.path).split('.')[0]
 
   return shards<T>({
     stream: new GlobContentStreamFactory({
       driver,
       pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
       serializer,
-      resolveId: directoryIdResolver,
+      resolveId: resolveId || defaultIdResolver,
       resolvePath: resolvePath || defaultPathResolver,
     }),
   });

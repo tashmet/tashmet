@@ -66,6 +66,11 @@ export interface ExtractedFileContentConfig<T> {
    * Determine the file system path a document that is about to be persisted.
    */
   resolvePath?: Pipe<T, string>;
+
+  /**
+   * An optional pipe for determining the ID of incoming documents.
+   */
+  resolveId?: Pipe<File<T>, string>;
 }
 
 export interface MultiFilesConfig<T> {
@@ -73,11 +78,6 @@ export interface MultiFilesConfig<T> {
    * The underlying file system driver to use.
    */
   driver: AsyncFactory<FileAccess>;
-
-  /**
-   * An optional pipe for determining the ID of incoming documents.
-   */
-  resolveId?: Pipe<File<T>, string>;
 }
 
 export interface MultiFilesWithContentConfig<T, TStored> {

@@ -29,14 +29,13 @@ export interface FileConfig<T extends object, TStored = T> {
   driver: AsyncFactory<FileAccess>;
 
   /**
-   * An optional pipe that can modify incoming files (and their content)
-   * after the content has been parsed.
+   * An optional pipe that can modify incoming documents after they have been parsed.
    */
   afterParse?: Pipe<TStored, T>;
 
   /**
-   * An optional pipe that can modify outgoing files (and their content)
-   * before the content is serialized and written to the file system.
+   * An optional pipe that can modify outgoing documents before the they are
+   * serialized and written to the file system.
    *
    * This is a good opportunity to, for instance, remove run-time data that
    * does not need to be persisted.

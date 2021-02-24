@@ -64,11 +64,8 @@ export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
   }
 
   private contentParser(source: Generator<File<Buffer>>, content: FileContentConfig<any>) {
-    const resolveId = this.config.resolveId || globResolveId;
-
     return source
       .pipe(Pipes.File.parse(content.serializer))
-      .pipe(Pipes.File.assignContent(file => ({_id: resolveId(file)})))
       .pipe(content.afterParse || Pipes.identity())
   }
 
@@ -83,17 +80,20 @@ export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
 
 export class GlobContentStreamFactory<T> extends GlobStreamFactory<T> {
   protected resolvePath: Pipe<T, string>;
+  protected resolveId: Pipe<File<any>, string>;
 
   public constructor({pattern, driver, resolveId, resolvePath, ...content}: GlobContentConfig<any>) {
-    super({pattern, driver, content, resolveId});
+    super({pattern, driver, content});
     this.resolvePath = resolvePath || globResolvePath;
+    this.resolveId = resolveId || globResolveId;
   }
 
   public async create(): Promise<ShardStreamConfig<any>> {
     const stream = await super.create();
 
-    const input = (source: Generator<File<T>>) =>
-      source.pipe(Pipes.File.content());
+    const input = (source: Generator<File<T>>) => source
+      .pipe(Pipes.File.assignContent(async file => ({_id: await this.resolveId(file)})))
+      .pipe(Pipes.File.content());
 
     const output = (source: Generator<T>) =>
       source.pipe(Pipes.File.create(this.resolvePath));

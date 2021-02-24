@@ -89,7 +89,7 @@ export function content<T>(): Pipe<File<T>, T> {
 }
 
 export function assignContent<In extends object, T extends object>(
-  content: (file: File<In>) => T): Pipe<File<In>, File<In & T>>
+  content: Pipe<File<In>, T>): Pipe<File<In>, File<In & T>>
 {
-  return async file => ({...file, content: Object.assign({}, file.content, content(file))});
+  return async file => ({...file, content: Object.assign({}, file.content, await content(file))});
 }
