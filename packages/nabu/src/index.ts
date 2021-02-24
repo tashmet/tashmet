@@ -8,7 +8,7 @@ export {directoryContent, directoryFiles} from './collections/directory';
 export {globFiles, globContent} from './collections/glob';
 export {file} from './collections/file';
 export * from './interfaces';
-export * from './generator';
+export * from './pipeline';
 export * from './transform';
 export * from './gates';
 export * as Pipes from './pipes';

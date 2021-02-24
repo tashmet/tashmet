@@ -2,17 +2,17 @@ import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
 import {difference, intersection, isEqual} from 'lodash';
 import {BufferCollection} from './buffer';
-import {Generator} from '../generator';
+import {Pipeline} from '../pipeline';
 
 export interface BundleStreamConfig<T> {
   /**
    * Input/Output stream
    */
-  seed?: Generator<T>;
+  seed?: Pipeline<T>;
   
-  input?: Generator<T>;
+  input?: Pipeline<T>;
 
-  output: (source: Generator<T>) => Promise<void>;
+  output: (source: Pipeline<T>) => Promise<void>;
 }
 
 export abstract class BundleStreamFactory<T> extends AsyncFactory<BundleStreamConfig<T>> {
@@ -31,11 +31,11 @@ export class BundleBuffer<T> extends BufferCollection {
     super(cache);
   }
 
-  public async populate(seed: Generator<T>) {
+  public async populate(seed: Pipeline<T>) {
     await this.cache.insertMany(await seed.toArray());
   }
 
-  public async listen(input: Generator<any>) {
+  public async listen(input: Pipeline<any>) {
     const data = await input.toArray();
     const bufferDocs = await this.cache.find().toArray();
     const getIds = (docs: any[]) => docs.map(doc => doc._id);
@@ -66,7 +66,7 @@ export class BundleBuffer<T> extends BufferCollection {
   }
 
   protected async write(): Promise<void> {
-    return this.output(Generator.fromCursor(await this.cache.find()));
+    return this.output(Pipeline.fromCursor(await this.cache.find()));
   }
 }
 

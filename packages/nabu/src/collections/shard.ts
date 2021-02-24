@@ -1,19 +1,19 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
 import {BufferCollection} from './buffer';
-import {Generator} from '../generator';
+import {Pipeline} from '../pipeline';
 
 export interface ShardStreamConfig<T> {
   /**
    * Input/Output stream
    */
-  seed?: Generator<T>;
+  seed?: Pipeline<T>;
   
-  input?: Generator<T>;
+  input?: Pipeline<T>;
 
-  inputDelete?: Generator<Partial<T>>;
+  inputDelete?: Pipeline<Partial<T>>;
 
-  output: (source: Generator<T>, deletion: boolean) => Promise<void>;
+  output: (source: Pipeline<T>, deletion: boolean) => Promise<void>;
 }
 
 export abstract class ShardStreamFactory<T> extends AsyncFactory<ShardStreamConfig<T>> {
@@ -26,32 +26,32 @@ export interface ShardBufferConfig<T> {
 
 class ShardBuffer<T> extends BufferCollection<T> {
   public constructor(
-    private output: (source: Generator<T>, deletion: boolean) => Promise<void>,
+    private output: (source: Pipeline<T>, deletion: boolean) => Promise<void>,
     cache: Collection,
   ) {
     super(cache);
   }
 
-  public async populate(seed: Generator<T>) {
+  public async populate(seed: Pipeline<T>) {
     for await (const doc of seed) {
       await this.cache.insertOne(doc);
     }
   }
 
-  public async listen(input: Generator<T>) {
+  public async listen(input: Pipeline<T>) {
     for await (const doc of input) {
       await this.replaceOne({_id: doc._id}, doc, {upsert: true}, false);
     }
   }
 
-  public async listenDelete(input: Generator<Partial<T>>) {
+  public async listenDelete(input: Pipeline<Partial<T>>) {
     for await (const doc of input) {
       await this.deleteOne({_id: doc._id}, false);
     }
   }
 
   protected write(affectedDocs: any[], deletion: boolean): Promise<void> {
-    return this.output(Generator.fromMany(affectedDocs), deletion);
+    return this.output(Pipeline.fromMany(affectedDocs), deletion);
   }
 }
 

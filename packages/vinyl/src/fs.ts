@@ -1,6 +1,6 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
-import {FileAccess, File, ReadableFile, Generator} from '@ziqquratu/nabu';
+import {FileAccess, File, ReadableFile, Pipeline} from '@ziqquratu/nabu';
 import {Stream} from '@ziqquratu/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
@@ -13,7 +13,7 @@ import minimatch from 'minimatch';
 export function fromVinyl(): Pipe<Vinyl, File> {
   return async vinyl => ({
     path: vinyl.path,
-    content: Stream.toGenerator(vinyl.contents as stream.Readable),
+    content: Stream.toPipeline(vinyl.contents as stream.Readable),
     isDir: vinyl.isDirectory()
   });
 }
@@ -31,13 +31,13 @@ export class VinylFSService extends FileAccess  {
     private watcher: chokidar.FSWatcher
   ) { super(); }
 
-  public read(location: string | string[]): Generator<ReadableFile> {
-    return Stream.toGenerator<Vinyl>(vfs.src(location, {buffer: false}))
+  public read(location: string | string[]): Pipeline<ReadableFile> {
+    return Stream.toPipeline<Vinyl>(vfs.src(location, {buffer: false}))
       .pipe<File>(fromVinyl());
   }
 
-  public async write(files: AsyncGenerator<File>): Promise<void> {
-    return new Generator(files)
+  public async write(files: Pipeline<File>): Promise<void> {
+    return files
       .pipe(toVinyl())
       .sink(Stream.toSink(vfs.dest('.')));
   }
@@ -50,7 +50,7 @@ export class VinylFSService extends FileAccess  {
     }
   }
 
-  public watch(globs: string | string[], deletion = false): Generator<File> {
+  public watch(globs: string | string[], deletion = false): Pipeline<File> {
     this.watcher.add(globs);
 
     const readable = new stream.Readable({
@@ -77,7 +77,7 @@ export class VinylFSService extends FileAccess  {
       this.watcher.on(ev, path => onChange(path, ev));
     }
 
-    return Stream.toGenerator(readable).pipe<File>(fromVinyl());
+    return Stream.toPipeline(readable).pipe<File>(fromVinyl());
   }
 }
 

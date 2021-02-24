@@ -6,7 +6,7 @@ import {File, FileAccess} from './interfaces';
 import {Transform} from './transform';
 import {pipe} from './pipes';
 
-export class Generator<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
+export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
   public [Symbol.asyncIterator]: any;
   public next: (...args: [] | [TNext]) => Promise<IteratorResult<T, TReturn>>;
   public return: any;
@@ -19,6 +19,11 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
     this[Symbol.asyncIterator] = gen[Symbol.asyncIterator];
   }
 
+  /**
+   * Create a new pipeline that yields documents from a collection
+   * 
+   * @param cursor A cursor, obtained by calling find() on a collection.
+   */
   public static fromCursor<T>(cursor: Cursor<T>) {
     async function *cursorGenerator() {
       while (await cursor.hasNext()) {
@@ -28,55 +33,77 @@ export class Generator<T = unknown, TReturn = any, TNext = unknown> implements A
         }
       }
     }
-    return new Generator<T, any, T>(cursorGenerator());
+    return new Pipeline<T, any, T>(cursorGenerator());
   }
 
-  public static fromPath(
+  /**
+   * Create a new pipeline that yields files from a file system
+   * 
+   * @param path 
+   * @param protocol 
+   */
+  public static fromFiles(
     path: string | string[], protocol: AsyncFactory<FileAccess>
-  ): Generator<File<AsyncGenerator<Buffer> | undefined>> {
+  ): Pipeline<File<AsyncGenerator<Buffer> | undefined>> {
     async function* gen() {
       const fa = await protocol.create();
       for await (const file of fa.read(path)) {
         yield file;
       }
     }
-    return new Generator(gen());
+    return new Pipeline(gen());
   }
 
+  /**
+   * Create a pipeline that yields a single chunk of data
+   * 
+   * @param data 
+   */
   public static fromOne<T>(data: T) {
     async function* generateOne() {
       yield data;
     }
-    return new Generator(generateOne());
+    return new Pipeline(generateOne());
   }
 
+  /**
+   * Create a pipeline that yields items from a list
+   * 
+   * @param data 
+   */
   public static fromMany<T>(data: T[]) {
     async function* generateMany() {
       for (const item of data) {
         yield item;
       }
     }
-    return new Generator(generateMany());
+    return new Pipeline(generateMany());
   }
 
-  public pipe<Out>(t: Transform<T, Out> | Pipe<T, Out>): Generator<Out> {
-    if (!(t instanceof Transform)) {
-      t = pipe(t);
+  /**
+   * Create a new pipeline by appending a transform or a pipe to this one.
+   * 
+   * @param segment 
+   */
+  public pipe<Out>(segment: Transform<T, Out> | Pipe<T, Out>): Pipeline<Out> {
+    if (!(segment instanceof Transform)) {
+      segment = pipe(segment);
     }
-    return new Generator<Out>(t.apply(this as any));
+    return new Pipeline<Out>(segment.apply(this as any));
   }
 
-  public branch<Out>(predicate: boolean, fn: (gen: Generator<T>) => Generator<Out>): Generator<T | Out> {
-    if (!predicate) {
-      return this;
-    }
-    return fn(this);
-  }
-
+  /**
+   * Direct the pipeline to a writable sink that consumes its data
+   * 
+   * @param writable 
+   */
   public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
     return writable(this);
   }
 
+  /**
+   * Collect all data in the pipeline and return it as an array.
+   */
   public toArray(): Promise<T[]> {
     return toArray(this);
   }

@@ -2,7 +2,7 @@ import {Pipe} from '@ziqquratu/pipe';
 import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, ReadableFile, FileContentConfig, MultiFilesWithContentConfig, FileStreamConfig, ExtractedFileContentConfig} from '../interfaces'
 import * as Pipes from '../pipes';
-import {Generator} from '../generator';
+import {Pipeline} from '../pipeline';
 
 export type GlobFilesConfig<T = any, TStored = T> = GlobConfig<T> & MultiFilesWithContentConfig<T, TStored>;
 
@@ -25,7 +25,7 @@ export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
     const {pattern, content} = this.config;
     const driver = await this.config.driver.create();
 
-    const input = (source: Generator<File>) => {
+    const input = (source: Pipeline<File>) => {
       if (!content) {
         return source;
       }
@@ -35,7 +35,7 @@ export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
       return this.fileReader(source);
     }
 
-    const output = (source: Generator<any>) => content && typeof content !== 'boolean'
+    const output = (source: Pipeline<any>) => content && typeof content !== 'boolean'
       ? this.contentSerializer(source, content)
       : source;
 
@@ -57,19 +57,19 @@ export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
     };
   }
 
-  private fileReader(source: Generator<ReadableFile>) {
+  private fileReader(source: Pipeline<ReadableFile>) {
     return source
       .pipe(Pipes.filter(async file => !file.isDir))
       .pipe(Pipes.File.read())
   }
 
-  private contentParser(source: Generator<File<Buffer>>, content: FileContentConfig<any>) {
+  private contentParser(source: Pipeline<File<Buffer>>, content: FileContentConfig<any>) {
     return source
       .pipe(Pipes.File.parse(content.serializer))
       .pipe(content.afterParse || Pipes.identity())
   }
 
-  private contentSerializer(source: Generator<File<any>>, content: FileContentConfig<any>) {
+  private contentSerializer(source: Pipeline<File<any>>, content: FileContentConfig<any>) {
     return source
       .pipe(Pipes.onKey('content', Pipes.omitKeys('_id')))
       .pipe(content.beforeSerialize || Pipes.identity<T>())
@@ -91,11 +91,11 @@ export class GlobContentStreamFactory<T> extends GlobStreamFactory<T> {
   public async create(): Promise<ShardStreamConfig<any>> {
     const stream = await super.create();
 
-    const input = (source: Generator<File<T>>) => source
+    const input = (source: Pipeline<File<T>>) => source
       .pipe(Pipes.File.assignContent(async file => ({_id: await this.resolveId(file)})))
       .pipe(Pipes.File.content());
 
-    const output = (source: Generator<T>) =>
+    const output = (source: Pipeline<T>) =>
       source.pipe(Pipes.File.create(this.resolvePath));
 
     return {

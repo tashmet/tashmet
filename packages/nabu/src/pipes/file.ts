@@ -1,6 +1,6 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
-import {File, FileAccess, GeneratorSink, Serializer} from '../interfaces';
+import {File, FileAccess, PipelineSink, Serializer} from '../interfaces';
 import {pipe} from '../pipes';
 import {Transform} from '../transform';
 import {input, onKey, output} from './common';
@@ -36,7 +36,7 @@ export function create<T>(path: string | Pipe<T, string>): Pipe<T, File<T>> {
  *
  * @param protocol The file system protocol to use.
  */
-export function write(protocol: AsyncFactory<FileAccess>): GeneratorSink<File<Buffer>, void> {
+export function write(protocol: AsyncFactory<FileAccess>): PipelineSink<File<Buffer>, void> {
   return async files => {
     const fa = await protocol.create();
     return fa.write(files);

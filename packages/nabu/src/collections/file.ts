@@ -2,7 +2,7 @@ import {Pipe} from '@ziqquratu/pipe';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
 import {FileStreamConfig, ReadableFile, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
-import {Generator} from '../generator';
+import {Pipeline} from '../pipeline';
 
 export interface FileConfig<T extends object, TStored = T> extends FileStreamConfig<T> {
   /**
@@ -49,7 +49,7 @@ export class FileStreamFactory<T extends object, TStored extends object> extends
     const {path, serializer, dictionary, afterParse, beforeSerialize} = this.config;
     const driver = await this.config.driver.create();
 
-    const input = (source: AsyncGenerator<ReadableFile>) => new Generator(source)
+    const input = (source: Pipeline<ReadableFile>) => source
       .pipe(Pipes.File.read())
       .pipe(Pipes.File.parse(serializer))
       .pipe(Pipes.File.content())
@@ -57,7 +57,7 @@ export class FileStreamFactory<T extends object, TStored extends object> extends
       .pipe(Pipes.disperse())
       .pipe(afterParse || Pipes.identity<T>())
 
-    const output = (source: AsyncGenerator<T>) => new Generator(source)
+    const output = (source: Pipeline<T>) => source
       .pipe(beforeSerialize || Pipes.identity())
       .pipe(Pipes.collect())
       .pipe(dictionary ? Pipes.toDict<TStored>() : Pipes.identity<TStored>())
