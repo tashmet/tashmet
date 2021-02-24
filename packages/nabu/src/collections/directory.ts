@@ -2,33 +2,27 @@ import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
-import {File, FileAccess, ReadableFile, Serializer} from '../interfaces'
+import {File, FileAccess, ReadableFile, FileContentConfig, PartialBy} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export interface GlobConfig<T> {
+  pattern: string;
 
-export interface FileContentConfig<T, TStored = T> {
-  /**
-   * The serializer used to parsing and serializing the content, ie json() or yaml().
-   */
-  serializer: Serializer<TStored>;
+  driver: AsyncFactory<FileAccess>;
 
-  /**
-   * An optional pipe that can modify incoming files (and their content)
-   * after the content has been parsed.
-   */
-  afterParse?: Pipe<File<TStored>, File<T>>;
+  resolveId?: Pipe<File<T>, string>;
+}
 
-  /**
-   * An optional pipe that can modify outgoing files (and their content)
-   * before the content is serialized and written to the file system.
-   * 
-   * This is a good opportunity to, for instance, remove run-time data that
-   * does not need to be persisted.
-   */
-  beforeSerialize?: Pipe<File<T>, File<TStored>>;
+export interface GlobFilesConfig<T = any, TStored = T> extends GlobConfig<T> {
+  content?: FileContentConfig<T, TStored> | boolean;
+}
+
+export interface GlobContentConfig<T = any, TStored = T> extends
+  GlobConfig<T>,
+  FileContentConfig<T, TStored>
+{
+  resolvePath?: Pipe<T, string>;
 }
 
 export interface DirectoryConfig {
@@ -73,15 +67,17 @@ export interface DirectoryContentConfig<T = any, TStored = T> extends
   FileContentConfig<T, TStored>
 {}
 
-export class DirectoryStreamFactory<T> extends ShardStreamFactory<T> {
-  public constructor(protected config: DirectoryFilesConfig<any>) {
+export const globResolvePath: Pipe<any, string> = async doc => doc._id
+export const globResolveId: Pipe<File, string> = async file => file.path;
+
+export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
+  public constructor(protected config: GlobFilesConfig<any>) {
     super()
   }
 
   public async create(): Promise<ShardStreamConfig<any>> {
-    const {path, content, extension} = this.config;
+    const {pattern, content} = this.config;
     const driver = await this.config.driver.create();
-    const glob = extension ? `${path}/*.${extension}` : `${path}/*`;
 
     const input = (source: Generator<File>) => {
       if (!content) {
@@ -97,11 +93,11 @@ export class DirectoryStreamFactory<T> extends ShardStreamFactory<T> {
       ? this.contentSerializer(source, content)
       : source;
 
-    const watch = driver.watch(glob);
-    const watchDelete = driver.watch(glob, true);
+    const watch = driver.watch(pattern);
+    const watchDelete = driver.watch(pattern, true);
 
     return {
-      seed: input(driver.read(glob)),
+      seed: input(driver.read(pattern)),
       input: watch ? input(watch) : undefined,
       inputDelete: watchDelete ? input(watchDelete) : undefined,
       output: async (source, deletion) => {
@@ -122,7 +118,7 @@ export class DirectoryStreamFactory<T> extends ShardStreamFactory<T> {
   }
 
   private contentParser(source: Generator<File<Buffer>>, content: FileContentConfig<any>) {
-    const resolveId = (file: File) => nodePath.basename(file.path).split('.')[0];
+    const resolveId = this.config.resolveId || globResolveId;
 
     return source
       .pipe(Pipes.File.parse(content.serializer))
@@ -136,25 +132,25 @@ export class DirectoryStreamFactory<T> extends ShardStreamFactory<T> {
       .pipe(content.beforeSerialize || Pipes.identity<T>())
       .pipe(Pipes.File.serialize(content.serializer));
   }
-
 }
 
-export class DirectoryContentStreamFactory<T> extends DirectoryStreamFactory<T> {
-  public constructor({path, extension, driver, ...content}: DirectoryContentConfig<any>) {
-    super({path: path, extension: extension, driver: driver, content: content});
+
+export class GlobContentStreamFactory<T> extends GlobStreamFactory<T> {
+  protected resolvePath: Pipe<T, string>;
+
+  public constructor({pattern, driver, resolveId, resolvePath, ...content}: GlobContentConfig<any>) {
+    super({pattern, driver, content, resolveId});
+    this.resolvePath = resolvePath || globResolvePath;
   }
 
   public async create(): Promise<ShardStreamConfig<any>> {
-    const {path,  extension} = this.config;
-    const fileName = (doc: any) => `${doc._id}.${extension}`;
     const stream = await super.create();
-    const resolvePath = (doc: any) => nodePath.join(path, fileName(doc));
 
     const input = (source: Generator<File<T>>) =>
       source.pipe(Pipes.File.content());
 
     const output = (source: Generator<T>) =>
-      source.pipe(Pipes.File.create(resolvePath));
+      source.pipe(Pipes.File.create(this.resolvePath));
 
     return {
       seed: stream.seed ? input(stream.seed) : undefined,
@@ -169,14 +165,28 @@ export class DirectoryContentStreamFactory<T> extends DirectoryStreamFactory<T> 
  * 
  * @param config 
  */
-export function directoryFiles<T = any, TStored = T>(config: DirectoryFilesConfig<T, TStored>) {
+export function directoryFiles<T = any, TStored = T>({path, extension, driver}: DirectoryFilesConfig<T, TStored>) {
+  const resolveId = async (file: File) => nodePath.basename(file.path).split('.')[0]
+
   return shards<File<T>>({
-    stream: new DirectoryStreamFactory(config)
+    stream: new GlobStreamFactory({
+      driver,
+      pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
+      resolveId,
+    })
   });
 }
 
-export function directoryContent<T = any, TStored = T>(config: DirectoryContentConfig<T, TStored>) {
+export function directoryContent<T = any, TStored = T>({path, extension, driver, serializer}: DirectoryContentConfig<T, TStored>) {
+  const fileName = (doc: any) => `${doc._id}.${extension}`;
+  const resolvePath = async (doc: any) => nodePath.join(path, fileName(doc));
+
   return shards<T>({
-    stream: new DirectoryContentStreamFactory(config),
+    stream: new GlobContentStreamFactory({
+      driver,
+      pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
+      serializer,
+      resolvePath,
+    }),
   });
 }

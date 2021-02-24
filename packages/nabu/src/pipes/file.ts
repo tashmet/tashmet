@@ -27,8 +27,8 @@ export function read<T>(): Transform<File<T>, File<Buffer>> {
  *
  * @param path The file path given as a string or function returning a string.
  */
-export function create<T>(path: string | ((data: T) => string)): Pipe<T, File<T>> {
-  return async content => ({path: typeof path === 'string' ? path : path(content), content, isDir: false});
+export function create<T>(path: string | Pipe<T, string>): Pipe<T, File<T>> {
+  return async content => ({path: typeof path === 'string' ? path : await path(content), content, isDir: false});
 }
 
 /**
