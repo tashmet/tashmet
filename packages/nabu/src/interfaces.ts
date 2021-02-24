@@ -1,3 +1,4 @@
+import { AsyncFactory } from "@ziqquratu/core";
 import {IOGate, Pipe} from "@ziqquratu/pipe";
 import {Generator} from "./generator";
 
@@ -27,10 +28,16 @@ export abstract class FileAccess {
 export type GeneratorSink<T = any, TReturn = any> = (gen: AsyncGenerator<T>) => Promise<TReturn>;
 
 export interface Serializer<T = any> extends IOGate<Pipe> {
+  /**
+   * Input pipe for parsing a buffer into the desired type.
+   */
   input: Pipe<Buffer, T>;
+
+  /**
+   * Output pipe for serializing a document into a buffer.
+   */
   output: Pipe<T, Buffer>;
 }
-
 
 export interface FileContentConfig<T, TStored = T> {
   /**
@@ -52,4 +59,36 @@ export interface FileContentConfig<T, TStored = T> {
    * does not need to be persisted.
    */
   beforeSerialize?: Pipe<File<T>, File<TStored>>;
+}
+
+export interface ExtractedFileContentConfig<T> {
+  /**
+   * Determine the file system path a document that is about to be persisted.
+   */
+  resolvePath?: Pipe<T, string>;
+}
+
+export interface MultiFilesConfig<T> {
+  /**
+   * The underlying file system driver to use.
+   */
+  driver: AsyncFactory<FileAccess>;
+
+  /**
+   * An optional pipe for determining the ID of incoming documents.
+   */
+  resolveId?: Pipe<File<T>, string>;
+}
+
+export interface MultiFilesWithContentConfig<T, TStored> {
+  /**
+   * Strategy for reading and writing content
+   * 
+   * When set to false, content will be an async generator that can be consumed
+   * at a later point and when true the content will be read into a buffer.
+   * 
+   * If the content should be parsed a configuration for how to do that can be
+   * given instead.
+   */
+  content?: FileContentConfig<T, TStored> | boolean;
 }

@@ -1,28 +1,17 @@
-import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
 import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
-import {File, FileAccess, ReadableFile, FileContentConfig} from '../interfaces'
+import {File, ReadableFile, FileContentConfig, MultiFilesWithContentConfig, MultiFilesConfig, ExtractedFileContentConfig} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
-export interface GlobConfig<T> {
+export type GlobFilesConfig<T = any, TStored = T> = GlobConfig<T> & MultiFilesWithContentConfig<T, TStored>;
+
+export interface GlobConfig<T> extends MultiFilesConfig<T> {
   pattern: string;
-
-  driver: AsyncFactory<FileAccess>;
-
-  resolveId?: Pipe<File<T>, string>;
 }
 
-export interface GlobFilesConfig<T = any, TStored = T> extends GlobConfig<T> {
-  content?: FileContentConfig<T, TStored> | boolean;
-}
-
-export interface GlobContentConfig<T = any, TStored = T> extends
-  GlobConfig<T>,
-  FileContentConfig<T, TStored>
-{
-  resolvePath?: Pipe<T, string>;
-}
+export type GlobContentConfig<T = any, TStored = T> =
+  GlobConfig<T> & FileContentConfig<T, TStored> & ExtractedFileContentConfig<T>;
 
 export const globResolvePath: Pipe<any, string> = async doc => doc._id
 export const globResolveId: Pipe<File, string> = async file => file.path;
@@ -133,7 +122,7 @@ export function globFiles<T = any, TStored = T>(config: GlobFilesConfig<T, TStor
  *
  * @param config
  */
-export function globContent<T = any, TStored = T>(config: GlobContentConfig<T>) {
+export function globContent<T = any, TStored = T>(config: GlobContentConfig<T, TStored>) {
   return shards<T>({
     stream: new GlobContentStreamFactory(config),
   });

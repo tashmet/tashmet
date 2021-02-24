@@ -1,8 +1,9 @@
 import {AsyncFactory} from '@ziqquratu/core';
+import {Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {shards} from '../collections/shard';
 import {GlobStreamFactory, GlobContentStreamFactory} from '../collections/glob';
-import {File, FileAccess, FileContentConfig, PartialBy} from '../interfaces'
+import {ExtractedFileContentConfig, File, FileAccess, FileContentConfig, MultiFilesWithContentConfig, PartialBy} from '../interfaces'
 
 export interface DirectoryConfig {
   /**
@@ -23,28 +24,16 @@ export interface DirectoryConfig {
    * The underlying file system driver to use.
    */
   driver: AsyncFactory<FileAccess>;
-
 }
 
-export interface DirectoryFilesConfig<T = any, TStored = T> extends
-  PartialBy<DirectoryConfig, 'extension'>
-{
-  /**
-   * Strategy for reading and writing content
-   * 
-   * When set to false, content will be an async generator that can be consumed
-   * at a later point and when true the content will be read into a buffer.
-   * 
-   * If the content should be parsed a configuration for how to do that can be
-   * given instead.
-   */
-  content?: FileContentConfig<T, TStored> | boolean;
-}
+export type DirectoryFilesConfig<T = any, TStored = T> =
+  PartialBy<DirectoryConfig, 'extension'> & MultiFilesWithContentConfig<T, TStored>;
 
-export interface DirectoryContentConfig<T = any, TStored = T> extends
-  DirectoryConfig,
-  FileContentConfig<T, TStored>
-{}
+export type DirectoryContentConfig<T = any, TStored = T> =
+  DirectoryConfig & FileContentConfig<T, TStored> & ExtractedFileContentConfig<T>;
+
+export const directoryIdResolver: Pipe<File, string> = async file =>
+  nodePath.basename(file.path).split('.')[0]
 
 /**
  * A collection based on files in a directory on a file-system
@@ -52,27 +41,28 @@ export interface DirectoryContentConfig<T = any, TStored = T> extends
  * @param config 
  */
 export function directoryFiles<T = any, TStored = T>({path, extension, driver}: DirectoryFilesConfig<T, TStored>) {
-  const resolveId = async (file: File) => nodePath.basename(file.path).split('.')[0]
-
   return shards<File<T>>({
     stream: new GlobStreamFactory({
       driver,
       pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
-      resolveId,
+      resolveId: directoryIdResolver,
     })
   });
 }
 
-export function directoryContent<T = any, TStored = T>({path, extension, driver, serializer}: DirectoryContentConfig<T, TStored>) {
+export function directoryContent<T = any, TStored = T>(
+  {path, extension, driver, serializer, resolvePath}: DirectoryContentConfig<T, TStored>)
+{
   const fileName = (doc: any) => `${doc._id}.${extension}`;
-  const resolvePath = async (doc: any) => nodePath.join(path, fileName(doc));
+  const defaultPathResolver = async (doc: any) => nodePath.join(path, fileName(doc));
 
   return shards<T>({
     stream: new GlobContentStreamFactory({
       driver,
       pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
       serializer,
-      resolvePath,
+      resolveId: directoryIdResolver,
+      resolvePath: resolvePath || defaultPathResolver,
     }),
   });
 }
