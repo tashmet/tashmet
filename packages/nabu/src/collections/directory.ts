@@ -1,11 +1,10 @@
-import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
 import * as nodePath from 'path';
 import {shards} from '../collections/shard';
 import {GlobStreamFactory, GlobContentStreamFactory} from '../collections/glob';
-import {ExtractedFileContentConfig, File, FileContentConfig, MultiFilesConfig, MultiFilesWithContentConfig, PartialBy} from '../interfaces'
+import {ExtractedFileContentConfig, File, FileContentConfig, FileStreamConfig, MultiFilesWithContentConfig, PartialBy} from '../interfaces'
 
-export interface DirectoryConfig<T> extends MultiFilesConfig<T> {
+export interface DirectoryConfig<T> extends FileStreamConfig<T> {
   /**
    * Path to the directory to where the files reside
    */

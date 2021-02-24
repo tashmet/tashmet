@@ -73,7 +73,7 @@ export interface ExtractedFileContentConfig<T> {
   resolveId?: Pipe<File<T>, string>;
 }
 
-export interface MultiFilesConfig<T> {
+export interface FileStreamConfig<T> {
   /**
    * The underlying file system driver to use.
    */

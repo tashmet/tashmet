@@ -1,12 +1,12 @@
 import {Pipe} from '@ziqquratu/pipe';
 import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
-import {File, ReadableFile, FileContentConfig, MultiFilesWithContentConfig, MultiFilesConfig, ExtractedFileContentConfig} from '../interfaces'
+import {File, ReadableFile, FileContentConfig, MultiFilesWithContentConfig, FileStreamConfig, ExtractedFileContentConfig} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
 export type GlobFilesConfig<T = any, TStored = T> = GlobConfig<T> & MultiFilesWithContentConfig<T, TStored>;
 
-export interface GlobConfig<T> extends MultiFilesConfig<T> {
+export interface GlobConfig<T> extends FileStreamConfig<T> {
   pattern: string;
 }
 

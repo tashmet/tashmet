@@ -1,11 +1,13 @@
-import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
-import {FileAccess, ReadableFile, Serializer} from '../interfaces'
+import {FileStreamConfig, ReadableFile, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
 
-export interface FileConfig<T extends object, TStored = T> {
+export interface FileConfig<T extends object, TStored = T> extends FileStreamConfig<T> {
+  /**
+   * Path to the file containing the collection.
+   */
   path: string;
 
   /**
@@ -22,11 +24,6 @@ export interface FileConfig<T extends object, TStored = T> {
    * @default false
    */
   dictionary?: boolean;
-
-  /**
-   * The underlying file system driver to use.
-   */
-  driver: AsyncFactory<FileAccess>;
 
   /**
    * An optional pipe that can modify incoming documents after they have been parsed.
