@@ -1,6 +1,6 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
-import {ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
+import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, FileAccess, ReadableFile, FileContentConfig} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Generator} from '../generator';
@@ -22,28 +22,6 @@ export interface GlobContentConfig<T = any, TStored = T> extends
   FileContentConfig<T, TStored>
 {
   resolvePath?: Pipe<T, string>;
-}
-
-export interface DirectoryConfig {
-  /**
-   * Path to the directory to where the files reside
-   */
-  path: string;
-
-  /**
-   * Extension of the files.
-   * 
-   * Should be provided without a dot, ie 'json' or 'yaml' etc. This both serves
-   * as a filter for incoming files, as well as a basis for determining the 
-   * name of outgoing files if the content is extracted.
-   */
-  extension: string;
-
-  /**
-   * The underlying file system driver to use.
-   */
-  driver: AsyncFactory<FileAccess>;
-
 }
 
 export const globResolvePath: Pipe<any, string> = async doc => doc._id
@@ -137,4 +115,26 @@ export class GlobContentStreamFactory<T> extends GlobStreamFactory<T> {
       output: (source, deletion) => stream.output(output(source), deletion),
     }
   }
+}
+
+/**
+ * A collection based on files matching a glob pattern on a file system
+ *
+ * @param config
+ */
+export function globFiles<T = any, TStored = T>(config: GlobFilesConfig<T, TStored>) {
+  return shards<File<T>>({
+    stream: new GlobStreamFactory(config)
+  });
+}
+
+/**
+ * A collection based on content in files matching a glob pattern on a file system
+ *
+ * @param config
+ */
+export function globContent<T = any, TStored = T>(config: GlobContentConfig<T>) {
+  return shards<T>({
+    stream: new GlobContentStreamFactory(config),
+  });
 }
