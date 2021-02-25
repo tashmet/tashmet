@@ -8,11 +8,12 @@ import * as vfs from 'vinyl-fs';
 import * as fs from 'fs';
 import minimatch from 'minimatch';
 import * as Pipes from './pipes';
+import {FileSystemConfig} from './interfaces';
 
 
 export class VinylFSService extends FileAccess  {
   public constructor(
-    private watcher: chokidar.FSWatcher
+    private watcher: chokidar.FSWatcher | undefined
   ) { super(); }
 
   public read(location: string | string[]): Pipeline<ReadableFile> {
@@ -34,7 +35,11 @@ export class VinylFSService extends FileAccess  {
     }
   }
 
-  public watch(globs: string | string[], deletion = false): Pipeline<File> {
+  public watch(globs: string | string[], deletion = false): Pipeline<File> | null {
+    if (!this.watcher) {
+      return null;
+    }
+
     this.watcher.add(globs);
 
     const readable = new stream.Readable({
@@ -66,13 +71,16 @@ export class VinylFSService extends FileAccess  {
 }
 
 export class VinylFSServiceFactory extends AsyncFactory<FileAccess> {
-  public constructor() {
+  public constructor(private config: FileSystemConfig) {
     super('chokidar.FSWatcher');
   }
 
   public async create() {
-    return this.resolve(async (watcher: chokidar.FSWatcher) => new VinylFSService(watcher));
+    if (this.config.watch) {
+      return this.resolve(async (watcher: chokidar.FSWatcher) => new VinylFSService(watcher));
+    }
+    return new VinylFSService(undefined);
   }
 }
 
-export const vinylfs = () => new VinylFSServiceFactory();
+export const vinylfs = (config?: FileSystemConfig) => new VinylFSServiceFactory(config || {watch: false});
