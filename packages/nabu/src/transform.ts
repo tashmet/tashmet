@@ -89,3 +89,23 @@ export class Disperser<T> extends Transform<T[], T> {
     return gen();
   }
 }
+
+export class ParallelTransform<In, Out> extends Transform<In, Out> {
+  public constructor(private pipe: Pipe<In, Out>) { super(); }
+
+  public apply(source: AsyncGenerator<In>) {
+    const pipe = this.pipe;
+
+    async function* gen() {
+      const promises: Promise<any>[] = [];
+
+      for await (const chunk of source) {
+        promises.push(pipe(chunk));
+      }
+      for (const chunk of await Promise.all(promises)) {
+        yield chunk;
+      }
+    }
+    return gen();
+  }
+}

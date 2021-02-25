@@ -1,23 +1,20 @@
 import {AsyncFactory} from '@ziqquratu/core';
 import {Pipe} from '@ziqquratu/pipe';
+import toArray from '@async-generators/to-array';
 import {File, FileAccess, PipelineSink, Serializer} from '../interfaces';
-import {pipe} from '../pipes';
-import {Transform} from '../transform';
 import {input, onKey, output} from './common';
 
-export function read<T>(): Transform<File<T>, File<Buffer>> {
-  return pipe<File>(async file => {
-    let res = file.content;
-
+/**
+ * Read the content of a file into a buffer
+ */
+export function read(): Pipe<any, File<Buffer>> {
+  return async file => {
     if (file.content && !Buffer.isBuffer(file.content)) {
-      const content = []
-      for await (const chunk of file.content) {
-        content.push(chunk);
-      }
-      res = Buffer.from(content.toString());
+      return {...file, content: Buffer.from((await toArray(file.content)).toString())};
+    } else {
+      return file;
     }
-    return {...file, content: res};
-  });
+  };
 }
 
 /**

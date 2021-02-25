@@ -66,7 +66,7 @@ export class BundleBuffer<T> extends BufferCollection {
   }
 
   protected async write(): Promise<void> {
-    return this.output(Pipeline.fromCursor(await this.cache.find()));
+    return this.output(Pipeline.fromCursor(this.cache.find()));
   }
 }
 

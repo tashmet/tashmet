@@ -3,7 +3,7 @@ import {Cursor} from '@ziqquratu/database';
 import {Pipe} from '@ziqquratu/pipe';
 import toArray from '@async-generators/to-array';
 import {File, FileAccess} from './interfaces';
-import {Transform} from './transform';
+import {ParallelTransform, Transform} from './transform';
 import {pipe} from './pipes';
 
 export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements AsyncGenerator<T, TReturn, TNext> {
@@ -89,7 +89,11 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
     if (!(segment instanceof Transform)) {
       segment = pipe(segment);
     }
-    return new Pipeline<Out>(segment.apply(this as any));
+    return new Pipeline<Out>(segment.apply(this));
+  }
+
+  public parallel<Out>(segment: Pipe<T, Out>): Pipeline<Out> {
+    return this.pipe(new ParallelTransform(segment));
   }
 
   /**

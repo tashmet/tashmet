@@ -60,13 +60,13 @@ export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
   private fileReader(source: Pipeline<ReadableFile>) {
     return source
       .pipe(Pipes.filter(async file => !file.isDir))
-      .pipe(Pipes.File.read())
+      .parallel(Pipes.File.read())
   }
 
   private contentParser(source: Pipeline<File<Buffer>>, content: FileContentConfig<any>) {
     return source
-      .pipe(Pipes.File.parse(content.serializer))
-      .pipe(content.afterParse || Pipes.identity())
+      .parallel(Pipes.File.parse(content.serializer))
+      .parallel(content.afterParse || Pipes.identity())
   }
 
   private contentSerializer(source: Pipeline<File<any>>, content: FileContentConfig<any>) {
