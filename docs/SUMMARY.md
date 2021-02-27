@@ -31,6 +31,9 @@
   * [Views](ziqquratu/views/view-classes.md)
   * [Filtering](ziqquratu/views/filtering.md)
   * [Sorting](ziqquratu/views/sorting.md)
-* [Nabu](ziqquratu/nabu.md)
+* [Markdown](ziqquratu/markdown.md)
+* [Nabu](ziqquratu/nabu/README.md)
+  * [IPFS](ziqquratu/nabu/ipfs.md)
+  * [Vinyl](ziqquratu/nabu/vinyl.md)
 * [Tashmetu](ziqquratu/tashmetu.md)
 
