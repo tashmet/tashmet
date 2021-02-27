@@ -53,27 +53,32 @@ A RESTful resource is created to serve the posts at an API endpoint. This resour
 import {
   bootstrap, component, logging, LogLevel, Provider, DatabaseConfig,
 } from '@ziqquratu/ziqquratu';
-import {yaml, directory, FileSystemConfig} from '@ziqquratu/nabu';
+import {caching} from '@ziqquratu/caching';
+import {yaml, directoryContent} from '@ziqquratu/nabu';
 import {resource, Server, ServerConfig} from '@ziqquratu/tashmetu';
 import {terminal} from '@ziqquratu/terminal';
 import {validation, ValidationPipeStrategy} from '@ziqquratu/schema';
+import {vinylfs} from '@ziqquratu/vinyl';
 
 @component({
   dependencies: [
     import('@ziqquratu/nabu'),
     import('@ziqquratu/tashmetu'),
     import('@ziqquratu/schema'),
+    import('@ziqquratu/vinyl'),
   ],
   providers: [
     Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
       collections: {
-        'schemas': directory({
+        'schemas': directoryContent({
+          driver: vinylfs(),
           path: 'schemas',
           extension: 'yaml',
           serializer: yaml(),
         }),
         'posts': {
-          source: directory({
+          source: directoryContent({
+            driver: vinylfs(),
             path: 'posts',
             extension: 'yaml',
             serializer: yaml({
@@ -85,7 +90,7 @@ import {validation, ValidationPipeStrategy} from '@ziqquratu/schema';
             logging(),
             caching(),
             validation({
-              schema: 'https://example.com/BlogPosting.schema.yaml'
+              schema: 'https://example.com/BlogPosting.schema.yaml',
               strategy: ValidationPipeStrategy.ErrorInFilterOut
             }),
           ]
@@ -96,9 +101,6 @@ import {validation, ValidationPipeStrategy} from '@ziqquratu/schema';
       middleware: {
         '/api/posts': resource({collection: 'posts'}),
       }
-    }),
-    Provider.ofInstance<FileSystemConfig>('nabu.FileSystemConfig', {
-      watch: true,
     }),
   ],
   inject: ['tashmetu.Server'],

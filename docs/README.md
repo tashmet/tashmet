@@ -80,11 +80,11 @@ Stored queries and views monitoring subsets of documents in a collection.
 
 These are packages that provide additional server-side functionality.
 
-#### [Nabu](nabu.md)
+#### [Nabu](ziqquratu/nabu.md)
 
 A set of tools for reading and writing content on disk. It allows us to store collections in files with support for common formats like JSON, YAML and Markdown.
 
-#### [Tashmetu](tashmetu.md)
+#### [Tashmetu](ziqquratu/tashmetu.md)
 
 An HTTP server for publishing content. It allows us to define RESTful resources that interact with the collections in our database.
 

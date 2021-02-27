@@ -31,6 +31,6 @@
   * [Views](ziqquratu/views/view-classes.md)
   * [Filtering](ziqquratu/views/filtering.md)
   * [Sorting](ziqquratu/views/sorting.md)
-* [Nabu](nabu.md)
-* [Tashmetu](tashmetu.md)
+* [Nabu](ziqquratu/nabu.md)
+* [Tashmetu](ziqquratu/tashmetu.md)
 
