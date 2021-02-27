@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/stream",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ziqquratu node stream tools",
   "scripts": {
     "build": "tsc",
@@ -19,7 +19,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ziqquratu/nabu": "^1.2.0"
+    "@ziqquratu/nabu": "^2.0.0"
   },
   "devDependencies": {
     "@types/reflect-metadata": "^0.1.0"

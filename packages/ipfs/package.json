@@ -1,6 +1,6 @@
 {
   "name": "@ziqquratu/ipfs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ziqquratu IPFS integration",
   "scripts": {
     "build": "tsc",
@@ -19,15 +19,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@ziqquratu/nabu": "^1.2.0",
-    "@ziqquratu/pipe": "^1.3.1",
+    "@ziqquratu/nabu": "^2.0.0",
+    "@ziqquratu/pipe": "^1.3.2",
     "ipfs-http-client": "^49.0.2",
     "minimatch": "^3.0.4"
   },
   "devDependencies": {
     "@types/minimatch": "^3.0.3",
     "@types/reflect-metadata": "^0.1.0",
-    "@ziqquratu/core": "^1.0.1"
+    "@ziqquratu/core": "^1.0.2"
   },
   "peerDependencies": {
     "@ziqquratu/ziqquratu": "^1.3.0"
