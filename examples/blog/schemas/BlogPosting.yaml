@@ -1,0 +1,15 @@
+"$id": https://example.com/BlogPosting.schema.yaml
+"$schema": http://json-schema.org/draft-07/schema#
+title: BlogPosting
+type: object
+required:
+  - articleBody
+  - datePublished
+properties:
+  articleBody:
+    type: string
+    description: The actual body of the article.
+  datePublished:
+    type: string
+    format: date-time
+    description: Date of first broadcast/publication.

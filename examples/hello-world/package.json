@@ -1,6 +1,7 @@
 {
   "name": "@ziqquratu/hello-world",
   "version": "0.1.0",
+  "private": true,
   "description": "Ziqquratu Hello World example application",
   "scripts": {
     "build": "tsc",

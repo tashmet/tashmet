@@ -1,0 +1,33 @@
+{
+  "name": "@ziqquratu/blog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ziqquratu Blog example application",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "start": "npm run server",
+    "server": "node ./dist/server.js",
+    "client": "node ./dist/client.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": "Björn Andersson",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ziqquratu/ziqquratu"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@ziqquratu/caching": "^1.2.3",
+    "@ziqquratu/nabu": "^2.0.0",
+    "@ziqquratu/schema": "^1.3.3",
+    "@ziqquratu/tashmetu": "^1.1.3",
+    "@ziqquratu/terminal": "^1.0.2",
+    "@ziqquratu/vinyl": "^0.2.0",
+    "@ziqquratu/ziqquratu": "^1.4.0"
+  }
+}
