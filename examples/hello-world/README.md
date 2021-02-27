@@ -8,9 +8,10 @@ See [https://ziqquratu.gitbook.io/ziqquratu/getting-started/application](https:/
 
 ## Instructions
 
-Clone the main repo and change directory to 'examples/hello-world'. Then run
+After cloning this repo, do the following:
 
 ```text
+cd ziqquratu/examples/hello-world
 npm install
 npm build
 ```
