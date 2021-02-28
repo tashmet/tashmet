@@ -1,13 +1,54 @@
 # Ziqquratu
 
-This is the Ziqquratu mono-repo, containing code, tests and documentation for the Ziqquratu publishing framework. To get started head over to the [user documentation](https://ziqquratu.gitbook.io/).
+This is the Ziqquratu mono-repo, containing code, tests and documentation for
+the Ziqquratu publishing framework. To get started head over to the
+[user documentation](https://ziqquratu.gitbook.io/).
 
 ## Introduction
 
-Ziqquratu is a lightweight open-source database written in typescript with the purpose of publishing content in a web application such as a blog or a larger web site. The framework is isomorphic, meaning it can run both on the server and the client.
+Ziqquratu is a lightweight open-source database abstraction written in
+typescript with the purpose of making it easy to access data from various
+sources in a uniform way.
 
-## Philosophy
+## One interface, many sources
 
-The framework was created mainly to make it easy to share content between a server and a client. It was built using a highly modular design with scalability in mind which means you could use it for a simple web-page, blog or larger web application.
+The main idea behind the project centers around using a MongoDB-compatible
+interface that can plug into just about anything that represents a collection.
+Each collection in the database can interface to a any one of the following
+currently supported sources.
 
-When running it in a web-browser you probably want to have the content rendered using some front-end framework. Ziqquratu does not limit your choices here.
+### MongoDB
+
+Natually the popular database is supported as a backend. The Ziqquratu
+collection interface is basically a subset of the MongoDB collection.
+
+### REST
+
+Why not interface with a RESTful API like it was MongoDB database? Ziqquratu
+in a way makes it possible to leverage the power of MongoDB in a client-side
+application.
+
+### In Memory
+
+An in-memory collection allows us to store documents in a volatile way which
+is useful for things like caching. To support the MongoDB query language in
+this setting, Ziqquratu internally uses [mingo](https://github.com/kofrasa/mingo).
+
+### Files on a file system
+
+Using streams in combination with an in-memory buffer allows for reading
+and writing documents on the file system. There is currently support for 
+working with locally stored documents using vinyl-streams, as well as 
+remote documents stored on the IPFS (The InterPlanetary File System).
+
+## Modularity
+
+To make it easy to swap out components and only include what's needed in order
+to reduce bundle footprint when used in browser, the project is split into
+a bunch of different packages. With a built-in inversion-of-control container
+loading (or writing) plugins is very simple.
+
+### Middleware
+
+Each collection can also be enhanced with various middleware for things like
+caching, validation and convertion of documents to other formats.
