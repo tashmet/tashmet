@@ -1,6 +1,16 @@
 import {Annotation} from '@ziqquratu/core';
-import {Collection, Cursor, Selector} from '@ziqquratu/database';
+import {Collection, Cursor, QueryOptions, Selector} from '@ziqquratu/database';
 import {getType} from 'reflect-helper';
+
+export interface Query extends QueryOptions {
+  selector?: object;
+}
+
+export interface ResultSet<T> {
+  data: T[];
+  totalCount: number;
+  excludedCount: number;
+}
 
 export class SelectorPropertyAnnotation extends Annotation {
   public apply(selector: Selector, value: any): void {
@@ -14,29 +24,54 @@ export class CursorPropertyAnnotation extends Annotation {
   }
 }
 
-export function makeSelector(query: any): Selector {
+export function makeSelector(query: Query): Selector {
+  if (query.selector) {
+    return new Selector(query.selector);
+  }
   const selector = new Selector();
   for (const prop of getType(query.constructor).properties) {
     for (const annotation of prop.getAnnotations(SelectorPropertyAnnotation)) {
-      annotation.apply(selector, query[prop.name]);
+      annotation.apply(selector, (query as any)[prop.name]);
     }
   }
   return selector;
 }
 
-export function makeCursor<T>(query: any, collection: Collection<T>): Cursor<T> {
-  const cursor = collection.find(makeSelector(query).value);
+export function bindQuery<T>(query: Query, collection: Collection<T>): BoundQuery<T> {
+  return new BoundQuery(query, collection);
+}
 
-  for (const prop of getType(query.constructor).properties) {
-    for (const annotation of prop.getAnnotations(CursorPropertyAnnotation)) {
-      annotation.apply(cursor, query[prop.name]);
+export class BoundQuery<T = any> {
+  public constructor(
+    private query: Query,
+    private collection: Collection<T>
+  ) {}
+
+  public toCursor(): Cursor<T> {
+    const cursor = this.collection.find(makeSelector(this.query).value);
+
+    for (const prop of getType(this.query.constructor).properties) {
+      for (const annotation of prop.getAnnotations(CursorPropertyAnnotation)) {
+        annotation.apply(cursor, (this.query as any)[prop.name]);
+      }
     }
+    if (this.query.limit) {
+      cursor.limit(this.query.limit);
+    }
+    if (this.query.skip) {
+      cursor.skip(this.query.skip);
+    }
+    return cursor;
   }
-  if (query.limit) {
-    cursor.limit(query.limit);
+
+  public one(): Promise<T | null> {
+    return this.toCursor().next();
   }
-  if (query.skip) {
-    cursor.skip(query.skip);
+
+  public async many(): Promise<ResultSet<T>> {
+    const data = await this.toCursor().toArray();
+    const totalCount = await this.toCursor().count(false);
+
+    return {data, totalCount, excludedCount: totalCount - data.length};
   }
-  return cursor;
 }

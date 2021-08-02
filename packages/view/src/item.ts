@@ -1,5 +1,5 @@
 import {View} from './view';
-import {makeCursor} from './query';
+import {bindQuery} from './query';
 
 /**
  * A view monitoring a single document.
@@ -14,7 +14,7 @@ export abstract class Item<T = any> extends View<T> {
   }
 
   public async refresh(): Promise<T | null> {
-    this._data = await makeCursor(this, await this.collection).next();
+    this._data = await bindQuery(this, await this.collection).one()
     this.emit('item-updated', this._data);
     return this._data;
   }

@@ -1,6 +1,6 @@
 import {EventEmitter} from 'eventemitter3';
 import {Collection} from '@ziqquratu/database';
-import {makeSelector} from './query';
+import {makeSelector, Query} from './query';
 
 /**
  * A view representing a subset of documents within a collection.
@@ -11,7 +11,7 @@ import {makeSelector} from './query';
  * having been changed) a selector object and query options are passed through each filter and
  * finally used to query the collection.
  */
-export abstract class View<T> extends EventEmitter {
+export abstract class View<T> extends EventEmitter implements Query {
   public skip = 0;
   public limit: number | undefined;
 

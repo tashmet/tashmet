@@ -101,10 +101,10 @@ describe('view', () => {
     });
 
     it('should update when document matching selector is added', (done) => {
-      sut.on('item-set-updated', (docs, totalCount) => {
-        expect(docs.length).to.eql(2);
+      sut.on('item-set-updated', ({data, totalCount}) => {
+        expect(data.length).to.eql(2);
         expect(totalCount).to.eql(4);
-        expect(docs.map(d => d._id)).to.eql([6, 4]);
+        expect(data.map(d => d._id)).to.eql([6, 4]);
         done();
       });
 
@@ -126,10 +126,10 @@ describe('view', () => {
     });
 
     it('should update when document is updated to match view', (done) => {
-      sut.on('item-set-updated', (docs, totalCount) => {
-        expect(docs.length).to.eql(2);
+      sut.on('item-set-updated', ({data, totalCount}) => {
+        expect(data.length).to.eql(2);
         expect(totalCount).to.eql(3);
-        expect(docs.map(d => d._id)).to.eql([1, 4]);
+        expect(data.map(d => d._id)).to.eql([1, 4]);
         done();
       });
 
@@ -137,20 +137,20 @@ describe('view', () => {
     });
 
     it('should update when document matching selector is removed', (done) => {
-      sut.on('item-set-updated', (docs, totalCount) => {
-        expect(docs.length).to.eql(2);
+      sut.on('item-set-updated', ({data, totalCount}) => {
+        expect(data.length).to.eql(2);
         expect(totalCount).to.eql(2);
-        expect(docs.map(d => d._id)).to.eql([4, 5]);
+        expect(data.map(d => d._id)).to.eql([4, 5]);
         done();
       });
       collection.deleteOne({_id: 1});
     });
 
     it('should update when document matching query options is removed', (done) => {
-      sut.on('item-set-updated', (docs, totalCount) => {
-        expect(docs.length).to.eql(2);
+      sut.on('item-set-updated', ({data, totalCount}) => {
+        expect(data.length).to.eql(2);
         expect(totalCount).to.eql(2);
-        expect(docs.map(d => d._id)).to.eql([4, 1]);
+        expect(data.map(d => d._id)).to.eql([4, 1]);
         done();
       });
       collection.deleteOne({_id: 5});
@@ -173,8 +173,8 @@ describe('view', () => {
     it('should update data', (done) => {
       expect(sut.data.map(d => d._id)).to.eql([2, 4]);
 
-      sut.on('item-set-updated', docs => {
-        expect(docs.map(d => d._id)).to.eql([1, 3]);
+      sut.on('item-set-updated', ({data}) => {
+        expect(data.map(d => d._id)).to.eql([1, 3]);
         done();
       });
       sut.sort = SortingDirection.Ascending;
@@ -183,8 +183,8 @@ describe('view', () => {
 
   describe('changing selector', () => {
     it('should filter by category', (done) => {
-      sut.on('item-set-updated', docs => {
-        expect(docs.length).to.eql(2);
+      sut.on('item-set-updated', ({data}) => {
+        expect(data.length).to.eql(2);
         expect(sut.totalCount).to.eql(2);
         expect(sut.excludedCount).to.eql(0);
         done();

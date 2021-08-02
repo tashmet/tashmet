@@ -6,5 +6,5 @@ export {View} from './view';
 export {Item} from './item';
 export {ItemSet} from './itemSet';
 export {
-  makeCursor, makeSelector, CursorPropertyAnnotation, SelectorPropertyAnnotation
+  bindQuery, makeSelector, CursorPropertyAnnotation, SelectorPropertyAnnotation
 } from './query';

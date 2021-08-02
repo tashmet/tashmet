@@ -1,42 +1,40 @@
 import {View} from './view';
-import {makeCursor} from './query';
+import {bindQuery, ResultSet} from './query';
 
 /**
  * A view monitoring a list of documents.
  */
-export abstract class ItemSet<T = any> extends View<T> {
-  protected _data: T[] = [];
-  private _totalCount = 0;
+export abstract class ItemSet<T = any> extends View<T> implements ResultSet<T> {
+  protected resultSet: ResultSet<T>;
 
   /**
    * List of documents in this view.
    */
   public get data(): T[] {
-    return this._data;
+    return this.resultSet.data;
   }
 
   /**
    * The total number of documents matching the view's selector, disregarding its query options.
    */
   public get totalCount(): number {
-    return this._totalCount;
+    return this.resultSet.totalCount;
   }
 
   /**
    * The number of documents excluded from the view based on its query options.
    */
   public get excludedCount(): number {
-    return this.totalCount - this.data.length;
+    return this.resultSet.excludedCount;
   }
 
   public async refresh(): Promise<T[]> {
-    this._data = await makeCursor<T>(this, await this.collection).toArray();
-    this._totalCount = await makeCursor<T>(this, await this.collection).count(false);
-    this.emit('item-set-updated', this._data, this._totalCount);
-    return this._data;
+    this.resultSet = await bindQuery(this, await this.collection).many();
+    this.emit('item-set-updated', this);
+    return this.data;
   }
 
-  public on(event: 'item-set-updated', fn: (data: T[], totalCount: number) => void) {
+  public on(event: 'item-set-updated', fn: (resultSet: ResultSet<T>) => void) {
     return super.on(event, fn);
   }
 }
