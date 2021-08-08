@@ -24,7 +24,7 @@ export class CursorPropertyAnnotation extends Annotation {
   }
 }
 
-export function makeSelector(query: Query): Selector {
+export function makeSelector(query: any): Selector {
   if (query.selector) {
     return new Selector(query.selector);
   }
@@ -37,7 +37,7 @@ export function makeSelector(query: Query): Selector {
   return selector;
 }
 
-export function bindQuery<T>(query: Query, collection: Collection<T>): BoundQuery<T> {
+export function bindQuery<T>(query: any, collection: Collection<T>): BoundQuery<T> {
   return new BoundQuery(query, collection);
 }
 
