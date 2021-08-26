@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions} from '../interfaces';
+import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions, QueryOptions, AggregationPipeline} from '../interfaces';
 
 export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
   public constructor(
@@ -46,9 +46,9 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
   public toString(): string {
     return this.source.toString();
   }
-  
-  public async aggregate(pipeline: AggregationPipeline, options?: AggregationOptions): Promise<any> {
-    return this.source.aggregate(pipeline, options);
+
+  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
+    return this.source.aggregate(pipeline);
   }
 
   public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {

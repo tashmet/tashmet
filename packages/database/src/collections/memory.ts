@@ -8,17 +8,16 @@ import {
   SortingDirection,
   Database,
   AggregationPipeline,
-  AggregationOptions
 } from '../interfaces';
-import {applyQueryOptions, sortingMap} from '../cursor';
+import {AggregationCursor, applyQueryOptions, sortingMap} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 import mingo from 'mingo';
 import ObjectID from 'bson-objectid';
 
 export interface MemoryCollectionConfig<T = any> {
-  /** 
+  /**
    * A list of documents this collection should operate on.
-   * 
+   *
    * If not provided an empty list will be created.
    */
   documents?: T[];
@@ -57,7 +56,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   public async next(): Promise<T | null> {
     return this.cursor.next() || null;
   }
-  
+
   public async hasNext(): Promise<boolean> {
     return this.cursor.hasNext();
   }
@@ -71,7 +70,9 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 
   public async count(applySkipLimit = true): Promise<number> {
-    return applySkipLimit ? this.cursor.count() : mingo.find(this.collection, this.selector).count();
+    return applySkipLimit
+      ? this.cursor.count()
+      : mingo.find(this.collection, this.selector).count();
   }
 }
 
@@ -90,20 +91,9 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
   public toString(): string {
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
-  
-  public async aggregate(pipeline: AggregationPipeline, options: AggregationOptions = {}): Promise<any> {
-    for (const step of pipeline) {
-      for (const op of Object.keys(step)) {
-        if (op === '$lookup') {
-          const foreignCol = await this.database.collection(step[op].from);
-          step[op].from = await foreignCol.find().toArray();
-        }
-      }
-    }
-    const result = mingo.aggregate(this.collection, pipeline);
-    return options.cursor
-      ? new MemoryCollectionCursor(result, {}, {})
-      : result;
+
+  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
+    return new AggregationCursor<U>(pipeline, this.collection, this.database);
   }
 
   public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {

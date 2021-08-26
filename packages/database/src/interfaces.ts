@@ -10,11 +10,6 @@ export type SortingKey = string | string[] | SortingMap;
 
 export type AggregationPipeline = Record<string, any>[];
 
-export interface AggregationOptions {
-  /** Return the query as cursor */
-  cursor?: boolean;
-}
-
 export interface Cursor<T> {
   /**
    * Sets the sort order of the cursor query.
@@ -90,7 +85,7 @@ export interface Collection<T = any> {
   readonly name: string;
 
   /* Execute an aggregation framework pipeline against the collection */
-  aggregate(pipeline: AggregationPipeline, options?: AggregationOptions): Promise<any>;
+  aggregate<U>(pipeline: AggregationPipeline): Cursor<U>;
 
   /**
    * Insert a document into the collection.

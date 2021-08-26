@@ -1,5 +1,5 @@
-import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions, AggregationPipeline} from '../interfaces';
-import {AbstractCursor} from '../cursor';
+import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions, AggregationPipeline, Database} from '../interfaces';
+import {AbstractCursor, AggregationCursor, Query} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 import 'isomorphic-fetch';
 
@@ -80,6 +80,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   public constructor(
     public readonly name: string,
     private config: HttpCollectionConfig,
+    private database: Database,
   ) {
     super();
 
@@ -100,8 +101,12 @@ export class HttpCollection extends EventEmitter implements Collection {
     return `http collection '${this.name}' at '${this.config.path}'`;
   }
 
-  public async aggregate(pipeline: AggregationPipeline): Promise<any> {
-    throw Error('Aggregation not supported in HTTP collection');
+  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
+    const query = Query.fromPipeline(pipeline);
+    return new AggregationCursor<U>(
+      pipeline, this.find(query.match, query).toArray(),
+      this.database
+    );
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
@@ -205,8 +210,8 @@ export class HttpCollectionFactory extends CollectionFactory {
     super();
   }
 
-  public async create(name: string) {
-    return new HttpCollection(name, this.config);
+  public async create(name: string, database: Database) {
+    return new HttpCollection(name, this.config, database);
   }
 }
 

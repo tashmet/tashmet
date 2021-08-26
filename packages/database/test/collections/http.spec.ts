@@ -1,3 +1,5 @@
+import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
+import {DatabaseService} from '../../src/database';
 import {HttpCollection} from '../../src/collections/http';
 import {expect} from 'chai';
 import 'mocha';
@@ -32,7 +34,11 @@ function matchBody(body: any) {
 }
 
 describe('HttpCollection', () => {
-  const col = new HttpCollection('test', {path: '/api/test'});
+  const col = new HttpCollection(
+    'test',
+    {path: '/api/test'},
+    new DatabaseService({collections: {}}, new DefaultLogger())
+  );
 
   before(() => {
     fetchMock.head(uri('/api/test', {_id: 'foo'}), {
