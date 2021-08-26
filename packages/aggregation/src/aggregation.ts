@@ -18,11 +18,11 @@ export interface AggregationCollectionConfig {
   /**
    * Automatically update documents when changes are made to the collection
    * we are aggregating from.
-   * 
+   *
    * When sync is turned on this collection should strictly function as
    * read-only since a sync will remove any documents that have been manually
    * added.
-   * 
+   *
    * @default true
    */
   sync?: boolean;
@@ -36,11 +36,11 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
   public async create(name: string, database: Database) {
     const foreign = await database.collection(this.config.from);
     const collection = new MemoryCollection<T>(name, database, {
-      documents: await foreign.aggregate(this.config.pipeline)
+      documents: await foreign.aggregate(this.config.pipeline).toArray()
     });
 
     const update = async () => {
-      const docs = await foreign.aggregate(this.config.pipeline) as any[];
+      const docs = await foreign.aggregate<any>(this.config.pipeline).toArray();
 
       await collection.deleteMany({_id: {$nin: docs.map(d => d._id)}});
 
