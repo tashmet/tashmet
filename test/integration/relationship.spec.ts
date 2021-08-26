@@ -40,7 +40,7 @@ describe('join', () => {
         },
       })
     ],
-    inject: ['ziqquratu.Database']
+    inject: [Database]
   })
   class TestComponent {
     public constructor(public database: Database) {}
@@ -66,7 +66,7 @@ describe('join', () => {
           .to.eventually.eql({_id: 1, author: {_id: 1, name: 'John Doe'}});
       });
     });
-    
+
     describe('insertOne', () => {
       it('should insert new author', async () => {
         await posts.insertOne({_id: 2, author: {_id: 2, name: 'Jane Doe'}});

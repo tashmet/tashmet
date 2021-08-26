@@ -1,7 +1,7 @@
 import {bootstrap, component, memory, Database} from '@ziqquratu/ziqquratu';
 
 @component({
-  inject: ['ziqquratu.Database'],
+  inject: [Database],
 })
 export class Application {
   constructor(

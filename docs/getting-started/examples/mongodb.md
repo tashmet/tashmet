@@ -26,7 +26,7 @@ let mongoCollection: MongoCollection;
 // ...
 
 @component({
-  inject: ['ziqquratu.Database'],
+  inject: [Database],
 })
 export class Application {
   constructor(

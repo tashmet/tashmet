@@ -69,7 +69,7 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
 
 @provider({
   key: 'ziqquratu.DocumentTracking',
-  inject: ['ziqquratu.Database']
+  inject: [Database]
 })
 export class DocumentTrackingService implements DocumentTracking {
   private trackers: Tracker<any>[] = [];

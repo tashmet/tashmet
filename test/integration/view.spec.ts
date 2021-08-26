@@ -58,7 +58,7 @@ describe('view', () => {
         use: [caching(), tracking()]
       })
     ],
-    inject: [TestView, 'ziqquratu.Database']
+    inject: [TestView, Database]
   })
   class TestComponent {
     public constructor(public testView: TestView, public database: Database) {}

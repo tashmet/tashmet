@@ -1,4 +1,5 @@
-import {AsyncFactory} from '@ziqquratu/core';
+import {EventEmitter} from 'eventemitter3';
+import {AsyncFactory, Provider} from '@ziqquratu/core';
 
 export enum SortingDirection {
   Ascending = 1,
@@ -285,17 +286,42 @@ export interface DatabaseConfig {
   use?: MiddlewareFactory[];
 }
 
+export declare interface Database {
+  /**
+   * Listen for when a document in a collection has been added or changed.
+   * The callback supplies the document and the collection it was upserted to.
+   */
+  on(event: 'document-upserted', fn: (obj: any, collection: Collection) => void): this;
+
+  /**
+   * Listen for when a document in a collection has been removed.
+   * The callback supplies the removed document and the collection it was removed from.
+   */
+
+  on(event: 'document-removed', fn: (obj: any, collection: Collection) => void): this;
+
+  /**
+   * Listen for when an error was generated when loading or saving a document
+   * in a collection. The callback supplies the document error and the collection generating it.
+   */
+  on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): this;
+}
+
 /**
  *
  */
-export interface Database {
+export abstract class Database extends EventEmitter {
+  public static configuration(config: DatabaseConfig) {
+    return Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', config);
+  }
+
   /**
    * Get an existing collection by name.
    *
    * @param name The name of the collection.
    * @returns The instance of the collection.
    */
-  collection<T = any>(name: string): Promise<Collection<T>>;
+  public abstract collection<T = any>(name: string): Promise<Collection<T>>;
 
   /**
    * Create a collection.
@@ -306,7 +332,7 @@ export interface Database {
    * @param factory The factory creating the collection.
    * @returns An instance of the collection.
    */
-  createCollection<T = any>(name: string, factory: CollectionFactory<T>): Promise<Collection<T>>;
+  public abstract createCollection<T = any>(name: string, factory: CollectionFactory<T>): Promise<Collection<T>>;
 
   /**
    * Create a collection.
@@ -317,25 +343,7 @@ export interface Database {
    * @param config The configuration.
    * @returns An instance of the collection.
    */
-  createCollection<T = any>(name: string, config: CollectionConfig): Promise<Collection<T>>;
-
-  /**
-   * Listen for when a document in a collection has been added or changed.
-   * The callback supplies the document and the collection it was upserted to.
-   */
-  on(event: 'document-upserted', fn: (obj: any, collection: Collection) => void): Database;
-
-  /**
-   * Listen for when a document in a collection has been removed.
-   * The callback supplies the removed document and the collection it was removed from.
-   */
-  on(event: 'document-removed', fn: (obj: any, collection: Collection) => void): Database;
-
-  /**
-   * Listen for when an error was generated when loading or saving a document
-   * in a collection. The callback supplies the document error and the collection generating it.
-   */
-  on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): Database;
+  public abstract createCollection<T = any>(name: string, config: CollectionConfig): Promise<Collection<T>>;
 }
 
 export abstract class CollectionFactory<T = any> extends AsyncFactory<Collection<T>> {

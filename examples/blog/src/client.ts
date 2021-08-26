@@ -10,7 +10,7 @@ import {caching} from '@ziqquratu/caching';
       use: [caching()],
     }),
   ],
-  inject: ['ziqquratu.Database'],
+  inject: [Database],
 })
 export class Application {
   constructor(private database: Database) {}

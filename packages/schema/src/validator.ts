@@ -23,12 +23,12 @@ export class AjvError extends DocumentError {
 
 @provider({
   key: 'schema.Validator',
-  inject: ['ziqquratu.Database', 'schema.ValidationConfig']
+  inject: [Database, 'schema.ValidationConfig']
 })
 export class AjvValidator {
   private ajv: Promise<Ajv.Ajv>;
 
-  public constructor(private database: Database, private config: ValidationConfig) {
+  public constructor(database: Database, config: ValidationConfig) {
     this.ajv = new Promise(resolve => {
       database.collection(config.collection)
         .then(collection => collection.find().toArray())

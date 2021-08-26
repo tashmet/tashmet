@@ -36,7 +36,7 @@ describe('directory', () => {
         },
       })
     ],
-    inject: ['ziqquratu.Database'],
+    inject: [Database],
   })
   class TestComponent {
     public constructor(public database: Database) {}

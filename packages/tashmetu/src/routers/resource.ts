@@ -12,10 +12,10 @@ export interface ResourceConfig {
   /** The name of the collection */
   collection: string;
 
-  /** 
+  /**
    * If set, the resource will be in read-only mode meaning that only GET
    * requests will be allowed.
-   * 
+   *
    * @default false
    */
   readOnly?: boolean;
@@ -187,7 +187,7 @@ export class Resource {
 
 export class ResourceFactory extends ControllerFactory {
   constructor(private config: ResourceConfig) {
-    super('ziqquratu.Database', 'tashmetu.Logger');
+    super(Database, 'tashmetu.Logger');
   }
 
   public create(): Promise<any> {

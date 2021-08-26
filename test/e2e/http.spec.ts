@@ -26,7 +26,7 @@ describe('http', () => {
         },
       })
     ],
-    inject: ['ziqquratu.Database']
+    inject: [Database]
   })
   class ClientComponent {
     public constructor(public database: Database) {}

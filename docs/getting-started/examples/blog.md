@@ -4,7 +4,7 @@ description: A simple blog application with server and client
 
 # Blog
 
-In the following example we'll create an application that publishes blog posts written in text files with YAML front-matter. The application consists of a server and a client that needs to be run separately \(the client typically running in the browser\). 
+In the following example we'll create an application that publishes blog posts written in text files with YAML front-matter. The application consists of a server and a client that needs to be run separately \(the client typically running in the browser\).
 
 The blog posts can be edited with a regular text editor. The server will listen for file changes and push the content to the client through a socket once it has been validated.
 
@@ -17,7 +17,7 @@ We'll have a directory for storing posts and one for storing our schemas. Notice
 ```yaml
 ---
 datePublished: '2020-03-22T22:49:33.610Z'
---- 
+---
 Hello World!
 ```
 {% endtab %}
@@ -137,7 +137,7 @@ import {caching} from '@ziqquratu/caching';
       use: [caching()],
     }),
   ],
-  inject: ['ziqquratu.Database'],
+  inject: [Database],
 })
 export class Application {
   constructor(private database: Database) {}

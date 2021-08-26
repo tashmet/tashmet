@@ -16,7 +16,7 @@ In the following example we will set up a an application, create a collection an
 import {bootstrap, component, memory, Database} from '@ziqquratu/ziqquratu';
 
 @component({
-  inject: ['ziqquratu.Database'],
+  inject: [Database],
 })
 export class Application {
   constructor(

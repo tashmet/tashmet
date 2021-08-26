@@ -54,7 +54,7 @@ Resolver that returns a function for lazy evaluation of a service request.
 
 ```typescript
 @provider({
-  inject: [Lazy.of('ziqquratu.Database')]
+  inject: [Lazy.of(Database)]
 })
 class MyProvider {
   public constructor(private getDatabase: () => Database) {}
@@ -67,7 +67,7 @@ Resolver that returns the resolved key if it was registered.
 
 ```typescript
 @provider({
-  inject: [Optional.of('ziqquratu.Database')]
+  inject: [Optional.of(Database)]
 })
 class MyProvider {
   public constructor(private database?: Database) {}

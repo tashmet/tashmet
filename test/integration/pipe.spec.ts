@@ -43,7 +43,7 @@ describe('pipe', () => {
         }
       })
     ],
-    inject: ['ziqquratu.Database']
+    inject: [Database]
   })
   class TestComponent {
     public constructor(public database: Database) {}
@@ -141,7 +141,7 @@ describe('pipe', () => {
           }
         })
       ],
-      inject: ['ziqquratu.Database']
+      inject: [Database]
     })
     class TestComponent {
       public constructor(public database: Database) {}

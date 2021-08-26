@@ -1,5 +1,4 @@
 import {provider, Logger} from '@ziqquratu/core';
-import {EventEmitter} from 'eventemitter3';
 import {ManagedCollection} from './collections/managed';
 import {
   Collection,
@@ -12,13 +11,13 @@ import {
 } from './interfaces';
 
 @provider({
-  key: 'ziqquratu.Database',
+  key: Database,
   inject: [
     'ziqquratu.DatabaseConfig',
     'ziqquratu.DatabaseLogger',
   ]
 })
-export class DatabaseService extends EventEmitter implements Database {
+export class DatabaseService extends Database {
   private collections: {[name: string]: Promise<Collection>} = {};
   private logger: Logger;
 
