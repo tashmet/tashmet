@@ -8,10 +8,8 @@ import {markdown} from '../../packages/markdown/dist';
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   memory,
 } from '../../packages/ziqquratu/dist';
 
@@ -20,7 +18,7 @@ chai.use(chaiAsPromised);
 describe('markdown', () => {
   @component({
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'posts': {
             source: memory({documents: [

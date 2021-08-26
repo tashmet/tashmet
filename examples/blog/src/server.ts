@@ -1,5 +1,5 @@
 import {
-  bootstrap, component, logging, LogLevel, Provider, DatabaseConfig,
+  bootstrap, component, logging, LogLevel, Provider, Database,
 } from '@ziqquratu/ziqquratu';
 import {caching} from '@ziqquratu/caching';
 import {yaml, directoryContent} from '@ziqquratu/nabu';
@@ -16,7 +16,7 @@ import { vinylfs } from '@ziqquratu/vinyl';
     import('@ziqquratu/vinyl'),
   ],
   providers: [
-    Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+    Database.configuration({
       collections: {
         'schemas': directoryContent({
           driver: vinylfs(),

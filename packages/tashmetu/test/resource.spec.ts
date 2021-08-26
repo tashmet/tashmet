@@ -1,4 +1,4 @@
-import {bootstrap, component, memory, DatabaseConfig, Provider} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, memory, Database, Provider} from '@ziqquratu/ziqquratu';
 import Tashmetu, { resource, Server, ServerConfig } from '../src';
 import request from 'supertest-as-promised';
 import 'mocha';
@@ -8,7 +8,7 @@ describe('Resource', () => {
   @component({
     dependencies: [Tashmetu],
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'test': memory({documents: [{_id: 'doc1'}, {_id: 'doc2'}]})
         }

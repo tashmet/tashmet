@@ -7,10 +7,8 @@ import {aggregation} from '../../packages/aggregation/dist';
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   memory,
 } from '../../packages/ziqquratu/dist';
 
@@ -34,7 +32,7 @@ const salesData = [
 describe('aggregation', () => {
   @component({
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           sales: memory({documents: salesData}),
           totals: aggregation({

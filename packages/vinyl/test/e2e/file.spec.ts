@@ -1,4 +1,4 @@
-import {bootstrap, component, Provider, Collection, DatabaseConfig, Database} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, Collection, Database} from '@ziqquratu/ziqquratu';
 import {file, json} from '@ziqquratu/nabu';
 import {expect} from 'chai';
 import 'mocha';
@@ -23,7 +23,7 @@ describe('file', () => {
   @component({
     dependencies: [import('../../src')],
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'test': {
             source: file({

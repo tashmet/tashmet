@@ -1,4 +1,4 @@
-import {bootstrap, component, Provider, Collection, DatabaseConfig, Database} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, Collection, Database} from '@ziqquratu/ziqquratu';
 import {directoryContent, json} from '@ziqquratu/nabu';
 import {vinylfs} from '../../dist';
 import {expect} from 'chai';
@@ -23,7 +23,7 @@ describe('directory', () => {
   @component({
     dependencies: [import('../../dist')],
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'test': {
             source: directoryContent({

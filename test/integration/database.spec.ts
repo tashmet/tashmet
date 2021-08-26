@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
 import {
-  bootstrap, component, Provider, Database, DatabaseConfig, memory
+  bootstrap, component, Database, memory
 } from '../../packages/ziqquratu/dist';
 
 chai.use(chaiAsPromised);
@@ -12,7 +12,7 @@ chai.use(chaiAsPromised);
 describe('database', () => {
   @component({
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'test': memory({documents: [{name: 'doc1'}, {name: 'doc2'}]})
         }

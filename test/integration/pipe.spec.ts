@@ -7,10 +7,8 @@ import {eachDocument} from '../../packages/pipe/dist';
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   memory,
   DocumentError,
 } from '../../packages/ziqquratu/dist';
@@ -20,7 +18,7 @@ chai.use(chaiAsPromised);
 describe('pipe', () => {
   @component({
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'test': {
             source: memory(),
@@ -115,7 +113,7 @@ describe('pipe', () => {
   describe('filtering', () => {
     @component({
       providers: [
-        Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+        Database.configuration({
           collections: {
             'test': {
               source: memory({documents: [{_id: 1, error: true}, {_id: 2, error: false}]}),

@@ -7,10 +7,8 @@ import {fields} from '../../packages/aggregation/dist';
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   memory,
 } from '../../packages/ziqquratu/dist';
 
@@ -19,7 +17,7 @@ chai.use(chaiAsPromised);
 describe('fields', () => {
   @component({
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'users': {
             source: memory({documents: [

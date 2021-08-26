@@ -10,10 +10,8 @@ import {view, ItemSet} from '../../packages/view/dist';
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   memory,
   SortingDirection,
 } from '../../packages/ziqquratu/dist';
@@ -51,7 +49,7 @@ describe('view', () => {
     dependencies: [ViewComponent],
     providers: [
       TestView,
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'test': memory()
         },

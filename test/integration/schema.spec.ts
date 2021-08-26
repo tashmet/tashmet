@@ -7,10 +7,8 @@ import Schema, {validation, ValidationPipeStrategy} from '../../packages/schema/
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   memory,
 } from '../../packages/ziqquratu/dist';
 
@@ -39,7 +37,7 @@ describe('schema', () => {
   @component({
     dependencies: [Schema],
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'schemas': memory({documents: [schemaDoc]}),
           'products': {

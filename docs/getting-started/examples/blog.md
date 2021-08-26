@@ -51,7 +51,7 @@ A RESTful resource is created to serve the posts at an API endpoint. This resour
 
 ```typescript
 import {
-  bootstrap, component, logging, LogLevel, Provider, DatabaseConfig,
+  bootstrap, component, logging, LogLevel, Database
 } from '@ziqquratu/ziqquratu';
 import {caching} from '@ziqquratu/caching';
 import {yaml, directoryContent} from '@ziqquratu/nabu';
@@ -68,7 +68,7 @@ import {vinylfs} from '@ziqquratu/vinyl';
     import('@ziqquratu/vinyl'),
   ],
   providers: [
-    Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+    Database.configuration({
       collections: {
         'schemas': directoryContent({
           driver: vinylfs(),
@@ -125,12 +125,12 @@ bootstrap(Application, {
 The client sets up the database with the collection of posts being available through an http collection. For improved performance we apply a caching middleware to all collections so that posts don't have to be fetched from server every time. In the application we acquire the collection and print out the list of posts to the console.
 
 ```typescript
-import {bootstrap, component, Database, Provider, DatabaseConfig, http} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, Database, http} from '@ziqquratu/ziqquratu';
 import {caching} from '@ziqquratu/caching';
 
 @component({
   providers: [
-    Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+    Database.configuration({
       collections: {
         'posts': http({path: 'http://localhost:8000/api/posts'})
       },

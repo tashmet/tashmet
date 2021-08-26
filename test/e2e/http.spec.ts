@@ -6,10 +6,8 @@ import 'mocha';
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   http,
 } from '../../packages/ziqquratu/dist';
 
@@ -18,7 +16,7 @@ chai.use(chaiAsPromised);
 describe('http', () => {
   @component({
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'test': {
             source: http({path: 'http://localhost:8000/api/test'}),

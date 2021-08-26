@@ -7,14 +7,14 @@ export {applyQueryOptions, sortingMap, AbstractCursor, Selector, Query} from './
 export {logging} from './logging';
 export * from './interfaces';
 
-import {DatabaseConfig} from './interfaces';
+import {Database} from './interfaces';
 import {DatabaseService} from './database';
 import {LoggingMiddlewareFactory} from './logging';
 
 @component({
   providers: [
     DatabaseService,
-    Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+    Database.configuration({
       collections: {}
     }),
     Provider.ofFactory<Logger>({

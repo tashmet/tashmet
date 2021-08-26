@@ -1,9 +1,9 @@
-import {bootstrap, component, Database, Provider, DatabaseConfig, http} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, Database, http} from '@ziqquratu/ziqquratu';
 import {caching} from '@ziqquratu/caching';
 
 @component({
   providers: [
-    Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+    Database.configuration({
       collections: {
         'posts': http({path: 'http://localhost:8000/api/posts'})
       },

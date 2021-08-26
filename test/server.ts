@@ -2,7 +2,7 @@ import {
   bootstrap,
   component,
   Provider,
-  DatabaseConfig,
+  Database,
   memory
 } from '../packages/ziqquratu/dist';
 import {ServerConfig, resource, Server} from '../packages/tashmetu/dist';
@@ -12,7 +12,7 @@ import {ServerConfig, resource, Server} from '../packages/tashmetu/dist';
     import('../packages/tashmetu/dist'),
   ],
   providers: [
-    Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+    Database.configuration({
       collections: {
         'test': memory()
       },

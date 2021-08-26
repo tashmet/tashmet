@@ -7,10 +7,8 @@ import {relationship} from '../../packages/aggregation/dist';
 import {
   bootstrap,
   component,
-  Provider,
   Collection,
   Database,
-  DatabaseConfig,
   memory,
 } from '../../packages/ziqquratu/dist';
 
@@ -19,7 +17,7 @@ chai.use(chaiAsPromised);
 describe('join', () => {
   @component({
     providers: [
-      Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', {
+      Database.configuration({
         collections: {
           'authors': memory({documents: [
             {_id: 1, name: 'John Doe'},
