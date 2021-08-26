@@ -1,4 +1,4 @@
-import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline, AggregationOptions} from '@ziqquratu/database';
+import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline} from '@ziqquratu/database';
 import {EventEmitter} from 'eventemitter3';
 
 export abstract class BufferCollection<T = any> extends EventEmitter implements Collection<T> {
@@ -12,8 +12,8 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
     return `buffer collection '${this.name}'`;
   }
 
-  public async aggregate(pipeline: AggregationPipeline, options?: AggregationOptions): Promise<any> {
-    return this.cache.aggregate(pipeline, options);
+  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
+    return this.cache.aggregate(pipeline);
   }
 
   public async insertOne(doc: any, writeThrough = true): Promise<any> {
@@ -29,7 +29,7 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
     this.emit('document-upserted', doc);
     return res;
   }
- 
+
   public async insertMany(docs: any[], writeThrough = true): Promise<any[]> {
     const res = await this.cache.insertMany(docs);
     try {
@@ -45,7 +45,7 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
     }
     return res;
   }
- 
+
   public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}, writeThrough = true): Promise<any> {
     const result = await this.cache.replaceOne(selector, doc, options);
     if (result) {

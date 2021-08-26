@@ -9,7 +9,7 @@ export interface BundleStreamConfig<T> {
    * Input/Output stream
    */
   seed?: Pipeline<T>;
-  
+
   input?: Pipeline<T>;
 
   output: (source: Pipeline<T>) => Promise<void>;
