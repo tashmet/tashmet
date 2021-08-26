@@ -1,4 +1,6 @@
 import {propertyDecorator} from '@ziqquratu/core';
+import {Query, SortingDirection} from '@ziqquratu/database';
+import {QueryPropertyAnnotation} from '../query';
 import {FilterAnnotation, FilterConfig} from './filter';
 
 /**
@@ -13,69 +15,117 @@ export interface OperatorConfig {
   key?: string;
 }
 
-/**
- * Filter documents using query operators
- */
-export class Operator extends FilterAnnotation {
+export class SkipAnnotation extends QueryPropertyAnnotation {
+  public apply(q: Query, instance: any) {
+    const value = instance[this.propertyKey];
+
+    if (value !== undefined && value > 0) {
+      q.skip = value;
+    }
+  }
+}
+
+export class LimitAnnotation extends QueryPropertyAnnotation {
+  public apply(q: Query, instance: any) {
+    const value = instance[this.propertyKey];
+
+    if (value !== undefined) {
+      q.limit = value;
+    }
+  }
+}
+
+export class SortAnnotation extends QueryPropertyAnnotation {
+  public constructor(
+    private sortKey: string,
+    propertyKey: string,
+  ) {
+    super(propertyKey);
+  }
+
+  public apply(q: Query, instance: any) {
+    const value: SortingDirection | undefined = instance[this.propertyKey];
+
+    if (value !== undefined) {
+      q.sort = q.sort || {};
+      q.sort[this.sortKey] = value;
+    }
+  }
+}
+
+export namespace Op {
   /** Matches values that are equal to a specified value. */
-  static $eq(config?: OperatorConfig) {
-    return Operator.decorator('$eq', config);
-  }
+  export const $eq = filter('$eq');
+
   /** Matches values that are greater than a specified value. */
-  static $gt(config?: OperatorConfig) {
-    return Operator.decorator('$gt', config);
-  }
+  export const $gt = filter('$gt');
+
   /** Matches values that are greater than or equal to a specified value. */
-  static $gte(config?: OperatorConfig) {
-    return Operator.decorator('$gte', config);
-  }
+  export const $gte = filter('$gte');
+
   /** Matches any of the values specified in an array. */
-  static $in(config?: OperatorConfig) {
-    return Operator.decorator<any[]>('$in', config);
-  }
+  export const $in = filter<any[]>('$in');
+
   /** Matches values that are less than a specified value. */
-  static $lt(config?: OperatorConfig) {
-    return Operator.decorator('$lt', config);
-  }
+  export const $lt = filter('$lt');
+
   /** Matches values that are less than or equal to a specified value. */
-  static $lte(config?: OperatorConfig) {
-    return Operator.decorator('$lte', config);
-  }
+  export const $lte = filter('$lte');
+
   /** Matches all values that are not equal to a specified value. */
-  static $ne(config?: OperatorConfig) {
-    return Operator.decorator('$ne', config);
-  }
+  export const $ne = filter('$ne');
+
   /** Matches none of the values specified in an array. */
-  static $nin(config?: OperatorConfig) {
-    return Operator.decorator<any[]>('$nin', config);
-  }
+  export const $nin = filter<any[]>('$nin');
 
   /** Matches documents that have the specified field. */
-  static $exists(config?: OperatorConfig) {
-    return Operator.decorator<boolean>('$exists', config);
-  }
+  export const $exists = filter<boolean>('$exists');
+
   /** Selects documents if a field is of the specified type. */
-  static $type(config?: OperatorConfig) {
-    return Operator.decorator<string>('$type', config);
-  }
+  export const $type = filter<string>('$type');
+  export const $all = filter<any[]>('$all');
+  export const $size = filter<number>('$size');
 
-  static $all(config?: OperatorConfig) {
-    return Operator.decorator<any[]>('$all', config);
-  }
-  static $size(config?: OperatorConfig) {
-    return Operator.decorator<number>('$size', config);
-  }
+  /**
+   * Sort documents according to a given key and order.
+   *
+   * A view can have multiple sorting properties acting on different keys.
+   *
+   * @usageNotes
+   * Sorting articles according to their publication date could look as following:
+   *
+   * ```typescript
+   * class MyView extends ItemSet {
+   *   @Op.sort('datePublished')
+   *   public dateSort = SortingDirection.Descending;
+   * }
+   * ```
+   */
+  export const $sort = (key: string) =>
+    propertyDecorator<SortingDirection | undefined>(
+      (target, propertyKey) => new SortAnnotation(key, propertyKey));
 
-  private static decorator<T = any>(operator: string, config?: OperatorConfig) {
-    return propertyDecorator<T>((target, propertyKey) => {
-      const key = config?.key || propertyKey;
+  export const $skip = propertyDecorator<number | undefined>(
+    (target, propertyKey) => new SkipAnnotation(propertyKey)
+  );
 
-      const filterConfig: FilterConfig<string> = {
-        compile: value => ({[key]: {[operator]: value }}),
-        disableOn: ''
-      };
+  export const $limit = propertyDecorator<number | undefined>(
+    (target, propertyKey) => new LimitAnnotation(propertyKey)
+  );
 
-      return new FilterAnnotation(filterConfig, propertyKey)
-    });
+  function filter<T = any>(operator: string) {
+    return (config?: OperatorConfig | string) =>
+      propertyDecorator<T>((target, propertyKey) => {
+        const key = typeof config === 'string'
+          ? config
+          : config?.key || propertyKey
+
+        const filterConfig: FilterConfig<T> = {
+          compile: value => ({[key]: {[operator]: value }}),
+          disableOn: undefined,
+        };
+
+        return new FilterAnnotation(filterConfig, propertyKey)
+      });
   }
 }

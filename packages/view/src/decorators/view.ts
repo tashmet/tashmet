@@ -1,5 +1,5 @@
 import {classDecorator, FactoryProviderAnnotation, Newable} from '@ziqquratu/core';
-import {Database} from '@ziqquratu/database';
+import {DocumentTracking} from '../interfaces';
 import {View} from '../view';
 
 export interface ViewConfig {
@@ -16,7 +16,7 @@ export interface ViewConfig {
 }
 
 export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
-  public inject = ['ziqquratu.Database'];
+  public inject = ['ziqquratu.DocumentTracking'];
 
   public constructor(
     private config: ViewConfig,
@@ -25,8 +25,15 @@ export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
     super(target);
   }
 
-  public create(database: Database) {
-    return new Proxy(new this.target(database.collection(this.config.collection)), {
+  public create(tracking: DocumentTracking) {
+    const tracker = tracking.createTracker({
+      collection: this.config.collection,
+      pipeline: [],
+      countMatching: true,
+    });
+    const view = new this.target(tracker);
+
+    return new Proxy(view, {
       set: (target, key, value): boolean => {
         (target as any)[key] = value;
         if ((this.config.monitor || []).indexOf(key as string) !== -1) {

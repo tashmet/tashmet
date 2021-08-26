@@ -1,44 +1,28 @@
-import {MemoryCollection, SortingDirection} from '@ziqquratu/database';
-import {DatabaseService} from '@ziqquratu/database/src/database';
-import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
-import {SortByAnnotation} from '../../src/decorators/sort';
+import {SortingDirection} from '@ziqquratu/database';
+import {Op} from '../../src/decorators/operator';
 import {expect} from 'chai';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import 'mocha';
+import { QueryBuilder } from '../../src/query';
 
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
 
 describe('SortBy', () => {
-  let sandbox: sinon.SinonSandbox;
-  const collection = new MemoryCollection(
-    'test', new DatabaseService({collections: {}}, new DefaultLogger())
-  );
-
-  beforeEach(async () => {
-    sandbox = sinon.createSandbox();
-  });
-
-  afterEach(() => {
-    sandbox.restore();
-  });
-
   it('should apply sorting to query options', async () => {
-    const cursor = collection.find();
-    const sortSpy = sandbox.spy(cursor, 'sort');
-    new SortByAnnotation('foo').apply(cursor, SortingDirection.Ascending);
+    class TestQuery extends QueryBuilder {
+      @Op.$sort('foo')
+      sort = SortingDirection.Ascending;
+    }
 
-    expect(sortSpy).to.have.been.calledWith('foo', SortingDirection.Ascending);
+    expect(new TestQuery().toPipeline()).to.eql([
+      {$sort: {foo: SortingDirection.Ascending}}
+    ]);
   });
 
   it('should not apply sorting when value is undefined', async () => {
-    const cursor = collection.find();
-    const sortSpy = sandbox.spy(cursor, 'sort');
-    new SortByAnnotation('foo').apply(cursor, undefined);
+    class TestQuery extends QueryBuilder {
+      @Op.$sort('foo')
+      sort = undefined
+    }
 
-    expect(sortSpy).to.not.have.been.called;
+    expect(new TestQuery().toPipeline()).to.eql([]);
   });
 });

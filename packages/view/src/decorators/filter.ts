@@ -1,6 +1,6 @@
 import {propertyDecorator} from '@ziqquratu/core';
-import {Selector} from '@ziqquratu/database';
-import {SelectorPropertyAnnotation} from '../query';
+import {Query} from '@ziqquratu/database';
+import {QueryPropertyAnnotation} from '../query';
 
 /**
  * Configuration options for selector filter
@@ -18,22 +18,24 @@ export interface FilterConfig<T> {
   disableOn?: T;
 }
 
-export class FilterAnnotation extends SelectorPropertyAnnotation {
+export class FilterAnnotation extends QueryPropertyAnnotation {
   public constructor(
     private config: FilterConfig<any>,
-    private propertyKey: string,
+    propertyKey: string,
   ) {
-    super();
+    super(propertyKey);
   }
 
-  public apply(selector: Selector, value: any) {
-    if (value === this.config.disableOn) {
+  public apply(q: Query, instance: any) {
+    const value = instance[this.propertyKey];
+
+    if (value === this.config.disableOn || value === undefined) {
       return;
     }
     if (this.config.compile) {
-      selector.filter(this.config.compile(value));
+      q.match.filter(this.config.compile(value));
     } else {
-      selector.filter({[this.propertyKey]: value});
+      q.match.filter({[this.propertyKey]: value});
     }
   }
 }

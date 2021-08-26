@@ -1,12 +1,13 @@
+import {Op} from './decorators/operator';
 import {View} from './view';
-import {bindQuery} from './query';
 
 /**
  * A view monitoring a single document.
  */
 export abstract class Item<T = any> extends View<T> {
   protected _data: T | null;
-  public readonly limit = 1;
+
+  @Op.$limit public readonly limit = 1;
 
   /** The document in this view */
   public get data(): T | null {
@@ -14,12 +15,11 @@ export abstract class Item<T = any> extends View<T> {
   }
 
   public async refresh(): Promise<T | null> {
-    this._data = await bindQuery(this, await this.collection).one()
-    this.emit('item-updated', this._data);
-    return this._data;
+    const resultSet = await this.tracker.refresh(this.toPipeline());
+    return this._data = resultSet[0];
   }
 
-  public on(event: 'item-updated', fn: (doc: T) => void) {
-    return super.on(event, fn);
+  public on(event: 'item-updated', fn: (doc: T | null) => void) {
+    return this.tracker.on('result-set', (data) => data[0] || null);
   }
 }

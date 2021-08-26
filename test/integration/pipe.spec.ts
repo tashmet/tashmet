@@ -71,7 +71,6 @@ describe('pipe', () => {
   describe('insertMany', () => {
     it('should transform documents', async () => {
       const docs = await collection.insertMany([{_id: 3, amount: 3}, {_id: 4, amount: 4}]);
-      console.log(docs);
       expect(docs.map(d => d.amount)).to.eql([5, 6]);
     });
   });

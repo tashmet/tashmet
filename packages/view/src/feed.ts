@@ -1,3 +1,4 @@
+import {Op} from './decorators/operator';
 import {ItemSet} from './itemSet';
 
 /**
@@ -25,7 +26,7 @@ import {ItemSet} from './itemSet';
  */
 export abstract class Feed<T = any> extends ItemSet<T> {
   /** Initial number of documents to include in the feed. */
-  public limit: number;
+  @Op.$limit public limit: number;
 
   /** Number of documents to increment by when loading more. */
   public increment: number;
@@ -38,6 +39,6 @@ export abstract class Feed<T = any> extends ItemSet<T> {
 
   /** Check if there are more documents to load. */
   public hasMore(): boolean {
-    return this.excludedCount > 0;
+    return this.matchingCount - this.data.length > 0;
   }
 }

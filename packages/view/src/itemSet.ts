@@ -1,40 +1,40 @@
 import {View} from './view';
-import {bindQuery, ResultSet} from './query';
+import {Tracker} from './interfaces';
 
 /**
  * A view monitoring a list of documents.
  */
-export abstract class ItemSet<T = any> extends View<T> implements ResultSet<T> {
-  protected resultSet: ResultSet<T>;
+export abstract class ItemSet<T = any> extends View<T> {
+  protected _matchingCount: number = 0;
+  protected _data: T[] = [];
+
+  public constructor(tracker: Tracker<T>) {
+    super(tracker);
+    tracker.on('result-set', (data, matchingCount) => {
+      this._data = data;
+      this._matchingCount = matchingCount;
+    });
+  }
 
   /**
    * List of documents in this view.
    */
   public get data(): T[] {
-    return this.resultSet.data;
+    return this._data;
   }
 
   /**
    * The total number of documents matching the view's selector, disregarding its query options.
    */
-  public get totalCount(): number {
-    return this.resultSet.totalCount;
-  }
-
-  /**
-   * The number of documents excluded from the view based on its query options.
-   */
-  public get excludedCount(): number {
-    return this.resultSet.excludedCount;
+  public get matchingCount(): number {
+    return this._matchingCount;
   }
 
   public async refresh(): Promise<T[]> {
-    this.resultSet = await bindQuery(this, await this.collection).many();
-    this.emit('item-set-updated', this);
-    return this.data;
+    return (await this.tracker.refresh(this.toPipeline()));
   }
 
-  public on(event: 'item-set-updated', fn: (resultSet: ResultSet<T>) => void) {
-    return super.on(event, fn);
+  public on(event: 'item-set-updated', fn: (data: T[], matchingCount: number) => void) {
+    return this.tracker.on('result-set', fn);
   }
 }
