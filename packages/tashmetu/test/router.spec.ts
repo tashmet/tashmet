@@ -1,7 +1,6 @@
-import {bootstrap, component, Provider} from '@ziqquratu/ziqquratu';
+import {bootstrap, component} from '@ziqquratu/ziqquratu';
 import {Server} from '../src/interfaces';
 import {get, post, method} from '../src/decorators';
-import {ServerConfig} from '../src/interfaces';
 import Tashmetu from '../src/index';
 import express from 'express';
 import bodyParser from 'body-parser';
@@ -37,14 +36,14 @@ describe('Router', () => {
   @component({
     providers: [
       TestRouter,
-      Provider.ofInstance<ServerConfig>('tashmetu.ServerConfig', {
+      Server.configuration({
         middleware: {
           '/route': router(TestRouter),
         }
       })
     ],
     dependencies: [Tashmetu],
-    inject: ['tashmetu.Server']
+    inject: [Server]
   })
   class TestComponent {
     constructor(

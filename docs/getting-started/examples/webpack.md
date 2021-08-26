@@ -31,11 +31,9 @@ bootstrap(Application, {}, async container => {
     middleware = [express.static('dist/client')];
   }
 
-  container.register(Provider.ofInstance<ServerConfig>(
-    'tashmetu.ServerConfig', {
-      middleware: {
-        '/': middleware,
-      }
+  container.register(Server.configuration({
+    middleware: {
+      '/': middleware,
     }
   }));
 }).then(app => app.run(parseInt(process.env.PORT || '8080')));

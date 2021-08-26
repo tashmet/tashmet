@@ -1,5 +1,5 @@
-import {bootstrap, component, memory, Database, Provider} from '@ziqquratu/ziqquratu';
-import Tashmetu, { resource, Server, ServerConfig } from '../src';
+import {bootstrap, component, memory, Database} from '@ziqquratu/ziqquratu';
+import Tashmetu, { resource, Server } from '../src';
 import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
@@ -13,14 +13,14 @@ describe('Resource', () => {
           'test': memory({documents: [{_id: 'doc1'}, {_id: 'doc2'}]})
         }
       }),
-      Provider.ofInstance<ServerConfig>('tashmetu.ServerConfig', {
+      Server.configuration({
         middleware: {
           '/readonly': resource({collection: 'test', readOnly: true}),
           '/readwrite': resource({collection: 'test', readOnly: false}),
         }
       }),
     ],
-    inject: ['tashmetu.Server']
+    inject: [Server]
   })
   class TestComponent {
     constructor(

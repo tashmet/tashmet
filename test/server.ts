@@ -1,11 +1,10 @@
 import {
   bootstrap,
   component,
-  Provider,
   Database,
   memory
 } from '../packages/ziqquratu/dist';
-import {ServerConfig, resource, Server} from '../packages/tashmetu/dist';
+import {resource, Server} from '../packages/tashmetu/dist';
 
 @component({
   dependencies: [
@@ -17,13 +16,13 @@ import {ServerConfig, resource, Server} from '../packages/tashmetu/dist';
         'test': memory()
       },
     }),
-    Provider.ofInstance<ServerConfig>('tashmetu.ServerConfig', {
+    Server.configuration({
       middleware: {
         '/api/test': resource({ collection: 'test' }),
       }
     }),
   ],
-  inject: ['tashmetu.Server'],
+  inject: [Server],
 })
 export class Application {
   constructor(

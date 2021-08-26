@@ -1,4 +1,4 @@
-import {AsyncFactory} from '@ziqquratu/ziqquratu';
+import {AsyncFactory, Provider} from '@ziqquratu/ziqquratu';
 import {RequestHandler} from 'express';
 import {AddressInfo} from 'net';
 
@@ -49,13 +49,17 @@ export interface ServerConfig {
   middleware: RouteMap;
 }
 
-export interface Server {
+export abstract class Server {
+  public static configuration(config: ServerConfig) {
+    return Provider.ofInstance('tashmetu.ServerConfig', config);
+  }
+
   /**
    * Starts the server and listens for connections.
    *
    * @param port Port to listen on.
    */
-  listen(port: number): any;
+  public abstract listen(port: number): any;
 
-  address(): string | AddressInfo | null;
+  public abstract address(): string | AddressInfo | null;
 }

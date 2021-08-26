@@ -24,13 +24,13 @@ The package exports a component that should be imported as a dependency in your 
     import('@ziqquratu/tashmetu')
   ],
   providers: [
-    Provider.ofInstance<ServerConfig>('tashmetu.ServerConfig', {
+    Server.configuration({
       middleware: {
         '/api/posts': resource({collection: 'posts', readOnly: true})
       }
     })
   ],
-  inject: ['tashmetu.Server']
+  inject: [Server]
 })
 class Application {
   constructor(private server: Server) {}
@@ -43,7 +43,7 @@ class Application {
 bootstrap(Application).then(app => app.run(8080));
 ```
 
-### 
+###
 
 ### Controllers
 
@@ -76,7 +76,7 @@ A controller must be added as a provider to the container. It can then be mounte
 @component({
   providers: [
     MyController,
-    Provider.ofInstance<ServerConfig>('tashmetu.ServerConfig', {
+    Server.configuration({
       middleware: {
         '/': router(MyController)
       }

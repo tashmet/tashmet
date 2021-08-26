@@ -6,7 +6,7 @@ import {Route, Server, ServerConfig} from './interfaces';
 import {makeRoutes, mountRoutes} from './routing';
 
 @provider({
-  key: 'tashmetu.Server',
+  key: Server,
   inject: [
     'express.Application',
     'http.Server',

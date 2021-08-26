@@ -1,12 +1,12 @@
 import {
-  bootstrap, component, logging, LogLevel, Provider, Database,
+  bootstrap, component, logging, LogLevel, Database,
 } from '@ziqquratu/ziqquratu';
 import {caching} from '@ziqquratu/caching';
 import {yaml, directoryContent} from '@ziqquratu/nabu';
-import {resource, Server, ServerConfig} from '@ziqquratu/tashmetu';
+import {resource, Server} from '@ziqquratu/tashmetu';
 import {terminal} from '@ziqquratu/terminal';
 import {validation, ValidationPipeStrategy} from '@ziqquratu/schema';
-import { vinylfs } from '@ziqquratu/vinyl';
+import {vinylfs} from '@ziqquratu/vinyl';
 
 @component({
   dependencies: [
@@ -45,13 +45,13 @@ import { vinylfs } from '@ziqquratu/vinyl';
         }
       },
     }),
-    Provider.ofInstance<ServerConfig>('tashmetu.ServerConfig', {
+    Server.configuration({
       middleware: {
         '/api/posts': resource({collection: 'posts'}),
       }
     }),
   ],
-  inject: ['tashmetu.Server'],
+  inject: [Server],
 })
 export class Application {
   constructor(private server: Server) {}
