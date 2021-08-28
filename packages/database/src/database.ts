@@ -53,15 +53,8 @@ export class DatabaseService extends Database {
 
       return this.collections[name] = this.createManagedCollection(name, config)
         .then(collection => {
-          collection.on('document-upserted', (doc: any) => {
-            this.emit('document-upserted', doc, collection);
-          });
-          collection.on('document-removed', (doc: any) => {
-            this.emit('document-removed', doc, collection);
-          });
-          collection.on('document-error', (err: any) => {
-            this.emit('document-error', err, collection);
-          });
+          collection.on('change', change => this.emit('change', change));
+          collection.on('error', error => this.emit('error', error));
           this.logger.inScope('createCollection').info(collection.toString());
           return collection;
         });
@@ -80,7 +73,7 @@ export class DatabaseService extends Database {
       ...(this.config.use || []),
       ...(config.use || [])
     ];
-    return new ManagedCollection(name, source, await this.createMiddleware(middlewareFactories, source));
+    return new ManagedCollection(source, await this.createMiddleware(middlewareFactories, source));
   }
 
   private async createMiddleware(

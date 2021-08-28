@@ -28,15 +28,20 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
           deleteMany: logError,
         },
         events: {
-          'document-upserted': async (next, doc) => {
-            logger.info(`upserted '${doc._id}'`);
-            return next(doc);
+          'change': async (next, change) => {
+            switch (change.action) {
+              case 'insert':
+                logger.info(`inserted ${change.data.map(d => d._id).join(',')}`);
+                break;
+              case 'delete':
+                logger.info(`deleted ${change.data.map(d => d._id).join(',')}`);
+                break;
+              case 'replace':
+                logger.info(`replaced ${change.data[0]._id}`)
+            }
+            return next(change);
           },
-          'document-removed': async (next, doc) => {
-            logger.info(`deleted '${doc._id}'`);
-            return next(doc);
-          },
-          'document-error': async (next, err) => {
+          'error': async (next, err) => {
             logger.error(err.message);
             return next(err);
           }

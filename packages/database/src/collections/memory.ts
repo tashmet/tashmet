@@ -1,5 +1,6 @@
+import mingo from 'mingo';
+import ObjectID from 'bson-objectid';
 import {
-  Collection,
   CollectionFactory,
   Cursor,
   ReplaceOneOptions,
@@ -10,9 +11,7 @@ import {
   AggregationPipeline,
 } from '../interfaces';
 import {AggregationCursor, applyQueryOptions, sortingMap} from '../cursor';
-import {EventEmitter} from 'eventemitter3';
-import mingo from 'mingo';
-import ObjectID from 'bson-objectid';
+import {AutoEventCollection} from './autoEvent';
 
 export interface MemoryCollectionConfig<T = any> {
   /**
@@ -76,7 +75,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 }
 
-export class MemoryCollection<T = any> extends EventEmitter implements Collection<T> {
+export class MemoryCollection<T = any> extends AutoEventCollection<T> {
   private collection: any[];
 
   public constructor(
@@ -102,11 +101,7 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
 
   public async findOne(selector: object): Promise<T | null> {
     const result = await this.find(selector).limit(1).toArray();
-    if (result.length > 0) {
-      return result[0];
-    } else {
-      return null;
-    }
+    return result.length > 0 ? result[0] : null;
   }
 
   public async insertOne(doc: any): Promise<T> {
@@ -123,9 +118,6 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
         this.collection.push(doc);
       }
     }
-    if (!this.config.disableEvents) {
-      this.emit('document-upserted', doc);
-    }
     return doc;
   }
 
@@ -141,11 +133,7 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
     const old = mingo.find(this.collection, selector).next();
     if (old) {
       const index = this.collection.findIndex(o => o._id === old._id);
-      this.collection[index] = Object.assign({}, {_id: old._id}, doc);
-      if (!this.config.disableEvents) {
-        this.emit('document-upserted', this.collection[index]);
-      }
-      return this.collection[index];
+      return this.collection[index] = Object.assign({}, {_id: old._id}, doc);
     } else if (options.upsert) {
       return this.insertOne(doc);
     }
@@ -156,9 +144,6 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
     const affected = await this.findOne(selector) as any;
     if (affected) {
       this.collection = this.collection.filter(doc => doc._id !== affected._id);
-      if (!this.config.disableEvents) {
-        this.emit('document-removed', affected);
-      }
     }
     return affected;
   }
@@ -167,11 +152,6 @@ export class MemoryCollection<T = any> extends EventEmitter implements Collectio
     const affected = await this.find(selector).toArray() as any[];
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
-    if (!this.config.disableEvents) {
-      for (const doc of affected) {
-        this.emit('document-removed', doc);
-      }
-    }
     return affected;
   }
 }

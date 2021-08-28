@@ -79,7 +79,7 @@ export interface ReplaceOneOptions {
 /**
  * A collection of documents.
  */
-export interface Collection<T = any> {
+export declare interface Collection<T = any> {
   /**
    * Name of the collection.
    */
@@ -153,36 +153,12 @@ export interface Collection<T = any> {
    */
   deleteMany(selector: object): Promise<T[]>;
 
-  /**
-   * Listen for when a document in the collection has been added or changed.
-   * The callback supplies the document.
-   */
-  on(event: 'document-upserted', fn: (obj: any) => void): Collection<T>;
+  on(event: 'change', fn: (change: DatabaseChange) => void): this;
 
-  /**
-   * Listen for when a document in the collection has been removed.
-   * The callback supplies the removed document.
-   */
-  on(event: 'document-removed', fn: (obj: any) => void): Collection<T>;
-
-  /**
-   * Listen for when an error was generated when loading or saving a document
-   * in the collection. The callback supplies the document error.
-   */
-  on(event: 'document-error', fn: (err: DocumentError) => void): Collection<T>;
-
-  emit(event: string, ...args: any[]): void;
-
-  /**
-   * Remove the listeners of a given event.
-   */
-  removeListener(event: string | symbol, fn?: Function, context?: any, once?: boolean): Collection<T>;
-
-  /**
-   * Remove all listeners, or those of the specified event.
-   */
-  removeAllListeners(event?: string | symbol): Collection<T>;
+  on(event: 'error', fn: (error: DatabaseError) => void): this;
 }
+
+export abstract class Collection extends EventEmitter implements Collection {}
 
 export class DocumentError extends Error {
   public name = 'DocumentError';
@@ -192,10 +168,19 @@ export class DocumentError extends Error {
   }
 }
 
+export class DatabaseError extends DocumentError {
+  public name = 'DatabaseError';
+
+  public constructor(
+    public collection: Collection,
+    instance: any,
+    message: string
+  ) { super(instance, message); }
+}
+
 export interface EventMiddleware<T = any> {
-  'document-upserted'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
-  'document-removed'?: (next: (doc: T) => Promise<void>, doc: any) => Promise<void>;
-  'document-error'?: (next: (err: DocumentError) => Promise<void>, err: DocumentError) => Promise<void>;
+  'change'?: (next: (change: DatabaseChange<T>) => Promise<void>, change: DatabaseChange) => Promise<void>;
+  'error'?: (next: (error: DatabaseError) => Promise<void>, error: DatabaseError) => Promise<void>;
 }
 
 export interface MethodMiddleware<T = any> {
@@ -286,25 +271,18 @@ export interface DatabaseConfig {
   use?: MiddlewareFactory[];
 }
 
+export type CollectionChangeAction = 'insert' | 'delete' | 'replace';
+
+export interface DatabaseChange<T = any> {
+  data: T[];
+  collection: Collection<T>;
+  action: CollectionChangeAction;
+}
+
 export declare interface Database {
-  /**
-   * Listen for when a document in a collection has been added or changed.
-   * The callback supplies the document and the collection it was upserted to.
-   */
-  on(event: 'document-upserted', fn: (obj: any, collection: Collection) => void): this;
+  on(event: 'change', fn: (change: DatabaseChange) => void): this;
 
-  /**
-   * Listen for when a document in a collection has been removed.
-   * The callback supplies the removed document and the collection it was removed from.
-   */
-
-  on(event: 'document-removed', fn: (obj: any, collection: Collection) => void): this;
-
-  /**
-   * Listen for when an error was generated when loading or saving a document
-   * in a collection. The callback supplies the document error and the collection generating it.
-   */
-  on(event: 'document-error', fn: (err: DocumentError, collection: Collection) => void): this;
+  on(event: 'error', fn: (error: DatabaseError) => void): this;
 }
 
 /**

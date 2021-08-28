@@ -1,32 +1,28 @@
-import {EventEmitter} from 'eventemitter3';
-import {Collection, Cursor, DocumentError, Middleware, ReplaceOneOptions, QueryOptions, AggregationPipeline} from '../interfaces';
+import {
+  Cursor, Middleware, ReplaceOneOptions, QueryOptions, AggregationPipeline,
+  DatabaseChange, Collection
+} from '../interfaces';
 
-export class ManagedCollection<T = any> extends EventEmitter implements Collection<T> {
+
+export class ManagedCollection<T = any> extends Collection<T> {
   public constructor(
-    public readonly name: string,
     private source: Collection<T>,
     middleware: Middleware[]
   ) {
     super();
 
     const emitters = {
-      'document-upserted': 'processDocumentUpserted',
-      'document-removed': 'processDocumentRemoved',
-      'document-error': 'emitDocumentError',
+      'change': 'processChange',
+      'error': 'processError',
     };
 
-    source.on('document-upserted', doc => {
-      this.processDocumentUpserted(doc)
-        .then(doc => this.emit('document-upserted', doc))
-        .catch(err => this.emitDocumentError(err));
+    source.on('change', change => {
+      this.processChange(change)
+        .then(change => this.emit('change', change))
+        .catch(err => this.emit('error', err));
     });
-    source.on('document-removed', doc => {
-      this.processDocumentRemoved(doc)
-        .then(doc => this.emit('document-removed', doc))
-        .catch(err => this.emitDocumentError(err));
-    });
-    source.on('document-error', err => {
-      this.emitDocumentError(err);
+    source.on('error', err => {
+      this.emit('error', err);
     });
 
     for (const mw of middleware.slice(0).reverse()) {
@@ -41,6 +37,10 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
         }
       }
     }
+  }
+
+  public get name() {
+    return this.source.name;
   }
 
   public toString(): string {
@@ -59,11 +59,11 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.findOne(selector);
   }
 
-  public insertOne(doc: T): Promise<T> {
+  public async insertOne(doc: T): Promise<T> {
     return this.source.insertOne(doc);
   }
 
-  public insertMany(docs: T[]): Promise<T[]> {
+  public async insertMany(docs: T[]): Promise<T[]> {
     return this.source.insertMany(docs);
   }
 
@@ -71,24 +71,16 @@ export class ManagedCollection<T = any> extends EventEmitter implements Collecti
     return this.source.replaceOne(selector, doc, options);
   }
 
-  public deleteOne(selector: object): Promise<T | null> {
+  public async deleteOne(selector: object): Promise<T | null> {
     return this.source.deleteOne(selector);
   }
 
-  public deleteMany(selector: object): Promise<T[]> {
+  public async deleteMany(selector: object): Promise<T[]> {
     return this.source.deleteMany(selector);
   }
 
-  private async processDocumentUpserted(doc: T): Promise<T> {
-    return doc;
-  }
-
-  private async processDocumentRemoved(doc: T): Promise<T> {
-    return doc;
-  }
-
-  private emitDocumentError(err: DocumentError) {
-    this.emit('document-error', err);
+  private async processChange(change: DatabaseChange): Promise<DatabaseChange> {
+    return change;
   }
 
   private proxy(fn: Function, methodName: string) {
