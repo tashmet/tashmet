@@ -1,7 +1,7 @@
 import {EventEmitter} from 'eventemitter3';
 import {Container, provider, Resolver} from '@ziqquratu/core';
-import {AggregationPipeline, Collection, Database, Middleware, MiddlewareFactory, Selector} from '@ziqquratu/database';
-import {Tracker, TrackerConfig, DocumentTracking} from './interfaces';
+import {AggregationPipeline, Collection, Database, Selector} from '@ziqquratu/database';
+import {Tracker, TrackerConfig} from './interfaces';
 
 
 export class Tracking extends Resolver<Tracker> {
@@ -14,8 +14,7 @@ export class Tracking extends Resolver<Tracker> {
   }
 
   public resolve(container: Container) {
-    return container.resolve<DocumentTracking>('ziqquratu.DocumentTracking')
-      .createTracker(this.config);
+    return container.resolve(TrackingFactory).createTracker(this.config);
   }
 }
 
@@ -68,13 +67,17 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
 }
 
 @provider({
-  key: 'ziqquratu.DocumentTracking',
+  key: TrackingFactory,
   inject: [Database]
 })
-export class DocumentTrackingService implements DocumentTracking {
+export class TrackingFactory {
   private trackers: Tracker<any>[] = [];
 
-  public constructor(private database: Database) {}
+  public constructor(private database: Database) {
+    database.on('change', ({collection, data}) => {
+      this.markDirty(collection.name, data);
+    });
+  }
 
   public createTracker<T = any>(config: TrackerConfig): Tracker<T> {
     const tracker = new AggregationTracker<any>(
@@ -86,7 +89,7 @@ export class DocumentTrackingService implements DocumentTracking {
     return tracker;
   }
 
-  public markDirty(collection: string, docs: any[]) {
+  private markDirty(collection: string, docs: any[]) {
     for (const t of this.collectionTrackers(collection)) {
       if (docs.some(doc => t.test(doc))) {
         t.refresh();
@@ -98,37 +101,3 @@ export class DocumentTrackingService implements DocumentTracking {
     return this.trackers.filter(t => t.collectionName === collection);
   }
 }
-
-
-export class TrackingMiddlewareFactory extends MiddlewareFactory {
-  inject = ['ziqquratu.DocumentTracking'];
-
-  public constructor() { super(); }
-
-  public async create(source: Collection): Promise<Middleware> {
-    return this.resolve(async (tracking: DocumentTracking) => {
-      const handleInsertDelete = async (next: Function, ...args: any[]) => {
-        const result = await next(...args);
-        tracking.markDirty(source.name, Array.isArray(result) ? result : [result]);
-        return result;
-      }
-
-      return {
-        methods: {
-          insertOne: handleInsertDelete,
-          insertMany: handleInsertDelete,
-          deleteOne: handleInsertDelete,
-          deleteMany: handleInsertDelete,
-          replaceOne: async (next, selector, doc, options) => {
-            const original = await source.findOne(selector);
-            const result = await next(selector, doc, options);
-            tracking.markDirty(source.name, [original, result]);
-            return result;
-          }
-        }
-      }
-    });
-  }
-}
-
-export const tracking = () => new TrackingMiddlewareFactory();

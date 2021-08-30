@@ -1,4 +1,4 @@
-import {AggregationPipeline, Cursor} from '@ziqquratu/database';
+import {AggregationPipeline} from '@ziqquratu/database';
 
 export interface AggregationBuilder {
   toPipeline(): AggregationPipeline;
@@ -31,10 +31,4 @@ export interface Tracker<T = any> {
 
   on(event: 'result-set', handler: (resultSet: T[], matchingCount: number) => void): Tracker<T>;
   removeAllListeners(event?: string): void;
-}
-
-export interface DocumentTracking {
-  createTracker<T = any>(config: TrackerConfig): Tracker<T>;
-
-  markDirty(collection: string, docs: any[]): void;
 }

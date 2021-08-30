@@ -1,5 +1,5 @@
 import {classDecorator, FactoryProviderAnnotation, Newable} from '@ziqquratu/core';
-import {DocumentTracking} from '../interfaces';
+import {TrackingFactory} from '../tracker';
 import {View} from '../view';
 
 export interface ViewConfig {
@@ -16,7 +16,7 @@ export interface ViewConfig {
 }
 
 export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
-  public inject = ['ziqquratu.DocumentTracking'];
+  public inject = [TrackingFactory];
 
   public constructor(
     private config: ViewConfig,
@@ -25,8 +25,8 @@ export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
     super(target);
   }
 
-  public create(tracking: DocumentTracking) {
-    const tracker = tracking.createTracker({
+  public create(fact: TrackingFactory) {
+    const tracker = fact.createTracker({
       collection: this.config.collection,
       pipeline: [],
       countMatching: true,

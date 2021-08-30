@@ -38,7 +38,7 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
               }
               break;
             case 'delete':
-              await cache.deleteMany(data.map(d => d._id));
+              await cache.deleteMany({_id: {$in: data.map(d => d._id)}});
               break;
           }
           return next({action, data, collection});

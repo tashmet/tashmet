@@ -15,7 +15,6 @@ import {
   memory,
   SortingDirection,
 } from '../../packages/ziqquratu/dist';
-import {tracking} from '../../packages/view/dist';
 import ViewComponent from '../../packages/view/dist';
 import {Op} from '../../packages/view/dist/decorators/operator';
 
@@ -53,7 +52,7 @@ describe('view', () => {
         collections: {
           'test': memory()
         },
-        use: [caching(), tracking()]
+        use: [caching()]
       })
     ],
     inject: [TestView, Database]
