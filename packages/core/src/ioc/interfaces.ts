@@ -6,7 +6,7 @@ export type ServiceIdentifier<T> = (string | symbol | Newable<T> | Abstract<T>);
 /**
  * Container for registering and resolving services.
  */
-export interface Container {
+export declare interface Container {
   /**
    * Resolve an instance from the container given a resolver or service identifier.
    */
@@ -22,6 +22,8 @@ export interface Container {
    */
   isRegistered<T>(key: ServiceIdentifier<T>): boolean;
 }
+
+export abstract class Container implements Container {}
 
 /**
  * A resolver is a proxy that acts on a container to solicit instances.

@@ -8,8 +8,8 @@ import {ClassProviderAnnotation, FactoryProviderAnnotation} from './decorators/p
 /**
  * Abstract container that can be overridden to plug into an existing DI framework.
  */
-export abstract class AbstractContainer implements Container {
-  public constructor(protected logger: Logger) {}
+export abstract class AbstractContainer extends Container {
+  public constructor(protected logger: Logger) { super(); }
 
   public resolve<T>(req: ServiceRequest<T>): T {
     if (req instanceof Resolver) {

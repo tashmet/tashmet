@@ -4,7 +4,7 @@ The container allows us to register providers and resolve service requests. An i
 
 ```typescript
 @provider({
-  inject: ['ziqquratu.Container']
+  inject: [Container]
 })
 class MyService {
   public constructor(container: Container) {}
@@ -24,7 +24,7 @@ It can also be registered by an instance of the Provider class. The example belo
 ```typescript
 container.register(Provider.ofClass({
   ctr: MyService,
-  inject: ['ziqquratu.Container']
+  inject: [Container]
 });
 ```
 
@@ -46,7 +46,7 @@ Once a service has been registered it can be resolved using its unique service i
 container.resolve(MyService);
 ```
 
-Resolution can also be done by supplying a [resolver](resolvers.md). 
+Resolution can also be done by supplying a [resolver](resolvers.md).
 
 ```typescript
 container.resolve(Optional.of(MyService));
