@@ -51,7 +51,7 @@ export class FindOneFitting extends OneWayPipeFitting {
         try {
           return await this.pipe(doc);
         } catch (err) {
-          source.emit('document-error', err);
+          source.emit('error', err);
         }
       }
       return null;
@@ -69,7 +69,7 @@ export class FindFitting extends OneWayPipeFitting {
       async function toArrayProxy(target: Cursor<any>) {
         const promises = (await target.toArray()).map(doc => pipe(doc));
         return filter
-          ? filterResults(promises, err => source.emit('document-error', err))
+          ? filterResults(promises, err => source.emit('error', err))
           : Promise.all(promises);
       }
 
@@ -82,7 +82,7 @@ export class FindFitting extends OneWayPipeFitting {
           try {
             return await pipe(doc);
           } catch (err) {
-            source.emit('document-error', err);
+            source.emit('error', err);
             return nextProxy(target);
           }
         }
@@ -95,7 +95,7 @@ export class FindFitting extends OneWayPipeFitting {
         const promises: Promise<any>[] = [];
         await target.forEach(doc => promises.push(pipe(doc).then(it)));
         return filter
-          ? filterResults(promises, err => source.emit('document-error', err))
+          ? filterResults(promises, err => source.emit('error', err))
           : Promise.all(promises);
       }
 
@@ -128,7 +128,7 @@ export class InsertManyFitting extends TwoWayPipeFitting  {
     middleware.methods.insertMany = async (next, docs) => {
       const promises = docs.map(d => this.pipeIn(d));
       const outDocs = this.filter
-        ? await next(await filterResults(promises, err => source.emit('document-error', err)))
+        ? await next(await filterResults(promises, err => source.emit('error', err)))
         : await next(await Promise.all(promises));
       return Promise.all(outDocs.map(d => this.pipeOut(d)));
     }
@@ -141,10 +141,10 @@ export class ReplaceOneFitting extends TwoWayPipeFitting  {
       this.pipeOut(await next(selector, await this.pipeIn(doc), options));
   }
 }
-
+/*
 export class DocumentUpsertedFitting extends OneWayPipeFitting  {
   public async attach(middleware: Required<Middleware>) {
-    middleware.events['document-upserted'] = async (next, doc) => next(await this.pipe(doc));
+    middleware.events['change'] = async (next, change) => next(await this.pipe(doc));
   }
 }
 
@@ -153,6 +153,7 @@ export class DocumentRemovedFitting extends OneWayPipeFitting  {
     middleware.events['document-removed'] = async (next, doc) => next(await this.pipe(doc));
   }
 }
+*/
 
 export class PipeFittingFactory {
   public constructor(
@@ -168,7 +169,7 @@ export class PipeFittingFactory {
 
     const hooks: PipeHook[] = [
       'insertOneIn', 'insertOneOut', 'insertManyIn', 'insertManyOut', 'replaceOneIn', 'replaceOneOut',
-      'find', 'findOne','document-upserted', 'document-removed'
+      'find', 'findOne', 'document-upserted', 'document-removed'
     ];
 
     const pipeDict: Record<PipeHook, Pipe> = {} as any;
@@ -183,8 +184,8 @@ export class PipeFittingFactory {
       new ReplaceOneFitting(pipeDict.replaceOneIn, pipeDict.replaceOneOut),
       new FindFitting(pipeDict.find, this.filter('find')),
       new FindOneFitting(pipeDict.findOne, this.filter('findOne')),
-      new DocumentUpsertedFitting(pipeDict["document-upserted"]),
-      new DocumentRemovedFitting(pipeDict["document-removed"]),
+      // new DocumentUpsertedFitting(pipeDict["document-upserted"]),
+      // new DocumentRemovedFitting(pipeDict["document-removed"]),
     ];
 
     return fittings;

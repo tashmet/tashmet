@@ -65,9 +65,11 @@ describe('http', () => {
         {_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       )).to.eventually.be.rejected;
     });
-    it('should emit a document-upserted event', (done) => {
-      col.on('document-upserted', (doc) => {
-        expect(doc).to.eql({_id: '6', item: { category: 'brownies', type: 'blondie' }, amount: 10 });
+    it('should emit a change event', (done) => {
+      col.on('change', ({action, data}) => {
+        expect(action).to.eql('insert');
+        expect(data.length).to.eql(1);
+        expect(data[0]).to.eql({_id: '6', item: { category: 'brownies', type: 'blondie' }, amount: 10 });
         done();
       });
       col.insertOne(
@@ -94,10 +96,10 @@ describe('http', () => {
         {_id: '1', item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
-    it('should emit a document-upserted event for each document', async () => {
+    it('should emit a change event for each document', async () => {
       const docs: any[] = [];
-      col.on('document-upserted', (doc) => {
-        docs.push(doc);
+      col.on('change', ({data}) => {
+        docs.push(data[0]);
       });
       await col.insertMany([
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
@@ -133,9 +135,11 @@ describe('http', () => {
       );
       expect(doc.amount).to.eql(20);
     });
-    it('should emit a document-upserted event', (done) => {
-      col.on('document-upserted', (doc) => {
-        expect(doc).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
+    it('should emit a change event', (done) => {
+      col.on('change', ({action, data}) => {
+        expect(action).to.eql('replace');
+        expect(data[0]).to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+        expect(data[1]).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
         done();
       });
       col.replaceOne(
@@ -219,9 +223,11 @@ describe('http', () => {
       await col.deleteOne({_id: '1'});
       return expect(col.findOne({_id: '1'})).to.eventually.be.null;
     });
-    it('should emit a document-removed event if a document was removed', (done) => {
-      col.on('document-removed', (doc) => {
-        expect(doc).to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+    it('should emit a change event if a document was removed', (done) => {
+      col.on('change', ({action, data}) => {
+        expect(action).to.eql('delete');
+        expect(data.length).to.eql(1);
+        expect(data[0]).to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
         done();
       });
       col.deleteOne({_id: '1'});
@@ -244,10 +250,10 @@ describe('http', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
     });
-    it('should emit a document-removed event for each removed document', async () => {
+    it('should emit a change event for each removed document', async () => {
       const docs: any[] = [];
-      col.on('document-removed', (doc) => {
-        docs.push(doc);
+      col.on('change', ({data}) => {
+        docs.push(data[0]);
       });
       const res = await col.deleteMany({'item.category': 'cookies'});
       return expect(res).to.eql(docs);

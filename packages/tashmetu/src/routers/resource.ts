@@ -1,4 +1,4 @@
-import {Collection, Database, Logger, QueryOptions} from '@ziqquratu/ziqquratu';
+import {Collection, Database, DatabaseChange, Logger, QueryOptions} from '@ziqquratu/ziqquratu';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as SocketIO from 'socket.io';
@@ -60,38 +60,27 @@ export class Resource {
     protected readOnly = false,
     protected find: RequestToFind = defaultFind,
   ) {
-    this.collection.on('document-upserted', doc => this.onDocumentUpserted(doc));
-    this.collection.on('document-removed', doc => this.onDocumentRemoved(doc));
-    this.collection.on('document-error', err => this.onDocumentError(err));
+    this.collection.on('change', change => this.onChange(change));
+    this.collection.on('error', err => this.onError(err));
   }
 
-  private onDocumentUpserted(doc: any) {
+  private onChange({action, data}: DatabaseChange) {
     for (const socket of Object.values(this.connections)) {
-      socket.emit('document-upserted', doc, this.collection.name);
+      socket.emit('change', {action, data});
     }
     const n = Object.keys(this.connections).length;
     this.logger.debug(
-      `'${this.collection.name}' emitted document-upserted '${doc._id}' to '${n}' clients`
+      `'${this.collection.name}' emitted change "${action}" '${data.map(d => d._id).join(',')}' to '${n}' clients`
     );
   }
 
-  private onDocumentRemoved(doc: any) {
+  private onError(err: Error) {
     for (const socket of Object.values(this.connections)) {
-      socket.emit('document-removed', doc, this.collection.name);
+      socket.emit('error', err);
     }
     const n = Object.keys(this.connections).length;
     this.logger.debug(
-      `'${this.collection.name}' emitted document-removed '${doc._id}' to '${n}' clients`
-    );
-  }
-
-  private onDocumentError(err: Error) {
-    for (const socket of Object.values(this.connections)) {
-      socket.emit('document-error', err, this.collection.name);
-    }
-    const n = Object.keys(this.connections).length;
-    this.logger.debug(
-      `'${this.collection.name}' emitted document-error '${err.message}' to '${n}' clients`
+      `'${this.collection.name}' emitted error '${err.message}' to '${n}' clients`
     );
   }
 

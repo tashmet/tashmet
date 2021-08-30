@@ -15,7 +15,7 @@ export type PromiseResultTuple<T extends [unknown, ...unknown[]]> = { [P in keyo
 
 /**
  * Promise.allSettled implementation
- *  
+ *
  * @param iterable An iterable of promise
  */
 export function allSettled<T>(iterable: Iterable<Promise<T>>): Promise<PromiseResult<T>[]> {

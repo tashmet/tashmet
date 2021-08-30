@@ -173,7 +173,7 @@ describe('pipe', () => {
           .to.eventually.eql([{_id: 4, error: false}]);
       });
       it('should emit errors for failing documents', (done) => {
-        collection.on('document-error', err => {
+        collection.on('error', err => {
           expect(err.instance._id).to.eql(5);
           done();
         });
@@ -191,7 +191,7 @@ describe('pipe', () => {
         expect(doc).to.eql(null);
       });
       it('should emit error for failing document', (done) => {
-        collection.on('document-error', err => {
+        collection.on('error', err => {
           expect(err.instance._id).to.eql(1);
           done();
         });
@@ -206,7 +206,7 @@ describe('pipe', () => {
           expect(docs.map(d => d._id)).to.eql([2]);
         });
         it('should emit errors for failing documents', (done) => {
-          collection.on('document-error', err => {
+          collection.on('error', err => {
             expect(err.instance._id).to.eql(1);
             done();
           });
@@ -224,7 +224,7 @@ describe('pipe', () => {
           expect(docs.map(d => d._id)).to.eql([2]);
         });
         it('should emit errors for failing documents', (done) => {
-          collection.on('document-error', err => {
+          collection.on('error', err => {
             expect(err.instance._id).to.eql(1);
             done();
           });
@@ -241,7 +241,7 @@ describe('pipe', () => {
           expect(docs.map(d => d._id)).to.eql([2]);
         });
         it('should emit errors for failing documents', (done) => {
-          collection.on('document-error', err => {
+          collection.on('error', err => {
             expect(err.instance._id).to.eql(1);
             done();
           });

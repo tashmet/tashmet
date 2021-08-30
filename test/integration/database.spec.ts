@@ -46,9 +46,14 @@ describe('database', () => {
   });
 
   describe('event', () => {
+    afterEach(() => {
+      db.removeAllListeners();
+    })
+
     it('should be emitted when a document is upserted', (done) => {
-      db.on('document-upserted', (doc, collection) => {
-        expect(doc.name).to.eql('doc3');
+      db.on('change', ({action, data, collection}) => {
+        expect(action).to.eql('insert');
+        expect(data[0].name).to.eql('doc3');
         expect(collection.name).to.eql('test');
         done();
       });
@@ -56,12 +61,13 @@ describe('database', () => {
     });
 
     it('should be emitted when a document is removed', (done) => {
-      db.on('document-removed', (doc, collection) => {
-        expect(doc.name).to.eql('doc3');
+      db.on('change', ({action, data, collection}) => {
+        expect(action).to.eql('delete');
+        expect(data[0].name).to.eql('doc2');
         expect(collection.name).to.eql('test');
         done();
       });
-      db.collection('test').then(c => c.deleteOne({name: 'doc3'}));
+      db.collection('test').then(c => c.deleteOne({name: 'doc2'}));
     });
   });
 });

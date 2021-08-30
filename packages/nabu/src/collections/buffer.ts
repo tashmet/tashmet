@@ -1,7 +1,6 @@
-import {Collection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline} from '@ziqquratu/database';
-import {EventEmitter} from 'eventemitter3';
+import {Collection, AutoEventCollection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline} from '@ziqquratu/database';
 
-export abstract class BufferCollection<T = any> extends EventEmitter implements Collection<T> {
+export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
   public constructor(
     protected cache: Collection,
   ) {
@@ -26,7 +25,6 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
       await this.cache.deleteOne({_id: doc._id});
       throw err;
     }
-    this.emit('document-upserted', doc);
     return res;
   }
 
@@ -40,9 +38,6 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
       await this.cache.deleteMany({_id: {$in: docs.map(d => d._id)}});
       throw err;
     }
-    for (const doc of docs) {
-      this.emit('document-upserted', doc);
-    }
     return res;
   }
 
@@ -52,7 +47,6 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
       if (writeThrough) {
         await this.write([result]);
       }
-      this.emit('document-upserted', result);
     }
     return result;
   }
@@ -71,7 +65,6 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
       if (writeThrough) {
         await this.write([affected], true);
       }
-      this.emit('document-removed', affected);
     }
     return affected;
   }
@@ -79,9 +72,6 @@ export abstract class BufferCollection<T = any> extends EventEmitter implements 
   public async deleteMany(selector: any): Promise<any[]> {
     const affected = await this.cache.deleteMany(selector);
     await this.write(affected, true);
-    for (const doc of affected) {
-      this.emit('document-removed', doc);
-    }
     return affected;
   }
 

@@ -17,19 +17,31 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
     const cache = new MemoryCollection(source.name, database);
 
     for (const evaluator of evaluators) {
-      cache.on('document-upserted', doc => evaluator.add(doc));
-      cache.on('document-removed', doc => evaluator.remove(doc));
+      cache.on('change', ({action, data}) => {
+        for (const doc of data) {
+          if (action === 'delete') {
+            evaluator.remove(doc);
+          } else {
+            evaluator.add(doc);
+          }
+        }
+      })
     }
 
     return {
       events: {
-        'document-upserted': async (next, doc) => {
-          await cache.replaceOne({_id: doc._id}, doc, {upsert: true});
-          return next(doc);
-        },
-        'document-removed': async (next, doc) => {
-          await cache.deleteOne({_id: doc._id});
-          return next(doc);
+        'change': async (next, {action, data, collection}) => {
+          switch (action) {
+            case 'insert':
+              for (const doc of data) {
+                await cache.replaceOne({_id: doc._id}, doc, {upsert: true});
+              }
+              break;
+            case 'delete':
+              await cache.deleteMany(data.map(d => d._id));
+              break;
+          }
+          return next({action, data, collection});
         }
       },
       methods: {

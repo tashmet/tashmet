@@ -85,7 +85,7 @@ describe('schema', () => {
           .to.eventually.eql(null);
       });
       it('should emit event for invalid document', (done) => {
-        collection.on('document-error', err => {
+        collection.on('error', err => {
           expect(err.message).to.eql(
             "validation of '2' failed: should have required property 'productId'"
           );
@@ -101,7 +101,7 @@ describe('schema', () => {
           .to.eventually.eql([{_id: 1, type: 'product', productId: 10, productName: 'Valid product'}]);
       });
       it('should emit event for invalid document', (done) => {
-        collection.on('document-error', err => {
+        collection.on('error', err => {
           expect(err.message).to.eql(
             "validation of '2' failed: should have required property 'productId'"
           );

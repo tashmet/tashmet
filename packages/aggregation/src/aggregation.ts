@@ -53,8 +53,7 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
     }
 
     if (this.config.sync !== false) {
-      foreign.on('document-upserted', () => update());
-      foreign.on('document-removed', () => update());
+      foreign.on('change', () => update());
     }
 
     return collection;
