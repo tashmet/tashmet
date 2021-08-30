@@ -1,7 +1,8 @@
 import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions, AggregationPipeline, Database} from '../interfaces';
-import {AbstractCursor, AggregationCursor, Query} from '../cursor';
+import {AbstractCursor} from '../cursor';
 import {EventEmitter} from 'eventemitter3';
 import 'isomorphic-fetch';
+import {aggregate, Query} from '../aggregation';
 
 const io = require('socket.io-client');
 
@@ -101,12 +102,10 @@ export class HttpCollection extends EventEmitter implements Collection {
     return `http collection '${this.name}' at '${this.config.path}'`;
   }
 
-  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
+  public async aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
     const query = Query.fromPipeline(pipeline);
-    return new AggregationCursor<U>(
-      pipeline, this.find(query.match, query).toArray(),
-      this.database
-    );
+    const input = await this.find(query.match, query).toArray();
+    return aggregate(pipeline, input, this.database);
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {

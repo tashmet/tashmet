@@ -11,7 +11,7 @@ export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
     return `buffer collection '${this.name}'`;
   }
 
-  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
+  public aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
     return this.cache.aggregate(pipeline);
   }
 

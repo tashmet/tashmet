@@ -37,7 +37,7 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
     }
     if (this.pipeline.length > 0) {
       const collection = await this.collectionPromise;
-      const data = await collection.aggregate<T>(this.pipeline).toArray();
+      const data = await collection.aggregate<T>(this.pipeline);
 
       const matchingCount = this.countMatching
         ? await collection.find(this.selector.value).count(false)

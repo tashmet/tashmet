@@ -1,5 +1,5 @@
 import mingo from 'mingo';
-import {AggregationPipeline, Cursor, Database, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
+import {Cursor, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
 const assignDeep = require('assign-deep');
 
 export function applyQueryOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
@@ -87,66 +87,5 @@ export class Selector {
 
   public test(doc: any): boolean {
     return new mingo.Query(this.value).test(doc);
-  }
-}
-
-export class AggregationCursor<T> extends AbstractCursor<T> {
-  public constructor(
-    protected pipeline: AggregationPipeline,
-    protected collection: any[] | Promise<any[]>,
-    protected database: Database,
-  ) {
-    super({}, {});
-  }
-
-  public async toArray(): Promise<T[]> {
-    if (this.index >= 0) {
-      return this._batch;
-    }
-    for (const step of this.pipeline) {
-      for (const op of Object.keys(step)) {
-        if (op === '$lookup') {
-          const foreignCol = await this.database.collection(step[op].from);
-          step[op].from = await foreignCol.find().toArray();
-        }
-      }
-    }
-    const collection = this.collection instanceof Promise
-      ? await this.collection
-      : this.collection;
-
-    return mingo.aggregate(collection, this.pipeline);
-  }
-
-  public async count(): Promise<number> {
-    return this.index < 0 ? (await this.toArray()).length : this._batch.length;
-  }
-}
-
-export class Query implements QueryOptions {
-  public match: Selector = new Selector();
-  public skip: number = 0;
-  public limit: number | undefined = undefined;
-  public sort: SortingMap | undefined = undefined;
-
-  public static fromPipeline(pipeline: AggregationPipeline): Query {
-    let query = new Query();
-
-    const handlers: Record<string, (value: any) => void> = {
-      '$match': v => query.match.value = v,
-      '$skip': v => query.skip = v,
-      '$limit': v => query.limit = v,
-      '$sort': v => query.sort = v,
-    }
-
-    for (const step of pipeline) {
-      const op = Object.keys(step)[0];
-      if (op in handlers) {
-        handlers[op](step[op]);
-      } else {
-        break;
-      }
-    }
-    return query;
   }
 }

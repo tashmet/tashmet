@@ -86,7 +86,7 @@ export declare interface Collection<T = any> {
   readonly name: string;
 
   /* Execute an aggregation framework pipeline against the collection */
-  aggregate<U>(pipeline: AggregationPipeline): Cursor<U>;
+  aggregate<U>(pipeline: AggregationPipeline): Promise<U[]>
 
   /**
    * Insert a document into the collection.

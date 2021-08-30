@@ -10,7 +10,8 @@ import {
   Database,
   AggregationPipeline,
 } from '../interfaces';
-import {AggregationCursor, applyQueryOptions, sortingMap} from '../cursor';
+import {applyQueryOptions, sortingMap} from '../cursor';
+import {aggregate} from '../aggregation';
 import {AutoEventCollection} from './autoEvent';
 
 export interface MemoryCollectionConfig<T = any> {
@@ -91,8 +92,8 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
     return `memory collection '${this.name}' (${this.collection.length} documents)`;
   }
 
-  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
-    return new AggregationCursor<U>(pipeline, this.collection, this.database);
+  public aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
+    return aggregate(pipeline, this.collection, this.database);
   }
 
   public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {

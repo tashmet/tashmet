@@ -47,7 +47,7 @@ export class ManagedCollection<T = any> extends Collection<T> {
     return this.source.toString();
   }
 
-  public aggregate<U>(pipeline: AggregationPipeline): Cursor<U> {
+  public aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
     return this.source.aggregate(pipeline);
   }
 

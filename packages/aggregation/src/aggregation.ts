@@ -36,11 +36,11 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
   public async create(name: string, database: Database) {
     const foreign = await database.collection(this.config.from);
     const collection = new MemoryCollection<T>(name, database, {
-      documents: await foreign.aggregate(this.config.pipeline).toArray()
+      documents: await foreign.aggregate(this.config.pipeline)
     });
 
     const update = async () => {
-      const docs = await foreign.aggregate<any>(this.config.pipeline).toArray();
+      const docs = await foreign.aggregate<any>(this.config.pipeline);
 
       await collection.deleteMany({_id: {$nin: docs.map(d => d._id)}});
 
