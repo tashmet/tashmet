@@ -85,11 +85,11 @@ export class HttpCollection extends EventEmitter implements Collection {
     super();
 
     const socket = io.connect(config.path);
-    socket.on('document-upserted', (doc: any) => {
-      this.emit('document-upserted', doc);
+    socket.on('change', (change: any) => {
+      this.emit('change', {action: change.action, data: change.data, collection: this});
     });
-    socket.on('document-removed', (doc: any) => {
-      this.emit('document-removed', doc);
+    socket.on('error', (err: any) => {
+      this.emit('error', err);
     });
 
     if (config.queryParams) {

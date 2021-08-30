@@ -11,7 +11,9 @@ export abstract class AutoEventCollection<T = any> extends Collection<T> {
         const observeChange = (methodName: string, action: string) => {
           return async (...args: any[]) => {
             const result = await (target as any)[methodName](...args);
-            emitChange(action, Array.isArray(result) ? result : [result]);
+            if (result) {
+              emitChange(action, Array.isArray(result) ? result : [result]);
+            }
             return result;
           }
         }
