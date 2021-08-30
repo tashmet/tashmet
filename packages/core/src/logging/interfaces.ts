@@ -23,7 +23,7 @@ export abstract class SinkFactory extends Factory<Sink> {
   public abstract create(): Sink;
 }
 
-export interface Logger {
+export declare interface Logger {
   readonly scope: string[];
   readonly parent: Logger | null;
 
@@ -37,6 +37,8 @@ export interface Logger {
 
   inScope(scope: string): Logger;
 }
+
+export abstract class Logger implements Logger {}
 
 export interface LoggerConfig {
   level: LogLevel;

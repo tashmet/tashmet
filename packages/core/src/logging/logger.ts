@@ -1,6 +1,6 @@
 import {Logger, LoggerConfig, Sink, LogLevel, SinkFactory} from './interfaces';
 
-export class DefaultLogger implements Logger {
+export class DefaultLogger extends Logger {
   public static fromConfig(config: LoggerConfig): Logger {
     return new DefaultLogger(
       config.level, ([] as SinkFactory[]).concat(config.sink).map(f => f.create())
@@ -12,7 +12,7 @@ export class DefaultLogger implements Logger {
     private sinks: Sink[] = [],
     public readonly scope: string[] = [],
     public readonly parent: Logger | null = null,
-  ) {}
+  ) { super(); }
 
   public info(message: string) {
     this.emit(message, LogLevel.Info);

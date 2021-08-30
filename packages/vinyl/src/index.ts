@@ -13,7 +13,7 @@ import * as chokidar from 'chokidar';
     })),
     Provider.ofFactory({
       key: 'vinyl.Logger',
-      inject: ['ziqquratu.Logger'],
+      inject: [Logger],
       create: (logger: Logger) => logger.inScope('vinyl')
     }),
   ],

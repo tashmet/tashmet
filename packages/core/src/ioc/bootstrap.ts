@@ -44,7 +44,7 @@ export async function bootstrap<T>(
   container.register(Provider.ofInstance('ziqquratu.Container', container));
   container.register(Provider.ofInstance('ziqquratu.LoggerConfig', loggerConfig));
   container.register(Provider.ofFactory({
-    key: 'ziqquratu.Logger',
+    key: Logger,
     inject: ['ziqquratu.LoggerConfig'],
     create: (config: LoggerConfig) => DefaultLogger.fromConfig(config)
   }));

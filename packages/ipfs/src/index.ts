@@ -7,7 +7,7 @@ const createClient = require('ipfs-http-client')
   providers: [
     Provider.ofFactory({
       key: 'ipfs.Logger',
-      inject: ['ziqquratu.Logger'],
+      inject: [Logger],
       create: (logger: Logger) => logger.inScope('ipfs')
     }),
     Provider.ofFactory({

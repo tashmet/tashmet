@@ -17,7 +17,7 @@ export * as Pipes from './pipes';
   providers: [
     Provider.ofFactory({
       key: 'nabu.Logger',
-      inject: ['ziqquratu.Logger'],
+      inject: [Logger],
       create: (logger: Logger) => logger.inScope('nabu')
     }),
   ],

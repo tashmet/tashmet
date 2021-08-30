@@ -31,7 +31,7 @@ export * from './logging';
     }),
     Provider.ofFactory({
       key: 'tashmetu.Logger',
-      inject: ['ziqquratu.Logger'],
+      inject: [Logger],
       create: (logger: Logger) => logger.inScope('tashmetu')
     })
   ],

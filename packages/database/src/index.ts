@@ -20,7 +20,7 @@ import {LoggingMiddlewareFactory} from './logging';
     }),
     Provider.ofFactory<Logger>({
       key: 'ziqquratu.DatabaseLogger',
-      inject: ['ziqquratu.Logger'],
+      inject: [Logger],
       create: (logger: Logger) => logger.inScope('database')
     })
   ],
