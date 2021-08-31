@@ -41,7 +41,7 @@ Resolver that injects other services into a constructor or factory function that
 
 ```typescript
 @provider({
-  inject: [Injection.ofClass(MyClass, ['ziqquratu.Database'])]
+  inject: [Injection.ofClass(MyClass, [Database])]
 })
 class MyProvider {
   public constructor(private input: MyClass) {}
