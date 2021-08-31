@@ -82,5 +82,5 @@ export class FilterAnnotation extends QueryPropertyAnnotation {
  * ```
  */
 export function filter<T>(config: FilterConfig<T> = {}) {
-  return propertyDecorator<T>((target, propertyKey) => new FilterAnnotation(config, propertyKey));
+  return propertyDecorator<T>(({propertyKey}) => new FilterAnnotation(config, propertyKey));
 }

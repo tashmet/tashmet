@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import {Newable} from './interfaces';
+import {MethodDecoratorConfig, Newable, ParameterDecoratorConfig, PropertyDecoratorConfig} from './interfaces';
 
 function decorate(target: object, annotation: any) {
   const annotations = Reflect.getOwnMetadata('annotations', target) || [];
@@ -35,31 +35,31 @@ export function classDecorator<T>(factory: (target: Newable<any>) => any) {
 }
 
 export function methodDecorator<T = any>(
-  factory: (target: any, propertyName: string, descriptor: PropertyDescriptor) => any
+  factory: (config: MethodDecoratorConfig) => any
 ) {
   return function Decorator<K extends string, C extends Record<K, T>>(
     target: C, propertyKey: K, descriptor: PropertyDescriptor
   ) {
-    decorateProperty(target, propertyKey, factory(target, propertyKey, descriptor));
+    decorateProperty(target, propertyKey, factory({target, propertyKey, descriptor}));
   };
 }
 
 export function propertyDecorator<T = any>(
-  factory: (target: any, propertyKey: string) => any
+  factory: (config: PropertyDecoratorConfig) => any
 ) {
   return function Decorator<K extends string, C extends Record<K, T>>(
     target: C, propertyKey: K
   ) {
-    decorateProperty(target, propertyKey, factory(target, propertyKey));
+    decorateProperty(target, propertyKey, factory({target, propertyKey}));
   };
 }
 
 export function parameterDecorator(
-  factory: (target: any, propertyKey: string, parameterIndex: number) => any
+  factory: (config: ParameterDecoratorConfig) => any
 ) {
   return function Decorator(target: any, propertyKey: string, parameterIndex: number) {
     decorateParameter(
-      target, propertyKey, parameterIndex, factory(target, propertyKey, parameterIndex)
+      target, propertyKey, parameterIndex, factory({target, propertyKey, parameterIndex})
     );
   };
 }

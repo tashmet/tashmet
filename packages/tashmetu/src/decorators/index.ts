@@ -25,7 +25,7 @@ export const middleware = (config: RouteMap) =>
   classDecorator(() => new MiddlewareAnnotation(config));
 
 export const method = (name: RouteMethod, path: string, ...mw: (RequestHandler | RequestHandlerFactory)[]) =>
-  methodDecorator<RequestHandler>((target, propertyKey) =>
+  methodDecorator<RequestHandler>(({propertyKey}) =>
     new RouterMethodAnnotation(name, path, mw, propertyKey));
 
 /** HTTP GET request handler. */

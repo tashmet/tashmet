@@ -55,7 +55,7 @@ describe('annotation', () => {
       public constructor(public propertyKey: string) { super(); }
     }
 
-    const propDec = () => propertyDecorator((target, propertyKey) =>
+    const propDec = () => propertyDecorator(({propertyKey}) =>
       new PropertyAnnotation(propertyKey));
 
     class Test {
@@ -85,7 +85,7 @@ describe('annotation', () => {
       public constructor(public propertyKey: string, public index: number) { super(); }
     }
 
-    const paramDec = () => parameterDecorator((target, propertyKey, parameterIndex) =>
+    const paramDec = () => parameterDecorator(({propertyKey, parameterIndex}) =>
       new ParamAnnotation(propertyKey, parameterIndex));
 
     class Test {

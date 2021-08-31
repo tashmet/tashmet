@@ -22,7 +22,7 @@ export interface TextConfig {
  * Filter documents using text search.
  */
 export function text(config: TextConfig) {
-  return propertyDecorator<string>((target, propertyKey) => {
+  return propertyDecorator<string>(({propertyKey}) => {
     const key = config.key;
     const createQuery = (v: string = '') =>
       ({ $regex: v, $options: config.caseSensitive ? '' : 'i'});

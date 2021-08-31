@@ -103,19 +103,19 @@ export namespace Op {
    */
   export const $sort = (key: string) =>
     propertyDecorator<SortingDirection | undefined>(
-      (target, propertyKey) => new SortAnnotation(key, propertyKey));
+      ({propertyKey}) => new SortAnnotation(key, propertyKey));
 
   export const $skip = propertyDecorator<number | undefined>(
-    (target, propertyKey) => new SkipAnnotation(propertyKey)
+    ({propertyKey}) => new SkipAnnotation(propertyKey)
   );
 
   export const $limit = propertyDecorator<number | undefined>(
-    (target, propertyKey) => new LimitAnnotation(propertyKey)
+    ({propertyKey}) => new LimitAnnotation(propertyKey)
   );
 
   function filter<T = any>(operator: string) {
     return (config?: OperatorConfig | string) =>
-      propertyDecorator<T>((target, propertyKey) => {
+      propertyDecorator<T>(({propertyKey}) => {
         const key = typeof config === 'string'
           ? config
           : config?.key || propertyKey

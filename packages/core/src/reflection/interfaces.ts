@@ -16,3 +16,16 @@ export interface Constructor<T> extends Newable<T> {
    */
   name?: string;
 }
+
+export interface PropertyDecoratorConfig {
+  target: any;
+  propertyKey: string;
+}
+
+export interface MethodDecoratorConfig extends PropertyDecoratorConfig {
+  descriptor: PropertyDescriptor;
+}
+
+export interface ParameterDecoratorConfig extends PropertyDecoratorConfig {
+  parameterIndex: number;
+}
