@@ -19,7 +19,7 @@ let doc = await collection.insertOne({a: 1});
 ```
 
 {% hint style="info" %}
-When a document is successfully inserted a **document-upserted** event will be emitted from the collection.
+When a document is successfully inserted a **change** event will be emitted from the collection.
 {% endhint %}
 
 #### insertMany
@@ -31,7 +31,7 @@ let docs = await collection.insertMany([{a: 1}, {b: 2}]);
 ```
 
 {% hint style="info" %}
-A **document-upserted** event will be emitted from the collection for every document that was successfully inserted.
+When the list of documents have been successfully inserted a **change** event will be emitted from the collection.
 {% endhint %}
 
 ### Replacing
@@ -51,7 +51,7 @@ let doc = await collection.replaceOne({_id: 1}, {a: 2}, {upsert: true});
 ```
 
 {% hint style="info" %}
-When a document is successfully replaced \(or upserted\) a **document-upserted** event will be emitted from the collection
+When a document is successfully replaced \(or upserted\) a **change** event will be emitted from the collection. If a document was replaced the event will contain the original document as well as the replacement.
 {% endhint %}
 
 ### Deleting
@@ -67,7 +67,7 @@ let doc = await collection.deleteOne({a: 1});
 ```
 
 {% hint style="info" %}
-If a document was removed a **document-removed** event will be emitted from the collection.
+If a document was removed a **change** event will be emitted from the collection.
 {% endhint %}
 
 #### deleteMany
@@ -79,7 +79,7 @@ let docs = await collection.deleteMany({a: 1});
 ```
 
 {% hint style="info" %}
-For every document removed a **document-removed** event will be emitted from the collection.
+If documents were removed a **change** event will be emitted from the collection.
 {% endhint %}
 
 ### Finding
