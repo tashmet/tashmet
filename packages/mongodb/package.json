@@ -6,7 +6,7 @@
     "build": "tsc",
     "clean": "rimraf dist",
     "commit": "git-cz",
-    "test": "mocha --exit -r ts-node/register 'test/**/*.ts' && rimraf mongo.js"
+    "test": "exit 0"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,13 +14,13 @@
   "license": "MIT",
   "dependencies": {
     "eventemitter3": "^2.0.2",
-    "mongodb": "^3.5.2"
+    "mongodb": "^4.1.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.3",
     "@types/chai-as-promised": "^7.1.2",
     "@types/mocha": "^2.2.41",
-    "@types/mongodb": "^3.3.15",
+    "@types/mongodb": "^4.0.7",
     "@types/node": "12.7.0",
     "@types/sinon": "^7.5.0",
     "@types/sinon-chai": "^3.2.3",
@@ -36,10 +36,10 @@
     "sinon-chai": "^3.3.0",
     "ts-node": "^8.4.1",
     "tslint": "^5.7.0",
-    "typescript": "^3.0.0"
+    "typescript": "^4.1.0"
   },
   "peerDependencies": {
-    "@ziqquratu/database": "^1.0.0"
+    "@ziqquratu/database": "^1.3.0"
   },
   "config": {
     "commitizen": {

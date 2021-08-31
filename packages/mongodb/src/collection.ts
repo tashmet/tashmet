@@ -9,11 +9,11 @@ import {
   QueryOptions,
   AggregationPipeline
 } from '@ziqquratu/database';
-import * as mongo from 'mongodb';
+import mongo from 'mongodb';
 
 export class MongoDBCursor<T = any> implements Cursor<T> {
   public constructor(
-    private cursor: mongo.Cursor,
+    private cursor: mongo.FindCursor,
     options: QueryOptions = {},
   ) {
     applyQueryOptions(this, options);
@@ -35,7 +35,7 @@ export class MongoDBCursor<T = any> implements Cursor<T> {
   }
 
   public async next(): Promise<T | null> {
-    return this.cursor.next();
+    return this.cursor.next() as any;
   }
 
   public async hasNext(): Promise<boolean> {
@@ -47,11 +47,11 @@ export class MongoDBCursor<T = any> implements Cursor<T> {
   }
 
   public async toArray(): Promise<T[]> {
-    return this.cursor.toArray();
+    return this.cursor.toArray() as any;
   }
 
   public async count(applySkipLimit = true): Promise<number> {
-    return this.cursor.count(applySkipLimit);
+    return this.cursor.count();
   }
 }
 
@@ -63,8 +63,8 @@ export class MongoDBCollection extends AutoEventCollection {
     super();
   }
 
-  public aggregate(pipeline: AggregationPipeline) {
-    return this.collection.aggregate(pipeline).toArray();
+  public aggregate<U>(pipeline: AggregationPipeline) {
+    return this.collection.aggregate<U>(pipeline).toArray();
   }
 
   public find(selector: object = {}, options?: QueryOptions): Cursor<any> {
@@ -77,22 +77,25 @@ export class MongoDBCollection extends AutoEventCollection {
 
   public async insertOne(doc: any): Promise<any> {
     let res = await this.collection.insertOne(doc);
-    if (res.result.ok !== 1) {
+    if (!res.acknowledged) {
       throw Error('Failed to insert document');
     }
-    return res.ops ? res.ops[0] : doc;
+    return Object.assign({_id: res.insertedId}, doc);
   }
 
   public async insertMany(docs: any[]): Promise<any[]> {
     let res = await this.collection.insertMany(docs);
-    if (res.result.ok !== 1) {
+    if (!res.acknowledged) {
       throw Error('Failed to insert documents');
     }
-    return res.ops ? res.ops : docs;
+    return Object.keys(res.insertedIds).map(key => {
+      const i = parseInt(key);
+      return Object.assign({_id: res.insertedIds[i]}, docs[i]);
+    })
   }
 
   public async replaceOne(selector: object, doc: any, options?: ReplaceOneOptions): Promise<any> {
-    return this.collection.replaceOne(selector, doc, options);
+    return this.collection.replaceOne(selector, doc, options || {});
   }
 
   public async deleteOne(selector: object): Promise<any> {
