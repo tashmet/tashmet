@@ -102,3 +102,15 @@ Find a list of documents given a selector. Returns a cursor for retrieving the d
 let docs = await collection.find({a: 1}).limit(3).toArray();
 ```
 
+### Aggregating
+
+Aggregation allow us to analyze data in the collection by running a pipeline of steps that filters and transforms documents. For detailed information consult the mongo DB documentation.
+
+```typescript
+let docs = await collection.aggregate([
+  { '$match': { "borough": "Bronx" } },
+  { '$unwind': '$categories'},
+  { '$group': { '_id': "$categories", 'Bronx restaurants': { '$sum': 1 } } }
+];
+```
+
