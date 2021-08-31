@@ -69,7 +69,7 @@ Use the **methodDecorator** factory to create a decorator for annotating class m
 
 ```typescript
 const methodDec = () => methodDecorator(
-  (target, propertyKey, descriptor) => new MyAnnotation()
+  ({target, propertyKey, descriptor}) => new MyAnnotation()
 );
 
 class MyClass {
@@ -88,7 +88,7 @@ The signature of the method that the decorator can be applied to can also be res
 
 ```typescript
 const methodDec = () => methodDecorator<(input: string) => void>(
-  (target, propertyKey, descriptor) => new MyAnnotation()
+  ({target, propertyKey, descriptor}) => new MyAnnotation()
 );
 ```
 
@@ -98,7 +98,7 @@ Use the **propertyDecorator** factory to create a decorator for annotating class
 
 ```typescript
 const propDec = () => propertyDecorator(
-  (target, propertyKey) => new MyAnnotation()
+  ({target, propertyKey}) => new MyAnnotation()
 );
 
 class MyClass {
@@ -119,7 +119,7 @@ The type of the property that the decorator can be applied to can also be restri
 
 ```typescript
 const propDec = () => propertyDecorator<string>(
-  (target, propertyKey) => new MyAnnotation()
+  ({target, propertyKey}) => new MyAnnotation()
 );
 ```
 
@@ -129,7 +129,7 @@ Use the **parameterDecorator** factory to create a decorator for annotating para
 
 ```typescript
 const paramDec = () => parameterDecorator(
-  (target, propertyKey, parameterIndex) => new MyAnnotation()
+  ({target, propertyKey, parameterIndex}) => new MyAnnotation()
 );
 
 class MyClass {

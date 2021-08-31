@@ -8,7 +8,7 @@ In the following example we'll create an application that publishes blog posts w
 
 The blog posts can be edited with a regular text editor. The server will listen for file changes and push the content to the client through a socket once it has been validated.
 
-### Content
+## Content
 
 We'll have a directory for storing posts and one for storing our schemas. Notice that the schema requires a property called _articleBody._ This property will correspond to the text below the front-matter, as configured in the server.
 
@@ -43,7 +43,7 @@ properties:
 {% endtab %}
 {% endtabs %}
 
-### Server
+## Server
 
 In the server we configure our database to have one collection for posts and one for schemas. The posts collection will use middleware for schema validation and logging so that we can see when a post has been updated or if it has validation issues.
 
@@ -117,10 +117,9 @@ bootstrap(Application, {
   logLevel: LogLevel.Info,
   logFormat: terminal()
 }).then(app => app.run());
-
 ```
 
-### Client
+## Client
 
 The client sets up the database with the collection of posts being available through an http collection. For improved performance we apply a caching middleware to all collections so that posts don't have to be fetched from server every time. In the application we acquire the collection and print out the list of posts to the console.
 

@@ -43,8 +43,6 @@ class Application {
 bootstrap(Application).then(app => app.run(8080));
 ```
 
-###
-
 ### Controllers
 
 A controller is a class with methods that handle HTTP requests. It can then be turned into a router and mounted on the server.

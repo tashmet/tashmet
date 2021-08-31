@@ -52,5 +52,5 @@ Resolution can also be done by supplying a [resolver](resolvers.md).
 container.resolve(Optional.of(MyService));
 ```
 
-The above code will return _undefined_ instead of throwing an exception if  _MyService_ was not previously registered.
+The above code will return _undefined_ instead of throwing an exception if _MyService_ was not previously registered.
 
