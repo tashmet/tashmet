@@ -1,10 +1,10 @@
 ---
-description: Monitor one or more documents in a collection
+description: Monitor a set of documents in a collection
 ---
 
 # View
 
-Views allow us to track a subset of documents in a collection by applying various filters.
+This package provides tools for tracking subsets of documents, or aggregated results in collections based on application state.
 
 ## Installation
 

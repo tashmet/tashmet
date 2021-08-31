@@ -27,6 +27,7 @@
     * [Memory](ziqquratu/database/collections/memory.md)
     * [Http](ziqquratu/database/collections/http.md)
 * [View](ziqquratu/views/README.md)
+  * [Aggregation](ziqquratu/views/aggregation.md)
   * [Queries](ziqquratu/views/queries.md)
   * [Views](ziqquratu/views/view-classes.md)
   * [Filtering](ziqquratu/views/filtering.md)

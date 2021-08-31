@@ -1,39 +1,25 @@
+---
+description: Building aggregations with decorators
+---
+
 # Queries
 
-## Stored queries
+## Decorated queries
 
-Usually when we want to retrieve a set of documents from a collection we do it based on some state in our application. Take for instance a blog where we want to display a certain amount of posts of a given category sorted by publishing date. It would be natural to represent this state as follows.
+In the previous section we saw how application state could be turned into an aggregation pipeline. Let's employ some helpful decorators that let us do this in a declarative way. 
 
-```typescript
-interface PostFilter {
-  limit: number;
-  category: string;
-  dateSort: SortingDirection;
-}
-```
-
-A stored query allows us to define a class implementing this interface where the properties have been decorated in a way that the class can act as a query.
+The **QueryBuilder** class is an implementation of the **AggregationBuilder** that is useful when we simply want to retrieve a sub-set of documents from a collection, ie without transformation steps. It provides its own **toPipeline** method that creates a pipeline for us based on the hints we give it by decorating our properties.
 
 ```typescript
-class PostQuery implements PostFilter {
-  limit = 10;
+class PostQuery extends QueryBuilder {
+  @Op.limit limit = 10;
   
-  @filter({
-    compile: value => ({category: {$contains: value}}),
-  })
+  @Op.$eq('category')
   category = 'cars';
   
-  @sortBy('datePublished')
+  @Op.sort('datePublished')
   dateSort = SortingDirection.Descending;
 }
-```
-
-### Creating a cursor
-
-The query can now be turned into a cursor using the **makeCursor** function. This function takes an instance of the query and the collection it should be applied to and returns a cursor ready to be used.
-
-```typescript
-const docs = makeCursor(new PostQuery(), posts).toArray();
 ```
 
 
