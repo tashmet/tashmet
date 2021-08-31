@@ -13,6 +13,14 @@ export interface TrackerConfig {
    * step of the pipeline if there is one.
    */
   countMatching: boolean;
+
+  /**
+   * Listen for changes in the database that will affect the results of the
+   * pipeline and refresh automatically when they happen.
+   *
+   * @default true
+   */
+  monitorDatabase?: boolean;
 }
 
 export interface Tracker<T = any> {

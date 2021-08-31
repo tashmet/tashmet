@@ -12,7 +12,15 @@ export interface ViewConfig {
    * If a change occurs to a property on the decorated view with a name present in this list
    * a refresh of the view will happen automatically.
    */
-  monitor?: string[];
+  monitorProps?: string[];
+
+  /**
+   * Listen for changes in the database that will affect the view and refresh
+   * the view automatically when they happen.
+   *
+   * @default true
+   */
+  monitorDatabase?: boolean;
 }
 
 export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
@@ -30,13 +38,14 @@ export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
       collection: this.config.collection,
       pipeline: [],
       countMatching: true,
+      monitorDatabase: this.config.monitorDatabase !== false,
     });
     const view = new this.target(tracker);
 
     return new Proxy(view, {
       set: (target, key, value): boolean => {
         (target as any)[key] = value;
-        if ((this.config.monitor || []).indexOf(key as string) !== -1) {
+        if ((this.config.monitorProps || []).indexOf(key as string) !== -1) {
           target.refresh();
         }
         return true;

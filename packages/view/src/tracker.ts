@@ -14,7 +14,8 @@ export class Tracking extends Resolver<Tracker> {
   }
 
   public resolve(container: Container) {
-    return container.resolve(TrackingFactory).createTracker(this.config);
+    return container.resolve(TrackingFactory)
+      .createTracker(Object.assign({monitorDatabase: true}, this.config));
   }
 }
 
@@ -85,7 +86,9 @@ export class TrackingFactory {
       this.database.collection(config.collection),
       config.countMatching,
     );
-    this.trackers.push(tracker);
+    if (config.monitorDatabase) {
+      this.trackers.push(tracker);
+    }
     return tracker;
   }
 
