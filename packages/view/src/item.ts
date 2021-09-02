@@ -15,7 +15,7 @@ export abstract class Item<T = any> extends View<T> {
   }
 
   public async refresh(): Promise<T | null> {
-    const resultSet = await this.tracker.refresh(this.toPipeline());
+    const resultSet = await this.tracker.refresh();
     return this._data = resultSet[0];
   }
 

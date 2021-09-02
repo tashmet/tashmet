@@ -1,6 +1,6 @@
-import {AggregationPipeline} from '@ziqquratu/database';
-import {AggregationBuilder, Tracker} from './interfaces';
-import { QueryBuilder } from './query';
+import {Tracker} from './interfaces';
+import {Aggregator} from './aggregator';
+import { TrackingFactory } from './tracker';
 
 
 /**
@@ -12,13 +12,20 @@ import { QueryBuilder } from './query';
  * having been changed) a selector object and query options are passed through each filter and
  * finally used to query the collection.
  */
-export abstract class View<T> extends QueryBuilder {
+export abstract class View<T> extends Aggregator {
   public skip = 0;
   public limit: number | undefined;
 
-  public constructor(protected tracker: Tracker<T>) {
+  protected tracker: Tracker<T>;
+
+  public constructor(fact: TrackingFactory, collection: string, monitor: boolean) {
     super();
-    tracker.pipeline = this.toPipeline();
+    this.tracker = fact.createTracker({
+      aggregator: this,
+      collection,
+      monitorDatabase: monitor,
+      countMatching: true,
+    })
   }
 
   /**

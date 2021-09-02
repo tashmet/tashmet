@@ -1,12 +1,17 @@
-import {AggregationPipeline} from '@ziqquratu/database';
+import {AggregationPipeline, Collection} from '@ziqquratu/database';
 
-export interface AggregationBuilder {
-  toPipeline(): AggregationPipeline;
+export abstract class AbstractAggregator<T = any> {
+  abstract get pipeline(): AggregationPipeline;
+
+  public execute(collection: Collection): Promise<T[]> {
+    return collection.aggregate<T>(this.pipeline);
+  }
 }
 
 export interface TrackerConfig {
   collection: string;
-  pipeline: AggregationPipeline;
+
+  aggregator: AbstractAggregator;
 
   /**
    * If set to true, count the documents that are matched by the inital $match
@@ -25,9 +30,9 @@ export interface TrackerConfig {
 
 export interface Tracker<T = any> {
   readonly collectionName: string;
-  pipeline: AggregationPipeline;
+  aggregator: AbstractAggregator;
 
-  refresh(pipeline?: AggregationPipeline): Promise<T[]>;
+  refresh(aggregator?: AbstractAggregator): Promise<T[]>;
 
   /**
    * Test if an input document is affecting the output of the aggregation

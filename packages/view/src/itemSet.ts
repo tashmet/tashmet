@@ -1,5 +1,5 @@
 import {View} from './view';
-import {Tracker} from './interfaces';
+import {TrackingFactory} from './tracker';
 
 /**
  * A view monitoring a list of documents.
@@ -8,9 +8,9 @@ export abstract class ItemSet<T = any> extends View<T> {
   protected _matchingCount: number = 0;
   protected _data: T[] = [];
 
-  public constructor(tracker: Tracker<T>) {
-    super(tracker);
-    tracker.on('result-set', (data, matchingCount) => {
+  public constructor(fact: TrackingFactory, collection: string, monitor: boolean) {
+    super(fact, collection, monitor);
+    this.tracker.on('result-set', (data, matchingCount) => {
       this._data = data;
       this._matchingCount = matchingCount;
     });
@@ -31,7 +31,7 @@ export abstract class ItemSet<T = any> extends View<T> {
   }
 
   public async refresh(): Promise<T[]> {
-    return (await this.tracker.refresh(this.toPipeline()));
+    return await this.tracker.refresh();
   }
 
   public on(event: 'item-set-updated', fn: (data: T[], matchingCount: number) => void) {

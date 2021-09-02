@@ -1,6 +1,6 @@
 import {propertyDecorator} from '@ziqquratu/core';
-import {Query, SortingDirection} from '@ziqquratu/database';
-import {QueryPropertyAnnotation} from '../query';
+import {SortingDirection} from '@ziqquratu/database';
+import {AggregatorAnnotation} from '../aggregator';
 import {FilterAnnotation, FilterConfig} from './filter';
 
 /**
@@ -15,27 +15,29 @@ export interface OperatorConfig {
   key?: string;
 }
 
-export class SkipAnnotation extends QueryPropertyAnnotation {
-  public apply(q: Query, instance: any) {
+export class SkipAnnotation extends AggregatorAnnotation {
+  public step(instance: any) {
     const value = instance[this.propertyKey];
 
     if (value !== undefined && value > 0) {
-      q.skip = value;
+      return {$skip: value};
     }
+    return null;
   }
 }
 
-export class LimitAnnotation extends QueryPropertyAnnotation {
-  public apply(q: Query, instance: any) {
+export class LimitAnnotation extends AggregatorAnnotation {
+  public step(instance: any) {
     const value = instance[this.propertyKey];
 
     if (value !== undefined) {
-      q.limit = value;
+      return {$limit: value};
     }
+    return null;
   }
 }
 
-export class SortAnnotation extends QueryPropertyAnnotation {
+export class SortAnnotation extends AggregatorAnnotation {
   public constructor(
     private sortKey: string,
     propertyKey: string,
@@ -43,13 +45,13 @@ export class SortAnnotation extends QueryPropertyAnnotation {
     super(propertyKey);
   }
 
-  public apply(q: Query, instance: any) {
+  public step(instance: any) {
     const value: SortingDirection | undefined = instance[this.propertyKey];
 
     if (value !== undefined) {
-      q.sort = q.sort || {};
-      q.sort[this.sortKey] = value;
+      return {$sort: {[this.sortKey]: value}};
     }
+    return null;
   }
 }
 

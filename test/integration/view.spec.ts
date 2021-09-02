@@ -35,13 +35,13 @@ describe('view', () => {
     // monitor: ['sort', 'category']
   })
   class TestView extends ItemSet {
-    @Op.$limit limit = 2;
+    @Op.$eq('item.category')
+    category: string | undefined = undefined;
 
     @Op.$sort('amount')
-    public sort = SortingDirection.Descending;
+    sort = SortingDirection.Descending;
 
-    @Op.$eq('item.category')
-    public category: string | undefined = undefined;
+    @Op.$limit limit = 2;
   }
 
   @component({

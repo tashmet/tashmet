@@ -34,13 +34,8 @@ export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
   }
 
   public create(fact: TrackingFactory) {
-    const tracker = fact.createTracker({
-      collection: this.config.collection,
-      pipeline: [],
-      countMatching: true,
-      monitorDatabase: this.config.monitorDatabase !== false,
-    });
-    const view = new this.target(tracker);
+    const {collection, monitorDatabase} = this.config;
+    const view = new this.target(fact, collection, monitorDatabase !== false);
 
     return new Proxy(view, {
       set: (target, key, value): boolean => {

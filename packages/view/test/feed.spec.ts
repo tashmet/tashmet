@@ -2,11 +2,11 @@ import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import {MemoryCollection} from '@ziqquratu/database';
+import {Collection, memory} from '@ziqquratu/database/src';
 import {DatabaseService} from '@ziqquratu/database/src/database';
 import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
 import {Feed} from '../dist/feed';
-import {AggregationTracker} from '../dist/tracker';
+import {TrackingFactory} from '../dist/tracker';
 
 chai.use(chaiAsPromised);
 
@@ -25,12 +25,12 @@ describe('Feed', () => {
   }
 
   const database = new DatabaseService({collections: {}}, new DefaultLogger());
-  const collection = new MemoryCollection('test', database);
+  let collection: Collection; // = new MemoryCollection('test', database);
   let feed: TestFeed;
 
   before(async () => {
-    feed = new TestFeed(new AggregationTracker(
-      [], new Promise(resolve => resolve(collection)), true));
+    collection = await database.createCollection('test', memory());
+    feed = new TestFeed(new TrackingFactory(database), 'test', true);
     await collection.insertMany(data);
     await feed.refresh();
   });

@@ -8,7 +8,7 @@ export {Feed} from './feed';
 export {View} from './view';
 export {Item} from './item';
 export {ItemSet} from './itemSet';
-export {QueryPropertyAnnotation} from './query';
+export {AggregatorAnnotation} from './aggregator';
 export {Op} from './decorators/operator';
 export {TrackingFactory};
 

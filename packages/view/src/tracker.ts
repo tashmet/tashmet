@@ -1,7 +1,7 @@
 import {EventEmitter} from 'eventemitter3';
 import {Container, provider, Resolver} from '@ziqquratu/core';
-import {AggregationPipeline, Collection, Database, Selector} from '@ziqquratu/database';
-import {Tracker, TrackerConfig} from './interfaces';
+import {AggregationPipeline, Database, Selector} from '@ziqquratu/database';
+import {AbstractAggregator, Tracker, TrackerConfig} from './interfaces';
 
 
 export class Tracking extends Resolver<Tracker> {
@@ -19,26 +19,23 @@ export class Tracking extends Resolver<Tracker> {
   }
 }
 
-
 export class AggregationTracker<T = any> extends EventEmitter implements Tracker<T> {
-  public collectionName: string = '';
-
   public constructor(
-    public pipeline: AggregationPipeline,
-    private collectionPromise: Promise<Collection>,
+    public aggregator: AbstractAggregator<T>,
+    public collectionName: string,
     private readonly countMatching: boolean,
+    private database: Database,
   ) {
     super();
-    collectionPromise.then(c => this.collectionName = c.name);
   }
 
-  public async refresh(pipeline?: AggregationPipeline): Promise<T[]> {
-    if (pipeline) {
-      this.pipeline = pipeline;
+  public async refresh(aggregator?: AbstractAggregator<T>): Promise<T[]> {
+    if (aggregator) {
+      this.aggregator = aggregator;
     }
     if (this.pipeline.length > 0) {
-      const collection = await this.collectionPromise;
-      const data = await collection.aggregate<T>(this.pipeline);
+      const collection = await this.database.collection(this.collectionName);
+      const data = await this.aggregator.execute(collection);
 
       const matchingCount = this.countMatching
         ? await collection.find(this.selector.value).count(false)
@@ -65,6 +62,10 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
       ? new Selector(this.pipeline[0].$match)
       : new Selector();
   }
+
+  private get pipeline(): AggregationPipeline {
+    return this.aggregator.pipeline;
+  }
 }
 
 @provider({
@@ -82,9 +83,10 @@ export class TrackingFactory {
 
   public createTracker<T = any>(config: TrackerConfig): Tracker<T> {
     const tracker = new AggregationTracker<any>(
-      config.pipeline,
-      this.database.collection(config.collection),
+      config.aggregator,
+      config.collection,
       config.countMatching,
+      this.database,
     );
     if (config.monitorDatabase) {
       this.trackers.push(tracker);
