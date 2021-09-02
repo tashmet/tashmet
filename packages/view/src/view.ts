@@ -1,6 +1,6 @@
 import {Tracker} from './interfaces';
 import {Aggregator} from './aggregator';
-import { TrackingFactory } from './tracker';
+import {TrackingFactory} from './tracker';
 
 
 /**

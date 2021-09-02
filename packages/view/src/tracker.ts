@@ -20,22 +20,26 @@ export class Tracking extends Resolver<Tracker> {
 }
 
 export class AggregationTracker<T = any> extends EventEmitter implements Tracker<T> {
+  private cachedPipeline: AggregationPipeline = [];
+
   public constructor(
-    public aggregator: AbstractAggregator<T>,
+    private aggregator: AbstractAggregator<T>,
     public collectionName: string,
     private readonly countMatching: boolean,
     private database: Database,
   ) {
     super();
+    this.cachedPipeline = aggregator.pipeline;
   }
 
   public async refresh(aggregator?: AbstractAggregator<T>): Promise<T[]> {
     if (aggregator) {
       this.aggregator = aggregator;
     }
-    if (this.pipeline.length > 0) {
+    this.cachedPipeline = this.aggregator.pipeline;
+    if (this.cachedPipeline.length > 0) {
       const collection = await this.database.collection(this.collectionName);
-      const data = await this.aggregator.execute(collection);
+      const data = await collection.aggregate<T>(this.cachedPipeline);
 
       const matchingCount = this.countMatching
         ? await collection.find(this.selector.value).count(false)
@@ -48,7 +52,7 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
   }
 
   public test(doc: T): boolean {
-    return this.pipeline.length > 0
+    return this.cachedPipeline.length > 0
       ? this.selector.test(doc)
       : false
   }
@@ -58,13 +62,9 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
   }
 
   private get selector(): Selector {
-    return this.pipeline.length > 0 && '$match' in this.pipeline[0]
-      ? new Selector(this.pipeline[0].$match)
+    return this.cachedPipeline.length > 0 && '$match' in this.cachedPipeline[0]
+      ? new Selector(this.cachedPipeline[0].$match)
       : new Selector();
-  }
-
-  private get pipeline(): AggregationPipeline {
-    return this.aggregator.pipeline;
   }
 }
 

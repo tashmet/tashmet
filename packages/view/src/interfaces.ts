@@ -30,7 +30,6 @@ export interface TrackerConfig {
 
 export interface Tracker<T = any> {
   readonly collectionName: string;
-  aggregator: AbstractAggregator;
 
   refresh(aggregator?: AbstractAggregator): Promise<T[]>;
 

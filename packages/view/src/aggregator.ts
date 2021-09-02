@@ -6,11 +6,11 @@ const assignDeep = require('assign-deep');
 
 export class Aggregator extends AbstractAggregator {
   public get pipeline(): AggregationPipeline {
+    const mergeSteps = ['$match', '$sort'];
     let pipeline: AggregationPipeline = [];
 
     for (const annotation of AggregatorAnnotation.onClass(this.constructor, true)) {
       const step = annotation.step(this);
-      const mergeSteps = ['$match', '$sort'];
 
       if (step) {
         const op = (step: object) => Object.keys(step)[0];
