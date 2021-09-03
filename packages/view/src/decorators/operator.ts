@@ -1,141 +1,7 @@
-import {propertyDecorator} from '@ziqquratu/core';
-import {SortingDirection} from '@ziqquratu/database';
-import {AggregatorAnnotation} from '../aggregator';
-
-/**
- * Configuration options for operators
- */
-export interface OperatorConfig {
-  /**
-   * The key that the operator should be applied to.
-   *
-   * If no key is specified the name of the decorated property is used as key.
-   */
-  key?: string;
-}
-
-export class SkipAnnotation extends AggregatorAnnotation {
-  public step(instance: any) {
-    const value = instance[this.propertyKey];
-
-    if (value !== undefined && value > 0) {
-      return {$skip: value};
-    }
-    return null;
-  }
-}
-
-export class LimitAnnotation extends AggregatorAnnotation {
-  public step(instance: any) {
-    const value = instance[this.propertyKey];
-
-    if (value !== undefined) {
-      return {$limit: value};
-    }
-    return null;
-  }
-}
-
-export class SortAnnotation extends AggregatorAnnotation {
-  public constructor(
-    private sortKey: string,
-    propertyKey: string,
-  ) {
-    super(propertyKey);
-  }
-
-  public step(instance: any) {
-    const value: SortingDirection | undefined = instance[this.propertyKey];
-
-    if (value !== undefined) {
-      return {$sort: {[this.sortKey]: value}};
-    }
-    return null;
-  }
-}
-
-export interface RegexConfig extends OperatorConfig {
-  options?: string;
-}
-
-export class MatchAnnotation extends AggregatorAnnotation {
-  public step(instance: any) {
-    const value = instance[this.propertyKey];
-    if (value !== undefined) {
-      return {$match: this.selector(instance)};
-    }
-    return null;
-  }
-
-  protected selector(instance: any) {
-    return instance[this.propertyKey];
-  }
-}
-
-export class QueryOperatorAnnotation extends MatchAnnotation {
-  private key: string;
-
-  public constructor(
-    propertyKey: string,
-    key: string | undefined,
-    private compile: (value: any) => object,
-  ) {
-    super(propertyKey);
-    this.key = key || propertyKey;
-  }
-
-  protected selector(instance: any) {
-    return {[this.key]: this.compile(instance[this.propertyKey])};
-  }
-}
-export class RegexAnnotation extends QueryOperatorAnnotation {
-  public constructor(propertyKey: string, config: RegexConfig) {
-    super(propertyKey, config.key, value => ({$regex: value, $options: config.options}));
-  }
-}
-
-
+import {SortingDirection} from "@ziqquratu/database";
+import {stageDecorator} from "./pipeline";
+import {queryOpDecorator, RegexConfig} from "./query";
 export namespace Op {
-  export const $match = propertyDecorator<object>(
-    ({propertyKey}) => new MatchAnnotation(propertyKey));
-
-  /** Matches values that are equal to a specified value. */
-  export const $eq = queryOpDecorator('$eq');
-
-  /** Matches values that are greater than a specified value. */
-  export const $gt = queryOpDecorator('$gt');
-
-  /** Matches values that are greater than or equal to a specified value. */
-  export const $gte = queryOpDecorator('$gte');
-
-  /** Matches any of the values specified in an array. */
-  export const $in = queryOpDecorator<any[]>('$in');
-
-  /** Matches values that are less than a specified value. */
-  export const $lt = queryOpDecorator('$lt');
-
-  /** Matches values that are less than or equal to a specified value. */
-  export const $lte = queryOpDecorator('$lte');
-
-  /** Matches all values that are not equal to a specified value. */
-  export const $ne = queryOpDecorator('$ne');
-
-  /** Matches none of the values specified in an array. */
-  export const $nin = queryOpDecorator<any[]>('$nin');
-
-  /** Matches documents that have the specified field. */
-  export const $exists = queryOpDecorator<boolean>('$exists');
-
-  /** Selects documents if a field is of the specified type. */
-  export const $type = queryOpDecorator<string>('$type');
-
-  export const $regex = (configOrKey?: RegexConfig | string) =>
-    propertyDecorator<string>(({propertyKey}) => new RegexAnnotation(
-      propertyKey, typeof configOrKey === 'string' ? {key: configOrKey} : configOrKey || {}))
-
-  export const $all = queryOpDecorator<any[]>('$all');
-  export const $size = queryOpDecorator<number>('$size');
-
   /**
    * Sort documents according to a given key and order.
    *
@@ -146,25 +12,71 @@ export namespace Op {
    *
    * ```typescript
    * class MyView extends ItemSet {
-   *   @Op.sort('datePublished')
+   *   @Op.$sort('datePublished')
    *   public dateSort = SortingDirection.Descending;
    * }
    * ```
    */
-  export const $sort = (key: string) =>
-    propertyDecorator<SortingDirection | undefined>(
-      ({propertyKey}) => new SortAnnotation(key, propertyKey));
+  export const $sort = (key: string) => stageDecorator<SortingDirection | undefined>(
+    '$sort', value => ({[key]: value}));
 
-  export const $skip = propertyDecorator<number | undefined>(
-    ({propertyKey}) => new SkipAnnotation(propertyKey)
-  );
+  export const $skip = stageDecorator<number | undefined>('$skip');
+  export const $limit = stageDecorator<number | undefined>('$limit');
 
-  export const $limit = propertyDecorator<number | undefined>(
-    ({propertyKey}) => new LimitAnnotation(propertyKey)
-  );
+  export const $match = stageDecorator<object | undefined>('$match');
 
-  function queryOpDecorator<T = any>(operator: string) {
-    return (key?: string) => propertyDecorator<T>(({propertyKey}) =>
-      new QueryOperatorAnnotation(propertyKey, key, value => ({[operator]: value})));
+  /** Matches values that are equal to a specified value. */
+  export const $eq = (key?: string) =>
+    queryOpDecorator(v => ({$eq: v}), key);
+
+  /** Matches values that are greater than a specified value. */
+  export const $gt = (key?: string) =>
+    queryOpDecorator(v => ({$gt: v}), key);
+
+  /** Matches values that are greater than or equal to a specified value. */
+  export const $gte = (key?: string) =>
+    queryOpDecorator(v => ({$gte: v}), key);
+
+  /** Matches any of the values specified in an array. */
+  export const $in = (key?: string) =>
+    queryOpDecorator(v => ({$in: v}), key);
+
+  /** Matches values that are less than a specified value. */
+  export const $lt = (key?: string) =>
+    queryOpDecorator(v => ({$lt: v}), key);
+
+  /** Matches values that are less than or equal to a specified value. */
+  export const $lte = (key?: string) =>
+    queryOpDecorator(v => ({$lte: v}), key);
+
+  /** Matches all values that are not equal to a specified value. */
+  export const $ne = (key?: string) =>
+    queryOpDecorator<string>(v => ({$ne: v}), key);
+
+  /** Matches none of the values specified in an array. */
+  export const $nin = (key?: string) =>
+    queryOpDecorator<any[]>(v => ({$nin: v}), key);
+
+  /** Matches documents that have the specified field. */
+  export const $exists = (key?: string) =>
+    queryOpDecorator<boolean>(v => ({$exists: v}), key);
+
+  /** Selects documents if a field is of the specified type. */
+  export const $type = (key?: string) =>
+    queryOpDecorator<string>(v => ({$type: v}), key);
+
+  export const $regex = (configOrKey?: RegexConfig | string) => {
+    const config = typeof configOrKey === 'string'
+      ? {key: configOrKey}
+      : configOrKey || {};
+    return queryOpDecorator<string>(v => ({
+      $regex: v, $options: config.options
+    }), config.key);
   }
+
+  export const $all = (key?: string) =>
+    queryOpDecorator<any[]>(v => ({$all: v}), key);
+
+  export const $size = (key?: string) =>
+    queryOpDecorator<number>(v => ({$size: v}), key);
 }
