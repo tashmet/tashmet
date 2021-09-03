@@ -1,7 +1,6 @@
 import {propertyDecorator} from '@ziqquratu/core';
 import {SortingDirection} from '@ziqquratu/database';
 import {AggregatorAnnotation} from '../aggregator';
-import {FilterAnnotation, FilterConfig} from './filter';
 
 /**
  * Configuration options for operators
@@ -55,38 +54,87 @@ export class SortAnnotation extends AggregatorAnnotation {
   }
 }
 
+export interface RegexConfig extends OperatorConfig {
+  options?: string;
+}
+
+export class MatchAnnotation extends AggregatorAnnotation {
+  public step(instance: any) {
+    const value = instance[this.propertyKey];
+    if (value !== undefined) {
+      return {$match: this.selector(instance)};
+    }
+    return null;
+  }
+
+  protected selector(instance: any) {
+    return instance[this.propertyKey];
+  }
+}
+
+export class QueryOperatorAnnotation extends MatchAnnotation {
+  private key: string;
+
+  public constructor(
+    propertyKey: string,
+    key: string | undefined,
+    private compile: (value: any) => object,
+  ) {
+    super(propertyKey);
+    this.key = key || propertyKey;
+  }
+
+  protected selector(instance: any) {
+    return {[this.key]: this.compile(instance[this.propertyKey])};
+  }
+}
+export class RegexAnnotation extends QueryOperatorAnnotation {
+  public constructor(propertyKey: string, config: RegexConfig) {
+    super(propertyKey, config.key, value => ({$regex: value, $options: config.options}));
+  }
+}
+
+
 export namespace Op {
+  export const $match = propertyDecorator<object>(
+    ({propertyKey}) => new MatchAnnotation(propertyKey));
+
   /** Matches values that are equal to a specified value. */
-  export const $eq = filter('$eq');
+  export const $eq = queryOpDecorator('$eq');
 
   /** Matches values that are greater than a specified value. */
-  export const $gt = filter('$gt');
+  export const $gt = queryOpDecorator('$gt');
 
   /** Matches values that are greater than or equal to a specified value. */
-  export const $gte = filter('$gte');
+  export const $gte = queryOpDecorator('$gte');
 
   /** Matches any of the values specified in an array. */
-  export const $in = filter<any[]>('$in');
+  export const $in = queryOpDecorator<any[]>('$in');
 
   /** Matches values that are less than a specified value. */
-  export const $lt = filter('$lt');
+  export const $lt = queryOpDecorator('$lt');
 
   /** Matches values that are less than or equal to a specified value. */
-  export const $lte = filter('$lte');
+  export const $lte = queryOpDecorator('$lte');
 
   /** Matches all values that are not equal to a specified value. */
-  export const $ne = filter('$ne');
+  export const $ne = queryOpDecorator('$ne');
 
   /** Matches none of the values specified in an array. */
-  export const $nin = filter<any[]>('$nin');
+  export const $nin = queryOpDecorator<any[]>('$nin');
 
   /** Matches documents that have the specified field. */
-  export const $exists = filter<boolean>('$exists');
+  export const $exists = queryOpDecorator<boolean>('$exists');
 
   /** Selects documents if a field is of the specified type. */
-  export const $type = filter<string>('$type');
-  export const $all = filter<any[]>('$all');
-  export const $size = filter<number>('$size');
+  export const $type = queryOpDecorator<string>('$type');
+
+  export const $regex = (configOrKey?: RegexConfig | string) =>
+    propertyDecorator<string>(({propertyKey}) => new RegexAnnotation(
+      propertyKey, typeof configOrKey === 'string' ? {key: configOrKey} : configOrKey || {}))
+
+  export const $all = queryOpDecorator<any[]>('$all');
+  export const $size = queryOpDecorator<number>('$size');
 
   /**
    * Sort documents according to a given key and order.
@@ -115,19 +163,8 @@ export namespace Op {
     ({propertyKey}) => new LimitAnnotation(propertyKey)
   );
 
-  function filter<T = any>(operator: string) {
-    return (config?: OperatorConfig | string) =>
-      propertyDecorator<T>(({propertyKey}) => {
-        const key = typeof config === 'string'
-          ? config
-          : config?.key || propertyKey
-
-        const filterConfig: FilterConfig<T> = {
-          compile: value => ({[key]: {[operator]: value }}),
-          disableOn: undefined,
-        };
-
-        return new FilterAnnotation(filterConfig, propertyKey)
-      });
+  function queryOpDecorator<T = any>(operator: string) {
+    return (key?: string) => propertyDecorator<T>(({propertyKey}) =>
+      new QueryOperatorAnnotation(propertyKey, key, value => ({[operator]: value})));
   }
 }
