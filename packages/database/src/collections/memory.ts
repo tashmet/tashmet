@@ -1,4 +1,6 @@
-import mingo from 'mingo';
+import * as mingo from 'mingo';
+import * as mingoCursor from 'mingo/cursor';
+import 'mingo/init/system';
 import ObjectID from 'bson-objectid';
 import {
   CollectionFactory,
@@ -27,7 +29,7 @@ export interface MemoryCollectionConfig<T = any> {
 }
 
 export class MemoryCollectionCursor<T> implements Cursor<T> {
-  private cursor: mingo.Cursor<T>;
+  private cursor: mingoCursor.Cursor;
 
   public constructor(
     private collection: any[],
@@ -54,7 +56,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 
   public async next(): Promise<T | null> {
-    return this.cursor.next() || null;
+    return this.cursor.next() as any || null;
   }
 
   public async hasNext(): Promise<boolean> {
@@ -66,7 +68,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 
   public async toArray(): Promise<T[]> {
-    return this.cursor.all();
+    return this.cursor.all() as any;
   }
 
   public async count(applySkipLimit = true): Promise<number> {
@@ -131,7 +133,7 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
   }
 
   public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<T | null> {
-    const old = mingo.find(this.collection, selector).next();
+    const old = mingo.find(this.collection, selector as any).next() as any;
     if (old) {
       const index = this.collection.findIndex(o => o._id === old._id);
       return this.collection[index] = Object.assign({}, {_id: old._id}, doc);

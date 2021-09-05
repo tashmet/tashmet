@@ -14,7 +14,7 @@ export async function aggregate<U>(
       }
     }
   }
-  return mingo.aggregate(collection, pipeline);
+  return mingo.aggregate(collection, pipeline) as U[];
 }
 
 export class Query implements QueryOptions {
