@@ -2,7 +2,6 @@ import {component, Logger, Provider} from '@ziqquratu/core';
 
 export {AutoEventCollection} from './collections/autoEvent';
 export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
-export {http} from './collections/http';
 export {proxy} from './collections/proxy';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
 export {aggregate, Query} from './aggregation';

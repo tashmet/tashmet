@@ -8,18 +8,18 @@ import {
   component,
   Collection,
   Database,
-  http,
 } from '../../packages/ziqquratu/dist';
+import {rest} from '../../packages/rest/dist';
 
 chai.use(chaiAsPromised);
 
-describe('http', () => {
+describe('rest', () => {
   @component({
     providers: [
       Database.configuration({
         collections: {
           'test': {
-            source: http({path: 'http://localhost:8000/api/test'}),
+            source: rest({path: 'http://localhost:8000/api/test'}),
           }
         },
       })

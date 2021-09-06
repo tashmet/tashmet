@@ -1,11 +1,12 @@
-import {bootstrap, component, Database, http} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, Database} from '@ziqquratu/ziqquratu';
 import {caching} from '@ziqquratu/caching';
+import {rest} from '@ziqquratu/rest';
 
 @component({
   providers: [
     Database.configuration({
       collections: {
-        'posts': http({path: 'http://localhost:8000/api/posts'})
+        'posts': rest({path: 'http://localhost:8000/api/posts'})
       },
       use: [caching()],
     }),

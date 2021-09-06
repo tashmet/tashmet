@@ -1,14 +1,23 @@
-import {Collection, CollectionFactory, Cursor, QueryOptions, ReplaceOneOptions, AggregationPipeline, Database} from '../interfaces';
-import {AbstractCursor} from '../cursor';
+import {
+  aggregate,
+  AbstractCursor,
+  Collection,
+  CollectionFactory,
+  Cursor,
+  QueryOptions,
+  ReplaceOneOptions,
+  AggregationPipeline,
+  Database,
+  Query,
+} from '@ziqquratu/database';
 import {EventEmitter} from 'eventemitter3';
 import 'isomorphic-fetch';
-import {aggregate, Query} from '../aggregation';
 
 const io = require('socket.io-client');
 
 export type MakeQueryParams = (selector: object, options: QueryOptions) => {[name: string]: string};
 
-export interface HttpCollectionConfig {
+export interface RestCollectionConfig {
   path: string;
 
   queryParams?: MakeQueryParams;
@@ -31,7 +40,7 @@ export const queryParams = (selector: object, options: QueryOptions): {[name: st
   return params;
 }
 
-export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
+export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
     private queryParams: MakeQueryParams,
     private path: string,
@@ -75,12 +84,12 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 }
 
-export class HttpCollection extends EventEmitter implements Collection {
+export class RestCollection extends EventEmitter implements Collection {
   private queryParams = queryParams;
 
   public constructor(
     public readonly name: string,
-    private config: HttpCollectionConfig,
+    private config: RestCollectionConfig,
     private database: Database,
   ) {
     super();
@@ -109,7 +118,7 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
-    return new HttpCollectionCursor(this.queryParams, this.config.path, selector, options);
+    return new RestCollectionCursor(this.queryParams, this.config.path, selector, options);
   }
 
   public async findOne(selector: object): Promise<any> {
@@ -204,14 +213,14 @@ export class HttpCollection extends EventEmitter implements Collection {
   }
 }
 
-export class HttpCollectionFactory extends CollectionFactory {
-  public constructor(private config: HttpCollectionConfig) {
+export class RestCollectionFactory extends CollectionFactory {
+  public constructor(private config: RestCollectionConfig) {
     super();
   }
 
   public async create(name: string, database: Database) {
-    return new HttpCollection(name, this.config, database);
+    return new RestCollection(name, this.config, database);
   }
 }
 
-export const http = (config: HttpCollectionConfig) => new HttpCollectionFactory(config);
+export const rest = (config: RestCollectionConfig) => new RestCollectionFactory(config);

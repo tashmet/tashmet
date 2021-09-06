@@ -1,6 +1,6 @@
 {
-  "name": "@ziqquratu/database",
-  "version": "1.3.1",
+  "name": "@ziqquratu/rest",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
   },
   "keywords": [
     "ziqquratu",
-    "database"
+    "rest"
   ],
   "author": "",
   "license": "MIT",
@@ -30,12 +30,14 @@
   ],
   "dependencies": {
     "@ziqquratu/core": "^1.0.2",
-    "assign-deep": "^1.0.1",
-    "bson-objectid": "^1.3.0",
+    "@ziqquratu/database": "^1.3.1",
     "eventemitter3": "^3.0.0",
-    "mingo": "4.1.4"
+    "isomorphic-fetch": "^2.2.1",
+    "socket.io-client": "^2.3.0"
   },
   "devDependencies": {
+    "@ziqquratu/ziqquratu": "^1.3.0",
+    "@types/isomorphic-fetch": "^0.0.35",
     "@types/node": "^13.1.8",
     "@types/reflect-metadata": "^0.1.0"
   },

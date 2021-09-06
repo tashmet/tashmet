@@ -1,12 +1,12 @@
-import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
-import {DatabaseService} from '../../src/database';
-import {HttpCollection} from '../../src/collections/http';
+import {component, Database} from '@ziqquratu/ziqquratu';
+import {rest} from '../src';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import fetchMock from 'fetch-mock';
-import { QueryOptions } from '../../dist';
+import {Collection, QueryOptions} from '../../database/dist';
+import { bootstrap } from '@ziqquratu/core';
 
 chai.use(require('chai-fetch-mock'));
 chai.use(chaiAsPromised);
@@ -33,14 +33,27 @@ function matchBody(body: any) {
   return (url: string, opts: any) => opts.body === JSON.stringify(body);
 }
 
-describe('HttpCollection', () => {
-  const col = new HttpCollection(
-    'test',
-    {path: '/api/test'},
-    new DatabaseService({collections: {}}, new DefaultLogger())
-  );
+describe('RestCollection', () => {
+  @component({
+    providers: [
+      Database.configuration({
+        collections: {
+          'test': rest({path: '/api/test'}),
+        }
+      })
+    ],
+    inject: [Database]
+  })
+  class TestComponent {
+    constructor(public database: Database) {}
+  }
 
-  before(() => {
+  let col: Collection;
+
+  before(async () => {
+    const database = (await bootstrap(TestComponent)).database;
+    col = await database.collection('test');
+
     fetchMock.head(uri('/api/test', {_id: 'foo'}), {
       headers: {'x-total-count': '1'}
     });
