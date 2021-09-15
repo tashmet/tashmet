@@ -12,6 +12,7 @@ import {
   memory,
   DocumentError,
 } from '../../packages/ziqquratu/dist';
+import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
@@ -38,7 +39,8 @@ describe('pipe', () => {
               })
             ]
           }
-        }
+        },
+        operators,
       })
     ],
     inject: [Database]
@@ -136,7 +138,8 @@ describe('pipe', () => {
                 })
               ]
             }
-          }
+          },
+          operators: {},
         })
       ],
       inject: [Database]

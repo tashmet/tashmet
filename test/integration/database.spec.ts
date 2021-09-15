@@ -6,6 +6,7 @@ import 'mocha';
 import {
   bootstrap, component, Database, memory
 } from '../../packages/ziqquratu/dist';
+import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
@@ -15,7 +16,8 @@ describe('database', () => {
       Database.configuration({
         collections: {
           'test': memory({documents: [{name: 'doc1'}, {name: 'doc2'}]})
-        }
+        },
+        operators,
       })
     ],
     inject: [Database]

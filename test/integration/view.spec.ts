@@ -15,8 +15,8 @@ import {
   memory,
   SortingDirection,
 } from '../../packages/ziqquratu/dist';
-import ViewComponent from '../../packages/view/dist';
-import {Op} from '../../packages/view/dist/decorators/operator';
+import ViewComponent, {Op} from '../../packages/view/dist';
+import operators from '../../packages/operators/basic';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -52,6 +52,7 @@ describe('view', () => {
         collections: {
           'test': memory()
         },
+        operators,
         use: [caching()]
       })
     ],

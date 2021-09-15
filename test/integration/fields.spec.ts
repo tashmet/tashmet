@@ -11,6 +11,7 @@ import {
   Database,
   memory,
 } from '../../packages/ziqquratu/dist';
+import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
@@ -30,6 +31,7 @@ describe('fields', () => {
             ],
           }
         },
+        operators,
       })
     ],
     inject: [Database]

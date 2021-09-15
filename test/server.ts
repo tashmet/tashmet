@@ -15,6 +15,7 @@ import {resource, Server} from '../packages/tashmetu/dist';
       collections: {
         'test': memory()
       },
+      operators: {},
     }),
     Server.configuration({
       middleware: {

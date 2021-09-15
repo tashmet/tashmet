@@ -22,6 +22,7 @@ describe('rest', () => {
             source: rest({path: 'http://localhost:8000/api/test'}),
           }
         },
+        operators: {},
       })
     ],
     inject: [Database]
