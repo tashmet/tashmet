@@ -1,30 +1,31 @@
 {
-  "name": "@ziqquratu/stream",
-  "version": "0.2.0",
-  "description": "Ziqquratu node stream tools",
+	"name": "@ziqquratu/stream",
+	"version": "0.2.0",
+	"description": "Ziqquratu node stream tools",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",
     "test": "exit 0"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "author": "Björn Andersson",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ziqquratu/ziqquratu"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "@ziqquratu/nabu": "^2.0.0"
-  },
-  "devDependencies": {
-    "@types/reflect-metadata": "^0.1.0"
-  },
-  "peerDependencies": {
-    "@ziqquratu/ziqquratu": "^1.3.0"
-  }
+	"author": "Björn Andersson",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ziqquratu/ziqquratu"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"devDependencies": {
+		"@types/reflect-metadata": "^0.1.0",
+		"tslib": "^2.3.1"
+	},
+	"peerDependencies": {
+		"@ziqquratu/ziqquratu": "^1.4.0"
+	},
+	"dependencies": {
+		"@ziqquratu/nabu": "^2.0.0"
+	}
 }
