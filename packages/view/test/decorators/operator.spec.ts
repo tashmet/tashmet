@@ -1,8 +1,8 @@
-import { SortingDirection } from '@ziqquratu/database';
+import {SortingDirection} from '@ziqquratu/database';
 import {expect} from 'chai';
 import 'mocha';
 import {Aggregator} from '../../src/aggregator';
-import {Op} from '../../src/decorators/operator';
+import * as Op from '../../src/decorators/operator';
 
 describe('Operator', () => {
   it('should apply single operator', async () => {

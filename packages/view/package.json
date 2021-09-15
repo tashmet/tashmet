@@ -1,44 +1,46 @@
 {
-  "name": "@ziqquratu/view",
-  "version": "1.2.3",
-  "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "lint": "eslint --cache --ext .js,.ts src/",
-    "test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
-  },
-  "keywords": [
-    "ziqquratu",
-    "view"
-  ],
-  "author": "",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ziqquratu/ziqquratu"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "dist",
-    "src",
-    "LICENSE",
-    "README.md"
-  ],
-  "dependencies": {
-    "@ziqquratu/core": "^1.0.2",
-    "@ziqquratu/database": "^1.3.1",
-    "assign-deep": "^1.0.1",
-    "eventemitter3": "^3.0.0",
-    "mingo": "4.1.4",
-    "reflect-helper": "^1.1.1",
-    "reflect-metadata": "^0.1.13"
-  },
-  "devDependencies": {
-    "@types/node": "^13.1.8"
-  },
-  "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
+	"name": "@ziqquratu/view",
+	"version": "1.2.3",
+	"description": "",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint --cache --ext .js,.ts src/",
+		"test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
+	},
+	"keywords": [
+		"ziqquratu",
+		"view"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ziqquratu/ziqquratu"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"src",
+		"LICENSE",
+		"README.md"
+	],
+	"devDependencies": {
+		"@types/node": "^13.1.8",
+		"@ziqquratu/operators": "^0.1.0",
+		"tslib": "^2.3.1"
+	},
+	"peerDependencies": {
+		"assign-deep": "^1.0.1",
+		"eventemitter3": "^3.0.0",
+		"reflect-helper": "^1.1.1"
+	},
+	"gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b",
+	"dependencies": {
+		"@ziqquratu/core": "^1.0.2",
+		"@ziqquratu/database": "^1.3.1"
+	}
 }

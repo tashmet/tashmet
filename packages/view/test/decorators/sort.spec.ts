@@ -1,5 +1,5 @@
 import {SortingDirection} from '@ziqquratu/database';
-import {Op} from '../../src/decorators/operator';
+import * as Op from '../../src/decorators/operator';
 import {Aggregator} from '../../src/aggregator';
 import {expect} from 'chai';
 import 'mocha';

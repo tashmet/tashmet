@@ -1,4 +1,4 @@
-import {Op} from './decorators/operator';
+import * as Op from './decorators/operator';
 import {View} from './view';
 
 /**

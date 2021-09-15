@@ -5,6 +5,7 @@ import 'mocha';
 import {Collection, memory} from '@ziqquratu/database/src';
 import {DatabaseService} from '@ziqquratu/database/src/database';
 import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
+import operators from '@ziqquratu/operators/basic';
 import {Feed} from '../dist/feed';
 import {TrackingFactory} from '../dist/tracker';
 
@@ -24,8 +25,8 @@ describe('Feed', () => {
     public increment = 2;
   }
 
-  const database = new DatabaseService({collections: {}}, new DefaultLogger());
-  let collection: Collection; // = new MemoryCollection('test', database);
+  const database = new DatabaseService({collections: {}, operators}, new DefaultLogger());
+  let collection: Collection;
   let feed: TestFeed;
 
   before(async () => {
