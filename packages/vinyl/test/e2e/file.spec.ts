@@ -1,5 +1,6 @@
 import {bootstrap, component, Collection, Database} from '@ziqquratu/ziqquratu';
 import {file, json} from '@ziqquratu/nabu';
+import operators from '@ziqquratu/operators/system';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -34,6 +35,7 @@ describe('file', () => {
             })
           }
         },
+        operators,
       })
     ],
     inject: [Database],

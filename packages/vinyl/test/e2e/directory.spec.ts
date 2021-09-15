@@ -1,5 +1,7 @@
-import {bootstrap, component, Collection, Database} from '@ziqquratu/ziqquratu';
+import {bootstrap, component} from '@ziqquratu/ziqquratu';
+import {Collection, Database} from '@ziqquratu/database';
 import {directoryContent, json} from '@ziqquratu/nabu';
+import operators from '@ziqquratu/operators/system';
 import {vinylfs} from '../../dist';
 import {expect} from 'chai';
 import 'mocha';
@@ -34,6 +36,7 @@ describe('directory', () => {
             })
           }
         },
+        operators,
       })
     ],
     inject: [Database],

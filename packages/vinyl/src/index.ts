@@ -1,7 +1,7 @@
 export {vinylfs} from './fs';
 export * from './interfaces';
 
-import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
+import {component, Logger, Provider} from '@ziqquratu/core';
 import {VinylFSServiceFactory} from './fs';
 import * as chokidar from 'chokidar';
 
