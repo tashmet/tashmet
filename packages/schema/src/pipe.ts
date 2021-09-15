@@ -1,6 +1,6 @@
 import {Pipe, PipeFactory, eachDocument, PipeHook, PipeFilterHook} from '@ziqquratu/pipe';
 import {Validator} from './interfaces';
-import mingo from 'mingo';
+import {Query as MingoQuery} from 'mingo/query';
 
 /**
  * Strategies for dealing with validation errors.
@@ -37,7 +37,7 @@ export type SchemaLookup = Record<string, object>;
 export interface ValidationPipeConfig {
   /**
    * Schema to be used
-   * 
+   *
    * The name of the schema or a dictionary where the keys are names of schemas
    * and the values are queries to be tested against the document being
    * validated. The first matching schema will be used. Using this strategy
@@ -66,7 +66,7 @@ export class ValidationPipeFactory extends PipeFactory {
       return this.schema;
     }
     for (const schemaId of Object.keys(this.schema)) {
-      if (new mingo.Query(this.schema[schemaId] as any).test(doc)) {
+      if (new MingoQuery(this.schema[schemaId] as any).test(doc)) {
         return schemaId;
       }
     }
