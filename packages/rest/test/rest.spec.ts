@@ -1,3 +1,4 @@
+import {bootstrap} from '@ziqquratu/core';
 import {component, Database} from '@ziqquratu/ziqquratu';
 import {rest} from '../src';
 import {expect} from 'chai';
@@ -6,7 +7,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import fetchMock from 'fetch-mock';
 import {Collection, QueryOptions} from '../../database/dist';
-import { bootstrap } from '@ziqquratu/core';
+import fetch from 'isomorphic-fetch';
 
 chai.use(require('chai-fetch-mock'));
 chai.use(chaiAsPromised);
@@ -38,7 +39,7 @@ describe('RestCollection', () => {
     providers: [
       Database.configuration({
         collections: {
-          'test': rest({path: '/api/test'}),
+          'test': rest({path: '/api/test', fetch}),
         },
         operators: {},
       })

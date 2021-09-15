@@ -1,7 +1,6 @@
 import {
   aggregate,
   AbstractCursor,
-  Collection,
   CollectionFactory,
   Cursor,
   QueryOptions,
@@ -9,18 +8,21 @@ import {
   AggregationPipeline,
   Database,
   Query,
+  AutoEventCollection,
 } from '@ziqquratu/database';
-import {EventEmitter} from 'eventemitter3';
-import 'isomorphic-fetch';
-
-const io = require('socket.io-client');
 
 export type MakeQueryParams = (selector: object, options: QueryOptions) => {[name: string]: string};
+
+export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 
 export interface RestCollectionConfig {
   path: string;
 
   queryParams?: MakeQueryParams;
+
+  emitter?: any;
+
+  fetch?: Fetch;
 }
 
 export const queryParams = (selector: object, options: QueryOptions): {[name: string]: string} => {
@@ -44,6 +46,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
     private queryParams: MakeQueryParams,
     private path: string,
+    private fetch: Fetch,
     selector: object = {},
     options: QueryOptions = {},
   ) {
@@ -51,7 +54,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   public async toArray(): Promise<T[]> {
-    const resp = await fetch(this.serializeQuery(this.selector, this.options));
+    const resp = await this.fetch(this.serializeQuery(this.selector, this.options));
     if (!resp.ok) {
       throw new Error('failed to contact server');
     }
@@ -59,7 +62,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   public async count(applySkipLimit = true): Promise<number> {
-    const resp = await fetch(
+    const resp = await this.fetch(
       this.serializeQuery(this.selector, applySkipLimit ? this.options : {}), {method: 'HEAD'}
     );
 
@@ -84,8 +87,9 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 }
 
-export class RestCollection extends EventEmitter implements Collection {
+export class RestCollection extends AutoEventCollection {
   private queryParams = queryParams;
+  private fetch: Fetch;
 
   public constructor(
     public readonly name: string,
@@ -94,17 +98,10 @@ export class RestCollection extends EventEmitter implements Collection {
   ) {
     super();
 
-    const socket = io.connect(config.path);
-    socket.on('change', (change: any) => {
-      this.emit('change', {action: change.action, data: change.data, collection: this});
-    });
-    socket.on('error', (err: any) => {
-      this.emit('error', err);
-    });
-
     if (config.queryParams) {
       this.queryParams = config.queryParams;
     }
+    this.fetch = config.fetch || window.fetch;
   }
 
   public toString(): string {
@@ -118,7 +115,7 @@ export class RestCollection extends EventEmitter implements Collection {
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
-    return new RestCollectionCursor(this.queryParams, this.config.path, selector, options);
+    return new RestCollectionCursor(this.queryParams, this.config.path, this.fetch, selector, options);
   }
 
   public async findOne(selector: object): Promise<any> {
@@ -169,7 +166,7 @@ export class RestCollection extends EventEmitter implements Collection {
   }
 
   private async deleteOneById(id: string): Promise<void> {
-    const resp = await fetch(this.config.path + '/' + id, {
+    const resp = await this.fetch(this.config.path + '/' + id, {
       method: 'DELETE'
     });
     if (!resp.ok) {
@@ -186,7 +183,7 @@ export class RestCollection extends EventEmitter implements Collection {
   }
 
   private async send(method: 'POST' | 'PUT', path: string, doc: any) {
-    const resp = await fetch(path, {
+    const resp = await this.fetch(path, {
       body: JSON.stringify(doc),
       method,
       headers: {
