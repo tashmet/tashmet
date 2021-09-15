@@ -35,6 +35,7 @@
   "devDependencies": {
     "@types/node": "^13.1.8",
     "@types/reflect-metadata": "^0.1.0",
-    "@types/showdown": "^1.9.3"
+    "@types/showdown": "^1.9.3",
+    "tslib": "^2.3.1"
   }
 }
