@@ -34,7 +34,6 @@
 		"tslib": "^2.3.1"
 	},
 	"peerDependencies": {
-		"assign-deep": "^1.0.1",
 		"eventemitter3": "^3.0.0",
 		"reflect-helper": "^1.1.1"
 	},
