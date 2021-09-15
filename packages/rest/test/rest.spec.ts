@@ -39,7 +39,8 @@ describe('RestCollection', () => {
       Database.configuration({
         collections: {
           'test': rest({path: '/api/test'}),
-        }
+        },
+        operators: {},
       })
     ],
     inject: [Database]

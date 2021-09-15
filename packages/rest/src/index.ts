@@ -113,7 +113,7 @@ export class RestCollection extends EventEmitter implements Collection {
 
   public async aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
     const query = Query.fromPipeline(pipeline);
-    const input = await this.find(query.match, query).toArray();
+    const input = await this.find(query.match.value, query).toArray();
     return aggregate(pipeline, input, this.database);
   }
 
