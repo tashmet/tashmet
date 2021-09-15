@@ -1,6 +1,6 @@
 import {Query as MingoQuery} from 'mingo/query';
+import {merge} from 'mingo/util';
 import {Cursor, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
-const assignDeep = require('assign-deep');
 
 export function applyQueryOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
   if (options.sort) {
@@ -81,7 +81,7 @@ export class Selector {
   public constructor(public value: any = {}) {}
 
   public filter(value: any): Selector {
-    assignDeep(this.value, value);
+    merge(this.value, value);
     return this;
   }
 
