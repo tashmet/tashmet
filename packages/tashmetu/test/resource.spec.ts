@@ -1,8 +1,9 @@
 import {bootstrap, component, memory, Database} from '@ziqquratu/ziqquratu';
-import Tashmetu, { resource, Server } from '../src';
+import Tashmetu, { resource, Server } from '../dist';
 import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
+import operators from '@ziqquratu/operators/system';
 
 describe('Resource', () => {
   @component({
@@ -11,7 +12,8 @@ describe('Resource', () => {
       Database.configuration({
         collections: {
           'test': memory({documents: [{_id: 'doc1'}, {_id: 'doc2'}]})
-        }
+        },
+        operators,
       }),
       Server.configuration({
         middleware: {

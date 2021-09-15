@@ -1,4 +1,4 @@
-import {component, Logger, Provider} from '@ziqquratu/ziqquratu';
+import {component, Logger, Provider} from '@ziqquratu/core';
 import http from 'http';
 import SocketIO from 'socket.io';
 import express from 'express';

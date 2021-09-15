@@ -14,7 +14,7 @@ import {makeRoutes, mountRoutes} from './routing';
     Optional.of('tashmetu.ServerConfig'),
   ]
 })
-export class TashmetuServer implements Server {
+export class TashmetuServer extends Server {
   private logger: Logger;
 
   public constructor(
@@ -23,6 +23,7 @@ export class TashmetuServer implements Server {
     logger: Logger,
     config?: ServerConfig,
   ) {
+    super();
     this.logger = logger.inScope('Server');
     if (config) {
       mountRoutes(this.app, ...makeRoutes(config.middleware));
