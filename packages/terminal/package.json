@@ -1,39 +1,40 @@
 {
-  "name": "@ziqquratu/terminal",
-  "version": "1.0.2",
-  "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "lint": "eslint --cache --ext .js,.ts src/",
-    "test": "exit 0"
-  },
-  "keywords": [
-    "ziqquratu",
-    "terminal"
-  ],
-  "author": "",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ziqquratu/ziqquratu"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "dist",
-    "src",
-    "LICENSE",
-    "README.md"
-  ],
-  "dependencies": {
-    "@types/reflect-metadata": "^0.1.0",
-    "@ziqquratu/core": "^1.0.2",
-    "chalk": "^3.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^13.1.8"
-  }
+	"name": "@ziqquratu/terminal",
+	"version": "1.0.2",
+	"description": "",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint --cache --ext .js,.ts src/",
+		"test": "exit 0"
+	},
+	"keywords": [
+		"ziqquratu",
+		"terminal"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ziqquratu/ziqquratu"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"src",
+		"LICENSE",
+		"README.md"
+	],
+	"dependencies": {
+		"@ziqquratu/core": "^1.0.2",
+		"chalk": "^3.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^13.1.8",
+		"@types/reflect-metadata": "^0.1.0",
+		"tslib": "^2.3.1"
+	}
 }
