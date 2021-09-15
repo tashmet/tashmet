@@ -1,4 +1,5 @@
 import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
+import operators from '@ziqquratu/operators/system';
 import {DatabaseService} from '../../src/database';
 import {MemoryCollection} from '../../src/collections/memory';
 import {expect} from 'chai';
@@ -10,7 +11,7 @@ chai.use(chaiAsPromised);
 
 describe('MemoryCollection', () => {
   const col = new MemoryCollection(
-    'test', new DatabaseService({collections: {}}, new DefaultLogger())
+    'test', new DatabaseService({collections: {}, operators}, new DefaultLogger())
   );
 
   beforeEach(async () => {

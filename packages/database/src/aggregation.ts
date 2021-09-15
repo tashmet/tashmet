@@ -1,4 +1,4 @@
-import mingo from 'mingo';
+import {Aggregator as MingoAggregator} from 'mingo/aggregator';
 import {Selector} from './cursor';
 import {AggregationPipeline, Database, QueryOptions, SortingMap} from './interfaces';
 
@@ -8,13 +8,13 @@ export async function aggregate<U>(
 {
   for (const step of pipeline) {
     for (const op of Object.keys(step)) {
-      if (op === '$lookup') {
+      if (op === '$lookup' && typeof step[op].from === 'string') {
         const foreignCol = await database.collection(step[op].from);
         step[op].from = await foreignCol.find().toArray();
       }
     }
   }
-  return mingo.aggregate(collection, pipeline) as U[];
+  return new MingoAggregator(pipeline).run(collection) as U[];
 }
 
 export class Query implements QueryOptions {

@@ -1,3 +1,4 @@
+import {OperatorType, useOperators} from "mingo/core";
 import {provider, Logger} from '@ziqquratu/core';
 import {ManagedCollection} from './collections/managed';
 import {
@@ -30,6 +31,12 @@ export class DatabaseService extends Database {
     for (const name of Object.keys(config.collections)) {
       this.createCollection(name, config.collections[name]);
     }
+    const {accumulator, expression, pipeline, projection, query} = config.operators;
+    useOperators(OperatorType.ACCUMULATOR, accumulator || {});
+    useOperators(OperatorType.EXPRESSION, expression || {});
+    useOperators(OperatorType.PIPELINE, pipeline || {});
+    useOperators(OperatorType.PROJECTION, projection || {});
+    useOperators(OperatorType.QUERY, query || {});
   }
 
   public collection(name: string): Promise<Collection> {

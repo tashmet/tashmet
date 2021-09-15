@@ -1,4 +1,4 @@
-import mingo from 'mingo';
+import {Query as MingoQuery} from 'mingo/query';
 import {Cursor, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
 const assignDeep = require('assign-deep');
 
@@ -86,6 +86,6 @@ export class Selector {
   }
 
   public test(doc: any): boolean {
-    return new mingo.Query(this.value).test(doc);
+    return new MingoQuery(this.value).test(doc);
   }
 }

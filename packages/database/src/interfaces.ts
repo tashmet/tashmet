@@ -1,5 +1,6 @@
 import {EventEmitter} from 'eventemitter3';
 import {AsyncFactory, Provider} from '@ziqquratu/core';
+import {OperatorConfig} from '@ziqquratu/operators';
 
 export enum SortingDirection {
   Ascending = 1,
@@ -269,6 +270,11 @@ export interface DatabaseConfig {
    * the database.
    */
   use?: MiddlewareFactory[];
+
+  /**
+   *
+   */
+  operators: OperatorConfig;
 }
 
 export type CollectionChangeAction = 'insert' | 'delete' | 'replace';

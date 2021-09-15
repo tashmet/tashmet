@@ -16,7 +16,8 @@ import {LoggingMiddlewareFactory} from './logging';
   providers: [
     DatabaseService,
     Database.configuration({
-      collections: {}
+      collections: {},
+      operators: {},
     }),
     Provider.ofFactory<Logger>({
       key: 'ziqquratu.DatabaseLogger',

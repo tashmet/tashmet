@@ -1,6 +1,5 @@
-import * as mingo from 'mingo';
+import {Query as MingoQuery} from 'mingo/query';
 import * as mingoCursor from 'mingo/cursor';
-import 'mingo/init/system';
 import ObjectID from 'bson-objectid';
 import {
   CollectionFactory,
@@ -36,7 +35,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
     private selector: any,
     options: QueryOptions,
   ) {
-    this.cursor = mingo.find(collection, selector);
+    this.cursor = new MingoQuery(selector).find(collection);
     applyQueryOptions(this, options);
   }
 
@@ -74,7 +73,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   public async count(applySkipLimit = true): Promise<number> {
     return applySkipLimit
       ? this.cursor.count()
-      : mingo.find(this.collection, this.selector).count();
+      : new MingoQuery(this.selector).find(this.collection).count();
   }
 }
 
@@ -133,7 +132,7 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
   }
 
   public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<T | null> {
-    const old = mingo.find(this.collection, selector as any).next() as any;
+    const old = new MingoQuery(selector as any).find(this.collection).next() as any;
     if (old) {
       const index = this.collection.findIndex(o => o._id === old._id);
       return this.collection[index] = Object.assign({}, {_id: old._id}, doc);
