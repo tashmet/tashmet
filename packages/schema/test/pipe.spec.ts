@@ -1,4 +1,6 @@
-import {DatabaseService, memory, Collection} from '@ziqquratu/database';
+import {memory, Collection} from '@ziqquratu/database';
+import {DatabaseService} from '@ziqquratu/database/dist/database';
+import {DefaultLogger} from '@ziqquratu/core/dist/logging/logger';
 import {validation, ValidationPipeStrategy} from '../src/pipe';
 import 'mocha';
 import {expect} from 'chai';
@@ -27,8 +29,8 @@ const schemaDoc = {
 };
 
 describe('validation', () => {
-  const database = new DatabaseService();
-  
+  const database = new DatabaseService({collections: {}, operators: {}}, new DefaultLogger());
+
   before(async () => {
     await database.createCollection('schemas', memory({documents: [schemaDoc]}))
   })
