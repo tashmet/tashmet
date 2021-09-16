@@ -1,9 +1,9 @@
 import {Collection} from '../interfaces';
 
 export abstract class AutoEventCollection<T = any> extends Collection<T> {
-  public constructor() {
+  public constructor(suppress: boolean = false) {
     super();
-    return new Proxy(this, {
+    return suppress ? this : new Proxy(this, {
       get: function(target, property) {
         const emitChange = (action: string, data: any[]) =>
           target.emit('change', {collection: target, action, data});
