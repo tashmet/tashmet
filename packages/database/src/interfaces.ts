@@ -77,6 +77,12 @@ export interface ReplaceOneOptions {
   upsert?: boolean;
 }
 
+export interface DatabaseEventEmitter {
+  on(event: 'change', fn: (change: DatabaseChange) => void): this;
+
+  on(event: 'error', fn: (error: DatabaseError) => void): this;
+}
+
 /**
  * A collection of documents.
  */
@@ -153,13 +159,9 @@ export declare interface Collection<T = any> {
    * @returns A list of all the documents that were removed
    */
   deleteMany(selector: object): Promise<T[]>;
-
-  on(event: 'change', fn: (change: DatabaseChange) => void): this;
-
-  on(event: 'error', fn: (error: DatabaseError) => void): this;
 }
 
-export abstract class Collection extends EventEmitter implements Collection {}
+export abstract class Collection extends EventEmitter implements Collection, DatabaseEventEmitter {}
 
 export class DocumentError extends Error {
   public name = 'DocumentError';
@@ -285,16 +287,10 @@ export interface DatabaseChange<T = any> {
   action: CollectionChangeAction;
 }
 
-export declare interface Database {
-  on(event: 'change', fn: (change: DatabaseChange) => void): this;
-
-  on(event: 'error', fn: (error: DatabaseError) => void): this;
-}
-
 /**
  *
  */
-export abstract class Database extends EventEmitter {
+export abstract class Database extends EventEmitter implements DatabaseEventEmitter {
   public static configuration(config: DatabaseConfig) {
     return Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', config);
   }
