@@ -1,4 +1,5 @@
 import {Collection, Database, memory} from '@ziqquratu/database';
+import operators from '@ziqquratu/operators/system';
 import {DatabaseService} from '@ziqquratu/database/dist/database';
 import {DefaultLogger} from '../../../core/dist/logging/logger';
 import {JoinPipeFactory, SplitPipeFactory} from '../../src/middleware/relationship';
@@ -9,12 +10,12 @@ import chaiAsPromised from 'chai-as-promised';
 
 chai.use(chaiAsPromised);
 
-describe.only('relationship', () => {
+describe('relationship', () => {
   let database: Database;
   let inventory: Collection;
 
   before(async () => {
-    database = new DatabaseService({collections: {}}, new DefaultLogger());
+    database = new DatabaseService({collections: {}, operators}, new DefaultLogger());
     inventory = await database.createCollection('inventory', memory({documents: [
       {_id: 1, sku: 'almonds', description: 'product 1', instock: 120},
       {_id: 2, sku: 'bread', description: 'product 2', instock: 80},

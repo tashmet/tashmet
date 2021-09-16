@@ -4,11 +4,16 @@ import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { Collection, Database } from '@ziqquratu/database';
+import {Collection} from '@ziqquratu/database/dist';
+import operators from '@ziqquratu/operators/system';
+import {DatabaseService} from '@ziqquratu/database/dist/database';
+import {DefaultLogger} from '@ziqquratu/core/dist/logging/logger';
 
 chai.use(chaiAsPromised);
 
 describe('fields', () => {
+  const database = new DatabaseService({collections: {}, operators}, new DefaultLogger());
+
   describe('SetPipeFactory', () => {
     const fact = new SetPipeFactory({
       name: {$concat: ['$givenName', ' ', '$familyName']},
@@ -16,7 +21,7 @@ describe('fields', () => {
     let pipe: Pipe;
 
     before(async () => {
-      pipe = await fact.create({} as Collection, {} as Database);
+      pipe = await fact.create({} as Collection, database);
     });
 
     it('should add provided fields', async () => {
@@ -40,7 +45,7 @@ describe('fields', () => {
       let pipe: Pipe;
 
       before(async () => {
-        pipe = await fact.create({} as Collection, {} as Database);
+        pipe = await fact.create({} as Collection, database);
       });
 
       it('should add provided fields', async () => {
@@ -55,7 +60,7 @@ describe('fields', () => {
     let pipe: Pipe;
 
     before(async () => {
-      pipe = await fact.create({} as Collection, {} as Database);
+      pipe = await fact.create({} as Collection, database);
     });
 
     it('should unset provided fields', async () => {
@@ -77,7 +82,7 @@ describe('fields', () => {
       let pipe: Pipe;
 
       before(async () => {
-        pipe = await fact.create({} as Collection, {} as Database);
+        pipe = await fact.create({} as Collection, database);
       });
 
       it('should unset provided fields', async () => {

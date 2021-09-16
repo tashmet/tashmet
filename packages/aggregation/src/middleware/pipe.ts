@@ -1,6 +1,5 @@
-import {AggregationPipeline, Collection, Database} from '@ziqquratu/database';
+import {aggregate, AggregationPipeline, Collection, Database} from '@ziqquratu/database';
 import {Pipe, PipeFactory} from '@ziqquratu/pipe';
-import mingo from 'mingo';
 
 export class AggregationPipeFactory extends PipeFactory {
   public constructor(private pipeline: AggregationPipeline = []) {
@@ -10,6 +9,9 @@ export class AggregationPipeFactory extends PipeFactory {
   public async create(
     source: Collection, database: Database, appendage: AggregationPipeline = []
   ): Promise<Pipe> {
-    return async doc => mingo.aggregate([doc], this.pipeline.concat(appendage))[0];
+    return async doc => {
+      const result = await aggregate<any>(this.pipeline.concat(appendage), [doc], database);
+      return result[0];
+    }
   }
 }
