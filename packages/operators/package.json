@@ -25,9 +25,7 @@
 		"README.md"
 	],
 	"devDependencies": {
-		"@types/node": "^13.1.8"
-	},
-	"peerDependencies": {
+		"@types/node": "^13.1.8",
 		"mingo": "4.1.4"
 	},
 	"gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
