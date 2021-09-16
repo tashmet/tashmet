@@ -24,10 +24,15 @@ export class RestCollection extends AutoEventCollection {
     private config: RestCollectionConfig,
     private database: Database,
   ) {
-    super();
+    super(config.emitter !== undefined);
 
     if (config.queryParams) {
       this.queryParams = config.queryParams;
+    }
+    if (config.emitter) {
+      const emitter = config.emitter(this, config.path);
+      emitter.on('change', change => this.emit('change', change));
+      emitter.on('error', error => this.emit('error', error));
     }
     this.fetch = config.fetch || window.fetch;
   }
