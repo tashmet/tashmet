@@ -5,6 +5,7 @@ import {
   memory
 } from '../packages/ziqquratu/dist';
 import {resource, Server} from '../packages/tashmetu/dist';
+import operators from '../packages/operators/system';
 
 @component({
   dependencies: [
@@ -15,7 +16,7 @@ import {resource, Server} from '../packages/tashmetu/dist';
       collections: {
         'test': memory()
       },
-      operators: {},
+      operators,
     }),
     Server.configuration({
       middleware: {

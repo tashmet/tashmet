@@ -10,6 +10,8 @@ import {
   Database,
 } from '../../packages/ziqquratu/dist';
 import {rest} from '../../packages/rest/dist';
+import {socket} from '../../packages/socket/dist';
+import fetch from 'isomorphic-fetch';
 
 chai.use(chaiAsPromised);
 
@@ -19,7 +21,11 @@ describe('rest', () => {
       Database.configuration({
         collections: {
           'test': {
-            source: rest({path: 'http://localhost:8000/api/test'}),
+            source: rest({
+              path: 'http://localhost:8000/api/test',
+              fetch,
+              emitter: socket(),
+            }),
           }
         },
         operators: {},
