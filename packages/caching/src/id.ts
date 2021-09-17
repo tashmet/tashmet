@@ -1,4 +1,4 @@
-import {CacheEvaluator} from './middleware';
+import {CacheEvaluator} from './evaluator';
 
 export class IDCache extends CacheEvaluator {
   public add(doc: any) {

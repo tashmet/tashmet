@@ -1,5 +1,5 @@
 import {QueryOptions} from '@ziqquratu/database';
-import {CacheEvaluator} from './middleware';
+import {CacheEvaluator} from './evaluator';
 
 export class QueryCache extends CacheEvaluator {
   public isCached(selector?: any, options?: QueryOptions): boolean {
