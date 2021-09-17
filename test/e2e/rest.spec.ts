@@ -8,9 +8,11 @@ import {
   component,
   Collection,
   Database,
+  SortingDirection,
 } from '../../packages/ziqquratu/dist';
 import {rest} from '../../packages/rest/dist';
 import {socket} from '../../packages/socket/dist';
+import operators from '../../packages/operators/system';
 import fetch from 'isomorphic-fetch';
 
 chai.use(chaiAsPromised);
@@ -28,7 +30,7 @@ describe('rest', () => {
             }),
           }
         },
-        operators: {},
+        operators,
       })
     ],
     inject: [Database]
@@ -161,6 +163,30 @@ describe('rest', () => {
     });
     it('should be a positive number when items are matched', async () => {
       expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
+    });
+  });
+
+  describe('aggregate', () => {
+    it('should group by category', async () => {
+      const pipeline = [
+        {$group: {_id: "$item.category", count: { $sum: 1 } } }
+      ];
+      expect(await col.aggregate(pipeline)).to.eql([
+        {_id: 'cake', count: 3},
+        {_id: 'cookies', count: 2 }
+      ]);
+    });
+    it('should do filtering, sorting and projection', async () => {
+      const pipeline = [
+        {$match: {'item.category': 'cake'}},
+        {$sort: {amount: SortingDirection.Descending}},
+        {$project: {_id: 0, 'item.type': 1}},
+      ];
+      expect(await col.aggregate(pipeline)).to.eql([
+        {item: {type: 'lemon' }},
+        {item: {type: 'carrot' }},
+        {item: {type: 'chiffon' }},
+      ]);
     });
   });
 
