@@ -10,7 +10,7 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
     return this.resolve(async (logger: Logger) => {
       logger = logger.inScope(source.name);
 
-      const logError = async (next: (...args: any[]) => Promise<any>, ...args: any[]) => {
+      const logError = (next: (...args: any[]) => Promise<any>) => async (...args: any[]) => {
         try {
           return await next(...args);
         } catch (err) {
@@ -28,7 +28,7 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
           deleteMany: logError,
         },
         events: {
-          'change': async (next, change) => {
+          change: next => async change => {
             switch (change.action) {
               case 'insert':
                 logger.info(`inserted ${change.data.map(d => d._id).join(',')}`);
@@ -41,7 +41,7 @@ export class LoggingMiddlewareFactory extends MiddlewareFactory {
             }
             return next(change);
           },
-          'error': async (next, err) => {
+          error: next => async err => {
             logger.error(err.message);
             return next(err);
           }

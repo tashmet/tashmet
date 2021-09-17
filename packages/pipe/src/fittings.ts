@@ -42,7 +42,7 @@ export abstract class TwoWayPipeFitting extends PipeFitting {
 
 export class FindOneFitting extends OneWayPipeFitting {
   public async attach(middleware: Required<Middleware>, source: Collection) {
-    middleware.methods.findOne = async (next, selector) => {
+    middleware.methods.findOne = next => async selector => {
       const doc = await next(selector);
       if (doc) {
         if (!this.filter) {
@@ -61,7 +61,7 @@ export class FindOneFitting extends OneWayPipeFitting {
 
 export class FindFitting extends OneWayPipeFitting {
   public async attach(middleware: Required<Middleware>, source: Collection) {
-    middleware.methods.find = (next, selector, options) => {
+    middleware.methods.find = next => (selector, options) => {
       const cursor = next(selector, options);
       const filter = this.filter;
       const pipe = this.pipe;
@@ -119,13 +119,14 @@ export class FindFitting extends OneWayPipeFitting {
 
 export class InsertOneFitting extends TwoWayPipeFitting  {
   public async attach(middleware: Required<Middleware>) {
-    middleware.methods.insertOne = async (next, doc) => this.pipeOut(await next(await this.pipeIn(doc)));
+    middleware.methods.insertOne = next => async doc =>
+      this.pipeOut(await next(await this.pipeIn(doc)));
   }
 }
 
 export class InsertManyFitting extends TwoWayPipeFitting  {
   public async attach(middleware: Required<Middleware>, source: Collection) {
-    middleware.methods.insertMany = async (next, docs) => {
+    middleware.methods.insertMany = next => async docs => {
       const promises = docs.map(d => this.pipeIn(d));
       const outDocs = this.filter
         ? await next(await filterResults(promises, err => source.emit('error', err)))
@@ -137,7 +138,7 @@ export class InsertManyFitting extends TwoWayPipeFitting  {
 
 export class ReplaceOneFitting extends TwoWayPipeFitting  {
   public async attach(middleware: Required<Middleware>) {
-    middleware.methods.replaceOne = async (next, selector, doc, options) =>
+    middleware.methods.replaceOne = next => async (selector, doc, options) =>
       this.pipeOut(await next(selector, await this.pipeIn(doc), options));
   }
 }

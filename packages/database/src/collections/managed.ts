@@ -85,7 +85,7 @@ export class ManagedCollection<T = any> extends Collection<T> {
 
   private proxy(fn: Function, methodName: string) {
     const f = (this as any)[methodName];
-    (this as any)[methodName] = (...args: any[]) => fn(f.bind(this), ...args);
+    (this as any)[methodName] = (...args: any[]) => fn(f.bind(this))(...args);
   }
 
   private use(mw: any) {

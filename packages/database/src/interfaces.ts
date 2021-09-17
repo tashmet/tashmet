@@ -181,49 +181,33 @@ export class DatabaseError extends DocumentError {
   ) { super(instance, message); }
 }
 
+export type MiddlewareHook<T> = (next: T) => T;
+
+export type DatabaseChangeEvent<T> = (change: DatabaseChange<T>) => Promise<void>;
+export type DatabaseErrorEvent = (error: DatabaseError) => Promise<void>;
 export interface EventMiddleware<T = any> {
-  'change'?: (next: (change: DatabaseChange<T>) => Promise<void>, change: DatabaseChange) => Promise<void>;
-  'error'?: (next: (error: DatabaseError) => Promise<void>, error: DatabaseError) => Promise<void>;
+  change?: MiddlewareHook<DatabaseChangeEvent<T>>;
+  error?: MiddlewareHook<DatabaseErrorEvent>;
 }
 
+export type Find<T> = (selector?: object, options?: QueryOptions) => Cursor<T>;
+export type FindOne<T> = (selector: object) => Promise<T | null>;
+export type InsertOne<T> = (doc: T) => Promise<T>;
+export type InsertMany<T> = (docs: T[]) => Promise<T[]>;
+export type ReplaceOne<T> = (selector: object, doc: T, options?: ReplaceOneOptions)
+  => Promise<T | null>;
+export type DeleteOne<T> = (selector: object) => Promise<T | null>;
+export type DeleteMany<T> = (selector?: object) => Promise<T[]>;
+
+
 export interface MethodMiddleware<T = any> {
-  find?: (
-    next: (selector?: object, options?: QueryOptions) => Cursor<T>,
-    selector?: object,
-    options?: QueryOptions
-  ) => Cursor<T>;
-
-  findOne?: (
-    next: (selector: object) => Promise<T | null>,
-    selector: object
-  ) => Promise<T | null>;
-
-  insertOne?: (
-    next: (doc: T) => Promise<T>,
-    doc: T
-  ) => Promise<T>;
-
-  insertMany?: (
-    next: (docs: T[]) => Promise<T[]>,
-    docs: T[]
-  ) => Promise<T[]>;
-
-  replaceOne?: (
-    next: (selector: object, doc: T, options?: ReplaceOneOptions) => Promise<T | null>,
-    selector: object,
-    doc: T,
-    options?: ReplaceOneOptions
-  ) => Promise<T | null>;
-
-  deleteOne?: (
-    next: (selector: object) => Promise<T>,
-    selector: object
-  ) => Promise<T | null>;
-
-  deleteMany?: (
-    next: (selector: object) => Promise<T[]>,
-    selector: object
-  ) => Promise<T[]>;
+  find?: MiddlewareHook<Find<T>>;
+  findOne?: MiddlewareHook<FindOne<T>>;
+  insertOne?: MiddlewareHook<InsertOne<T>>;
+  insertMany?: MiddlewareHook<InsertMany<T>>;
+  replaceOne?: MiddlewareHook<ReplaceOne<T>>;
+  deleteOne?: MiddlewareHook<DeleteOne<T>>;
+  deleteMany?: MiddlewareHook<DeleteMany<T>>;
 }
 
 export interface Middleware<T = any> {

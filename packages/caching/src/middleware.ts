@@ -34,7 +34,7 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
 
     return {
       events: {
-        'change': async (next, {action, data, collection}) => {
+        change: next => async ({action, data, collection}) => {
           switch (action) {
             case 'insert':
               for (const doc of data) {
@@ -49,7 +49,7 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
         }
       },
       methods: {
-        find: (next, selector, options) => {
+        find: next => (selector, options) => {
           return new CachingCursor(evaluators, cache, next, selector, options);
         },
       }
