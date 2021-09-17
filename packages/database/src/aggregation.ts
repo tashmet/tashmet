@@ -33,9 +33,12 @@ export class Query implements QueryOptions {
       '$sort': v => query.sort = v,
     }
 
-    for (const step of pipeline) {
+    const handlerOps = Object.keys(handlers);
+
+    for (let i = 0; i < Math.min(pipeline.length, handlerOps.length); i++) {
+      const step = pipeline[i];
       const op = Object.keys(step)[0];
-      if (op in handlers) {
+      if (op === handlerOps[i]) {
         handlers[op](step[op]);
       } else {
         break;
