@@ -6,6 +6,7 @@ import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { SortingDirection } from '../../dist';
 
 chai.use(chaiAsPromised);
 
@@ -131,6 +132,30 @@ describe('MemoryCollection', () => {
     });
     it('should be a positive number when items are matched', async () => {
       expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
+    });
+  });
+
+  describe('aggregate', () => {
+    it('should group by category', async () => {
+      const pipeline = [
+        {$group: {_id: "$item.category", count: { $sum: 1 } } }
+      ];
+      expect(await col.aggregate(pipeline)).to.eql([
+        {_id: 'cake', count: 3},
+        {_id: 'cookies', count: 2 }
+      ]);
+    });
+    it('should do filtering, sorting and projection', async () => {
+      const pipeline = [
+        {$match: {'item.category': 'cake'}},
+        {$sort: {amount: SortingDirection.Descending}},
+        {$project: {_id: 0, 'item.type': 1}},
+      ];
+      expect(await col.aggregate(pipeline)).to.eql([
+        {item: {type: 'lemon' }},
+        {item: {type: 'carrot' }},
+        {item: {type: 'chiffon' }},
+      ]);
     });
   });
 
