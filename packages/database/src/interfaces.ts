@@ -190,6 +190,7 @@ export interface EventMiddleware<T = any> {
   error?: MiddlewareHook<DatabaseErrorEvent>;
 }
 
+export type Aggregate<T> = (pipeline: AggregationPipeline) => Promise<T[]>;
 export type Find<T> = (selector?: object, options?: QueryOptions) => Cursor<T>;
 export type FindOne<T> = (selector: object) => Promise<T | null>;
 export type InsertOne<T> = (doc: T) => Promise<T>;
@@ -201,6 +202,7 @@ export type DeleteMany<T> = (selector?: object) => Promise<T[]>;
 
 
 export interface MethodMiddleware<T = any> {
+  aggregate?: MiddlewareHook<Aggregate<any>>;
   find?: MiddlewareHook<Find<T>>;
   findOne?: MiddlewareHook<FindOne<T>>;
   insertOne?: MiddlewareHook<InsertOne<T>>;
