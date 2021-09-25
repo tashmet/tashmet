@@ -1,14 +1,12 @@
 import {Collection, DatabaseEventEmitter, QueryOptions} from '@ziqquratu/database';
-import {EventEmitter as EM} from 'eventemitter3';
-
-export type MakeQueryParams = (selector: object, options: QueryOptions) => {[name: string]: string};
+import { QuerySerializer } from './query';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 
 export interface RestCollectionConfig {
   path: string;
 
-  queryParams?: MakeQueryParams;
+  queryParams?: QuerySerializer;
 
   emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
 

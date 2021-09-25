@@ -2,12 +2,13 @@ import {
   AbstractCursor,
   QueryOptions,
 } from '@ziqquratu/database';
-import {MakeQueryParams, Fetch} from './interfaces';
+import {Fetch} from './interfaces';
+import {QuerySerializer, serializeQuery} from './query';
 
 
 export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
-    private queryParams: MakeQueryParams,
+    private queryParams: QuerySerializer,
     private path: string,
     private fetch: Fetch,
     selector: object = {},
@@ -37,15 +38,6 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   private serializeQuery(selector?: object, options?: QueryOptions): string {
-    const params = this.queryParams(selector || {}, options || {});
-
-    let query = this.path;
-    if (Object.keys(params).length > 0) {
-      const esc = encodeURIComponent;
-      query = query + '?' + Object.keys(params)
-          .map(k => esc(k) + '=' + esc(params[k]))
-          .join('&');
-    }
-    return query;
+    return serializeQuery(selector || {}, options || {}, this.queryParams, this.path);
   }
 }

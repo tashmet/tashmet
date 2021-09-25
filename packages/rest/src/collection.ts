@@ -6,17 +6,17 @@ import {
   ReplaceOneOptions,
   AggregationPipeline,
   Database,
-  Query,
+  QueryAggregator,
   AutoEventCollection,
 } from '@ziqquratu/database';
 
 import {Fetch, RestCollectionConfig} from './interfaces';
 import {RestCollectionCursor} from './cursor';
-import {queryParams} from './query';
+import {queryParams, QuerySerializer} from './query';
 
 
 export class RestCollection extends AutoEventCollection {
-  private queryParams = queryParams;
+  private queryParams: QuerySerializer = queryParams;
   private fetch: Fetch;
 
   public constructor(
@@ -42,9 +42,8 @@ export class RestCollection extends AutoEventCollection {
   }
 
   public async aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
-    const query = Query.fromPipeline(pipeline);
-    const input = await this.find(query.match.value, query).toArray();
-    return aggregate(pipeline, input, this.database);
+    const input = await QueryAggregator.fromPipeline(pipeline).execute(this);
+    return aggregate<U>(pipeline, input, this.database);
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
