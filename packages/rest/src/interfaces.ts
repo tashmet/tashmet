@@ -1,5 +1,5 @@
 import {Collection, DatabaseEventEmitter, QueryOptions} from '@ziqquratu/database';
-import { QuerySerializer } from './query';
+import {QuerySerializer} from './query';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 
@@ -20,4 +20,31 @@ export interface RestCollectionConfig {
    * @default window.fetch
    */
   fetch?: Fetch;
+}
+
+
+export interface JsonQueryConfig {
+  /**
+   * Name of the filter param
+   * @default 'filter'
+   */
+  filter?: string;
+
+  /**
+   * Name of the sort param
+   * @default 'sort'
+   */
+  sort?: string;
+
+  /**
+   * Name of the skip param
+   * @default 'skip'
+   */
+  skip?: string;
+
+  /**
+   * Name of the limit param
+   * @default 'limit'
+   */
+  limit?: string;
 }

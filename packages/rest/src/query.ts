@@ -1,4 +1,5 @@
 import {QueryOptions, SortingDirection, SortingMap} from '@ziqquratu/database';
+import {JsonQueryConfig} from './interfaces';
 
 const param = (key: string, value: string | number) => `${key}=${value}`;
 
@@ -111,13 +112,6 @@ export class HttpQueryBuilder {
       ? this.path + '?' + params.join('&')
       : this.path;
   }
-}
-
-export interface JsonQueryConfig {
-  filter?: string;
-  sort?: string;
-  skip?: string;
-  limit?: string;
 }
 
 export const jsonQuery = (config?: JsonQueryConfig) => {
