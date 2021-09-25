@@ -12,7 +12,7 @@ import {
 
 import {Fetch, RestCollectionConfig} from './interfaces';
 import {RestCollectionCursor} from './cursor';
-import {queryParams, QuerySerializer} from './query';
+import {HttpQueryBuilder, queryParams, QuerySerializer} from './query';
 
 
 export class RestCollection extends AutoEventCollection {
@@ -47,7 +47,8 @@ export class RestCollection extends AutoEventCollection {
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
-    return new RestCollectionCursor(this.queryParams, this.config.path, this.fetch, selector, options);
+    const queryBuilder = new HttpQueryBuilder(this.queryParams, this.config.path);
+    return new RestCollectionCursor(queryBuilder, this.fetch, selector, options);
   }
 
   public async findOne(selector: object): Promise<any> {

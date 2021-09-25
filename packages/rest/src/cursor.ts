@@ -3,13 +3,12 @@ import {
   QueryOptions,
 } from '@ziqquratu/database';
 import {Fetch} from './interfaces';
-import {QuerySerializer, serializeQuery} from './query';
+import {HttpQueryBuilder} from './query';
 
 
 export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
-    private queryParams: QuerySerializer,
-    private path: string,
+    private queryBuilder: HttpQueryBuilder,
     private fetch: Fetch,
     selector: object = {},
     options: QueryOptions = {},
@@ -18,7 +17,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   public async toArray(): Promise<T[]> {
-    const resp = await this.fetch(this.serializeQuery(this.selector, this.options));
+    const resp = await this.query(this.selector, this.options);
     if (!resp.ok) {
       throw new Error('failed to contact server');
     }
@@ -26,10 +25,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   public async count(applySkipLimit = true): Promise<number> {
-    const resp = await this.fetch(
-      this.serializeQuery(this.selector, applySkipLimit ? this.options : {}), {method: 'HEAD'}
-    );
-
+    const resp = await this.query(this.selector, applySkipLimit ? this.options : {}, {method: 'HEAD'});
     const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
       throw new Error('failed to get "x-total-count" header');
@@ -37,7 +33,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
     return parseInt(totalCount, 10);
   }
 
-  private serializeQuery(selector?: object, options?: QueryOptions): string {
-    return serializeQuery(selector || {}, options || {}, this.queryParams, this.path);
+  private query(filter?: object, options?: QueryOptions, init?: RequestInit): Promise<Response> {
+    return this.fetch(this.queryBuilder.serialize(filter || {}, options || {}), init);
   }
 }

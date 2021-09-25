@@ -97,14 +97,16 @@ export function makeQueryParams(
   return params;
 }
 
-export function serializeQuery(
-  filter: object, options: QueryOptions, serializer: QuerySerializer, path: string
-) {
-  const params = makeQueryParams(filter, options, serializer);
+export class HttpQueryBuilder {
+  public constructor(
+    private serializer: QuerySerializer,
+    private path: string,
+  ) {}
 
-  let query = path;
-  if (params.length > 0) {
-    query = query + '?' + params.map(p => encodeURIComponent(p)).join('&');
+  public serialize(filter: object = {}, options: QueryOptions = {}) {
+    const params = makeQueryParams(filter, options, this.serializer);
+    return params.length > 0
+      ? this.path + '?' + params.map(p => encodeURIComponent(p)).join('&')
+      : this.path;
   }
-  return query;
 }
