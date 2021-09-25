@@ -1,6 +1,7 @@
+import { QueryOptions, SortingDirection } from '@ziqquratu/database';
 import {expect} from 'chai';
 import 'mocha';
-import {serializeFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query';
+import {serializeFilter, lhsBrackets, lhsColon, rhsColon, HttpQueryBuilder, serializeSort} from '../src/query';
 
 describe('serializeFilter', () => {
   it('should serialize using LHSBrackets', async () => {
@@ -57,5 +58,29 @@ describe('serializeFilter', () => {
       category: ['foo', 'bar'],
     }
     expect(s(filter)).to.eql(['category=foo,bar']);
+  });
+});
+
+describe('HttpQueryBuilder', () => {
+  it('should serialize a complete query', async () => {
+    const qb = new HttpQueryBuilder('/api/test', {
+      filter: serializeFilter({format: lhsColon}),
+      sort: serializeSort(),
+    });
+
+    const filter = {
+      foo: {$gte: 2, $lte: 10},
+    }
+    const options: QueryOptions = {
+      sort: {
+        category: SortingDirection.Ascending,
+        datePublished: SortingDirection.Descending,
+      },
+      skip: 10,
+      limit: 10,
+    }
+    expect(qb.serialize(filter, options)).to.eql(
+      '/api/test?foo:gte=2&foo:lte=10&sort=+category,-datePublished&skip=10&limit=10'
+    );
   });
 });

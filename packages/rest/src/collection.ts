@@ -47,7 +47,7 @@ export class RestCollection extends AutoEventCollection {
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
-    const queryBuilder = new HttpQueryBuilder(this.queryParams, this.config.path);
+    const queryBuilder = new HttpQueryBuilder(this.config.path, this.queryParams);
     return new RestCollectionCursor(queryBuilder, this.fetch, selector, options);
   }
 

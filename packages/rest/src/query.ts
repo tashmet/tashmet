@@ -5,8 +5,8 @@ export const jsonParam = (name: string) => (v: any) => [`${name}=${JSON.stringif
 
 export interface QuerySerializer {
   filter: (v: any) => string | string[];
-  skip: (v: number) => string | string[];
-  limit: (v: number) => string | string[];
+  skip?: (v: number) => string | string[];
+  limit?: (v: number) => string | string[];
   sort: (v: SortingMap) => string | string[];
 }
 
@@ -17,20 +17,27 @@ export interface SortSerializerConfig {
   separator: string;
 }
 
-const serializeSort = (config: SortSerializerConfig) => {
-  return (sort: SortingMap) => ({[config.param]: Object.keys(sort)
-    .map(k => sort[k] === SortingDirection.Ascending
-      ? config.ascending(k)
-      : config.descending(k)
-    )
-    .join(config.separator)
-  });
+const defaultSortSerializerConfig: SortSerializerConfig = {
+  param: 'sort', ascending: k => `+${k}`, descending: k => `-${k}`, separator: ',',
+}
+
+export const serializeSort = (config?: Partial<SortSerializerConfig>) => {
+  const {param, ascending, descending, separator} = Object.assign(
+    {}, defaultSortSerializerConfig, config);
+
+  return (sort: SortingMap) => {
+    const value = Object.keys(sort)
+      .map(k => sort[k] === SortingDirection.Ascending
+        ? ascending(k) : descending(k)
+      )
+      .join(separator)
+    return `${param}=${value}`;
+  }
 }
 
 export const lhsBrackets: OperatorFormat = (k, v, op) => `${k}[${op}]=${v}`;
 export const lhsColon: OperatorFormat = (k, v, op) => `${k}:${op}=${v}`;
 export const rhsColon: OperatorFormat = (k, v, op) => `${k}=${op}:${v}`
-
 
 export type OperatorFormat = (key: string, value: any, op: string) => string;
 export type OperatorMap = Record<string, string | OperatorFormat>
@@ -73,7 +80,7 @@ export const serializeFilter = (config: FilterSerializerConfig) => {
 export const queryParams: QuerySerializer = {
   filter: jsonParam('filter'),
   sort: jsonParam('sort'),
-  skip: v => `sort=${v.toString()}`,
+  skip: v => `skip=${v.toString()}`,
   limit: v => `limit=${v.toString()}`,
 }
 
@@ -89,24 +96,26 @@ export function makeQueryParams(
     params = params.concat(serializer.sort(sort));
   }
   if (skip) {
-    params = params.concat(serializer.skip(skip));
+    params = params.concat(
+      serializer.skip ? serializer.skip(skip) : `skip=${skip}`);
   }
   if (limit) {
-    params = params.concat(serializer.limit(limit));
+    params = params.concat(
+      serializer.limit ? serializer.limit(limit) : `limit=${limit}`);
   }
   return params;
 }
 
 export class HttpQueryBuilder {
   public constructor(
-    private serializer: QuerySerializer,
     private path: string,
+    private serializer: QuerySerializer,
   ) {}
 
   public serialize(filter: object = {}, options: QueryOptions = {}) {
     const params = makeQueryParams(filter, options, this.serializer);
     return params.length > 0
-      ? this.path + '?' + params.map(p => encodeURIComponent(p)).join('&')
+      ? this.path + '?' + params.join('&')//params.map(p => encodeURIComponent(p)).join('&')
       : this.path;
   }
 }
