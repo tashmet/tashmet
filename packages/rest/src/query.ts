@@ -79,11 +79,6 @@ export const serializeFilter = (config: FilterSerializerConfig) => {
   }
 }
 
-export const queryParams: QuerySerializer = {
-  filter: jsonParam('filter'),
-  sort: jsonParam('sort'),
-}
-
 export function makeQueryParams(
   filter: any, options: QueryOptions, serializer: QuerySerializer
 ) {
@@ -116,4 +111,20 @@ export class HttpQueryBuilder {
       ? this.path + '?' + params.join('&')
       : this.path;
   }
+}
+
+export interface JsonQueryConfig {
+  filter?: string;
+  sort?: string;
+  skip?: string;
+  limit?: string;
+}
+
+export const jsonQuery = (config?: JsonQueryConfig) => {
+  return {
+    filter: jsonParam(config?.filter || 'filter'),
+    sort: jsonParam(config?.sort || 'sort'),
+    skip: config?.skip,
+    limit: config?.limit,
+  } as QuerySerializer;
 }

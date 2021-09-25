@@ -12,11 +12,11 @@ import {
 
 import {Fetch, RestCollectionConfig} from './interfaces';
 import {RestCollectionCursor} from './cursor';
-import {HttpQueryBuilder, queryParams, QuerySerializer} from './query';
+import {HttpQueryBuilder, jsonQuery, QuerySerializer} from './query';
 
 
 export class RestCollection extends AutoEventCollection {
-  private queryParams: QuerySerializer = queryParams;
+  private queryParams: QuerySerializer = jsonQuery();
   private fetch: Fetch;
 
   public constructor(
