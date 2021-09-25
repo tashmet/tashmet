@@ -1,13 +1,15 @@
 import {QueryOptions, SortingDirection, SortingMap} from '@ziqquratu/database';
 
+const param = (key: string, value: string | number) => `${key}=${value}`;
+
 export type ParamSerializer = (v: any) => string[];
-export const jsonParam = (name: string) => (v: any) => [`${name}=${JSON.stringify(v)}`];
+export const jsonParam = (name: string) => (v: any) => param(name, JSON.stringify(v));
 
 export interface QuerySerializer {
   filter: (v: any) => string | string[];
-  skip?: (v: number) => string | string[];
-  limit?: (v: number) => string | string[];
   sort: (v: SortingMap) => string | string[];
+  skip?: string | false;
+  limit?: string | false;
 }
 
 export interface SortSerializerConfig {
@@ -54,7 +56,7 @@ export const serializeFilter = (config: FilterSerializerConfig) => {
   return (filter: any) => {
     const format = (key: string, value: any, op: string) => {
       if (op === '$eq') {
-        return `${key}=${value}`;
+        return param(key, value);
       }
       return config.format(key, value, alias(op));
     }
@@ -70,7 +72,7 @@ export const serializeFilter = (config: FilterSerializerConfig) => {
           params.push(format(k, serializeValue(v[op]), op));
         }
       } else {
-        params.push(`${k}=${serializeValue(v)}`);
+        params.push(param(k, serializeValue(v)));
       }
     }
     return params;
@@ -80,8 +82,6 @@ export const serializeFilter = (config: FilterSerializerConfig) => {
 export const queryParams: QuerySerializer = {
   filter: jsonParam('filter'),
   sort: jsonParam('sort'),
-  skip: v => `skip=${v.toString()}`,
-  limit: v => `limit=${v.toString()}`,
 }
 
 export function makeQueryParams(
@@ -95,13 +95,11 @@ export function makeQueryParams(
   if (sort) {
     params = params.concat(serializer.sort(sort));
   }
-  if (skip) {
-    params = params.concat(
-      serializer.skip ? serializer.skip(skip) : `skip=${skip}`);
+  if (skip && serializer.skip !== false) {
+    params = params.concat(param(serializer.skip || 'skip', skip));
   }
-  if (limit) {
-    params = params.concat(
-      serializer.limit ? serializer.limit(limit) : `limit=${limit}`);
+  if (limit && serializer.limit !== false) {
+    params = params.concat(param(serializer.limit || 'limit', limit));
   }
   return params;
 }
@@ -115,7 +113,7 @@ export class HttpQueryBuilder {
   public serialize(filter: object = {}, options: QueryOptions = {}) {
     const params = makeQueryParams(filter, options, this.serializer);
     return params.length > 0
-      ? this.path + '?' + params.join('&')//params.map(p => encodeURIComponent(p)).join('&')
+      ? this.path + '?' + params.join('&')
       : this.path;
   }
 }
