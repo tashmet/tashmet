@@ -38,9 +38,9 @@ export const serializeSort = (config?: Partial<SortSerializerConfig>) => {
   }
 }
 
-export const lhsBrackets: OperatorFormat = (k, v, op) => `${k}[${op}]=${v}`;
-export const lhsColon: OperatorFormat = (k, v, op) => `${k}:${op}=${v}`;
-export const rhsColon: OperatorFormat = (k, v, op) => `${k}=${op}:${v}`
+export const lhsBrackets: OperatorFormat = (k, v, op) => param(`${k}[${op}]`, v);
+export const lhsColon: OperatorFormat = (k, v, op) => param(`${k}:${op}`, v);
+export const rhsColon: OperatorFormat = (k, v, op) => param(k, `${op}:${v}`);
 
 export type OperatorFormat = (key: string, value: any, op: string) => string;
 export type OperatorMap = Record<string, string | OperatorFormat>
@@ -56,27 +56,22 @@ export const serializeFilter = (config: FilterSerializerConfig) => {
 
   return (filter: any) => {
     const format = (key: string, value: any, op: string) => {
-      if (op === '$eq') {
-        return param(key, value);
-      }
-      return config.format(key, value, alias(op));
+      return (op === '$eq')
+        ? param(key, value)
+        : config.format(key, value, alias(op));
     }
 
     const serializeValue = (v: any): any =>
       Array.isArray(v) ? v.map(serializeValue).join(',') : v;
 
-    let params: string[] = [];
-    for (const k of Object.keys(filter)) {
-      const v = filter[k];
-      if (typeof v === 'object' && !Array.isArray(v)) {
-        for (const op of Object.keys(v)) {
-          params.push(format(k, serializeValue(v[op]), op));
-        }
-      } else {
-        params.push(param(k, serializeValue(v)));
-      }
-    }
-    return params;
+    const isExpr = (v: any) => typeof v === 'object' && !Array.isArray(v);
+    const makeParams = (k: string, v: any) => isExpr(v)
+      ? Object.keys(v).map(op => format(k, serializeValue(v[op]), op))
+      : param(k, serializeValue(v))
+
+    return Object.entries<any>(filter).reduce((params, [k, v]) =>
+      params.concat(makeParams(k, v))
+    , [] as string[]);
   }
 }
 
