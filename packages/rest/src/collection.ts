@@ -10,13 +10,14 @@ import {
   AutoEventCollection,
 } from '@ziqquratu/database';
 
-import {Fetch, RestCollectionConfig} from './interfaces';
+import {Fetch, QuerySerializer, QueryStringFactory, RestCollectionConfig} from './interfaces';
 import {RestCollectionCursor} from './cursor';
-import {HttpQueryBuilder, jsonQuery, QuerySerializer} from './query';
+import {HttpQueryBuilder} from './query';
+import {jsonQuery} from './query/json';
 
 
 export class RestCollection extends AutoEventCollection {
-  private queryParams: QuerySerializer = jsonQuery();
+  private queryBuilder: HttpQueryBuilder;
   private fetch: Fetch;
 
   public constructor(
@@ -26,9 +27,9 @@ export class RestCollection extends AutoEventCollection {
   ) {
     super(config.emitter !== undefined);
 
-    if (config.queryParams) {
-      this.queryParams = config.queryParams;
-    }
+    const qs = config.queryString || jsonQuery();
+
+    this.queryBuilder = qs(config.path);
     if (config.emitter) {
       const emitter = config.emitter(this, config.path);
       emitter.on('change', change => this.emit('change', change));
@@ -47,8 +48,7 @@ export class RestCollection extends AutoEventCollection {
   }
 
   public find(selector?: object, options?: QueryOptions): Cursor<any> {
-    const queryBuilder = new HttpQueryBuilder(this.config.path, this.queryParams);
-    return new RestCollectionCursor(queryBuilder, this.fetch, selector, options);
+    return new RestCollectionCursor(this.queryBuilder, this.fetch, selector, options);
   }
 
   public async findOne(selector: object): Promise<any> {

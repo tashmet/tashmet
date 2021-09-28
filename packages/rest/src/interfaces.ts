@@ -1,12 +1,35 @@
-import {Collection, DatabaseEventEmitter, QueryOptions} from '@ziqquratu/database';
-import {QuerySerializer} from './query';
+import {Collection, DatabaseEventEmitter, QueryOptions, SortingMap} from '@ziqquratu/database';
+import {HttpQueryBuilder} from './query';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+
+export interface Query extends QueryOptions {
+  filter?: object;
+}
+
+export interface QuerySerializer {
+  filter: (v: any) => string | string[];
+  sort: (v: SortingMap) => string | string[];
+  skip?: string | false;
+  limit?: string | false;
+}
+
+export class Param {
+  public constructor(public name: string, public value?: string | number) {}
+
+  public toString() { return `${this.name}=${this.value}`; }
+}
+
+export type QueryConverter<T> = (q: Query) => T;
+export type QueryParamFactory = QueryConverter<Param[]>
+
+export type QueryStringFactory = (path: string) => HttpQueryBuilder;
+
 
 export interface RestCollectionConfig {
   path: string;
 
-  queryParams?: QuerySerializer;
+  queryString?: QueryStringFactory;
 
   emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
 
@@ -22,29 +45,3 @@ export interface RestCollectionConfig {
   fetch?: Fetch;
 }
 
-
-export interface JsonQueryConfig {
-  /**
-   * Name of the filter param
-   * @default 'filter'
-   */
-  filter?: string;
-
-  /**
-   * Name of the sort param
-   * @default 'sort'
-   */
-  sort?: string;
-
-  /**
-   * Name of the skip param
-   * @default 'skip'
-   */
-  skip?: string;
-
-  /**
-   * Name of the limit param
-   * @default 'limit'
-   */
-  limit?: string;
-}
