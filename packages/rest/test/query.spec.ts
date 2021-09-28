@@ -2,7 +2,8 @@ import {QueryOptions, SortingDirection} from '@ziqquratu/database';
 import {expect} from 'chai';
 import 'mocha';
 import {Param} from '../src/interfaces';
-import {flatFilter, flatQuery, lhsBrackets, lhsColon, rhsColon} from '../src/query/flat';
+import {flatQuery} from '../src/query/flat';
+import {flatFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
 
 describe('serializeFilter', () => {
   it('should serialize using LHSBrackets', async () => {
