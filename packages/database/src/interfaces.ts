@@ -315,3 +315,11 @@ export abstract class Database extends EventEmitter implements DatabaseEventEmit
 export abstract class CollectionFactory<T = any> extends AsyncFactory<Collection<T>> {
   public abstract create(name: string, database: Database): Promise<Collection<T>>
 }
+
+export abstract class Aggregator<T = any> {
+  abstract get pipeline(): AggregationPipeline;
+
+  public execute(collection: Collection): Promise<T[]> {
+    return collection.aggregate<T>(this.pipeline);
+  }
+}

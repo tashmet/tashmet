@@ -4,7 +4,7 @@ export {AutoEventCollection} from './collections/autoEvent';
 export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
 export {proxy} from './collections/proxy';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
-export {aggregate, Query} from './aggregation';
+export {aggregate, QueryAggregator} from './aggregation';
 export {logging} from './logging';
 export * from './interfaces';
 

@@ -1,7 +1,57 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
-import {Selector} from './cursor';
-import {AggregationPipeline, Database, QueryOptions, SortingMap} from './interfaces';
+import {Aggregator, AggregationPipeline, Collection, Database, QueryOptions} from './interfaces';
 
+export class QueryAggregator<T> extends Aggregator<T> {
+  public constructor(
+    public selector: object,
+    public options: QueryOptions,
+  ) { super(); }
+
+  public static fromPipeline<T = any>(pipeline: AggregationPipeline, strict: boolean = false) {
+    let selector: object = {};
+    let options: QueryOptions = {};
+
+    const handlers: Record<string, (value: any) => void> = {
+      '$match': v => selector = v,
+      '$skip': v => options.skip = v,
+      '$limit': v => options.limit = v,
+      '$sort': v => options.sort = v,
+    }
+
+    const handlerOps = Object.keys(handlers);
+    let lastOpIndex = 0;
+
+    for (let i = 0; i < pipeline.length; i++) {
+      const step = pipeline[i];
+      const op = Object.keys(step)[0];
+      const opIndex = handlerOps.indexOf(op);
+      if (opIndex > lastOpIndex) {
+        handlers[op](step[op]);
+        lastOpIndex = opIndex;
+      } else if (strict) {
+        throw new Error('Could not translate pipeline to query');
+      } else {
+        break;
+      }
+    }
+    return new QueryAggregator<T>(selector, options);
+  }
+
+  public get pipeline(): AggregationPipeline {
+    const {skip, limit, sort} = this.options;
+
+    return [
+      ...(this.selector !== {} ? [{$match: this.selector}] : []),
+      ...(skip !== undefined ? [{$skip: skip}] : []),
+      ...(limit !== undefined ? [{$limit: limit}] : []),
+      ...(sort !== undefined ? [{$sort: sort}] : []),
+    ];
+  }
+
+  public execute(collection: Collection): Promise<T[]> {
+    return collection.find(this.selector, this.options).toArray();
+  }
+}
 
 export async function aggregate<U>(
   pipeline: AggregationPipeline, collection: any[], database: Database): Promise<U[]>
@@ -15,35 +65,4 @@ export async function aggregate<U>(
     }
   }
   return new MingoAggregator(pipeline).run(collection) as U[];
-}
-
-export class Query implements QueryOptions {
-  public match: Selector = new Selector();
-  public skip: number = 0;
-  public limit: number | undefined = undefined;
-  public sort: SortingMap | undefined = undefined;
-
-  public static fromPipeline(pipeline: AggregationPipeline): Query {
-    let query = new Query();
-
-    const handlers: Record<string, (value: any) => void> = {
-      '$match': v => query.match.value = v,
-      '$skip': v => query.skip = v,
-      '$limit': v => query.limit = v,
-      '$sort': v => query.sort = v,
-    }
-
-    const handlerOps = Object.keys(handlers);
-
-    for (let i = 0; i < Math.min(pipeline.length, handlerOps.length); i++) {
-      const step = pipeline[i];
-      const op = Object.keys(step)[0];
-      if (op === handlerOps[i]) {
-        handlers[op](step[op]);
-      } else {
-        break;
-      }
-    }
-    return query;
-  }
 }
