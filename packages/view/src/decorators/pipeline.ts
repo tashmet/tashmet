@@ -1,7 +1,7 @@
 import {propertyDecorator} from '@ziqquratu/core';
-import {AggregatorAnnotation} from '../aggregator';
+import {ViewAggregatorAnnotation} from '../aggregator';
 
-export class StageAnnotation extends AggregatorAnnotation {
+export class StageAnnotation extends ViewAggregatorAnnotation {
   public constructor(
     propertyKey: string,
     private stage: string,
@@ -21,5 +21,3 @@ export function stageDecorator<T>(stage: string, compile?: (value: any, property
   return propertyDecorator<T>(
     ({propertyKey}) => new StageAnnotation(propertyKey, stage, compile));
 }
-
-

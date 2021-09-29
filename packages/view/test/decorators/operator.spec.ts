@@ -1,12 +1,12 @@
 import {SortingDirection} from '@ziqquratu/database';
 import {expect} from 'chai';
 import 'mocha';
-import {Aggregator} from '../../src/aggregator';
+import {ViewAggregator} from '../../src/aggregator';
 import * as Op from '../../src/decorators/operator';
 
 describe('Operator', () => {
   it('should apply single operator', async () => {
-    class TestAggregator extends Aggregator {
+    class TestAggregator extends ViewAggregator {
       @Op.$eq() foo: string = 'bar';
     }
 
@@ -17,7 +17,7 @@ describe('Operator', () => {
   });
 
   it('should apply multiple operators in the same step', async () => {
-    class TestAggregator extends Aggregator {
+    class TestAggregator extends ViewAggregator {
       @Op.$gte('foo') min = 3;
       @Op.$lte('foo') max = 7;
 

@@ -1,15 +1,14 @@
 import {Annotation} from '@ziqquratu/core';
-import {AggregationPipeline} from '@ziqquratu/database';
+import {Aggregator, AggregationPipeline} from '@ziqquratu/database';
 import {merge} from 'mingo/util';
-import {AbstractAggregator} from './interfaces';
 
 
-export class Aggregator extends AbstractAggregator {
+export class ViewAggregator extends Aggregator {
   public get pipeline(): AggregationPipeline {
     const mergeSteps = ['$match', '$sort'];
     let pipeline: AggregationPipeline = [];
 
-    for (const annotation of AggregatorAnnotation.onClass(this.constructor, true)) {
+    for (const annotation of ViewAggregatorAnnotation.onClass(this.constructor, true)) {
       const step = annotation.step(this);
 
       if (step) {
@@ -29,7 +28,7 @@ export class Aggregator extends AbstractAggregator {
   }
 }
 
-export class AggregatorAnnotation extends Annotation {
+export class ViewAggregatorAnnotation extends Annotation {
   constructor(protected propertyKey: string) { super(); }
 
   public step(instance: any): object | null {

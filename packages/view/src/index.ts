@@ -7,7 +7,7 @@ export {Feed} from './feed';
 export {View} from './view';
 export {Item} from './item';
 export {ItemSet} from './itemSet';
-export {AggregatorAnnotation} from './aggregator';
+export {ViewAggregatorAnnotation} from './aggregator';
 export {TrackingFactory};
 export {Op};
 

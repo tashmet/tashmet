@@ -1,7 +1,7 @@
 import {EventEmitter} from 'eventemitter3';
 import {Container, provider, Resolver} from '@ziqquratu/core';
-import {AggregationPipeline, Database, Selector} from '@ziqquratu/database';
-import {AbstractAggregator, Tracker, TrackerConfig} from './interfaces';
+import {Aggregator, AggregationPipeline, Database, Selector} from '@ziqquratu/database';
+import {Tracker, TrackerConfig} from './interfaces';
 
 
 export class Tracking extends Resolver<Tracker> {
@@ -23,7 +23,7 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
   private cachedPipeline: AggregationPipeline = [];
 
   public constructor(
-    private aggregator: AbstractAggregator<T>,
+    private aggregator: Aggregator<T>,
     public collectionName: string,
     private readonly countMatching: boolean,
     private database: Database,
@@ -32,7 +32,7 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
     this.cachedPipeline = aggregator.pipeline;
   }
 
-  public async refresh(aggregator?: AbstractAggregator<T>): Promise<T[]> {
+  public async refresh(aggregator?: Aggregator<T>): Promise<T[]> {
     if (aggregator) {
       this.aggregator = aggregator;
     }

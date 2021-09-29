@@ -1,5 +1,5 @@
 import {Tracker} from './interfaces';
-import {Aggregator} from './aggregator';
+import {ViewAggregator} from './aggregator';
 import {TrackingFactory} from './tracker';
 
 
@@ -12,7 +12,7 @@ import {TrackingFactory} from './tracker';
  * having been changed) a selector object and query options are passed through each filter and
  * finally used to query the collection.
  */
-export abstract class View<T> extends Aggregator {
+export abstract class View<T> extends ViewAggregator {
   public skip = 0;
   public limit: number | undefined;
 
