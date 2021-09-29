@@ -1,4 +1,4 @@
-import {Collection, Database, MemoryCollection, Middleware, MiddlewareFactory} from '@ziqquratu/database';
+import {Collection, Database, MemoryCollection, Middleware, MiddlewareFactory, QueryAggregator} from '@ziqquratu/database';
 import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
 import {IDCache} from './id';
@@ -44,11 +44,21 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
             case 'delete':
               await cache.deleteMany({_id: {$in: data.map(d => d._id)}});
               break;
+            case 'replace':
+              const [original, replacement] = data;
+              await cache.replaceOne({_id: original._id}, replacement, {upsert: true});
+              break;
           }
           return next({action, data, collection});
         }
       },
       methods: {
+        aggregate: next => async pipeline => {
+          const query = QueryAggregator.fromPipeline(pipeline);
+          const cursor = new CachingCursor(evaluators, cache, source.find.bind(source), query.selector, query.options);
+          await cursor.toArray();
+          return cache.aggregate(pipeline);
+        },
         find: next => (selector, options) => {
           return new CachingCursor(evaluators, cache, next, selector, options);
         },

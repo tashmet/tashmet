@@ -45,3 +45,15 @@ export abstract class CacheEvaluator {
     return new Date().getTime();
   }
 }
+
+export function isCached(
+  evaluators: CacheEvaluator[], selector: object, options: QueryOptions
+) {
+  for (const evaluator of evaluators) {
+    evaluator.optimize(selector || {}, options);
+    if (evaluator.isCached(selector, options)) {
+      return true;
+    }
+  }
+  return false;
+}

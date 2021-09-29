@@ -1,5 +1,5 @@
 import {Collection, Cursor, QueryOptions, applyQueryOptions, AbstractCursor} from '@ziqquratu/database';
-import {CacheEvaluator} from './evaluator';
+import {CacheEvaluator, isCached} from './evaluator';
 
 export class CachingCursor extends AbstractCursor<any> {
   public constructor(
@@ -36,12 +36,6 @@ export class CachingCursor extends AbstractCursor<any> {
   }
 
   private isCached(): boolean {
-    for (const evaluator of this.evaluators) {
-      evaluator.optimize(this.selector || {}, this.options);
-      if (evaluator.isCached(this.selector, this.options)) {
-        return true;
-      }
-    }
-    return false;
+    return isCached(this.evaluators, this.selector, this.options);
   }
 }
