@@ -7,12 +7,12 @@ export const rhsColon: OperatorFormat = (k, v, op) => new Param(k, `${op}:${v}`)
 export type OperatorFormat = (key: string, value: any, op: string) => Param;
 export type OperatorMap = Record<string, string | OperatorFormat>
 
-export interface FlatFilterConfig {
+export interface MultiParamFilterConfig {
   alias?: (op: string) => string;
   format: OperatorFormat;
 }
 
-export const flatFilter = (config: FlatFilterConfig) => {
+export const multiParamFilter = (config: MultiParamFilterConfig) => {
   const defaultAlias = (op: string) => op.substr(1);
   const alias = config.alias || defaultAlias;
 
@@ -32,8 +32,7 @@ export const flatFilter = (config: FlatFilterConfig) => {
       ? Object.keys(v).map(op => format(k, serializeValue(v[op]), op))
       : new Param(k, serializeValue(v))
 
-    return Object.entries<any>(filter).reduce((params, [k, v]) =>
-      params.concat(makeParams(k, v))
-    , [] as Param[]);
+    return Object.entries<any>(filter)
+      .reduce<Param[]>((params, [k, v]) => params.concat(makeParams(k, v)), []);
   }
 }

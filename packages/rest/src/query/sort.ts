@@ -2,14 +2,14 @@ import {SortingDirection} from '@ziqquratu/database';
 import {Param} from '../interfaces';
 import {singleParam} from "../query";
 
-export interface FlatSortConfig {
+export interface SingleParamSortConfig {
   param: string;
   asc: (key: string) => string;
   desc: (key: string) => string;
   separator: string;
 }
 
-const defaultFlatSortConfig: FlatSortConfig = {
+const defaultConfig: SingleParamSortConfig = {
   param: 'sort', asc: k => `+${k}`, desc: k => `-${k}`, separator: ',',
 }
 
@@ -32,9 +32,8 @@ const defaultFlatSortConfig: FlatSortConfig = {
  * @param config Configuration options
  * @returns A parameter factory
  */
-export const flatSort = (config?: Partial<FlatSortConfig>) => {
-  const {param, asc, desc, separator} = Object.assign(
-    {}, defaultFlatSortConfig, config);
+export const singleParamSort = (config?: Partial<SingleParamSortConfig>) => {
+  const {param, asc, desc, separator} = Object.assign({}, defaultConfig, config);
 
   return singleParam(q =>
     new Param(param, Object.entries(q.sort || {})
