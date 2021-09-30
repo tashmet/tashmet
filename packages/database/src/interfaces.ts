@@ -10,6 +10,11 @@ export enum SortingDirection {
 export type SortingMap = {[key: string]: SortingDirection};
 export type SortingKey = string | string[] | SortingMap;
 
+export type Projection<T> = {
+  [Key in keyof T]?: 0 | 1 | boolean;
+} &
+  Partial<Record<string, 0 | 1 | boolean>>;
+
 export type AggregationPipeline = Record<string, any>[];
 
 export interface Cursor<T> {
@@ -55,7 +60,7 @@ export interface Cursor<T> {
 /**
  *
  */
-export interface QueryOptions {
+export interface QueryOptions<T = any> {
   /**
    * Set to sort the documents coming back from the query. Key-value map, ex. {a: 1, b: -1}
    */
@@ -70,6 +75,14 @@ export interface QueryOptions {
    * Limit the number of items that are fetched.
    */
   limit?: number;
+
+  /**
+   * The fields to return in the query.
+   *
+   * Object of fields to either include or exclude (one of, not both),
+   * {'a':1, 'b': 1} or {'a': 0, 'b': 0}
+   */
+  projection?: Projection<T>
 }
 
 export interface ReplaceOneOptions {
@@ -134,7 +147,7 @@ export declare interface Collection<T = any> {
    * @param selector The selector which documents are matched against.
    * @returns A cursor.
    */
-  find(selector?: object, options?: QueryOptions): Cursor<T>;
+  find(selector?: object, options?: QueryOptions<T>): Cursor<T>;
 
   /**
    * Find a single document in the collection.

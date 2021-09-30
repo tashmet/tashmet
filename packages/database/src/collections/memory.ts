@@ -35,7 +35,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
     private selector: any,
     options: QueryOptions,
   ) {
-    this.cursor = new MingoQuery(selector).find(collection);
+    this.cursor = new MingoQuery(selector).find(collection, options.projection);
     applyQueryOptions(this, options);
   }
 
@@ -97,7 +97,7 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
     return aggregate(pipeline, this.collection, this.database);
   }
 
-  public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
+  public find(selector: object = {}, options: QueryOptions<T> = {}): Cursor<T> {
     return new MemoryCollectionCursor<T>(this.collection, selector, options);
   }
 

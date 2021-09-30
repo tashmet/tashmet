@@ -199,6 +199,10 @@ describe('MemoryCollection', () => {
       expect(docs).to.have.length(1);
       expect(docs[0].item.type).to.eql('lemon');
     });
+    it('should do projection', async () => {
+      const docs = await col.find({_id: 1}, {projection: {_id: 0, amount: 1}}).limit(1).toArray();
+      expect(docs[0]).to.eql({amount: 10});
+    });
     it('should accept query options', async () => {
       const docs = await col.find({}, {sort: {amount: -1}, skip: 1, limit: 1}).toArray();
       expect(docs).to.have.length(1);
