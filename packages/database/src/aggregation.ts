@@ -16,6 +16,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
       '$skip': v => options.skip = v,
       '$limit': v => options.limit = v,
       '$sort': v => options.sort = v,
+      '$project': v => options.projection = v,
     }
 
     const handlerOps = Object.keys(handlers);
@@ -38,13 +39,14 @@ export class QueryAggregator<T> extends Aggregator<T> {
   }
 
   public get pipeline(): AggregationPipeline {
-    const {skip, limit, sort} = this.options;
+    const {skip, limit, sort, projection} = this.options;
 
     return [
       ...(this.filter !== {} ? [{$match: this.filter}] : []),
       ...(skip !== undefined ? [{$skip: skip}] : []),
       ...(limit !== undefined ? [{$limit: limit}] : []),
       ...(sort !== undefined ? [{$sort: sort}] : []),
+      ...(projection !== undefined ? [{$project: projection}] : []),
     ];
   }
 
