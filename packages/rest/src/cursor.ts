@@ -1,5 +1,6 @@
 import {
   AbstractCursor,
+  Filter,
   QueryOptions,
 } from '@ziqquratu/database';
 import {Fetch} from './interfaces';
@@ -17,7 +18,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   public async toArray(): Promise<T[]> {
-    const resp = await this.query(this.selector, this.options);
+    const resp = await this.query(this.filter, this.options);
     if (!resp.ok) {
       throw new Error('failed to contact server');
     }
@@ -25,7 +26,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   public async count(applySkipLimit = true): Promise<number> {
-    const resp = await this.query(this.selector, applySkipLimit ? this.options : {}, {method: 'HEAD'});
+    const resp = await this.query(this.filter, applySkipLimit ? this.options : {}, {method: 'HEAD'});
     const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
       throw new Error('failed to get "x-total-count" header');
@@ -33,7 +34,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
     return parseInt(totalCount, 10);
   }
 
-  private query(filter?: object, options?: QueryOptions, init?: RequestInit): Promise<Response> {
+  private query(filter?: Filter<T>, options?: QueryOptions, init?: RequestInit): Promise<Response> {
     return this.fetch(this.queryBuilder.serialize(filter || {}, options || {}), init);
   }
 }

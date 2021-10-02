@@ -2,6 +2,7 @@ import {
   aggregate,
   CollectionFactory,
   Cursor,
+  Filter,
   QueryOptions,
   ReplaceOneOptions,
   AggregationPipeline,
@@ -10,13 +11,13 @@ import {
   AutoEventCollection,
 } from '@ziqquratu/database';
 
-import {Fetch, QuerySerializer, QueryStringFactory, RestCollectionConfig} from './interfaces';
+import {Fetch, RestCollectionConfig} from './interfaces';
 import {RestCollectionCursor} from './cursor';
 import {HttpQueryBuilder} from './query';
 import {jsonQuery} from './query/json';
 
 
-export class RestCollection extends AutoEventCollection {
+export class RestCollection<T> extends AutoEventCollection<T> {
   private queryBuilder: HttpQueryBuilder;
   private fetch: Fetch;
 
@@ -47,12 +48,12 @@ export class RestCollection extends AutoEventCollection {
     return aggregate<U>(pipeline, input, this.database);
   }
 
-  public find(selector?: object, options?: QueryOptions): Cursor<any> {
-    return new RestCollectionCursor(this.queryBuilder, this.fetch, selector, options);
+  public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
+    return new RestCollectionCursor<T>(this.queryBuilder, this.fetch, filter, options);
   }
 
-  public async findOne(selector: object): Promise<any> {
-    const docs = await this.find(selector).limit(1).toArray();
+  public async findOne(filter: Filter<T>): Promise<any> {
+    const docs = await this.find(filter).limit(1).toArray();
     if (docs.length === 0) {
       return null;
     }
@@ -71,8 +72,10 @@ export class RestCollection extends AutoEventCollection {
     return result;
   }
 
-  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<any> {
-    const old = await this.findOne(selector);
+  public async replaceOne(
+    filter: Filter<T>, doc: any, options: ReplaceOneOptions = {}): Promise<T | null>
+  {
+    const old = await this.findOne(filter);
     if (old) {
       return this.put(Object.assign({_id: old._id}, doc), old._id);
     } else if (options.upsert) {
@@ -81,8 +84,8 @@ export class RestCollection extends AutoEventCollection {
     return null;
   }
 
-  public async deleteOne(selector: object): Promise<any> {
-    const doc = await this.findOne(selector);
+  public async deleteOne(filter: Filter<T>): Promise<any> {
+    const doc = await this.findOne(filter);
     if (doc) {
       await this.deleteOneById(doc._id);
       return doc;
@@ -90,10 +93,10 @@ export class RestCollection extends AutoEventCollection {
     return null;
   }
 
-  public async deleteMany(selector: object): Promise<any[]> {
-    const docs = await this.find(selector).toArray();
+  public async deleteMany(filter: Filter<T>): Promise<T[]> {
+    const docs = await this.find(filter).toArray();
     for (const doc of docs) {
-      await this.deleteOneById(doc._id);
+      await this.deleteOneById((doc as any)._id);
     }
     return docs;
   }
