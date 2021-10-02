@@ -1,5 +1,5 @@
 import {
-  Cursor, Middleware, ReplaceOneOptions, QueryOptions, AggregationPipeline,
+  Cursor, Filter, Middleware, ReplaceOneOptions, QueryOptions, AggregationPipeline,
   DatabaseChange, Collection
 } from '../interfaces';
 
@@ -51,12 +51,12 @@ export class ManagedCollection<T = any> extends Collection<T> {
     return this.source.aggregate(pipeline);
   }
 
-  public find(selector: object = {}, options: QueryOptions = {}): Cursor<T> {
-    return this.source.find(selector, options);
+  public find(filter: Filter<T> = {}, options: QueryOptions = {}): Cursor<T> {
+    return this.source.find(filter, options);
   }
 
-  public async findOne(selector: object): Promise<T | null> {
-    return this.source.findOne(selector);
+  public async findOne(filter: Filter<T>): Promise<T | null> {
+    return this.source.findOne(filter);
   }
 
   public async insertOne(doc: T): Promise<T> {
@@ -67,16 +67,16 @@ export class ManagedCollection<T = any> extends Collection<T> {
     return this.source.insertMany(docs);
   }
 
-  public async replaceOne(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T | null> {
-    return this.source.replaceOne(selector, doc, options);
+  public async replaceOne(filter: Filter<T>, doc: T, options?: ReplaceOneOptions): Promise<T | null> {
+    return this.source.replaceOne(filter, doc, options);
   }
 
-  public async deleteOne(selector: object): Promise<T | null> {
-    return this.source.deleteOne(selector);
+  public async deleteOne(filter: Filter<T>): Promise<T | null> {
+    return this.source.deleteOne(filter);
   }
 
-  public async deleteMany(selector: object): Promise<T[]> {
-    return this.source.deleteMany(selector);
+  public async deleteMany(filter: Filter<T>): Promise<T[]> {
+    return this.source.deleteMany(filter);
   }
 
   private async processChange(change: DatabaseChange): Promise<DatabaseChange> {

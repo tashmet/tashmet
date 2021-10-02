@@ -1,6 +1,6 @@
 import {Query as MingoQuery} from 'mingo/query';
 import {merge} from 'mingo/util';
-import {Cursor, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
+import {Cursor, Filter, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
 
 export function applyQueryOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
   if (options.sort) {
@@ -30,7 +30,7 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
   protected index = -1;
 
   public constructor(
-    protected selector: object,
+    protected filter: Filter<T>,
     protected options: QueryOptions = {},
   ) {}
 

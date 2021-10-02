@@ -4,6 +4,7 @@ import ObjectID from 'bson-objectid';
 import {
   CollectionFactory,
   Cursor,
+  Filter,
   ReplaceOneOptions,
   QueryOptions,
   SortingKey,
@@ -32,10 +33,10 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
 
   public constructor(
     private collection: any[],
-    private selector: any,
+    private filter: Filter<T>,
     options: QueryOptions,
   ) {
-    this.cursor = new MingoQuery(selector).find(collection, options.projection);
+    this.cursor = new MingoQuery(filter).find(collection, options.projection);
     applyQueryOptions(this, options);
   }
 
@@ -73,7 +74,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   public async count(applySkipLimit = true): Promise<number> {
     return applySkipLimit
       ? this.cursor.count()
-      : new MingoQuery(this.selector).find(this.collection).count();
+      : new MingoQuery(this.filter).find(this.collection).count();
   }
 }
 
@@ -97,12 +98,12 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
     return aggregate(pipeline, this.collection, this.database);
   }
 
-  public find(selector: object = {}, options: QueryOptions<T> = {}): Cursor<T> {
-    return new MemoryCollectionCursor<T>(this.collection, selector, options);
+  public find(filter: Filter<T> = {}, options: QueryOptions<T> = {}): Cursor<T> {
+    return new MemoryCollectionCursor<T>(this.collection, filter, options);
   }
 
-  public async findOne(selector: object): Promise<T | null> {
-    const result = await this.find(selector).limit(1).toArray();
+  public async findOne(filter: Filter<T>): Promise<T | null> {
+    const result = await this.find(filter).limit(1).toArray();
     return result.length > 0 ? result[0] : null;
   }
 
@@ -131,8 +132,8 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
     return result;
   }
 
-  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}): Promise<T | null> {
-    const old = new MingoQuery(selector as any).find(this.collection).next() as any;
+  public async replaceOne(filter: Filter<T>, doc: any, options: ReplaceOneOptions = {}): Promise<T | null> {
+    const old = new MingoQuery(filter as any).find(this.collection).next() as any;
     if (old) {
       const index = this.collection.findIndex(o => o._id === old._id);
       return this.collection[index] = Object.assign({}, {_id: old._id}, doc);
@@ -142,16 +143,16 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
     return null;
   }
 
-  public async deleteOne(selector: object): Promise<T> {
-    const affected = await this.findOne(selector) as any;
+  public async deleteOne(filter: Filter<T>): Promise<T> {
+    const affected = await this.findOne(filter) as any;
     if (affected) {
       this.collection = this.collection.filter(doc => doc._id !== affected._id);
     }
     return affected;
   }
 
-  public async deleteMany(selector: object): Promise<T[]> {
-    const affected = await this.find(selector).toArray() as any[];
+  public async deleteMany(filter: Filter<T>): Promise<T[]> {
+    const affected = await this.find(filter).toArray() as any[];
     const ids = affected.map(doc => doc._id);
     this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
     return affected;

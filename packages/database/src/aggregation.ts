@@ -1,18 +1,18 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
-import {Aggregator, AggregationPipeline, Collection, Database, QueryOptions} from './interfaces';
+import {Aggregator, AggregationPipeline, Collection, Database, Filter, QueryOptions} from './interfaces';
 
 export class QueryAggregator<T> extends Aggregator<T> {
   public constructor(
-    public selector: object,
+    public filter: Filter<T>,
     public options: QueryOptions,
   ) { super(); }
 
   public static fromPipeline<T = any>(pipeline: AggregationPipeline, strict: boolean = false) {
-    let selector: object = {};
+    let filter: Partial<Filter<T>> = {};
     let options: QueryOptions = {};
 
     const handlers: Record<string, (value: any) => void> = {
-      '$match': v => selector = v,
+      '$match': v => filter = v,
       '$skip': v => options.skip = v,
       '$limit': v => options.limit = v,
       '$sort': v => options.sort = v,
@@ -34,14 +34,14 @@ export class QueryAggregator<T> extends Aggregator<T> {
         break;
       }
     }
-    return new QueryAggregator<T>(selector, options);
+    return new QueryAggregator<T>(filter, options);
   }
 
   public get pipeline(): AggregationPipeline {
     const {skip, limit, sort} = this.options;
 
     return [
-      ...(this.selector !== {} ? [{$match: this.selector}] : []),
+      ...(this.filter !== {} ? [{$match: this.filter}] : []),
       ...(skip !== undefined ? [{$skip: skip}] : []),
       ...(limit !== undefined ? [{$limit: limit}] : []),
       ...(sort !== undefined ? [{$sort: sort}] : []),
@@ -49,7 +49,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
   }
 
   public execute(collection: Collection): Promise<T[]> {
-    return collection.find(this.selector, this.options).toArray();
+    return collection.find(this.filter, this.options).toArray();
   }
 }
 

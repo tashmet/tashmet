@@ -1,4 +1,4 @@
-import {Collection} from '../interfaces';
+import {Collection, Filter} from '../interfaces';
 
 export abstract class AutoEventCollection<T = any> extends Collection<T> {
   public constructor(suppress: boolean = false) {
@@ -25,9 +25,9 @@ export abstract class AutoEventCollection<T = any> extends Collection<T> {
           case 'deleteOne':
           case 'deleteMany':
             return observeChange(property, 'delete');
-          case 'replaceOne': return async (selector: object, doc: any, options: any) => {
-            const original = await target.findOne(selector);
-            const replacement = await target.replaceOne(selector, doc, options);
+          case 'replaceOne': return async (filter: Filter<T>, doc: any, options: any) => {
+            const original = await target.findOne(filter);
+            const replacement = await target.replaceOne(filter, doc, options);
             if (!original && replacement) {
               emitChange('insert', [replacement]);
             } else if(original) {

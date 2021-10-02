@@ -2,6 +2,8 @@ import {EventEmitter} from 'eventemitter3';
 import {AsyncFactory, Provider} from '@ziqquratu/core';
 import {OperatorConfig} from '@ziqquratu/operators';
 
+export type Document = Record<string, any>;
+
 export enum SortingDirection {
   Ascending = 1,
   Descending = -1
@@ -9,6 +11,121 @@ export enum SortingDirection {
 
 export type SortingMap = {[key: string]: SortingDirection};
 export type SortingKey = string | string[] | SortingMap;
+
+export type Filter<TSchema> = {
+  [P in keyof TSchema]?: Condition<TSchema[P]>;
+} &
+  RootFilterOperators<TSchema>;
+
+export type Condition<T> = AlternativeType<T> | FilterOperators<AlternativeType<T>>;
+
+/**
+ * It is possible to search using alternative types in mongodb e.g.
+ * string types can be searched using a regex in mongo
+ * array types can be searched using their element type
+ * @public
+ */
+export type AlternativeType<T> = T extends ReadonlyArray<infer U>
+  ? T | RegExpOrString<U>
+  : RegExpOrString<T>;
+
+/** @public */
+export type RegExpOrString<T> = T extends string ? RegExp | T : T;
+
+/** @public */
+export interface RootFilterOperators<TSchema> extends Document {
+  $and?: Filter<TSchema>[];
+  $nor?: Filter<TSchema>[];
+  $or?: Filter<TSchema>[];
+  $text?: {
+    $search: string;
+    $language?: string;
+    $caseSensitive?: boolean;
+    $diacriticSensitive?: boolean;
+  };
+  $where?: string | ((this: TSchema) => boolean);
+  $comment?: string | Document;
+}
+
+/** @public */
+export interface FilterOperators<TValue> extends Document {
+  // Comparison
+  $eq?: TValue;
+  $gt?: TValue;
+  $gte?: TValue;
+  $in?: TValue[];
+  $lt?: TValue;
+  $lte?: TValue;
+  $ne?: TValue;
+  $nin?: TValue[];
+  // Logical
+  $not?: TValue extends string ? FilterOperators<TValue> | RegExp : FilterOperators<TValue>;
+  // Element
+  /**
+   * When `true`, `$exists` matches the documents that contain the field,
+   * including documents where the field value is null.
+   */
+  $exists?: boolean;
+  $type?: BSONType | BSONTypeAlias;
+  // Evaluation
+  $expr?: Record<string, any>;
+  $jsonSchema?: Record<string, any>;
+  $mod?: TValue extends number ? [number, number] : never;
+  $regex?: TValue extends string ? RegExp | string : never;
+  $options?: TValue extends string ? string : never;
+  // Geospatial
+  $geoIntersects?: { $geometry: Document };
+  $geoWithin?: Document;
+  $near?: Document;
+  $nearSphere?: Document;
+  $maxDistance?: number;
+  // Array
+  $all?: TValue extends ReadonlyArray<any> ? any[] : never;
+  $elemMatch?: TValue extends ReadonlyArray<any> ? Document : never;
+  $size?: TValue extends ReadonlyArray<any> ? number : never;
+  // Bitwise
+  $bitsAllClear?: BitwiseFilter;
+  $bitsAllSet?: BitwiseFilter;
+  $bitsAnyClear?: BitwiseFilter;
+  $bitsAnySet?: BitwiseFilter;
+  $rand?: Record<string, never>;
+}
+
+/** @public */
+export const BSONType = Object.freeze({
+  double: 1,
+  string: 2,
+  object: 3,
+  array: 4,
+  binData: 5,
+  undefined: 6,
+  objectId: 7,
+  bool: 8,
+  date: 9,
+  null: 10,
+  regex: 11,
+  dbPointer: 12,
+  javascript: 13,
+  symbol: 14,
+  javascriptWithScope: 15,
+  int: 16,
+  timestamp: 17,
+  long: 18,
+  decimal: 19,
+  minKey: -1,
+  maxKey: 127
+} as const);
+
+/** @public */
+export type BSONType = typeof BSONType[keyof typeof BSONType];
+/** @public */
+export type BSONTypeAlias = keyof typeof BSONType;
+
+/** @public */
+export type BitwiseFilter =
+  | number /** numeric bit mask */
+  // | Binary /** BinData bit mask */
+  | number[]; /** `[ <position1>, <position2>, ... ]` */
 
 export type Projection<T> = {
   [Key in keyof T]?: 0 | 1 | boolean;
@@ -134,20 +251,20 @@ export declare interface Collection<T = any> {
   /**
    * Replace a document in a collection with another document
    *
-   * @param selector The Filter used to select the document to replace
+   * @param filter The Filter used to select the document to replace
    * @param doc The Document that replaces the matching document
    * @param options Optional settings
    * @returns A promise for the new document
    */
-  replaceOne(selector: object, doc: T, options?: ReplaceOneOptions): Promise<T | null>;
+  replaceOne(filter: Filter<T>, doc: T, options?: ReplaceOneOptions): Promise<T | null>;
 
   /**
    * Find documents in the collection.
    *
-   * @param selector The selector which documents are matched against.
+   * @param filter The filter which documents are matched against.
    * @returns A cursor.
    */
-  find(selector?: object, options?: QueryOptions<T>): Cursor<T>;
+  find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T>;
 
   /**
    * Find a single document in the collection.
@@ -155,23 +272,23 @@ export declare interface Collection<T = any> {
    * @param selector The selector which documents are matched against.
    * @returns A promise for the first matching document if one was found, null otherwise
    */
-  findOne(selector: object): Promise<T | null>;
+  findOne(filter: Filter<T>): Promise<T | null>;
 
   /**
    * Delete a document from a collection
    *
-   * @param selector The Filter used to select the document to remove
+   * @param filter The Filter used to select the document to remove
    * @returns The removed document if found, null otherwise
    */
-  deleteOne(selector: object): Promise<T | null>;
+  deleteOne(filter: Filter<T>): Promise<T | null>;
 
   /**
    * Delete multiple documents from a collection
    *
-   * @param selector The Filter used to select the documents to remove
+   * @param filter The Filter used to select the documents to remove
    * @returns A list of all the documents that were removed
    */
-  deleteMany(selector: object): Promise<T[]>;
+  deleteMany(filter: Filter<T>): Promise<T[]>;
 }
 
 export abstract class Collection extends EventEmitter implements Collection, DatabaseEventEmitter {}
@@ -204,14 +321,14 @@ export interface EventMiddleware<T = any> {
 }
 
 export type Aggregate<T> = (pipeline: AggregationPipeline) => Promise<T[]>;
-export type Find<T> = (selector?: object, options?: QueryOptions) => Cursor<T>;
-export type FindOne<T> = (selector: object) => Promise<T | null>;
+export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
+export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
 export type InsertOne<T> = (doc: T) => Promise<T>;
 export type InsertMany<T> = (docs: T[]) => Promise<T[]>;
-export type ReplaceOne<T> = (selector: object, doc: T, options?: ReplaceOneOptions)
+export type ReplaceOne<T> = (filter: Filter<T>, doc: T, options?: ReplaceOneOptions)
   => Promise<T | null>;
-export type DeleteOne<T> = (selector: object) => Promise<T | null>;
-export type DeleteMany<T> = (selector?: object) => Promise<T[]>;
+export type DeleteOne<T> = (filter: Filter<T>) => Promise<T | null>;
+export type DeleteMany<T> = (filter?: Filter<T>) => Promise<T[]>;
 
 
 export interface MethodMiddleware<T = any> {
