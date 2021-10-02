@@ -11,7 +11,18 @@ import { SortingDirection } from '../../dist';
 chai.use(chaiAsPromised);
 
 describe('MemoryCollection', () => {
-  const col = new MemoryCollection(
+  interface Item {
+    category: string;
+    type: string;
+  }
+
+  interface ItemEntry {
+    _id?: number | string;
+    item: Item;
+    amount: number;
+  }
+
+  const col = new MemoryCollection<ItemEntry>(
     'test', new DatabaseService({collections: {}, operators}, new DefaultLogger())
   );
 
@@ -92,8 +103,8 @@ describe('MemoryCollection', () => {
       const doc = await col.replaceOne(
         {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
-      expect(doc._id).to.eql(1);
-      expect(doc.amount).to.eql(20);
+      expect(doc?._id).to.eql(1);
+      expect(doc?.amount).to.eql(20);
     });
     it('should return null if no document matched selector', async () => {
       const doc = await col.replaceOne(
@@ -105,13 +116,13 @@ describe('MemoryCollection', () => {
       const doc = await col.replaceOne(
         {_id: 1}, { amount: 20 }
       );
-      expect(doc.item).to.eql(undefined);
+      expect(doc?.item).to.eql(undefined);
     });
     it('should upsert when specified', async () => {
       const doc = await col.replaceOne(
         {_id: 6}, { amount: 20 }, {upsert: true}
       );
-      expect(doc.amount).to.eql(20);
+      expect(doc?.amount).to.eql(20);
     });
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
@@ -211,7 +222,7 @@ describe('MemoryCollection', () => {
     it('should be able to iterate', async () => {
       const cursor = col.find().sort('amount', -1).skip(1).limit(1);
       expect(await cursor.hasNext()).to.be.true;
-      expect((await cursor.next()).item.type).to.eql('lemon');
+      expect((await cursor.next())?.item?.type).to.eql('lemon');
       expect(await cursor.hasNext()).to.be.false;
       expect(await cursor.next()).to.eql(null);
     });
