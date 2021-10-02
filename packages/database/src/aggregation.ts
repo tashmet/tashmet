@@ -1,5 +1,7 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
-import {Aggregator, AggregationPipeline, Collection, Database, Filter, QueryOptions} from './interfaces';
+import {
+  Aggregator, AggregationPipeline, Collection, Database, Filter, QueryOptions
+} from './interfaces';
 
 export class QueryAggregator<T> extends Aggregator<T> {
   public constructor(
@@ -8,7 +10,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
   ) { super(); }
 
   public static fromPipeline<T = any>(pipeline: AggregationPipeline, strict: boolean = false) {
-    let filter: Partial<Filter<T>> = {};
+    let filter: Filter<T> = {};
     let options: QueryOptions<T> = {};
 
     const handlers: Record<string, (value: any) => void> = {
@@ -19,16 +21,25 @@ export class QueryAggregator<T> extends Aggregator<T> {
       '$project': v => options.projection = v,
     }
 
-    const handlerOps = Object.keys(handlers);
-    let lastOpIndex = 0;
+    const allowPreceding: Record<string, string[]> = {
+      '$match': [],
+      '$sort': ['$match'],
+      '$skip': ['$match', '$sort', '$skip', '$limit', '$project'],
+      '$limit': ['$match', '$sort', '$skip', '$limit', '$project'],
+      '$project': ['$match', '$sort', '$skip', '$limit', '$project'],
+    };
+
+    let prevStepOps: string[] = [];
+
+    const isValid = (op: string) =>
+      op in handlers && prevStepOps.every(prevOp => allowPreceding[op].includes(prevOp));
 
     for (let i = 0; i < pipeline.length; i++) {
       const step = pipeline[i];
       const op = Object.keys(step)[0];
-      const opIndex = handlerOps.indexOf(op);
-      if (opIndex > lastOpIndex) {
+      if (isValid(op)) {
         handlers[op](step[op]);
-        lastOpIndex = opIndex;
+        prevStepOps.push(op);
       } else if (strict) {
         throw new Error('Could not translate pipeline to query');
       } else {
