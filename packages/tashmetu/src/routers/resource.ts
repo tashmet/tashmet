@@ -6,7 +6,7 @@ import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
 import {router, ControllerFactory} from '../controller';
 
-export type RequestToFind = (req: express.Request, fn: (selector: any, options: QueryOptions) => void) => void;
+export type RequestToFind = (req: express.Request, fn: (filter: any, options: QueryOptions) => void) => void;
 
 export interface ResourceConfig {
   /** The name of the collection */
@@ -35,7 +35,7 @@ function parseJson(input: any): Record<string, any> {
 }
 
 export const defaultFind: RequestToFind = (req, fn) => {
-  const { selector, sort, skip, limit } = req.query;
+  const { filter, sort, skip, limit } = req.query;
   const options: QueryOptions = {};
 
   if (sort) {
@@ -48,7 +48,7 @@ export const defaultFind: RequestToFind = (req, fn) => {
     options.limit = parseInt(limit as string);
   }
 
-  fn(parseJson(selector), options);
+  fn(parseJson(filter), options);
 }
 
 export class Resource {
@@ -103,12 +103,12 @@ export class Resource {
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
       return new Promise((resolve, reject) => {
-        this.find(req, async (selector, options) => {
+        this.find(req, async (filter, options) => {
           try {
-            const count = await this.collection.find(selector).count(false);
+            const count = await this.collection.find(filter).count(false);
 
             res.setHeader('X-total-count', count.toString());
-            resolve(this.collection.find(selector, options).toArray());
+            resolve(this.collection.find(filter, options).toArray());
           } catch (err) {
             reject(err);
           }
