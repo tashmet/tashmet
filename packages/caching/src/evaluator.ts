@@ -33,8 +33,8 @@ export abstract class CacheEvaluator {
     delete this.records[key];
   }
 
-  protected isValid(key: string): boolean {
-    return key in this.records && !this.isExpired(this.records[key]);
+  protected isValid(key: string | null): boolean {
+    return key !== null && key in this.records && !this.isExpired(this.records[key]);
   }
 
   private isExpired(timestamp: number): boolean {
