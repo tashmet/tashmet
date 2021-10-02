@@ -1,6 +1,7 @@
 import {
   AutoEventCollection,
   Cursor,
+  Filter,
   ReplaceOneOptions,
   SortingDirection,
   SortingKey,
@@ -13,8 +14,8 @@ import mongo from 'mongodb';
 
 export class MongoDBCursor<T = any> implements Cursor<T> {
   public constructor(
-    private cursor: mongo.FindCursor,
-    options: QueryOptions = {},
+    private cursor: mongo.FindCursor<T>,
+    options: QueryOptions<T> = {},
   ) {
     applyQueryOptions(this, options);
   }
@@ -55,7 +56,7 @@ export class MongoDBCursor<T = any> implements Cursor<T> {
   }
 }
 
-export class MongoDBCollection extends AutoEventCollection {
+export class MongoDBCollection<T> extends AutoEventCollection<T> {
   public constructor(
     private collection: mongo.Collection,
     public readonly name: string
@@ -67,15 +68,15 @@ export class MongoDBCollection extends AutoEventCollection {
     return this.collection.aggregate<U>(pipeline).toArray();
   }
 
-  public find(selector: object = {}, options?: QueryOptions): Cursor<any> {
-    return new MongoDBCursor(this.collection.find(selector), options);
+  public find(filter: Filter<T> = {}, options?: QueryOptions): Cursor<T> {
+    return new MongoDBCursor(this.collection.find(filter), options);
   }
 
-  public async findOne(selector: object): Promise<any> {
-    return this.collection.findOne(selector);
+  public async findOne(filter: Filter<T>): Promise<any> {
+    return this.collection.findOne(filter);
   }
 
-  public async insertOne(doc: any): Promise<any> {
+  public async insertOne(doc: any): Promise<T> {
     let res = await this.collection.insertOne(doc);
     if (!res.acknowledged) {
       throw Error('Failed to insert document');
@@ -83,7 +84,7 @@ export class MongoDBCollection extends AutoEventCollection {
     return Object.assign({_id: res.insertedId}, doc);
   }
 
-  public async insertMany(docs: any[]): Promise<any[]> {
+  public async insertMany(docs: any[]): Promise<T[]> {
     let res = await this.collection.insertMany(docs);
     if (!res.acknowledged) {
       throw Error('Failed to insert documents');
@@ -94,22 +95,22 @@ export class MongoDBCollection extends AutoEventCollection {
     })
   }
 
-  public async replaceOne(selector: object, doc: any, options?: ReplaceOneOptions): Promise<any> {
-    return this.collection.replaceOne(selector, doc, options || {});
+  public async replaceOne(filter: Filter<T>, doc: any, options?: ReplaceOneOptions): Promise<any> {
+    return this.collection.replaceOne(filter, doc, options || {});
   }
 
-  public async deleteOne(selector: object): Promise<any> {
-    const doc = await this.findOne(selector);
-    const res = await this.collection.deleteOne(selector);
+  public async deleteOne(filter: Filter<T>): Promise<T | null> {
+    const doc = await this.findOne(filter);
+    const res = await this.collection.deleteOne(filter);
     if (doc && res.deletedCount === 1) {
       return doc;
     }
     return null;
   }
 
-  public async deleteMany(selector: object): Promise<any[]> {
-    const docs = await this.find(selector).toArray();
-    await this.collection.deleteMany(selector);
+  public async deleteMany(filter: Filter<T>): Promise<T[]> {
+    const docs = await this.find(filter).toArray();
+    await this.collection.deleteMany(filter);
     return docs;
   }
 }

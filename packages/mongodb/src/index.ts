@@ -8,7 +8,7 @@ export class MongoCollectionFactory<T> extends CollectionFactory<T> {
   }
 
   public async create(name: string) {
-    return new MongoDBCollection(this.collection, name);
+    return new MongoDBCollection<T>(this.collection, name);
   }
 }
 

@@ -16,7 +16,7 @@ chai.use(sinonChai);
 
 describe('MongoDBCollection', () => {
   let mongoCollection: MongoCollection;
-  let col: MongoDBCollection;
+  let col: MongoDBCollection<any>;
 
   before(async () => {
     const client = await MongoClient.connect('mongodb://localhost:27017/test', {});
