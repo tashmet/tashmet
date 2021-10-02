@@ -214,6 +214,10 @@ describe('MemoryCollection', () => {
       const docs = await col.find({_id: 1}, {projection: {_id: 0, amount: 1}}).limit(1).toArray();
       expect(docs[0]).to.eql({amount: 10});
     });
+    it('should be able to sort on excluded field', async () => {
+      const docs = await col.find({}, {projection: {amount: 0}, sort: {amount: 1}}).toArray();
+      expect(docs.map(d => d._id)).to.eql([1, 3, 5, 4, 2]);
+    });
     it('should accept query options', async () => {
       const docs = await col.find({}, {sort: {amount: -1}, skip: 1, limit: 1}).toArray();
       expect(docs).to.have.length(1);

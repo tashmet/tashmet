@@ -4,18 +4,18 @@ import {Aggregator, AggregationPipeline, Collection, Database, Filter, QueryOpti
 export class QueryAggregator<T> extends Aggregator<T> {
   public constructor(
     public filter: Filter<T>,
-    public options: QueryOptions,
+    public options: QueryOptions<T>,
   ) { super(); }
 
   public static fromPipeline<T = any>(pipeline: AggregationPipeline, strict: boolean = false) {
     let filter: Partial<Filter<T>> = {};
-    let options: QueryOptions = {};
+    let options: QueryOptions<T> = {};
 
     const handlers: Record<string, (value: any) => void> = {
       '$match': v => filter = v,
+      '$sort': v => options.sort = v,
       '$skip': v => options.skip = v,
       '$limit': v => options.limit = v,
-      '$sort': v => options.sort = v,
       '$project': v => options.projection = v,
     }
 
@@ -43,9 +43,9 @@ export class QueryAggregator<T> extends Aggregator<T> {
 
     return [
       ...(this.filter !== {} ? [{$match: this.filter}] : []),
+      ...(sort !== undefined ? [{$sort: sort}] : []),
       ...(skip !== undefined ? [{$skip: skip}] : []),
       ...(limit !== undefined ? [{$limit: limit}] : []),
-      ...(sort !== undefined ? [{$sort: sort}] : []),
       ...(projection !== undefined ? [{$project: projection}] : []),
     ];
   }
