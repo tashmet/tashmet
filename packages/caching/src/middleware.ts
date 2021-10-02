@@ -55,12 +55,12 @@ export class CachingMiddlewareFactory extends MiddlewareFactory {
       methods: {
         aggregate: next => async pipeline => {
           const query = QueryAggregator.fromPipeline(pipeline);
-          const cursor = new CachingCursor(evaluators, cache, source.find.bind(source), query.selector, query.options);
+          const cursor = new CachingCursor(evaluators, cache, source.find.bind(source), query.filter, query.options);
           await cursor.toArray();
           return cache.aggregate(pipeline);
         },
-        find: next => (selector, options) => {
-          return new CachingCursor(evaluators, cache, next, selector, options);
+        find: next => (filter, options) => {
+          return new CachingCursor(evaluators, cache, next, filter, options);
         },
       }
     }

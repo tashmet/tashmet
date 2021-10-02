@@ -1,3 +1,4 @@
+import {Filter} from '@ziqquratu/database';
 import {CacheEvaluator} from './evaluator';
 
 export class IDCache extends CacheEvaluator {
@@ -9,21 +10,21 @@ export class IDCache extends CacheEvaluator {
     this.invalidate(doc._id);
   }
 
-  public optimize(selector: any) {
-    if (selector && typeof selector._id === 'object' && selector._id.hasOwnProperty('$in')) {
-      selector._id['$in'] = selector._id['$in'].filter((id: string) => !this.isValid(id));
+  public optimize(filter: Filter<any>) {
+    if (filter && typeof filter._id === 'object' && filter._id.hasOwnProperty('$in')) {
+      filter._id['$in'] = filter._id['$in'].filter((id: string) => !this.isValid(id));
     }
   }
 
-  public isCached(selector?: any): boolean {
-    if (!selector || !selector.hasOwnProperty('_id')) {
+  public isCached(filter?: Filter<any>): boolean {
+    if (!filter || !filter.hasOwnProperty('_id')) {
       return false;
     }
-    if (typeof selector._id === 'string') {
-      return this.isValid(selector._id);
+    if (typeof filter._id === 'string') {
+      return this.isValid(filter._id);
     }
-    if (typeof selector._id === 'object' && selector._id.hasOwnProperty('$in')) {
-      return selector._id['$in'].reduce((result: boolean, id: string) => {
+    if (typeof filter._id === 'object' && filter._id.hasOwnProperty('$in')) {
+      return filter._id['$in'].reduce((result: boolean, id: string) => {
         return result && this.isValid(id);
       }, true);
     }

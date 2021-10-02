@@ -1,4 +1,11 @@
-import {Collection, Cursor, QueryOptions, applyQueryOptions, AbstractCursor} from '@ziqquratu/database';
+import {
+  Collection,
+  Cursor,
+  QueryOptions,
+  applyQueryOptions,
+  AbstractCursor,
+  Filter
+} from '@ziqquratu/database';
 import {CacheEvaluator, isCached} from './evaluator';
 
 export class CachingCursor extends AbstractCursor<any> {
@@ -6,36 +13,36 @@ export class CachingCursor extends AbstractCursor<any> {
     private evaluators: CacheEvaluator[],
     private cache: Collection,
     private findInNext: (selector: object) => Cursor<any>,
-    selector: object = {},
+    filter: Filter<any> = {},
     options: QueryOptions = {},
   ) {
-    super(selector, options);
+    super(filter, options);
   }
 
   public async count(applySkipLimit = true) {
-    const cursor = this.evaluators.some(e => e.isCached(this.selector))
-      ? this.cache.find(this.selector)
-      : this.findInNext(this.selector);
+    const cursor = this.evaluators.some(e => e.isCached(this.filter))
+      ? this.cache.find(this.filter)
+      : this.findInNext(this.filter);
 
     return applyQueryOptions(cursor, this.options).count(applySkipLimit);
   }
 
   public async toArray(): Promise<any[]> {
-    const cacheCursor = applyQueryOptions(this.cache.find(this.selector), this.options);
+    const cacheCursor = applyQueryOptions(this.cache.find(this.filter), this.options);
 
     if (!this.isCached()) {
-      const docs = await this.findInNext(this.selector).toArray();
+      const docs = await this.findInNext(this.filter).toArray();
       for (const doc of docs) {
         await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
       }
       for (const evaluator of this.evaluators) {
-        evaluator.success(this.selector, this.options);
+        evaluator.success(this.filter, this.options);
       }
     }
     return cacheCursor.toArray();
   }
 
   private isCached(): boolean {
-    return isCached(this.evaluators, this.selector, this.options);
+    return isCached(this.evaluators, this.filter, this.options);
   }
 }

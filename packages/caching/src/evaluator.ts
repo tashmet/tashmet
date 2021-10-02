@@ -1,4 +1,4 @@
-import {QueryOptions} from '@ziqquratu/database';
+import {Filter, QueryOptions} from '@ziqquratu/database';
 
 export abstract class CacheEvaluator {
   private records: Record<string, number> = {};
@@ -13,15 +13,15 @@ export abstract class CacheEvaluator {
     return;
   }
 
-  public optimize(selector: any, options?: QueryOptions): void {
+  public optimize(filter: Filter<any>, options?: QueryOptions): void {
     return;
   }
 
-  public isCached(selector: any, options?: QueryOptions): boolean {
+  public isCached(filter: Filter<any>, options?: QueryOptions): boolean {
     return false;
   }
 
-  public success(selector: any, options?: QueryOptions): void {
+  public success(filter: Filter<any>, options?: QueryOptions): void {
     return;
   }
 
@@ -47,11 +47,11 @@ export abstract class CacheEvaluator {
 }
 
 export function isCached(
-  evaluators: CacheEvaluator[], selector: object, options: QueryOptions
+  evaluators: CacheEvaluator[], filter: Filter<any>, options: QueryOptions
 ) {
   for (const evaluator of evaluators) {
-    evaluator.optimize(selector || {}, options);
-    if (evaluator.isCached(selector, options)) {
+    evaluator.optimize(filter || {}, options);
+    if (evaluator.isCached(filter, options)) {
       return true;
     }
   }
