@@ -1,4 +1,12 @@
-import {Collection, AutoEventCollection, Cursor, ReplaceOneOptions, QueryOptions, AggregationPipeline} from '@ziqquratu/database';
+import {
+  Collection,
+  AutoEventCollection,
+  Cursor,
+  Filter,
+  ReplaceOneOptions,
+  QueryOptions,
+  AggregationPipeline
+} from '@ziqquratu/database';
 
 export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
   public constructor(
@@ -41,8 +49,8 @@ export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
     return res;
   }
 
-  public async replaceOne(selector: object, doc: any, options: ReplaceOneOptions = {}, writeThrough = true): Promise<any> {
-    const result = await this.cache.replaceOne(selector, doc, options);
+  public async replaceOne(filter: Filter<T>, doc: any, options: ReplaceOneOptions = {}, writeThrough = true): Promise<any> {
+    const result = await this.cache.replaceOne(filter, doc, options);
     if (result) {
       if (writeThrough) {
         await this.write([result]);
@@ -51,16 +59,16 @@ export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
     return result;
   }
 
-  public find(selector?: object, options?: QueryOptions): Cursor<any> {
-    return this.cache.find(selector, options);
+  public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
+    return this.cache.find(filter, options);
   }
 
-  public async findOne(selector: any): Promise<any> {
-    return this.cache.findOne(selector);
+  public async findOne(filter: Filter<T>): Promise<any> {
+    return this.cache.findOne(filter);
   }
 
-  public async deleteOne(selector: any, writeThrough = true): Promise<any> {
-    const affected = await this.cache.deleteOne(selector);
+  public async deleteOne(filter: Filter<T>, writeThrough = true): Promise<any> {
+    const affected = await this.cache.deleteOne(filter);
     if (affected) {
       if (writeThrough) {
         await this.write([affected], true);
@@ -69,8 +77,8 @@ export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
     return affected;
   }
 
-  public async deleteMany(selector: any): Promise<any[]> {
-    const affected = await this.cache.deleteMany(selector);
+  public async deleteMany(filter: Filter<T>): Promise<any[]> {
+    const affected = await this.cache.deleteMany(filter);
     await this.write(affected, true);
     return affected;
   }
