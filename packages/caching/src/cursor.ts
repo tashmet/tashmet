@@ -28,7 +28,7 @@ export class CachingCursor extends AbstractCursor<any> {
   }
 
   public async toArray(): Promise<any[]> {
-    const cacheCursor = applyQueryOptions(this.cache.find(this.filter), this.options);
+    const cacheCursor = this.cache.find(this.filter, this.options);
 
     if (!this.isCached()) {
       const docs = await this.findInNext(this.filter).toArray();
