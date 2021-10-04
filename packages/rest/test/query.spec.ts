@@ -96,7 +96,7 @@ describe('HttpQueryBuilder', () => {
       limit: 10,
     }
     expect(qb.serialize(filter, options)).to.eql(
-      '/api/test?foo:gte=2&foo:lte=10&sort=+category,-datePublished&skip=10&limit=10'
+      '/api/test?foo:gte=2&foo:lte=10&sort=category,-datePublished&skip=10&limit=10'
     );
   });
 });

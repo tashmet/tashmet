@@ -10,7 +10,7 @@ export interface SingleParamSortConfig {
 }
 
 const defaultConfig: SingleParamSortConfig = {
-  param: 'sort', asc: k => `+${k}`, desc: k => `-${k}`, separator: ',',
+  param: 'sort', asc: k => k, desc: k => `-${k}`, separator: ',',
 }
 
 /**
@@ -26,7 +26,7 @@ const defaultConfig: SingleParamSortConfig = {
  *
  * A parameter will be produced on the following format
  * ```typescript
- * 'sort=+foo,-bar'
+ * 'sort=foo,-bar'
  * ```
  *
  * @param config Configuration options
