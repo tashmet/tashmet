@@ -35,7 +35,7 @@ function parseJson(input: any): Record<string, any> {
 }
 
 export const defaultFind: RequestToFind = (req, fn) => {
-  const { filter, sort, skip, limit } = req.query;
+  const { filter, sort, skip, limit, projection } = req.query;
   const options: QueryOptions = {};
 
   if (sort) {
@@ -46,6 +46,9 @@ export const defaultFind: RequestToFind = (req, fn) => {
   }
   if (limit) {
     options.limit = parseInt(limit as string);
+  }
+  if (projection) {
+    options.projection = parseJson(projection);
   }
 
   fn(parseJson(filter), options);
