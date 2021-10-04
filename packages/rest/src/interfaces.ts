@@ -1,18 +1,7 @@
-import {Collection, DatabaseEventEmitter, QueryOptions, SortingMap} from '@ziqquratu/database';
+import {Collection, DatabaseEventEmitter, Query, SortingMap} from '@ziqquratu/database';
 import {HttpQueryBuilder} from './query';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
-
-export interface Query extends QueryOptions {
-  filter?: object;
-}
-
-export interface QuerySerializer {
-  filter: (v: any) => string | string[];
-  sort: (v: SortingMap) => string | string[];
-  skip?: string | false;
-  limit?: string | false;
-}
 
 export class Param {
   public constructor(public name: string, public value?: string | number) {}

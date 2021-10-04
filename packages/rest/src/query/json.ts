@@ -1,4 +1,5 @@
-import {Param, Query} from "../interfaces";
+import {Query} from '@ziqquratu/database';
+import {Param} from "../interfaces";
 import {HttpQueryBuilder, skipParam, limitParam, singleParam} from "../query";
 
 export interface JsonQueryConfig {

@@ -1,4 +1,5 @@
-import {Param, Query} from '../interfaces';
+import {Query} from '@ziqquratu/database';
+import {Param} from '../interfaces';
 
 export const lhsBrackets: OperatorFormat = (k, v, op) => new Param(`${k}[${op}]`, v);
 export const lhsColon: OperatorFormat = (k, v, op) => new Param(`${k}:${op}`, v);

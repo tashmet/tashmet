@@ -1,5 +1,5 @@
-import {QueryOptions} from '@ziqquratu/database';
-import {Param, Query, QueryConverter, QueryParamFactory} from './interfaces';
+import {Query, QueryOptions} from '@ziqquratu/database';
+import {Param, QueryConverter, QueryParamFactory} from './interfaces';
 
 export type QuerySerializer = (query: Query) => string[];
 export type CopyQuery = (target?: string) => QuerySerializer;
