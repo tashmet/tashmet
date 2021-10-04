@@ -112,6 +112,8 @@ export const singleParamProjectionParser = (param: string = 'projection') => {
 
 export interface FlatQueryParserConfig {
   sort?: string;
+  skip?: string;
+  limit?: string;
   projection?: string;
 }
 
@@ -120,13 +122,13 @@ export const flatQueryParser = (config?: FlatQueryParserConfig) => (req: express
     multiParamFilterParser({
       exclude: [
         config?.sort || 'sort',
-        'skip',
-        'limit',
+        config?.skip || 'skip',
+        config?.limit || 'limit',
         config?.projection || 'projection',
       ]
     }),
-    singleParamSortParser(),
+    singleParamSortParser(config?.sort),
     singleParamProjectionParser(config?.projection),
-    intParamParser('skip'),
-    intParamParser('limit'),
+    intParamParser('skip', config?.skip),
+    intParamParser('limit', config?.limit),
   ]);
