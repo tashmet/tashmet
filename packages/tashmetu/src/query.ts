@@ -51,8 +51,12 @@ export const jsonQueryParser = (config?: JsonQueryParserConfig) => (req: express
   ]);
 }
 
-export const multiParamFilterParser = () => (req: express.Request) => {
-  const exclude = ['sort', 'skip', 'limit', 'projection'];
+export interface MultiParamFilterParserConfig {
+  exclude: string[];
+}
+
+export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => (req: express.Request) => {
+  // const exclude = ['sort', 'skip', 'limit', 'projection'];
   let filter: Filter<any> = {};
 
   const parseFilter = (lhs: string, rhs: string) => {
@@ -65,7 +69,7 @@ export const multiParamFilterParser = () => (req: express.Request) => {
   }
 
   for (const [lhs, rhs] of Object.entries(req.query)) {
-    if (!exclude.includes(lhs)) {
+    if (!config.exclude.includes(lhs)) {
       merge(filter, parseFilter(lhs, rhs?.toString() || ''));
     }
   }
@@ -91,25 +95,37 @@ export const singleParamSortParser = () => (req: express.Request) => {
   return {};
 }
 
-export const singleParamProjectionParser = () => (req: express.Request) => {
-  const param = 'projection';
-  let projection: Projection<any> = {};
-  const value = req.query[param];
+export const singleParamProjectionParser = (param: string = 'projection') => {
+  return (req: express.Request) => {
+    const projection = (fields: string[]) => fields.reduce((p, field) => {
+      p[field] = 1;
+      return p;
+    }, {} as Projection<any>)
 
-  if (value) {
-    for (const field of value.toString().split(',')) {
-      projection[field] = 1;
-    }
-    return {projection};
+    const value = req.query[param];
+
+    return value
+      ? ({projection: projection(value.toString().split(','))})
+      : ({});
   }
-  return {};
 }
 
-export const flatQueryParser = () => (req: express.Request) =>
+export interface FlatQueryParserConfig {
+  projection?: string;
+}
+
+export const flatQueryParser = (config?: FlatQueryParserConfig) => (req: express.Request) =>
   makeQuery(req, [
-    multiParamFilterParser(),
+    multiParamFilterParser({
+      exclude: [
+        'sort',
+        'skip',
+        'limit',
+        config?.projection || 'projection',
+      ]
+    }),
     singleParamSortParser(),
-    singleParamProjectionParser(),
+    singleParamProjectionParser(config?.projection),
     intParamParser('skip'),
     intParamParser('limit'),
   ]);
