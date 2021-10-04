@@ -1,12 +1,11 @@
-import {Collection, Database, DatabaseChange, Logger, QueryOptions} from '@ziqquratu/ziqquratu';
+import {Collection, Database, DatabaseChange, Logger} from '@ziqquratu/ziqquratu';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as SocketIO from 'socket.io';
 import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
 import {router, ControllerFactory} from '../controller';
-
-export type RequestToFind = (req: express.Request, fn: (filter: any, options: QueryOptions) => void) => void;
+import {jsonQueryParser, QueryParser} from '../query';
 
 export interface ResourceConfig {
   /** The name of the collection */
@@ -23,36 +22,9 @@ export interface ResourceConfig {
   /**
    * Optional custom function that forms a find query from the request.
    */
-  find?: RequestToFind;
+  queryParser?: QueryParser;
 }
 
-function parseJson(input: any): Record<string, any> {
-  try {
-    return JSON.parse(input);
-  } catch (e) {
-    return {};
-  }
-}
-
-export const defaultFind: RequestToFind = (req, fn) => {
-  const { filter, sort, skip, limit, projection } = req.query;
-  const options: QueryOptions = {};
-
-  if (sort) {
-    options.sort = parseJson(sort);
-  }
-  if (skip) {
-    options.skip = parseInt(skip as string);
-  }
-  if (limit) {
-    options.limit = parseInt(limit as string);
-  }
-  if (projection) {
-    options.projection = parseJson(projection);
-  }
-
-  fn(parseJson(filter), options);
-}
 
 export class Resource {
   private connections: Record<string, SocketIO.Socket> = {};
@@ -61,7 +33,7 @@ export class Resource {
     protected collection: Collection,
     protected logger: Logger,
     protected readOnly = false,
-    protected find: RequestToFind = defaultFind,
+    protected queryParser: QueryParser = jsonQueryParser(),
   ) {
     this.collection.on('change', change => this.onChange(change));
     this.collection.on('error', err => this.onError(err));
@@ -105,18 +77,11 @@ export class Resource {
   @get('/')
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
-      return new Promise((resolve, reject) => {
-        this.find(req, async (filter, options) => {
-          try {
-            const count = await this.collection.find(filter).count(false);
+      const {filter, ...options} = this.queryParser(req);
+      const count = await this.collection.find(filter).count(false);
 
-            res.setHeader('X-total-count', count.toString());
-            resolve(this.collection.find(filter, options).toArray());
-          } catch (err) {
-            reject(err);
-          }
-        })
-      });
+      res.setHeader('X-total-count', count.toString());
+      return this.collection.find(filter, options).toArray();
     });
   }
 
@@ -188,7 +153,7 @@ export class ResourceFactory extends ControllerFactory {
         await db.collection(this.config.collection),
         logger.inScope('Resource'),
         this.config.readOnly,
-        this.config.find,
+        this.config.queryParser,
       );
     });
   }

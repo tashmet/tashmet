@@ -13,6 +13,7 @@ export * from './decorators';
 export * from './interfaces';
 export * from './routers/resource';
 export * from './logging';
+export * from './query';
 
 @component({
   providers: [
