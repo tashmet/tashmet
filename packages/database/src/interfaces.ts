@@ -202,6 +202,10 @@ export interface QueryOptions<T = any> {
   projection?: Projection<T>
 }
 
+export interface Query<T = any> extends QueryOptions<T> {
+  filter?: Filter<T>;
+}
+
 export interface ReplaceOneOptions {
   /** When true, creates a new document if no document matches the query. */
   upsert?: boolean;
