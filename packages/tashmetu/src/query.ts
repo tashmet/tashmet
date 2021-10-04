@@ -1,4 +1,4 @@
-import {Query} from '@ziqquratu/ziqquratu';
+import {Filter, Query, SortingMap, Projection} from '@ziqquratu/ziqquratu';
 import * as express from 'express';
 import {merge} from 'mingo/util';
 
@@ -50,3 +50,66 @@ export const jsonQueryParser = (config?: JsonQueryParserConfig) => (req: express
     intParamParser('limit', config?.limit)
   ]);
 }
+
+export const multiParamFilterParser = () => (req: express.Request) => {
+  const exclude = ['sort', 'skip', 'limit', 'projection'];
+  let filter: Filter<any> = {};
+
+  const parseFilter = (lhs: string, rhs: string) => {
+    if (lhs.indexOf(':') !== -1) {
+      const [field, op] = lhs.split(':');
+      return ({[field]: {[`$${op}`]: rhs}});
+    } else {
+      return ({[lhs]: rhs});
+    }
+  }
+
+  for (const [lhs, rhs] of Object.entries(req.query)) {
+    if (!exclude.includes(lhs)) {
+      merge(filter, parseFilter(lhs, rhs?.toString() || ''));
+    }
+  }
+  return {filter};
+}
+
+export const singleParamSortParser = () => (req: express.Request) => {
+  const param = 'sort';
+  let sort: SortingMap = {};
+  const value = req.query[param];
+
+  if (value) {
+    for (const s of value.toString().split(',')) {
+      const sign = s.substr(0, 1);
+      if (sign === '-') {
+        sort[s.substr(1)] = -1;
+      } else {
+        sort[s] = 1;
+      }
+    }
+    return {sort};
+  }
+  return {};
+}
+
+export const singleParamProjectionParser = () => (req: express.Request) => {
+  const param = 'projection';
+  let projection: Projection<any> = {};
+  const value = req.query[param];
+
+  if (value) {
+    for (const field of value.toString().split(',')) {
+      projection[field] = 1;
+    }
+    return {projection};
+  }
+  return {};
+}
+
+export const flatQueryParser = () => (req: express.Request) =>
+  makeQuery(req, [
+    multiParamFilterParser(),
+    singleParamSortParser(),
+    singleParamProjectionParser(),
+    intParamParser('skip'),
+    intParamParser('limit'),
+  ]);
