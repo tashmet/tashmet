@@ -74,7 +74,7 @@ export class Resource {
     return `resource using collection '${this.collection.name}' (${access})`;
   }
 
-  @get('/')
+  @get('/', express.urlencoded({extended: true}))
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
       const {filter, ...options} = this.queryParser(req);

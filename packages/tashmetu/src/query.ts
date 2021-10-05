@@ -51,25 +51,53 @@ export const jsonQueryParser = (config?: JsonQueryParserConfig) => (req: express
   ]);
 }
 
+export const rhsColon: OperatorParserConfig = {
+  pattern: new RegExp(/(.*?)\:(.*?)/),
+  rhs: true,
+}
+
+export const lhsColon: OperatorParserConfig = {
+  pattern: new RegExp(/(.*?)\:(.*?)/),
+  rhs: false,
+}
+
+export interface OperatorParserConfig {
+  pattern: RegExp;
+  rhs: boolean;
+}
+
 export interface MultiParamFilterParserConfig {
   exclude: string[];
+  operator?: OperatorParserConfig;
 }
 
 export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => (req: express.Request) => {
   let filter: Filter<any> = {};
 
-  const parseFilter = (lhs: string, rhs: string) => {
-    if (lhs.indexOf(':') !== -1) {
-      const [field, op] = lhs.split(':');
-      return ({[field]: {[`$${op}`]: rhs}});
+  const toOperator = (op: string) => `$${op}`;
+  const makeFilter = (field: string, op: string, value: string) =>
+    ({[field]: {[toOperator(op)]: value}});
+
+  const parseFilter = (lhs: string, rhs: string, operatorConfig: OperatorParserConfig) => {
+    if (operatorConfig.rhs) {
+      const result = operatorConfig.pattern.exec(rhs);
+      if (result) {
+        return makeFilter(lhs, result[1], result[2]);
+      }
     } else {
-      return ({[lhs]: rhs});
+      const result = operatorConfig.pattern.exec(lhs);
+      if (result) {
+        return makeFilter(result[1], result[2], rhs);
+      }
     }
+    return ({[lhs]: rhs});
   }
 
   for (const [lhs, rhs] of Object.entries(req.query)) {
     if (!config.exclude.includes(lhs)) {
-      merge(filter, parseFilter(lhs, rhs?.toString() || ''));
+      merge(filter, config.operator
+        ? parseFilter(lhs, rhs?.toString() || '', config.operator)
+        : ({[lhs]: rhs}));
     }
   }
   return {filter};
@@ -111,6 +139,7 @@ export const singleParamProjectionParser = (param: string = 'projection') => {
 }
 
 export interface FlatQueryParserConfig {
+  operator?: OperatorParserConfig;
   sort?: string;
   skip?: string;
   limit?: string;
@@ -120,6 +149,7 @@ export interface FlatQueryParserConfig {
 export const flatQueryParser = (config?: FlatQueryParserConfig) => (req: express.Request) =>
   makeQuery(req, [
     multiParamFilterParser({
+      operator: config?.operator,
       exclude: [
         config?.sort || 'sort',
         config?.skip || 'skip',
