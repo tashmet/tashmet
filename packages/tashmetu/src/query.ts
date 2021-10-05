@@ -103,14 +103,28 @@ export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => 
   return {filter};
 }
 
-export const singleParamSortParser = (param: string = 'sort') => {
+export interface SortParserConfig {
+  param: string;
+  asc: RegExp;
+  desc: RegExp;
+  delimiter: string;
+}
+
+const defaultSortParserConfig: SortParserConfig = {
+  param: 'sort', asc: /^(?!-)(.+)/, desc: /\-(.*?)$/, delimiter: ','
+}
+
+export const singleParamSortParser = (config?: Partial<SortParserConfig>) => {
+  const {param, asc, desc, delimiter} = Object.assign({}, config, defaultSortParserConfig);
+
   return (req: express.Request) => {
     const sorting = (fields: string[]) => fields.reduce((sort, field) => {
-      const sign = field.substr(0, 1);
-      if (sign === '-') {
-        sort[field.substr(1)] = -1;
-      } else {
-        sort[field] = 1;
+      const ascMatch = asc.exec(field);
+      const descMatch = desc.exec(field);
+      if (ascMatch) {
+        sort[ascMatch[1]] = 1;
+      } else if (descMatch) {
+        sort[descMatch[1]] = -1;
       }
       return sort;
     }, {} as SortingMap);
@@ -118,7 +132,7 @@ export const singleParamSortParser = (param: string = 'sort') => {
     const value = req.query[param];
 
     return value
-      ? ({sort: sorting(value.toString().split(','))})
+      ? ({sort: sorting(value.toString().split(delimiter))})
       : ({});
   }
 }
@@ -140,7 +154,7 @@ export const singleParamProjectionParser = (param: string = 'projection') => {
 
 export interface FlatQueryParserConfig {
   operator?: OperatorParserConfig;
-  sort?: string;
+  sort?: SortParserConfig;
   skip?: string;
   limit?: string;
   projection?: string;
@@ -151,7 +165,7 @@ export const flatQueryParser = (config?: FlatQueryParserConfig) => (req: express
     multiParamFilterParser({
       operator: config?.operator,
       exclude: [
-        config?.sort || 'sort',
+        config?.sort?.param || 'sort',
         config?.skip || 'skip',
         config?.limit || 'limit',
         config?.projection || 'projection',
