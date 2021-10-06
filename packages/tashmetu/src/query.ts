@@ -41,15 +41,16 @@ export const makeQuery = (req: express.Request, parsers: PartialQueryParser[]) =
   return query;
 }
 
-export const jsonQueryParser = (config?: JsonQueryParserConfig) => (req: express.Request) => {
-  return makeQuery(req, [
-    jsonParamParser('filter', config?.filter),
-    jsonParamParser('sort', config?.sort),
-    jsonParamParser('projection', config?.sort),
-    intParamParser('skip', config?.skip),
-    intParamParser('limit', config?.limit)
-  ]);
-}
+export const jsonQueryParser = (config?: JsonQueryParserConfig | string) =>
+  (req: express.Request) => typeof config === 'string'
+    ? parseJson(req.query[config])
+    : makeQuery(req, [
+      jsonParamParser('filter', config?.filter),
+      jsonParamParser('sort', config?.sort),
+      jsonParamParser('projection', config?.sort),
+      intParamParser('skip', config?.skip),
+      intParamParser('limit', config?.limit)
+    ]);
 
 export const rhsColon: OperatorParserConfig = {
   pattern: new RegExp(/(.*?)\:(.*?)/),
