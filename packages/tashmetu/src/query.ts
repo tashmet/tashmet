@@ -1,9 +1,9 @@
-import {Filter, Query, SortingMap, Projection} from '@ziqquratu/ziqquratu';
-import * as express from 'express';
+import {Filter, Query, SortingMap, SortingDirection, Projection} from '@ziqquratu/ziqquratu';
 import {merge} from 'mingo/util';
+import {ParsedQs} from 'qs';
 
-export type QueryParser = (req: express.Request) => Query;
-export type PartialQueryParser = (req: express.Request) => Partial<Query>
+export type QueryParser = (qs: ParsedQs) => Query;
+export type PartialQueryParser = (qs: ParsedQs) => Partial<Query>
 
 function parseJson(input: any): Record<string, any> {
   try {
@@ -22,29 +22,29 @@ export interface JsonQueryParserConfig {
 }
 
 export const intParamParser = (part: 'skip' | 'limit', param?: string) => {
-  return (req: express.Request) => (param || part) in req.query
-    ? ({[part]: parseInt(req.query[param || part] as string)})
+  return (qs: ParsedQs) => (param || part) in qs
+    ? ({[part]: parseInt(qs[param || part] as string)})
     : ({});
 }
 
 export const jsonParamParser = (part: 'filter' | 'sort' | 'projection', param?: string) => {
-  return (req: express.Request) => (param || part) in req.query
-    ? ({[part]: parseJson(req.query[param || part])})
+  return (qs: ParsedQs) => (param || part) in qs
+    ? ({[part]: parseJson(qs[param || part])})
     : ({});
 }
 
-export const makeQuery = (req: express.Request, parsers: PartialQueryParser[]) => {
+export const makeQuery = (qs: ParsedQs, parsers: PartialQueryParser[]) => {
   let query: Query = {};
   for (const p of parsers) {
-    merge(query as any, p(req));
+    merge(query as any, p(qs));
   }
   return query;
 }
 
 export const jsonQueryParser = (config?: JsonQueryParserConfig | string) =>
-  (req: express.Request) => typeof config === 'string'
-    ? parseJson(req.query[config])
-    : makeQuery(req, [
+  (qs: ParsedQs) => typeof config === 'string'
+    ? parseJson(qs[config])
+    : makeQuery(qs, [
       jsonParamParser('filter', config?.filter),
       jsonParamParser('sort', config?.sort),
       jsonParamParser('projection', config?.sort),
@@ -72,7 +72,7 @@ export interface MultiParamFilterParserConfig {
   operator?: OperatorParserConfig;
 }
 
-export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => (req: express.Request) => {
+export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => (qs: ParsedQs) => {
   let filter: Filter<any> = {};
 
   const toOperator = (op: string) => `$${op}`;
@@ -94,7 +94,7 @@ export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => 
     return ({[lhs]: rhs});
   }
 
-  for (const [lhs, rhs] of Object.entries(req.query)) {
+  for (const [lhs, rhs] of Object.entries(qs)) {
     if (!config.exclude.includes(lhs)) {
       merge(filter, config.operator
         ? parseFilter(lhs, rhs?.toString() || '', config.operator)
@@ -102,6 +102,28 @@ export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => 
     }
   }
   return {filter};
+}
+
+export interface NestedSortConfig {
+  param: string;
+  direction: (value: string) => SortingDirection;
+}
+
+const defaultNestedSortConfig: NestedSortConfig = {
+  param: 'sort', direction: v => parseInt(v)
+}
+
+export const nestedSort = (config?: NestedSortConfig) => {
+  const {param, direction} = Object.assign({}, config, defaultNestedSortConfig);
+
+  return (qs: ParsedQs) => {
+    // const sort: SortingMap = {};
+    const value = qs[param];
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw Error('Failed to parse sort');
+    }
+    return value;
+  }
 }
 
 export interface SortParserConfig {
@@ -118,7 +140,7 @@ const defaultSortParserConfig: SortParserConfig = {
 export const singleParamSortParser = (config?: Partial<SortParserConfig>) => {
   const {param, asc, desc, delimiter} = Object.assign({}, config, defaultSortParserConfig);
 
-  return (req: express.Request) => {
+  return (qs: ParsedQs) => {
     const sorting = (fields: string[]) => fields.reduce((sort, field) => {
       const ascMatch = asc.exec(field);
       const descMatch = desc.exec(field);
@@ -130,25 +152,25 @@ export const singleParamSortParser = (config?: Partial<SortParserConfig>) => {
       return sort;
     }, {} as SortingMap);
 
-    const value = req.query[param];
+    const value = qs[param];
 
-    return value
-      ? ({sort: sorting(value.toString().split(delimiter))})
+    return typeof value === 'string'
+      ? ({sort: sorting(value.split(delimiter))})
       : ({});
   }
 }
 
 export const singleParamProjectionParser = (param: string = 'projection') => {
-  return (req: express.Request) => {
+  return (qs: ParsedQs) => {
     const projection = (fields: string[]) => fields.reduce((p, field) => {
       p[field] = 1;
       return p;
     }, {} as Projection<any>)
 
-    const value = req.query[param];
+    const value = qs[param];
 
-    return value
-      ? ({projection: projection(value.toString().split(','))})
+    return typeof value === 'string'
+      ? ({projection: projection(value.split(','))})
       : ({});
   }
 }
@@ -161,8 +183,8 @@ export interface FlatQueryParserConfig {
   projection?: string;
 }
 
-export const flatQueryParser = (config?: FlatQueryParserConfig) => (req: express.Request) =>
-  makeQuery(req, [
+export const flatQueryParser = (config?: FlatQueryParserConfig) => (qs: ParsedQs) =>
+  makeQuery(qs, [
     multiParamFilterParser({
       operator: config?.operator,
       exclude: [

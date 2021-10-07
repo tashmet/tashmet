@@ -77,7 +77,7 @@ export class Resource {
   @get('/', express.urlencoded({extended: true}))
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
-      const {filter, ...options} = this.queryParser(req);
+      const {filter, ...options} = this.queryParser(req.query);
       const count = await this.collection.find(filter).count(false);
 
       res.setHeader('X-total-count', count.toString());
