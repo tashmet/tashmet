@@ -117,12 +117,17 @@ export const nestedSort = (config?: NestedSortConfig) => {
   const {param, direction} = Object.assign({}, config, defaultNestedSortConfig);
 
   return (qs: ParsedQs) => {
-    // const sort: SortingMap = {};
+    const sort: SortingMap = {};
     const value = qs[param];
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       throw Error('Failed to parse sort');
     }
-    return value;
+    for (const [k, v] of Object.entries(value)) {
+      if (typeof v === 'string') {
+        sort[k] = direction(v);
+      }
+    }
+    return {sort};
   }
 }
 
