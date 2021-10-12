@@ -13,19 +13,25 @@ export interface ParseQsOptions {
 
 let qsHashTable: Record<string, any> = {}
 
-export function parseQs(qs: string, options?: ParseQsOptions) {
-  const qsHash = hashCode({qs, options});
-  let pqs: any;
-  if (qsHash) {
-    pqs = qsHashTable[qsHash];
-    if (!pqs) {
-      pqs = (qsHashTable[qsHash] = parse(qs))
+export function cacheOrEval<T>(records: Record<string, T>, value: any, fn: (value: any) => T) {
+  const hash = hashCode(value);
+  let result: T;
+  if (hash) {
+    result = records[hash];
+    if (!result) {
+      result = (records[hash] = fn(value));
     }
-    return options?.types
-      ? queryTypes.parseObject(pqs)
-      : pqs;
+    return result;
+  } else {
+    return fn(value);
   }
-  return null;
+}
+
+export function parseQs(qs: string, options?: ParseQsOptions) {
+  const pqs = cacheOrEval(qsHashTable, qs, parse);
+  return options?.types
+    ? queryTypes.parseObject(pqs)
+    : pqs;
 }
 
 export const intParamParser = (part: 'skip' | 'limit', param?: string) => {

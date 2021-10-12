@@ -1,11 +1,11 @@
-import {Collection, Database, DatabaseChange, Logger} from '@ziqquratu/ziqquratu';
+import {Collection, Database, DatabaseChange, Logger, Query} from '@ziqquratu/ziqquratu';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
 import * as url from 'url';
 import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
 import {router, ControllerFactory} from '../controller';
-import {QueryParser} from '../query/common';
+import {QueryParser, cacheOrEval} from '../query/common';
 import {jsonQueryParser} from '../query/json';
 
 export interface ResourceConfig {
@@ -29,6 +29,7 @@ export interface ResourceConfig {
 
 export class Resource {
   private connections: Record<string, SocketIO.Socket> = {};
+  private queryCache: Record<string, Query> = {};
 
   public constructor(
     protected collection: Collection,
@@ -78,8 +79,9 @@ export class Resource {
   @get('/')
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
-      const query = url.parse(req.url).query;
-      const {filter, ...options} = this.queryParser(query || '');
+      const {filter, ...options} = cacheOrEval<Query>(this.queryCache, req.url, () => {
+        return this.queryParser(url.parse(req.url).query || '')
+      });
       const count = await this.collection.find(filter).count(false);
 
       res.setHeader('X-total-count', count.toString());
