@@ -19,8 +19,8 @@ const defaultConfig: SingleParamSortConfig = {
  * Given a sorting map:
  * ```typescript
  * {
- *   foo: SortingDirection.Ascending
- *   bar: SortingDirection.Descending
+ *   foo: 1
+ *   bar: -1
  * }
  * ```
  *
@@ -40,6 +40,5 @@ export const singleParamSort = (config?: Partial<SingleParamSortConfig>) => {
       .filter(([k, v ]) => v !== undefined)
       .map(([k, v]) => v === SortingDirection.Ascending ? asc(k) : desc(k))
       .join(separator))
-
   );
 }

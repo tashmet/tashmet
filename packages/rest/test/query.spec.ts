@@ -89,8 +89,8 @@ describe('HttpQueryBuilder', () => {
     }
     const options: QueryOptions = {
       sort: {
-        category: SortingDirection.Ascending,
-        datePublished: SortingDirection.Descending,
+        category: 1,
+        datePublished: -1,
       },
       skip: 10,
       limit: 10,
