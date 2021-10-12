@@ -1,10 +1,12 @@
 import {Collection, Database, DatabaseChange, Logger} from '@ziqquratu/ziqquratu';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
+import * as url from 'url';
 import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
 import {router, ControllerFactory} from '../controller';
-import {jsonQueryParser, QueryParser} from '../query';
+import {QueryParser} from '../query/common';
+import {jsonQueryParser} from '../query/json';
 
 export interface ResourceConfig {
   /** The name of the collection */
@@ -76,7 +78,8 @@ export class Resource {
   @get('/', express.urlencoded({extended: true}))
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
-      const {filter, ...options} = this.queryParser(req.query);
+      const query = url.parse(req.url).query;
+      const {filter, ...options} = this.queryParser(query || '');
       const count = await this.collection.find(filter).count(false);
 
       res.setHeader('X-total-count', count.toString());
