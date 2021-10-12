@@ -2,13 +2,15 @@ import {Filter} from '@ziqquratu/ziqquratu';
 import {merge} from 'mingo/util';
 import {parseQs} from './common';
 
+const queryTypes = require('query-types');
+
 export const rhsColon: OperatorParserConfig = {
-  pattern: new RegExp(/(.*?)\:(.*?)/),
+  pattern: /(.*)\:(.*)/,
   rhs: true,
 }
 
 export const lhsColon: OperatorParserConfig = {
-  pattern: new RegExp(/(.*?)\:(.*?)/),
+  pattern: /(.*)\:(.*)/,
   rhs: false,
 }
 
@@ -17,25 +19,27 @@ export interface OperatorParserConfig {
   rhs: boolean;
 }
 
-export interface MultiParamFilterParserConfig {
+export interface FlatFilterConfig {
   exclude: string[];
   operator?: OperatorParserConfig;
 }
 
-export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => (qs: string) => {
+export const flatFilter = (config: FlatFilterConfig) => (qs: string) => {
   let filter: Filter<any> = {};
 
   const toOperator = (op: string) => `$${op}`;
   const makeFilter = (field: string, op: string, value: string) =>
-    ({[field]: {[toOperator(op)]: value}});
+    ({[field]: {[toOperator(op)]: queryTypes.parseValue(value)}});
 
-  const parseFilter = (lhs: string, rhs: string, operatorConfig: OperatorParserConfig) => {
+  const parseFilter = (lhs: string, rhs: string | string[], operatorConfig: OperatorParserConfig) => {
     if (operatorConfig.rhs) {
-      const result = operatorConfig.pattern.exec(rhs);
-      if (result) {
-        return makeFilter(lhs, result[1], result[2]);
+      let f: any = {};
+      for (const rhsItem of Array.isArray(rhs) ? rhs : [rhs]) {
+        const result = operatorConfig.pattern.exec(rhsItem);
+        merge(f, result ? makeFilter(lhs, result[1], result[2]) : {});
       }
-    } else {
+      return f;
+    } else if (!Array.isArray(rhs)) {
       const result = operatorConfig.pattern.exec(lhs);
       if (result) {
         return makeFilter(result[1], result[2], rhs);
@@ -48,7 +52,7 @@ export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => 
   for (const [lhs, rhs] of Object.entries<any>(pqs)) {
     if (!config.exclude.includes(lhs)) {
       merge(filter, config.operator
-        ? parseFilter(lhs, rhs?.toString() || '', config.operator)
+        ? parseFilter(lhs, rhs, config.operator)
         : ({[lhs]: rhs}));
     }
   }

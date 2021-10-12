@@ -1,5 +1,5 @@
 import {makeQuery, intParamParser} from './common';
-import {OperatorParserConfig, multiParamFilterParser} from './filter';
+import {OperatorParserConfig, flatFilter} from './filter';
 import {delimitedProjection} from './projection';
 import {delimitedSort, DelimitedSortConfig} from './sort';
 
@@ -14,7 +14,7 @@ export interface FlatQueryParserConfig {
 
 export const flatQueryParser = (config?: FlatQueryParserConfig) => (qs: string) =>
   makeQuery(qs, [
-    multiParamFilterParser({
+    flatFilter({
       operator: config?.operator,
       exclude: [
         config?.sort?.param || 'sort',
