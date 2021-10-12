@@ -1,5 +1,5 @@
 import {Query} from '@ziqquratu/ziqquratu';
-import {merge} from 'mingo/util';
+import {merge, hashCode} from 'mingo/util';
 import {parse} from 'qs';
 
 const queryTypes = require('query-types');
@@ -11,11 +11,21 @@ export interface ParseQsOptions {
   types: boolean;
 }
 
+let qsHashTable: Record<string, any> = {}
+
 export function parseQs(qs: string, options?: ParseQsOptions) {
-  const pqs = parse(qs);
-  return options?.types
-    ? queryTypes.parseObject(pqs)
-    : pqs;
+  const qsHash = hashCode({qs, options});
+  let pqs: any;
+  if (qsHash) {
+    pqs = qsHashTable[qsHash];
+    if (!pqs) {
+      pqs = (qsHashTable[qsHash] = parse(qs))
+    }
+    return options?.types
+      ? queryTypes.parseObject(pqs)
+      : pqs;
+  }
+  return null;
 }
 
 export const intParamParser = (part: 'skip' | 'limit', param?: string) => {
