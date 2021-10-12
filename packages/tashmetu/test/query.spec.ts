@@ -1,7 +1,7 @@
 import 'mocha';
 import {expect} from 'chai';
 
-import {nestedSort, nestedFilter, delimitedSort} from '../src/query';
+import {nestedSort, nestedFilter, delimitedSort, delimitedProjection} from '../src/query';
 
 describe('nestedSort', () => {
   it('should parse sort with default config', () => {
@@ -26,9 +26,23 @@ describe('delimitedSort', () => {
 });
 
 describe('nestedFilter', () => {
-  const parse = nestedFilter();
-
-  it('should get all documents', () => {
+  it('should parse filter with default config', () => {
+    const parse = nestedFilter();
     expect(parse('filter[foo][$eq]=5')).to.eql({filter: {foo: {$eq: 5}}});
+  });
+  it('should parse filter with without types', () => {
+    const parse = nestedFilter({types: false});
+    expect(parse('filter[foo][$eq]=5')).to.eql({filter: {foo: {$eq: '5'}}});
+  });
+});
+
+describe('delimitedProjection', () => {
+  it('should parse projection with default config', () => {
+    const parse = delimitedProjection();
+    expect(parse('projection=foo,bar')).to.eql({projection: {foo: 1, bar: 1}});
+  });
+  it('should parse projection with custom config', () => {
+    const parse = delimitedProjection('fields');
+    expect(parse('fields=foo,bar')).to.eql({projection: {foo: 1, bar: 1}});
   });
 });
