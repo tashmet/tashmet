@@ -1,4 +1,4 @@
-import {SortingDirection} from "@ziqquratu/database";
+import {Projection, SortingDirection} from "@ziqquratu/database";
 import {stageDecorator} from "./pipeline";
 import {queryOpDecorator, RegexConfig} from "./query";
 
@@ -24,6 +24,7 @@ export const $skip = stageDecorator<number | undefined>('$skip');
 export const $limit = stageDecorator<number | undefined>('$limit');
 
 export const $match = stageDecorator<object | undefined>('$match');
+export const $project = stageDecorator<Projection<any> | undefined>('$project');
 
 /** Matches values that are equal to a specified value. */
 export const $eq = (key?: string) =>
