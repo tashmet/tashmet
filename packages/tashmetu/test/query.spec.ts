@@ -1,7 +1,7 @@
 import 'mocha';
 import {expect} from 'chai';
 
-import {nestedSort, nestedFilter} from '../src/query';
+import {nestedSort, nestedFilter, delimitedSort} from '../src/query';
 
 describe('nestedSort', () => {
   it('should parse sort with default config', () => {
@@ -15,6 +15,13 @@ describe('nestedSort', () => {
       desc: 'desc',
     });
     expect(parse('order[foo]=asc&order[bar]=desc')).to.eql({sort: {foo: 1, bar: -1}});
+  });
+});
+
+describe('delimitedSort', () => {
+  it('should parse sort with default config', () => {
+    const parse = delimitedSort();
+    expect(parse('sort=foo,-bar')).to.eql({sort: {foo: 1, bar: -1}});
   });
 });
 
