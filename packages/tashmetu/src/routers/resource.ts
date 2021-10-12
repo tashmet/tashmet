@@ -1,6 +1,5 @@
 import {Collection, Database, DatabaseChange, Logger} from '@ziqquratu/ziqquratu';
 import * as express from 'express';
-import * as bodyParser from 'body-parser';
 import * as SocketIO from 'socket.io';
 import {serializeError} from 'serialize-error';
 import {get, post, put, del} from '../decorators';
@@ -97,21 +96,21 @@ export class Resource {
     });
   }
 
-  @post('/', bodyParser.json())
+  @post('/', express.json())
   public async postOne(req: express.Request, res: express.Response) {
     return this.formResponse(res, 201, true, async () => {
       return this.collection.insertOne(req.body);
     });
   }
 
-  @put('/:id', bodyParser.json())
+  @put('/:id', express.json())
   public async putOne(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, true, async () => {
       return this.collection.replaceOne({_id: req.params.id}, req.body);
     });
   }
 
-  @del('/:id', bodyParser.json())
+  @del('/:id', express.json())
   public async deleteOne(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, true, async () => {
       const doc = await this.collection.deleteOne({_id: req.params.id});
