@@ -1,9 +1,22 @@
 import {Filter, Query, SortingMap, SortingDirection, Projection} from '@ziqquratu/ziqquratu';
 import {merge} from 'mingo/util';
-import {ParsedQs} from 'qs';
+import {ParsedQs, parse} from 'qs';
+
+const queryTypes = require('query-types');
 
 export type QueryParser = (qs: ParsedQs) => Query;
 export type PartialQueryParser = (qs: ParsedQs) => Partial<Query>
+
+export interface ParseQsOptions {
+  types: boolean;
+}
+
+function parseQs(qs: string, options?: ParseQsOptions) {
+  const pqs = parse(qs);
+  return options?.types
+    ? queryTypes.parseObject(pqs)
+    : pqs;
+}
 
 function parseJson(input: any): Record<string, any> {
   try {
@@ -106,29 +119,42 @@ export const multiParamFilterParser = (config: MultiParamFilterParserConfig) => 
 
 export interface NestedSortConfig {
   param: string;
-  direction: (value: string) => SortingDirection;
+  asc: string | string[];
+  desc: string | string[];
 }
 
 const defaultNestedSortConfig: NestedSortConfig = {
-  param: 'sort', direction: v => parseInt(v)
+  param: 'sort', asc: '1', desc: '-1',
 }
 
 export const nestedSort = (config?: NestedSortConfig) => {
-  const {param, direction} = Object.assign({}, config, defaultNestedSortConfig);
+  const {param, asc, desc} = Object.assign({}, defaultNestedSortConfig, config);
 
-  return (qs: ParsedQs) => {
+  return (qs: string) => {
+    const match = (options: string | string[], value: string) =>
+      (Array.isArray(options) ? options : [options]).includes(value);
+
+    const pqs = parseQs(qs, {types: false});
     const sort: SortingMap = {};
-    const value = qs[param];
+    const value = pqs[param];
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       throw Error('Failed to parse sort');
     }
     for (const [k, v] of Object.entries(value)) {
       if (typeof v === 'string') {
-        sort[k] = direction(v);
+        if (match(asc, v)) {
+          sort[k] = 1;
+        } else if (match(desc, v)) {
+          sort[k] = -1;
+        }
       }
     }
     return {sort};
   }
+}
+
+export const nestedFilter = () => (qs: string) => {
+  return parseQs(qs, {types: true});
 }
 
 export interface SortParserConfig {
