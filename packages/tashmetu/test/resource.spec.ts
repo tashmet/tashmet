@@ -4,6 +4,7 @@ import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
 import operators from '@ziqquratu/operators/system';
+import {flatQueryParser} from '../src/query';
 
 describe('Resource', () => {
   @component({
@@ -17,7 +18,11 @@ describe('Resource', () => {
       }),
       Server.configuration({
         middleware: {
-          '/readonly': resource({collection: 'test', readOnly: true}),
+          '/readonly': resource({
+            collection: 'test',
+            readOnly: true,
+            queryParser: flatQueryParser(),
+          }),
           '/readwrite': resource({collection: 'test', readOnly: false}),
         }
       }),
@@ -49,6 +54,13 @@ describe('Resource', () => {
         .get('/readonly/doc1')
         .expect(200)
         .then(res => expect(res.body).to.eql({_id: 'doc1'}));
+    });
+
+    it('should filter documents', () => {
+      return request(app)
+        .get('/readonly?_id=doc2')
+        .expect(200)
+        .then(res => expect(res.body).to.eql([{_id: 'doc2'}]));
     });
 
     it('should return error when document not found', () => {
