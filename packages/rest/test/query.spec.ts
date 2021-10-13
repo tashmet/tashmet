@@ -4,7 +4,7 @@ import 'mocha';
 import {flatQuery} from '../src/query/flat';
 import {flatFilter, lhsBrackets, lhsColon, rhsColon, nestedFilter} from '../src/query/filter';
 import {delimitedSort, nestedSort} from '../src/query/sort';
-import {delimitedProjection} from '../src/query/projection';
+import {delimitedProjection, nestedProjection} from '../src/query/projection';
 
 describe('flatFilter', () => {
   it('should serialize using LHSBrackets', async () => {
@@ -215,6 +215,46 @@ describe('delimitedProjection', () => {
     const projection = {
       foo: false,
       bar: false,
+    }
+    expect(s({projection})).to.eql('');
+  });
+});
+
+describe('nestedProjection', () => {
+  it('should serialize projection with default configuration', async () => {
+    const s = nestedProjection();
+    const projection = {
+      foo: true,
+      bar: false,
+    }
+    expect(s({projection})).to.eql('projection[foo]=1&projection[bar]=0');
+  });
+
+  it('should serialize projection with custom configuration', async () => {
+    const s = nestedProjection({
+      param: 'fields',
+      value: v => v,
+    });
+    const projection = {
+      foo: true,
+      bar: false,
+    }
+    expect(s({projection})).to.eql('fields[foo]=true&fields[bar]=false');
+  });
+
+  it('should serialize projection with purged undefined fields', async () => {
+    const s = nestedProjection();
+    const projection = {
+      foo: true,
+      bar: undefined,
+    }
+    expect(s({projection})).to.eql('projection[foo]=1');
+  });
+
+  it('should serialize to empty string with empty projection', async () => {
+    const s = nestedProjection();
+    const projection = {
+      bar: undefined,
     }
     expect(s({projection})).to.eql('');
   });

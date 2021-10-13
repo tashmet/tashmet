@@ -84,5 +84,22 @@ export const delimitedProjection = (config?: Partial<DelimitedProjectionConfig>)
   });
 }
 
-export const nestedProjection = (param: string = 'projection') => (q: Query) =>
-  qsStringify({[param]: q.projection});
+export interface NestedProjectionConfig {
+  param: string;
+  value: (v: boolean | 1 | 0) => string | number | boolean;
+}
+
+const defaultNestedProjectionConfig: NestedProjectionConfig = {
+  param: 'projection', value: v => +v
+}
+
+export const nestedProjection = (config?: Partial<NestedProjectionConfig>) => {
+  const {param, value} = Object.assign({}, defaultNestedProjectionConfig, config);
+  return (q: Query) => qsStringify({[param]: Object.entries(q.projection || {})
+    .reduce((p, [k, v]) => {
+      if (v !== undefined) {
+        p[k] = value(v);
+      }
+      return p;
+    }, {} as any)});
+}

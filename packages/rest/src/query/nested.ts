@@ -1,12 +1,12 @@
 import {nestedFilter, NestedFilterConfig} from "./filter";
 import {nestedSort} from "./sort";
-import {nestedProjection} from "./projection";
+import {nestedProjection, NestedProjectionConfig} from "./projection";
 import {HttpQueryBuilder, limitParam, skipParam} from "../query";
 
 export interface NestedQueryConfig {
   filter?: NestedFilterConfig;
   sort?: string;
-  projection?: string;
+  projection?: NestedProjectionConfig;
   skip?: string;
   limit?: string;
 }
