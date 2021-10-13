@@ -1,13 +1,46 @@
 import {Param} from '../interfaces';
-import {singleParam} from "../query";
+import {singleParam} from '../query';
+
+type FieldSerializer = (field: string) => string;
 
 export interface DelimitedProjectionConfig {
+  /**
+   * Name of parameter
+   *
+   * @default 'projection'
+   */
   param: string;
+
+  /**
+   * Function that serializes an included field
+   *
+   * Field inclusion can also be disabled in serialized output by setting this
+   * to false.
+   *
+   * @default field => field
+   */
+  include: FieldSerializer | false;
+
+  /**
+   * Function that serializes an excluded field
+   *
+   * Field exclusion can also be disabled in serialized output by setting this
+   * to false.
+   *
+   * @default field => `-${field}`
+   */
+  exclude: FieldSerializer | false;
+
+  /**
+   * Field separator
+   *
+   * @default ','
+   */
   separator: string;
 }
 
 const defaultConfig: DelimitedProjectionConfig = {
-  param: 'projection', separator: ',',
+  param: 'projection', include: f => f, exclude: f => `-${f}`, separator: ',',
 }
 
 /**
@@ -30,11 +63,20 @@ const defaultConfig: DelimitedProjectionConfig = {
  * @returns A parameter factory
  */
 export const delimitedProjection = (config?: Partial<DelimitedProjectionConfig>) => {
-  const {param, separator} = Object.assign({}, defaultConfig, config);
+  const {param, include, exclude, separator} = Object.assign({}, defaultConfig, config);
 
-  return singleParam(q => new Param(param, Object.entries(q.projection || {})
-    .filter(([k, v ]) => v === 1 || v === true)
-    .map(([k, v]) => k)
-    .join(separator))
-  );
+  const included = (v: 0 | 1 | boolean | undefined) => v === 1 || v === true;
+  const excluded = (v: 0 | 1 | boolean | undefined) => v === 0 || v === false;
+
+  return singleParam(q => {
+    const value = Object.entries(q.projection || {})
+      .map(([k, v]) => {
+        return include && included(v)
+          ? include(k)
+          : exclude && excluded(v) ? exclude(k) : false;
+      })
+      .filter(v => v)
+      .join(separator);
+    return value !== '' ? new Param(param, value) : null;
+  });
 }
