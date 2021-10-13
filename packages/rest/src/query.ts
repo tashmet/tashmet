@@ -7,7 +7,7 @@ export type CopyQuery = (target?: string) => QuerySerializer;
 export function singleParam(toParam: QueryConverter<Param | null>) {
   return (q: Query) => {
     const p = toParam(q);
-    return p ? [p] : [];
+    return p ? p.toString() : '';
   }
 }
 
@@ -21,17 +21,17 @@ export class HttpQueryBuilder {
   public constructor(
     private path: string,
     private paramFactories: QueryParamFactory[],
-    private exclude: (p: Param) => boolean,
   ) {}
 
   public serialize(filter: object = {}, options: QueryOptions = {}) {
-    const q = {filter, ...options};
+    const query = {filter, ...options};
     const params = this.paramFactories
-      .reduce((params, fact) => params.concat(fact(q)), [] as Param[])
-      .filter(p => !this.exclude(p))
+      .map(fact => fact(query))
+      .filter(v => v !== '')
+      .join('&');
 
     return params.length > 0
-      ? this.path + '?' + params.map(p => p.toString()).join('&')
+      ? this.path + '?' + params
       : this.path;
   }
 }

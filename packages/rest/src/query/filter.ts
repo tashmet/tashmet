@@ -34,6 +34,9 @@ export const multiParamFilter = (config: MultiParamFilterConfig) => {
       : new Param(k, serializeValue(v))
 
     return Object.entries<any>(filter)
-      .reduce<Param[]>((params, [k, v]) => params.concat(makeParams(k, v)), []);
+      .reduce<Param[]>((params, [k, v]) => params.concat(makeParams(k, v)), [])
+      .filter(p => p.value !== undefined)
+      .map(p => p.toString())
+      .join('&');
   }
 }

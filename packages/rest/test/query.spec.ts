@@ -1,7 +1,6 @@
-import {QueryOptions, SortingDirection} from '@ziqquratu/database';
+import {QueryOptions} from '@ziqquratu/database';
 import {expect} from 'chai';
 import 'mocha';
-import {Param} from '../src/interfaces';
 import {flatQuery} from '../src/query/flat';
 import {multiParamFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
 
@@ -11,10 +10,7 @@ describe('serializeFilter', () => {
     const filter = {
       'item.amount': {$gte: 2, $lte: 10},
     }
-    expect(s({filter})).to.eql([
-      new Param('item.amount[gte]', 2),
-      new Param('item.amount[lte]', 10)
-    ]);
+    expect(s({filter})).to.eql('item.amount[gte]=2&item.amount[lte]=10');
   });
 
   it('should serialize using LHSColon', async () => {
@@ -22,10 +18,7 @@ describe('serializeFilter', () => {
     const filter = {
       'item.amount': {$gte: 2, $lte: 10},
     }
-    expect(s({filter})).to.eql([
-      new Param('item.amount:gte', 2),
-      new Param('item.amount:lte', 10)
-    ]);
+    expect(s({filter})).to.eql('item.amount:gte=2&item.amount:lte=10');
   });
 
   it('should serialize using RHSColon', async () => {
@@ -33,10 +26,7 @@ describe('serializeFilter', () => {
     const filter = {
       'item.amount': {$gte: 2, $lte: 10},
     }
-    expect(s({filter})).to.eql([
-      new Param('item.amount', 'gte:2'),
-      new Param('item.amount', 'lte:10')
-    ]);
+    expect(s({filter})).to.eql('item.amount=gte:2&item.amount=lte:10');
   });
 
   it('should serialize equality without operator', async () => {
@@ -44,9 +34,7 @@ describe('serializeFilter', () => {
     const filter = {
       category: 'foo',
     }
-    expect(s({filter})).to.eql([
-      new Param('category', 'foo')
-    ]);
+    expect(s({filter})).to.eql('category=foo');
   });
 
   it('should simplify equality operator', async () => {
@@ -54,9 +42,7 @@ describe('serializeFilter', () => {
     const filter = {
       category: {$eq: 'foo'},
     }
-    expect(s({filter})).to.eql([
-      new Param('category', 'foo')
-    ]);
+    expect(s({filter})).to.eql('category=foo');
   });
 
   it('should serialize array operations', async () => {
@@ -64,9 +50,7 @@ describe('serializeFilter', () => {
     const filter = {
       category: {$in: ['foo', 'bar']},
     }
-    expect(s({filter})).to.eql([
-      new Param('category:in', 'foo,bar')
-    ]);
+    expect(s({filter})).to.eql('category:in=foo,bar');
   });
 
   it('should serialize array equality', async () => {
@@ -74,9 +58,7 @@ describe('serializeFilter', () => {
     const filter = {
       category: ['foo', 'bar'],
     }
-    expect(s({filter})).to.eql([
-      new Param('category', 'foo,bar')
-    ]);
+    expect(s({filter})).to.eql('category=foo,bar');
   });
 });
 

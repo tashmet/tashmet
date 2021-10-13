@@ -39,6 +39,4 @@ export const jsonQuery = (config?: JsonQueryConfig) => (path: string) =>
     jsonParam(config?.sort || 'sort', q => q.sort),
     skipParam(config?.skip),
     limitParam(config?.limit),
-  ],
-    p => !p.value || p.value === '{}'
-  );
+  ]);

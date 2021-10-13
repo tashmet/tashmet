@@ -1,4 +1,4 @@
-import {Collection, DatabaseEventEmitter, Query, SortingMap} from '@ziqquratu/database';
+import {Collection, DatabaseEventEmitter, Query} from '@ziqquratu/database';
 import {HttpQueryBuilder} from './query';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -10,7 +10,7 @@ export class Param {
 }
 
 export type QueryConverter<T> = (q: Query) => T;
-export type QueryParamFactory = QueryConverter<Param[]>
+export type QueryParamFactory = QueryConverter<string>
 
 export type QueryStringFactory = (path: string) => HttpQueryBuilder;
 
