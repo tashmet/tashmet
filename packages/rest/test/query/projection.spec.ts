@@ -17,32 +17,37 @@ describe('delimitedProjection', () => {
       foo: true,
       bar: false,
     }
-    expect(s({projection})).to.eql('projection=foo,-bar');
+    expect(s({projection})).to.eql('projection=foo');
   });
 
-  it('should serialize projection with only included fields', async () => {
-    const s = delimitedProjection({
-      exclude: false
-    });
+  it('should omit _id when set to false', async () => {
+    const s = delimitedProjection();
     const projection = {
+      _id: false,
       foo: true,
-      bar1: true,
-      bar2: false,
     }
-    expect(s({projection})).to.eql('projection=foo,bar1');
+    expect(s({projection})).to.eql('projection=foo');
+  });
+
+  it('should omit _id when set to true', async () => {
+    const s = delimitedProjection();
+    const projection = {
+      _id: true,
+      foo: true,
+    }
+    expect(s({projection})).to.eql('projection=foo');
   });
 
   it('should serialize projection with only excluded fields', async () => {
     const s = delimitedProjection({
-      param: 'exclude',
-      include: false,
+      param: include => include ? 'include' : 'exclude',
       exclude: f => f,
     });
     const projection = {
-      foo: true,
+      foo: false,
       bar: false,
     }
-    expect(s({projection})).to.eql('exclude=bar');
+    expect(s({projection})).to.eql('exclude=foo,bar');
   });
 
   it('should serialize projection with custom format', async () => {
@@ -58,12 +63,9 @@ describe('delimitedProjection', () => {
   });
 
   it('should serialize to empty string if no fields are outputed', async () => {
-    const s = delimitedProjection({
-      exclude: false,
-    });
+    const s = delimitedProjection({});
     const projection = {
-      foo: false,
-      bar: false,
+      foo: undefined,
     }
     expect(s({projection})).to.eql('');
   });

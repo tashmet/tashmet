@@ -12,7 +12,7 @@ export interface DelimitedProjectionConfig {
    *
    * @default 'projection'
    */
-  param: string;
+  param: string | ((include: boolean) => string);
 
   /**
    * Function that serializes an included field
@@ -22,7 +22,7 @@ export interface DelimitedProjectionConfig {
    *
    * @default field => field
    */
-  include: FieldSerializer | false;
+  include: FieldSerializer;
 
   /**
    * Function that serializes an excluded field
@@ -32,7 +32,7 @@ export interface DelimitedProjectionConfig {
    *
    * @default field => `-${field}`
    */
-  exclude: FieldSerializer | false;
+  exclude: FieldSerializer;
 
   /**
    * Field separator
@@ -68,19 +68,18 @@ const defaultConfig: DelimitedProjectionConfig = {
 export const delimitedProjection = (config?: Partial<DelimitedProjectionConfig>) => {
   const {param, include, exclude, separator} = Object.assign({}, defaultConfig, config);
 
-  const included = (v: 0 | 1 | boolean | undefined) => v === 1 || v === true;
-  const excluded = (v: 0 | 1 | boolean | undefined) => v === 0 || v === false;
-
   return singleParam(q => {
-    const value = Object.entries(q.projection || {})
-      .map(([k, v]) => {
-        return include && included(v)
-          ? include(k)
-          : exclude && excluded(v) ? exclude(k) : false;
-      })
-      .filter(v => v)
-      .join(separator);
-    return value !== '' ? new Param(param, value) : null;
+    const {_id, ...projection} = q.projection || {};
+    const isInclusion = Object.values(projection).some(v => v)
+    const fields = Object.entries(projection)
+      .filter(([k, v]) => v !== undefined && !!v === isInclusion)
+      .map(([k, v]) => k);
+
+    return fields.length !== 0
+      ? new Param(
+        typeof param === 'string' ? param : param(isInclusion),
+        fields.map(isInclusion ? include : exclude).join(separator))
+      : null;
   });
 }
 
