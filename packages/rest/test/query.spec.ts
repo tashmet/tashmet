@@ -2,11 +2,11 @@ import {QueryOptions} from '@ziqquratu/database';
 import {expect} from 'chai';
 import 'mocha';
 import {flatQuery} from '../src/query/flat';
-import {multiParamFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
+import {flatFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
 
 describe('serializeFilter', () => {
   it('should serialize using LHSBrackets', async () => {
-    const s = multiParamFilter({format: lhsBrackets});
+    const s = flatFilter({format: lhsBrackets});
     const filter = {
       'item.amount': {$gte: 2, $lte: 10},
     }
@@ -14,7 +14,7 @@ describe('serializeFilter', () => {
   });
 
   it('should serialize using LHSColon', async () => {
-    const s = multiParamFilter({format: lhsColon});
+    const s = flatFilter({format: lhsColon});
     const filter = {
       'item.amount': {$gte: 2, $lte: 10},
     }
@@ -22,7 +22,7 @@ describe('serializeFilter', () => {
   });
 
   it('should serialize using RHSColon', async () => {
-    const s = multiParamFilter({format: rhsColon});
+    const s = flatFilter({format: rhsColon});
     const filter = {
       'item.amount': {$gte: 2, $lte: 10},
     }
@@ -30,7 +30,7 @@ describe('serializeFilter', () => {
   });
 
   it('should serialize equality without operator', async () => {
-    const s = multiParamFilter({format: lhsColon});
+    const s = flatFilter({format: lhsColon});
     const filter = {
       category: 'foo',
     }
@@ -38,7 +38,7 @@ describe('serializeFilter', () => {
   });
 
   it('should simplify equality operator', async () => {
-    const s = multiParamFilter({format: lhsColon});
+    const s = flatFilter({format: lhsColon});
     const filter = {
       category: {$eq: 'foo'},
     }
@@ -46,7 +46,7 @@ describe('serializeFilter', () => {
   });
 
   it('should serialize array operations', async () => {
-    const s = multiParamFilter({format: lhsColon});
+    const s = flatFilter({format: lhsColon});
     const filter = {
       category: {$in: ['foo', 'bar']},
     }
@@ -54,7 +54,7 @@ describe('serializeFilter', () => {
   });
 
   it('should serialize array equality', async () => {
-    const s = multiParamFilter({format: lhsColon});
+    const s = flatFilter({format: lhsColon});
     const filter = {
       category: ['foo', 'bar'],
     }
