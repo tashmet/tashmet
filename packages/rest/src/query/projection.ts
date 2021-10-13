@@ -1,5 +1,8 @@
+import {Query} from '@ziqquratu/database';
 import {Param} from '../interfaces';
 import {singleParam} from '../query';
+
+const qsStringify = require('qs-stringify');
 
 type FieldSerializer = (field: string) => string;
 
@@ -80,3 +83,6 @@ export const delimitedProjection = (config?: Partial<DelimitedProjectionConfig>)
     return value !== '' ? new Param(param, value) : null;
   });
 }
+
+export const nestedProjection = (param: string = 'projection') => (q: Query) =>
+  qsStringify({[param]: q.projection});

@@ -1,6 +1,8 @@
-import {SortingDirection} from '@ziqquratu/database';
+import {Query, SortingDirection} from '@ziqquratu/database';
 import {Param} from '../interfaces';
 import {singleParam} from "../query";
+
+const qsStringify = require('qs-stringify');
 
 export interface DelimitedSortConfig {
   param: string;
@@ -41,3 +43,6 @@ export const delimitedSort = (config?: Partial<DelimitedSortConfig>) => {
     .join(separator))
   );
 }
+
+export const nestedSort = (param: string = 'sort') => (q: Query) =>
+  qsStringify({[param]: q.sort});
