@@ -2,9 +2,9 @@ import {QueryOptions} from '@ziqquratu/database';
 import {expect} from 'chai';
 import 'mocha';
 import {flatQuery} from '../src/query/flat';
-import {flatFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
-import { delimitedSort } from '../src/query/sort';
-import { delimitedProjection } from '../src/query/projection';
+import {flatFilter, lhsBrackets, lhsColon, rhsColon, nestedFilter} from '../src/query/filter';
+import {delimitedSort} from '../src/query/sort';
+import {delimitedProjection} from '../src/query/projection';
 
 describe('flatFilter', () => {
   it('should serialize using LHSBrackets', async () => {
@@ -61,6 +61,16 @@ describe('flatFilter', () => {
       category: ['foo', 'bar'],
     }
     expect(s({filter})).to.eql('category=foo,bar');
+  });
+});
+
+describe('nestedFilter', () => {
+  it('should serialize', async () => {
+    const s = nestedFilter();
+    const filter = {
+      'item.amount': {$gte: 2, $lte: 10},
+    }
+    expect(s({filter})).to.eql('item.amount[%24gte]=2&item.amount[%24lte]=10');
   });
 });
 

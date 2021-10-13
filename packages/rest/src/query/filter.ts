@@ -1,6 +1,8 @@
 import {Query} from '@ziqquratu/database';
 import {Param} from '../interfaces';
 
+const qsStringify = require('qs-stringify');
+
 export const lhsBrackets: OperatorFormat = (k, v, op) => new Param(`${k}[${op}]`, v);
 export const lhsColon: OperatorFormat = (k, v, op) => new Param(`${k}:${op}`, v);
 export const rhsColon: OperatorFormat = (k, v, op) => new Param(k, `${op}:${v}`);
@@ -38,5 +40,12 @@ export const flatFilter = (config: FlatFilterConfig) => {
       .filter(p => p.value !== undefined)
       .map(p => p.toString())
       .join('&');
+  }
+}
+
+
+export const nestedFilter = () => {
+  return (q: Query) => {
+    return qsStringify(q.filter);
   }
 }
