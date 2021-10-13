@@ -1,10 +1,12 @@
 import {bootstrap, component, Database} from '@ziqquratu/ziqquratu';
 import {caching} from '@ziqquratu/caching';
 import {rest} from '@ziqquratu/rest';
+import operators from '@ziqquratu/operators/basic';
 
 @component({
   providers: [
     Database.configuration({
+      operators,
       collections: {
         'posts': rest({path: 'http://localhost:8000/api/posts'})
       },

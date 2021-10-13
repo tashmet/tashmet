@@ -7,6 +7,7 @@ import {resource, Server} from '@ziqquratu/tashmetu';
 import {terminal} from '@ziqquratu/terminal';
 import {validation, ValidationPipeStrategy} from '@ziqquratu/schema';
 import {vinylfs} from '@ziqquratu/vinyl';
+import operators from '@ziqquratu/operators/system';
 
 @component({
   dependencies: [
@@ -17,6 +18,7 @@ import {vinylfs} from '@ziqquratu/vinyl';
   ],
   providers: [
     Database.configuration({
+      operators,
       collections: {
         'schemas': directoryContent({
           driver: vinylfs(),
