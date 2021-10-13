@@ -4,6 +4,7 @@ import 'mocha';
 import {flatQuery} from '../src/query/flat';
 import {flatFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
 import { delimitedSort } from '../src/query/sort';
+import { delimitedProjection } from '../src/query/projection';
 
 describe('flatFilter', () => {
   it('should serialize using LHSBrackets', async () => {
@@ -93,6 +94,38 @@ describe('delimitedSort', () => {
       bar: -1,
     }
     expect(s({sort})).to.eql('order=foo:asc;bar:desc');
+  });
+});
+
+describe('delimitedProjection', () => {
+  it('should serialize single projection field', async () => {
+    const s = delimitedProjection();
+    const projection = {
+      'item.amount': true,
+    }
+    expect(s({projection})).to.eql('projection=item.amount');
+  });
+
+  it('should serialize multiple projection fields', async () => {
+    const s = delimitedProjection();
+    const projection = {
+      foo: true,
+      bar1: true,
+      bar2: false,
+    }
+    expect(s({projection})).to.eql('projection=foo,bar1');
+  });
+
+  it('should serialize projection with custom configuration', async () => {
+    const s = delimitedProjection({
+      param: 'fields',
+      separator: ';',
+    });
+    const projection = {
+      foo: true,
+      bar: true,
+    }
+    expect(s({projection})).to.eql('fields=foo;bar');
   });
 });
 

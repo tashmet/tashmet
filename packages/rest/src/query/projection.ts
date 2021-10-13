@@ -33,7 +33,7 @@ export const delimitedProjection = (config?: Partial<DelimitedProjectionConfig>)
   const {param, separator} = Object.assign({}, defaultConfig, config);
 
   return singleParam(q => new Param(param, Object.entries(q.projection || {})
-    .filter(([k, v ]) => v === 1)
+    .filter(([k, v ]) => v === 1 || v === true)
     .map(([k, v]) => k)
     .join(separator))
   );
