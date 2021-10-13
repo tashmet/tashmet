@@ -3,6 +3,7 @@ import {expect} from 'chai';
 import 'mocha';
 import {flatQuery} from '../src/query/flat';
 import {flatFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
+import { delimitedSort } from '../src/query/sort';
 
 describe('flatFilter', () => {
   it('should serialize using LHSBrackets', async () => {
@@ -59,6 +60,39 @@ describe('flatFilter', () => {
       category: ['foo', 'bar'],
     }
     expect(s({filter})).to.eql('category=foo,bar');
+  });
+});
+
+describe('delimitedSort', () => {
+  it('should serialize single sort field', async () => {
+    const s = delimitedSort();
+    const sort = {
+      'item.amount': 1,
+    }
+    expect(s({sort})).to.eql('sort=item.amount');
+  });
+
+  it('should serialize multiple sort fields', async () => {
+    const s = delimitedSort();
+    const sort = {
+      foo: 1,
+      bar: -1,
+    }
+    expect(s({sort})).to.eql('sort=foo,-bar');
+  });
+
+  it('should serialize sort with custom configuration', async () => {
+    const s = delimitedSort({
+      param: 'order',
+      asc: k => `${k}:asc`,
+      desc: k => `${k}:desc`,
+      separator: ';',
+    });
+    const sort = {
+      foo: 1,
+      bar: -1,
+    }
+    expect(s({sort})).to.eql('order=foo:asc;bar:desc');
   });
 });
 
