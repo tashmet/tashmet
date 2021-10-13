@@ -2,14 +2,14 @@ import {SortingDirection} from '@ziqquratu/database';
 import {Param} from '../interfaces';
 import {singleParam} from "../query";
 
-export interface SingleParamSortConfig {
+export interface DelimitedSortConfig {
   param: string;
   asc: (key: string) => string;
   desc: (key: string) => string;
   separator: string;
 }
 
-const defaultConfig: SingleParamSortConfig = {
+const defaultConfig: DelimitedSortConfig = {
   param: 'sort', asc: k => k, desc: k => `-${k}`, separator: ',',
 }
 
@@ -32,13 +32,12 @@ const defaultConfig: SingleParamSortConfig = {
  * @param config Configuration options
  * @returns A parameter factory
  */
-export const singleParamSort = (config?: Partial<SingleParamSortConfig>) => {
+export const delimitedSort = (config?: Partial<DelimitedSortConfig>) => {
   const {param, asc, desc, separator} = Object.assign({}, defaultConfig, config);
 
-  return singleParam(q =>
-    new Param(param, Object.entries(q.sort || {})
-      .filter(([k, v ]) => v !== undefined)
-      .map(([k, v]) => v === SortingDirection.Ascending ? asc(k) : desc(k))
-      .join(separator))
+  return singleParam(q => new Param(param, Object.entries(q.sort || {})
+    .filter(([k, v ]) => v !== undefined)
+    .map(([k, v]) => v === SortingDirection.Ascending ? asc(k) : desc(k))
+    .join(separator))
   );
 }
