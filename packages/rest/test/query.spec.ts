@@ -4,7 +4,7 @@ import 'mocha';
 import {flatQuery} from '../src/query/flat';
 import {flatFilter, lhsBrackets, lhsColon, rhsColon} from '../src/query/filter';
 
-describe('serializeFilter', () => {
+describe('flatFilter', () => {
   it('should serialize using LHSBrackets', async () => {
     const s = flatFilter({format: lhsBrackets});
     const filter = {
@@ -74,11 +74,12 @@ describe('HttpQueryBuilder', () => {
         category: 1,
         datePublished: -1,
       },
+      projection: {foo: 1, bar: 1},
       skip: 10,
       limit: 10,
     }
     expect(qb.serialize(filter, options)).to.eql(
-      '/api/test?foo:gte=2&foo:lte=10&sort=category,-datePublished&skip=10&limit=10'
+      '/api/test?foo:gte=2&foo:lte=10&sort=category,-datePublished&projection=foo,bar&skip=10&limit=10'
     );
   });
 });
