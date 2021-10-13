@@ -14,7 +14,6 @@ export type QueryParamFactory = QueryConverter<string>
 
 export type QueryStringFactory = (path: string) => HttpQueryBuilder;
 
-
 export interface RestCollectionConfig {
   path: string;
 
@@ -32,5 +31,8 @@ export interface RestCollectionConfig {
    * @default window.fetch
    */
   fetch?: Fetch;
+
+  /** Additional headers */
+  headers?: Record<string, string>;
 }
 

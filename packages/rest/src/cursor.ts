@@ -11,6 +11,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
     private queryBuilder: HttpQueryBuilder,
     private fetch: Fetch,
+    private headers: Record<string, string> = {},
     selector: object = {},
     options: QueryOptions = {},
   ) {
@@ -35,6 +36,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   private query(filter?: Filter<T>, options?: QueryOptions, init?: RequestInit): Promise<Response> {
-    return this.fetch(this.queryBuilder.serialize(filter || {}, options || {}), init);
+    return this.fetch(this.queryBuilder.serialize(filter || {}, options || {}),
+      Object.assign({}, init, {headers: this.headers}));
   }
 }

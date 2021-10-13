@@ -49,7 +49,9 @@ export class RestCollection<T> extends AutoEventCollection<T> {
   }
 
   public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
-    return new RestCollectionCursor<T>(this.queryBuilder, this.fetch, filter, options);
+    return new RestCollectionCursor<T>(
+      this.queryBuilder, this.fetch, this.config.headers, filter, options
+    );
   }
 
   public async findOne(filter: Filter<T>): Promise<any> {
@@ -103,7 +105,8 @@ export class RestCollection<T> extends AutoEventCollection<T> {
 
   private async deleteOneById(id: string): Promise<void> {
     const resp = await this.fetch(this.config.path + '/' + id, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: this.makeHeaders(),
     });
     if (!resp.ok) {
       throw new Error(await this.errorMessage(resp));
@@ -122,15 +125,19 @@ export class RestCollection<T> extends AutoEventCollection<T> {
     const resp = await this.fetch(path, {
       body: JSON.stringify(doc),
       method,
-      headers: {
+      headers: this.makeHeaders({
         'content-type': 'application/json'
-      },
+      }),
     });
     if (resp.ok) {
       return resp.json();
     } else {
       throw new Error(await this.errorMessage(resp));
     }
+  }
+
+  private makeHeaders(headers?: Record<string, string>) {
+    return Object.assign({}, headers, this.config.headers);
   }
 
   private async errorMessage(resp: Response): Promise<string> {
