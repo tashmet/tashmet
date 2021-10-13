@@ -3,7 +3,7 @@ import {expect} from 'chai';
 import 'mocha';
 import {flatQuery} from '../src/query/flat';
 import {flatFilter, lhsBrackets, lhsColon, rhsColon, nestedFilter} from '../src/query/filter';
-import {delimitedSort} from '../src/query/sort';
+import {delimitedSort, nestedSort} from '../src/query/sort';
 import {delimitedProjection} from '../src/query/projection';
 
 describe('flatFilter', () => {
@@ -124,6 +124,32 @@ describe('delimitedSort', () => {
       bar: -1,
     }
     expect(s({sort})).to.eql('order=foo:asc;bar:desc');
+  });
+});
+
+describe('nestedSort', () => {
+  it('should serialize sort with default param', async () => {
+    const s = nestedSort();
+    const sort = {
+      foo: 1,
+      bar: -1,
+    }
+    expect(s({sort})).to.eql('sort[foo]=1&sort[bar]=-1');
+  });
+
+  it('should serialize sort with custom param', async () => {
+    const s = nestedSort('order');
+    const sort = {
+      foo: 1,
+      bar: -1,
+    }
+    expect(s({sort})).to.eql('order[foo]=1&order[bar]=-1');
+  });
+
+  it('should serialize to empty string with empty sort', async () => {
+    const s = nestedSort();
+    const sort = {}
+    expect(s({sort})).to.eql('');
   });
 });
 
