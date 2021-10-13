@@ -65,8 +65,28 @@ describe('flatFilter', () => {
 });
 
 describe('nestedFilter', () => {
-  it('should serialize', async () => {
+  it('should serialize filter with default root', async () => {
     const s = nestedFilter();
+    const filter = {
+      foo: {$eq: 2},
+    }
+    expect(s({filter})).to.eql('filter[foo][%24eq]=2');
+  });
+
+  it('should serialize filter with custom root', async () => {
+    const s = nestedFilter({
+      root: 'selector'
+    });
+    const filter = {
+      foo: {$eq: 2},
+    }
+    expect(s({filter})).to.eql('selector[foo][%24eq]=2');
+  });
+
+  it('should serialize filter without root', async () => {
+    const s = nestedFilter({
+      root: false,
+    });
     const filter = {
       'item.amount': {$gte: 2, $lte: 10},
     }

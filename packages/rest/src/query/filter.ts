@@ -43,9 +43,18 @@ export const flatFilter = (config: FlatFilterConfig) => {
   }
 }
 
+export interface NestedFilterConfig {
+  root: string | false;
+}
 
-export const nestedFilter = () => {
+const defaultNestedFilterConfig: NestedFilterConfig = {
+  root: 'filter',
+};
+
+export const nestedFilter = (config?: Partial<NestedFilterConfig>) => {
+  const {root} = Object.assign({}, defaultNestedFilterConfig, config);
+
   return (q: Query) => {
-    return qsStringify(q.filter);
+    return qsStringify(root ? {[root]: q.filter} : q.filter);
   }
 }
