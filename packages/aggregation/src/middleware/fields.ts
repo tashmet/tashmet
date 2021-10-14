@@ -1,4 +1,4 @@
-import {IOGate, io} from '@ziqquratu/pipe';
+import {IOGate, io} from '@tashmit/pipe';
 import {AggregationPipeFactory} from './pipe';
 
 export class SetPipeFactory extends AggregationPipeFactory {

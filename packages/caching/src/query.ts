@@ -1,4 +1,4 @@
-import {Filter, QueryOptions} from '@ziqquratu/database';
+import {Filter, QueryOptions} from '@tashmit/database';
 import {CacheEvaluator} from './evaluator';
 import {hashCode} from 'mingo/util';
 

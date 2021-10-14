@@ -1,5 +1,5 @@
-import {provider} from '@ziqquratu/core';
-import {Database, DocumentError} from '@ziqquratu/database';
+import {provider} from '@tashmit/core';
+import {Database, DocumentError} from '@tashmit/database';
 import {ValidationConfig} from './interfaces';
 import Ajv from 'ajv';
 

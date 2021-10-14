@@ -1,4 +1,4 @@
-import {Projection, SortingDirection} from "@ziqquratu/database";
+import {Projection, SortingDirection} from "@tashmit/database";
 import {stageDecorator} from "./pipeline";
 import {queryOpDecorator, RegexConfig} from "./query";
 

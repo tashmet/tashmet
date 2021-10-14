@@ -1,5 +1,5 @@
 {
-	"name": "@ziqquratu/schema",
+	"name": "@tashmit/schema",
 	"version": "1.3.3",
 	"description": "",
 	"main": "dist/index.js",
@@ -10,14 +10,14 @@
 		"test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
 	},
 	"keywords": [
-		"ziqquratu",
+		"tashmit",
 		"schema"
 	],
 	"author": "",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ziqquratu/ziqquratu"
+		"url": "https://github.com/tashmit/tashmit"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -29,9 +29,9 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@ziqquratu/core": "^1.0.2",
-		"@ziqquratu/database": "^1.3.1",
-		"@ziqquratu/pipe": "^1.3.2",
+		"@tashmit/core": "^1.0.2",
+		"@tashmit/database": "^1.3.1",
+		"@tashmit/pipe": "^1.3.2",
 		"ajv": "^6.12.0",
 		"mingo": "4.1.4"
 	},

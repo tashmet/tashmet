@@ -1,4 +1,4 @@
-import {classDecorator, FactoryProviderAnnotation, Newable} from '@ziqquratu/core';
+import {classDecorator, FactoryProviderAnnotation, Newable} from '@tashmit/core';
 import {TrackingFactory} from '../tracker';
 import {View} from '../view';
 

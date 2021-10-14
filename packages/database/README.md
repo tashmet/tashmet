@@ -1,9 +1,9 @@
 # Installation
 
 ```
-npm install @ziqquratu/database
+npm install @tashmit/database
 ```
 
 # Documentation
 
-See [https://ziqquratu.gitbook.io/ziqquratu/documentation/database](https://ziqquratu.gitbook.io/ziqquratu/documentation/database)
+See [https://tashmit.gitbook.io/tashmit/documentation/database](https://tashmit.gitbook.io/tashmit/documentation/database)

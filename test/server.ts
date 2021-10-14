@@ -3,13 +3,13 @@ import {
   component,
   Database,
   memory
-} from '../packages/ziqquratu/dist';
-import {resource, Server} from '../packages/tashmetu/dist';
+} from '../packages/tashmit/dist';
+import {resource, Server} from '../packages/server/dist';
 import operators from '../packages/operators/system';
 
 @component({
   dependencies: [
-    import('../packages/tashmetu/dist'),
+    import('../packages/server/dist'),
   ],
   providers: [
     Database.configuration({

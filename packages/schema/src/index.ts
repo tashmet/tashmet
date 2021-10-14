@@ -1,4 +1,4 @@
-import {component, Provider} from '@ziqquratu/core';
+import {component, Provider} from '@tashmit/core';
 import {AjvValidator} from './validator';
 import {ValidationConfig} from './interfaces';
 import {ValidationPipeFactory} from './pipe';

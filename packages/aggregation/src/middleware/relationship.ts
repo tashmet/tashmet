@@ -1,5 +1,5 @@
-import {Collection, Database} from '@ziqquratu/database';
-import {Pipe, PipeFactory, IOGate, io} from '@ziqquratu/pipe';
+import {Collection, Database} from '@tashmit/database';
+import {Pipe, PipeFactory, IOGate, io} from '@tashmit/pipe';
 import {AggregationPipeFactory} from './pipe';
 
 /** Configuration for relatinoship */
@@ -10,7 +10,7 @@ export interface RelationshipConfig {
   /**
    * The name of the field in this collection whose value should be used to
    * match documents in the foreign collection.
-   * 
+   *
    * Note that the value of the local field can not be an array, only
    * primitives are allowed.
    */
@@ -25,27 +25,27 @@ export interface RelationshipConfig {
   /**
    * The target field in the local collection where the matching documents
    * should be stored.
-   * 
+   *
    * If not set then 'localField' will be used instead.
    */
   as?: string;
 
   /**
    * Only link a single document.
-   * 
+   *
    * If set to true the result will be stored as a single document
    * (the first match), instead of an array of documents.
-   * 
+   *
    * @default false
    */
   single?: boolean;
 
   /**
    * Upsert linked documents on store.
-   * 
+   *
    * If set to true the linked documents from the foreign collection will be
    * upserted when a document in the local collection is stored.
-   * 
+   *
    * @default true
    */
   upsert?: boolean;

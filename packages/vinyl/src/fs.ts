@@ -1,6 +1,6 @@
-import {AsyncFactory} from '@ziqquratu/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@ziqquratu/nabu';
-import {Stream} from '@ziqquratu/stream';
+import {AsyncFactory} from '@tashmit/core';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/nabu';
+import {Stream} from '@tashmit/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
 import * as chokidar from 'chokidar';

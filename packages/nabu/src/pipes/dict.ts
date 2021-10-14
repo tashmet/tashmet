@@ -1,4 +1,4 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 import {omit} from 'lodash';
 
 export function toList<T>(): Pipe<Record<string, T>, T[]> {

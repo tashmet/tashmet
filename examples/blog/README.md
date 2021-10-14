@@ -6,14 +6,14 @@ can access the data.
 
 ## Documentation
 For a more in-depth explanation, refer to the documentation found here
-[https://ziqquratu.gitbook.io/ziqquratu/getting-started/examples/blog](https://ziqquratu.gitbook.io/ziqquratu/getting-started/examples/blog)
+[https://tashmit.gitbook.io/tashmit/getting-started/examples/blog](https://tashmit.gitbook.io/tashmit/getting-started/examples/blog)
 
 ## Instructions
 
 After cloning this repo, do the following:
 
 ```text
-cd ziqquratu/examples/blog
+cd tashmit/examples/blog
 npm install
 npm build
 ```

@@ -1,9 +1,9 @@
 # Installation
 
 ```
-npm install @ziqquratu/view
+npm install @tashmit/view
 ```
 
 # Documentation
 
-See [https://ziqquratu.gitbook.io/ziqquratu/documentation/views](https://ziqquratu.gitbook.io/ziqquratu/documentation/views)
+See [https://tashmit.gitbook.io/tashmit/documentation/views](https://tashmit.gitbook.io/tashmit/documentation/views)

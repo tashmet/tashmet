@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/socket
+npm install @tashmit/socket
 ```

@@ -9,7 +9,7 @@ import {
   Collection,
   Database,
   SortingDirection,
-} from '../../packages/ziqquratu/dist';
+} from '../../packages/tashmit/dist';
 import {rest} from '../../packages/rest/dist';
 import {socket} from '../../packages/socket/dist';
 import operators from '../../packages/operators/system';

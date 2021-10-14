@@ -1,8 +1,8 @@
 {
-  "name": "ziqquratu",
+  "name": "tashmit",
   "version": "1.1.0",
   "private": true,
-  "description": "Ziqquratu is an isomorphic publishing platform",
+  "description": "Tashmit is an isomorphic publishing platform",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna run build",

@@ -1,4 +1,4 @@
-import {bootstrap, component, memory, Database} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, memory, Database} from '@tashmit/tashmit';
 
 @component({
   inject: [Database],

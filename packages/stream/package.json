@@ -1,7 +1,7 @@
 {
-	"name": "@ziqquratu/stream",
+	"name": "@tashmit/stream",
 	"version": "0.2.0",
-	"description": "Ziqquratu node stream tools",
+	"description": "Tashmit node stream tools",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ziqquratu/ziqquratu"
+		"url": "https://github.com/tashmit/tashmit"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -23,9 +23,9 @@
 		"tslib": "^2.3.1"
 	},
 	"peerDependencies": {
-		"@ziqquratu/ziqquratu": "^1.4.0"
+		"@tashmit/tashmit": "^1.4.0"
 	},
 	"dependencies": {
-		"@ziqquratu/nabu": "^2.0.0"
+		"@tashmit/nabu": "^2.0.0"
 	}
 }

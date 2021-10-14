@@ -1,4 +1,4 @@
-import {bootstrap, component, provider, Provider} from '../../../packages/ziqquratu';
+import {bootstrap, component, provider, Provider} from '../../../packages/tashmit';
 import {expect} from 'chai';
 import 'mocha';
 

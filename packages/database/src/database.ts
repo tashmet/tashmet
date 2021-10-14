@@ -1,5 +1,5 @@
 import {OperatorType, useOperators} from "mingo/core";
-import {provider, Logger} from '@ziqquratu/core';
+import {provider, Logger} from '@tashmit/core';
 import {ManagedCollection} from './collections/managed';
 import {
   Collection,
@@ -14,8 +14,8 @@ import {
 @provider({
   key: Database,
   inject: [
-    'ziqquratu.DatabaseConfig',
-    'ziqquratu.DatabaseLogger',
+    'tashmit.DatabaseConfig',
+    'tashmit.DatabaseLogger',
   ]
 })
 export class DatabaseService extends Database {

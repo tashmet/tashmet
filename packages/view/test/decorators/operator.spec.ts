@@ -1,4 +1,4 @@
-import {SortingDirection} from '@ziqquratu/database';
+import {SortingDirection} from '@tashmit/database';
 import {expect} from 'chai';
 import 'mocha';
 import {ViewAggregator} from '../../src/aggregator';

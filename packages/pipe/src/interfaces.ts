@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@ziqquratu/core';
-import {Collection, Database} from '@ziqquratu/database';
+import {AsyncFactory} from '@tashmit/core';
+import {Collection, Database} from '@tashmit/database';
 
 export type PipeHook =
   'insertOneIn' |

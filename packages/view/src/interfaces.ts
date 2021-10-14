@@ -1,4 +1,4 @@
-import {Aggregator} from '@ziqquratu/database';
+import {Aggregator} from '@tashmit/database';
 
 
 export interface TrackerConfig {

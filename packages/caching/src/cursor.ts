@@ -5,7 +5,7 @@ import {
   applyQueryOptions,
   AbstractCursor,
   Filter
-} from '@ziqquratu/database';
+} from '@tashmit/database';
 import {CacheEvaluator, isCached} from './evaluator';
 
 export class CachingCursor extends AbstractCursor<any> {

@@ -1,6 +1,6 @@
-import {memory, Collection} from '@ziqquratu/database';
-import {DatabaseService} from '@ziqquratu/database/dist/database';
-import {DefaultLogger} from '@ziqquratu/core/dist/logging/logger';
+import {memory, Collection} from '@tashmit/database';
+import {DatabaseService} from '@tashmit/database/dist/database';
+import {DefaultLogger} from '@tashmit/core/dist/logging/logger';
 import {validation, ValidationPipeStrategy} from '../src/pipe';
 import 'mocha';
 import {expect} from 'chai';

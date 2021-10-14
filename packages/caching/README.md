@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/caching
+npm install @tashmit/caching
 ```

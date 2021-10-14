@@ -1,4 +1,4 @@
-import {propertyDecorator} from '@ziqquratu/core';
+import {propertyDecorator} from '@tashmit/core';
 import {ViewAggregatorAnnotation} from '../aggregator';
 
 export class StageAnnotation extends ViewAggregatorAnnotation {

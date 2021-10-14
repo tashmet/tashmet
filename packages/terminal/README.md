@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/terminal
+npm install @tashmit/terminal
 ```

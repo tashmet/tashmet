@@ -1,0 +1,39 @@
+{
+  "name": "@tashmit/tashmit",
+  "version": "1.4.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "test": "exit 0"
+  },
+  "keywords": [
+    "tashmit"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tashmit/tashmit"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@types/reflect-metadata": "^0.1.0",
+    "@tashmit/core": "^1.0.2",
+    "@tashmit/database": "^1.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.8"
+  },
+  "gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
+}

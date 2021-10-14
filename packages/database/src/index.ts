@@ -1,4 +1,4 @@
-import {component, Logger, Provider} from '@ziqquratu/core';
+import {component, Logger, Provider} from '@tashmit/core';
 
 export {AutoEventCollection} from './collections/autoEvent';
 export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
@@ -20,7 +20,7 @@ import {LoggingMiddlewareFactory} from './logging';
       operators: {},
     }),
     Provider.ofFactory<Logger>({
-      key: 'ziqquratu.DatabaseLogger',
+      key: 'tashmit.DatabaseLogger',
       inject: [Logger],
       create: (logger: Logger) => logger.inScope('database')
     })

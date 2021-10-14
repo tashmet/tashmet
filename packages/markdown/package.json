@@ -1,5 +1,5 @@
 {
-  "name": "@ziqquratu/markdown",
+  "name": "@tashmit/markdown",
   "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
@@ -10,14 +10,14 @@
     "test": "exit 0"
   },
   "keywords": [
-    "ziqquratu",
+    "tashmit",
     "markdown"
   ],
   "author": "",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ziqquratu/ziqquratu"
+    "url": "https://github.com/tashmit/tashmit"
   },
   "publishConfig": {
     "access": "public"
@@ -29,7 +29,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@ziqquratu/pipe": "^1.3.2",
+    "@tashmit/pipe": "^1.3.2",
     "showdown": "^1.9.1"
   },
   "devDependencies": {

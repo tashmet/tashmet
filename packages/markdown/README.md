@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/markdown
+npm install @tashmit/markdown
 ```

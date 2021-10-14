@@ -9,7 +9,7 @@ import {
   applyQueryOptions,
   QueryOptions,
   AggregationPipeline
-} from '@ziqquratu/database';
+} from '@tashmit/database';
 import mongo from 'mongodb';
 
 export class MongoDBCursor<T = any> implements Cursor<T> {

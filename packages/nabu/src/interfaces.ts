@@ -1,5 +1,5 @@
-import { AsyncFactory } from "@ziqquratu/core";
-import {IOGate, Pipe} from "@ziqquratu/pipe";
+import { AsyncFactory } from "@tashmit/core";
+import {IOGate, Pipe} from "@tashmit/pipe";
 import {Pipeline} from "./pipeline";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -54,7 +54,7 @@ export interface FileContentConfig<T, TStored = T> {
   /**
    * An optional pipe that can modify outgoing files (and their content)
    * before the content is serialized and written to the file system.
-   * 
+   *
    * This is a good opportunity to, for instance, remove run-time data that
    * does not need to be persisted.
    */
@@ -83,10 +83,10 @@ export interface FileStreamConfig<T> {
 export interface MultiFilesWithContentConfig<T, TStored> {
   /**
    * Strategy for reading and writing content
-   * 
+   *
    * When set to false, content will be an async generator that can be consumed
    * at a later point and when true the content will be read into a buffer.
-   * 
+   *
    * If the content should be parsed a configuration for how to do that can be
    * given instead.
    */

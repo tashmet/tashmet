@@ -1,6 +1,6 @@
 import {Collection as MongoCollection} from 'mongodb';
 import {MongoDBCollection} from './collection';
-import {CollectionFactory} from '@ziqquratu/database';
+import {CollectionFactory} from '@tashmit/database';
 
 export class MongoCollectionFactory<T> extends CollectionFactory<T> {
   public constructor(private collection: MongoCollection) {

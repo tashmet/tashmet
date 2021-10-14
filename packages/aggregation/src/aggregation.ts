@@ -3,7 +3,7 @@ import {
   CollectionFactory,
   MemoryCollection,
   Database
-} from '@ziqquratu/database';
+} from '@tashmit/database';
 
 const equal = require('fast-deep-equal/es6');
 

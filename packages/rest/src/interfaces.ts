@@ -1,4 +1,4 @@
-import {Collection, DatabaseEventEmitter, Query} from '@ziqquratu/database';
+import {Collection, DatabaseEventEmitter, Query} from '@tashmit/database';
 import {HttpQueryBuilder} from './query';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;

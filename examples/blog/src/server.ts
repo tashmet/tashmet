@@ -1,20 +1,20 @@
 import {
   bootstrap, component, logging, LogLevel, Database,
-} from '@ziqquratu/ziqquratu';
-import {caching} from '@ziqquratu/caching';
-import {yaml, directoryContent} from '@ziqquratu/nabu';
-import {resource, Server} from '@ziqquratu/tashmetu';
-import {terminal} from '@ziqquratu/terminal';
-import {validation, ValidationPipeStrategy} from '@ziqquratu/schema';
-import {vinylfs} from '@ziqquratu/vinyl';
-import operators from '@ziqquratu/operators/system';
+} from '@tashmit/tashmit';
+import {caching} from '@tashmit/caching';
+import {yaml, directoryContent} from '@tashmit/nabu';
+import {resource, Server} from '@tashmit/server';
+import {terminal} from '@tashmit/terminal';
+import {validation, ValidationPipeStrategy} from '@tashmit/schema';
+import {vinylfs} from '@tashmit/vinyl';
+import operators from '@tashmit/operators/system';
 
 @component({
   dependencies: [
-    import('@ziqquratu/nabu'),
-    import('@ziqquratu/tashmetu'),
-    import('@ziqquratu/schema'),
-    import('@ziqquratu/vinyl'),
+    import('@tashmit/nabu'),
+    import('@tashmit/server'),
+    import('@tashmit/schema'),
+    import('@tashmit/vinyl'),
   ],
   providers: [
     Database.configuration({

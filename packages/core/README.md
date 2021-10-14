@@ -1,9 +1,9 @@
 # Installation
 
 ```
-npm install @ziqquratu/core
+npm install @tashmit/core
 ```
 
 # Documentation
 
-See [https://ziqquratu.gitbook.io/ziqquratu/documentation/core](https://ziqquratu.gitbook.io/ziqquratu/documentation/core)
+See [https://tashmit.gitbook.io/tashmit/documentation/core](https://tashmit.gitbook.io/tashmit/documentation/core)

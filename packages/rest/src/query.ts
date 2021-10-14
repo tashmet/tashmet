@@ -1,4 +1,4 @@
-import {Query, QueryOptions} from '@ziqquratu/database';
+import {Query, QueryOptions} from '@tashmit/database';
 import {Param, QueryConverter, QueryParamFactory} from './interfaces';
 
 export type QuerySerializer = (query: Query) => string[];

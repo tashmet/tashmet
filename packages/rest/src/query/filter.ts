@@ -1,4 +1,4 @@
-import {Query} from '@ziqquratu/database';
+import {Query} from '@tashmit/database';
 import {Param} from '../interfaces';
 
 const qsStringify = require('qs-stringify');

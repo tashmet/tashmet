@@ -1,6 +1,6 @@
-import {AsyncFactory} from '@ziqquratu/core';
-import {Cursor} from '@ziqquratu/database';
-import {Pipe} from '@ziqquratu/pipe';
+import {AsyncFactory} from '@tashmit/core';
+import {Cursor} from '@tashmit/database';
+import {Pipe} from '@tashmit/pipe';
 import toArray from '@async-generators/to-array';
 import {File, FileAccess} from './interfaces';
 import {ParallelTransform, Transform} from './transform';
@@ -21,7 +21,7 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
 
   /**
    * Create a new pipeline that yields documents from a collection
-   * 
+   *
    * @param cursor A cursor, obtained by calling find() on a collection.
    */
   public static fromCursor<T>(cursor: Cursor<T>) {
@@ -38,9 +38,9 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
 
   /**
    * Create a new pipeline that yields files from a file system
-   * 
-   * @param path 
-   * @param protocol 
+   *
+   * @param path
+   * @param protocol
    */
   public static fromFiles(
     path: string | string[], protocol: AsyncFactory<FileAccess>
@@ -56,8 +56,8 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
 
   /**
    * Create a pipeline that yields a single chunk of data
-   * 
-   * @param data 
+   *
+   * @param data
    */
   public static fromOne<T>(data: T) {
     async function* generateOne() {
@@ -68,8 +68,8 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
 
   /**
    * Create a pipeline that yields items from a list
-   * 
-   * @param data 
+   *
+   * @param data
    */
   public static fromMany<T>(data: T[]) {
     async function* generateMany() {
@@ -82,8 +82,8 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
 
   /**
    * Create a new pipeline by appending a transform or a pipe to this one.
-   * 
-   * @param segment 
+   *
+   * @param segment
    */
   public pipe<Out>(segment: Transform<T, Out> | Pipe<T, Out>): Pipeline<Out> {
     if (!(segment instanceof Transform)) {
@@ -98,8 +98,8 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
 
   /**
    * Direct the pipeline to a writable sink that consumes its data
-   * 
-   * @param writable 
+   *
+   * @param writable
    */
   public sink<TSinkReturn>(writable: (gen: AsyncGenerator<T, TReturn, TNext>) => Promise<TSinkReturn>): Promise<TSinkReturn> {
     return writable(this);

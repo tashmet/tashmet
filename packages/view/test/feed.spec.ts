@@ -2,10 +2,10 @@ import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import {Collection, memory} from '@ziqquratu/database/src';
-import {DatabaseService} from '@ziqquratu/database/src/database';
-import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
-import operators from '@ziqquratu/operators/basic';
+import {Collection, memory} from '@tashmit/database/src';
+import {DatabaseService} from '@tashmit/database/src/database';
+import {DefaultLogger} from '@tashmit/core/src/logging/logger';
+import operators from '@tashmit/operators/basic';
 import {Feed} from '../dist/feed';
 import {TrackingFactory} from '../dist/tracker';
 

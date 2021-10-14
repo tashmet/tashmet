@@ -1,4 +1,4 @@
-import {SortingDirection} from '@ziqquratu/database';
+import {SortingDirection} from '@tashmit/database';
 import * as Op from '../../src/decorators/operator';
 import {ViewAggregator} from '../../src/aggregator';
 import {expect} from 'chai';

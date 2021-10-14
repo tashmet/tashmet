@@ -1,4 +1,4 @@
-import {Pipe, IOGate} from '@ziqquratu/pipe';
+import {Pipe, IOGate} from '@tashmit/pipe';
 import {Serializer} from './interfaces';
 import * as Pipes from './pipes';
 

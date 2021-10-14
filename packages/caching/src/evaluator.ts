@@ -1,4 +1,4 @@
-import {Filter, QueryOptions} from '@ziqquratu/database';
+import {Filter, QueryOptions} from '@tashmit/database';
 
 export abstract class CacheEvaluator {
   private records: Record<string, number> = {};

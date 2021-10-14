@@ -1,13 +1,13 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 import {SetPipeFactory, UnsetPipeFactory} from '../../src/middleware/fields';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {Collection} from '@ziqquratu/database/dist';
-import operators from '@ziqquratu/operators/system';
-import {DatabaseService} from '@ziqquratu/database/dist/database';
-import {DefaultLogger} from '@ziqquratu/core/dist/logging/logger';
+import {Collection} from '@tashmit/database/dist';
+import operators from '@tashmit/operators/system';
+import {DatabaseService} from '@tashmit/database/dist/database';
+import {DefaultLogger} from '@tashmit/core/dist/logging/logger';
 
 chai.use(chaiAsPromised);
 

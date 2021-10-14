@@ -1,4 +1,4 @@
-import {IOGate, Pipe} from '@ziqquratu/pipe';
+import {IOGate, Pipe} from '@tashmit/pipe';
 import {omit} from 'lodash';
 import {Disperser, FilterTransform, PipeTransform, Reducer} from '../transform';
 

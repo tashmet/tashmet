@@ -1,5 +1,5 @@
 {
-	"name": "@ziqquratu/terminal",
+	"name": "@tashmit/terminal",
 	"version": "1.0.2",
 	"description": "",
 	"main": "dist/index.js",
@@ -10,14 +10,14 @@
 		"test": "exit 0"
 	},
 	"keywords": [
-		"ziqquratu",
+		"tashmit",
 		"terminal"
 	],
 	"author": "",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ziqquratu/ziqquratu"
+		"url": "https://github.com/tashmit/tashmit"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -29,7 +29,7 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@ziqquratu/core": "^1.0.2",
+		"@tashmit/core": "^1.0.2",
 		"chalk": "^3.0.0"
 	},
 	"devDependencies": {

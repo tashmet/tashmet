@@ -14,7 +14,7 @@ import {
   Database,
   memory,
   SortingDirection,
-} from '../../packages/ziqquratu/dist';
+} from '../../packages/tashmit/dist';
 import ViewComponent, {Op} from '../../packages/view/dist';
 import operators from '../../packages/operators/basic';
 

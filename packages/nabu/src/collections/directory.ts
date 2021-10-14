@@ -1,4 +1,4 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 import * as nodePath from 'path';
 import {shards} from '../collections/shard';
 import {GlobStreamFactory, GlobContentStreamFactory} from '../collections/glob';
@@ -12,9 +12,9 @@ export interface DirectoryConfig<T> extends FileStreamConfig<T> {
 
   /**
    * Extension of the files.
-   * 
+   *
    * Should be provided without a dot, ie 'json' or 'yaml' etc. This both serves
-   * as a filter for incoming files, as well as a basis for determining the 
+   * as a filter for incoming files, as well as a basis for determining the
    * name of outgoing files if the content is extracted.
    */
   extension: string;
@@ -29,8 +29,8 @@ export type DirectoryContentConfig<T = any, TStored = T> =
 
 /**
  * A collection based on files in a directory on a file-system
- * 
- * @param config 
+ *
+ * @param config
  */
 export function directoryFiles<T = any, TStored = T>({path, extension, driver}: DirectoryFilesConfig<T, TStored>) {
   return shards<File<T>>({

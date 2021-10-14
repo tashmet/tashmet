@@ -1,4 +1,4 @@
-import {Filter} from '@ziqquratu/database';
+import {Filter} from '@tashmit/database';
 import {CacheEvaluator} from './evaluator';
 
 export class IDCache extends CacheEvaluator {

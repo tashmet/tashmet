@@ -1,6 +1,6 @@
 import {EventEmitter} from 'eventemitter3';
-import {Container, provider, Resolver} from '@ziqquratu/core';
-import {Aggregator, AggregationPipeline, Database, Selector} from '@ziqquratu/database';
+import {Container, provider, Resolver} from '@tashmit/core';
+import {Aggregator, AggregationPipeline, Database, Selector} from '@tashmit/database';
 import {Tracker, TrackerConfig} from './interfaces';
 
 

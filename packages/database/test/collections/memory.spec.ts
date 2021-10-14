@@ -1,5 +1,5 @@
-import {DefaultLogger} from '@ziqquratu/core/src/logging/logger';
-import operators from '@ziqquratu/operators/system';
+import {DefaultLogger} from '@tashmit/core/src/logging/logger';
+import operators from '@tashmit/operators/system';
 import {DatabaseService} from '../../src/database';
 import {MemoryCollection} from '../../src/collections/memory';
 import {expect} from 'chai';

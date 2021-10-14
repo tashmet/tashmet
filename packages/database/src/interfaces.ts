@@ -1,6 +1,6 @@
 import {EventEmitter} from 'eventemitter3';
-import {AsyncFactory, Provider} from '@ziqquratu/core';
-import {OperatorConfig} from '@ziqquratu/operators';
+import {AsyncFactory, Provider} from '@tashmit/core';
+import {OperatorConfig} from '@tashmit/operators';
 
 export type Document = Record<string, any>;
 
@@ -412,7 +412,7 @@ export interface DatabaseChange<T = any> {
  */
 export abstract class Database extends EventEmitter implements DatabaseEventEmitter {
   public static configuration(config: DatabaseConfig) {
-    return Provider.ofInstance<DatabaseConfig>('ziqquratu.DatabaseConfig', config);
+    return Provider.ofInstance<DatabaseConfig>('tashmit.DatabaseConfig', config);
   }
 
   /**

@@ -9,7 +9,7 @@ import {
   Database,
   QueryAggregator,
   AutoEventCollection,
-} from '@ziqquratu/database';
+} from '@tashmit/database';
 
 import {Fetch, RestCollectionConfig} from './interfaces';
 import {RestCollectionCursor} from './cursor';

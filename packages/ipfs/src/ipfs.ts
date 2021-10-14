@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@ziqquratu/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@ziqquratu/nabu';
+import {AsyncFactory} from '@tashmit/core';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/nabu';
 import path from 'path';
 import minimatch from 'minimatch';
 

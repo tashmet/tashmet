@@ -1,6 +1,6 @@
-import {Collection, Database, memory} from '@ziqquratu/database';
-import operators from '@ziqquratu/operators/system';
-import {DatabaseService} from '@ziqquratu/database/dist/database';
+import {Collection, Database, memory} from '@tashmit/database';
+import operators from '@tashmit/operators/system';
+import {DatabaseService} from '@tashmit/database/dist/database';
 import {DefaultLogger} from '../../../core/dist/logging/logger';
 import {JoinPipeFactory, SplitPipeFactory} from '../../src/middleware/relationship';
 import {expect} from 'chai';

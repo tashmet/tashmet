@@ -1,4 +1,4 @@
-import {Collection, DatabaseEventEmitter} from '@ziqquratu/database';
+import {Collection, DatabaseEventEmitter} from '@tashmit/database';
 import {EventEmitter} from 'eventemitter3';
 
 const io = require('socket.io-client');

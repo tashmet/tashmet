@@ -1,4 +1,4 @@
-import {Middleware, Collection, Database, Cursor, DocumentError} from '@ziqquratu/database';
+import {Middleware, Collection, Database, Cursor, DocumentError} from '@tashmit/database';
 import {Pipe, PipeHook, PipeConfig, PipeFactory, identityPipe} from './interfaces';
 import {allSettled} from './allSettled';
 

@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@ziqquratu/core';
-import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
+import {AsyncFactory} from '@tashmit/core';
+import {Collection, CollectionFactory, Database, MemoryCollection} from '@tashmit/database';
 import {BufferCollection} from './buffer';
 import {Pipeline} from '../pipeline';
 
@@ -8,7 +8,7 @@ export interface ShardStreamConfig<T> {
    * Input/Output stream
    */
   seed?: Pipeline<T>;
-  
+
   input?: Pipeline<T>;
 
   inputDelete?: Pipeline<Partial<T>>;

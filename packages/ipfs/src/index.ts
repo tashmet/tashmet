@@ -1,4 +1,4 @@
-import {component, Logger, Provider} from '@ziqquratu/core';
+import {component, Logger, Provider} from '@tashmit/core';
 import {IPFSServiceFactory} from './ipfs';
 
 const createClient = require('ipfs-http-client')

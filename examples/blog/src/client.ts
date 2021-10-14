@@ -1,7 +1,7 @@
-import {bootstrap, component, Database} from '@ziqquratu/ziqquratu';
-import {caching} from '@ziqquratu/caching';
-import {rest} from '@ziqquratu/rest';
-import operators from '@ziqquratu/operators/basic';
+import {bootstrap, component, Database} from '@tashmit/tashmit';
+import {caching} from '@tashmit/caching';
+import {rest} from '@tashmit/rest';
+import operators from '@tashmit/operators/basic';
 
 @component({
   providers: [

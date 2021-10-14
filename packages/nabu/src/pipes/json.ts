@@ -1,10 +1,10 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 
 export type JsonEncoding = 'utf-8' | 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'ucs-2' | 'base64' | 'latin1' | 'binary' | 'hex' | undefined;
 
 /**
- * JSON parsing pipe 
- * 
+ * JSON parsing pipe
+ *
  * @param buffer Buffer containing raw JSON data
  */
 export function fromJson(encoding?: JsonEncoding): Pipe<Buffer, any> {
@@ -12,8 +12,8 @@ export function fromJson(encoding?: JsonEncoding): Pipe<Buffer, any> {
 }
 
 /**
- * JSON serialization pipe 
- * 
+ * JSON serialization pipe
+ *
  * @param obj JSON
  */
 export function toJson(encoding?: JsonEncoding): Pipe<any, Buffer> {

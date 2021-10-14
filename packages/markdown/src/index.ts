@@ -1,12 +1,12 @@
 import * as showdown from 'showdown';
-import {io, IOGate} from '@ziqquratu/pipe';
+import {io, IOGate} from '@tashmit/pipe';
 
 class MarkdownConverter implements IOGate {
   public constructor(
     private converter: showdown.Converter,
     private keys: string[]
   ) {}
-  
+
   public async input(doc: any): Promise<any> {
     return this.convert(doc, html => this.converter.makeMarkdown(html));
   }

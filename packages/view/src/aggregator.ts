@@ -1,5 +1,5 @@
-import {Annotation} from '@ziqquratu/core';
-import {Aggregator, AggregationPipeline} from '@ziqquratu/database';
+import {Annotation} from '@tashmit/core';
+import {Aggregator, AggregationPipeline} from '@tashmit/database';
 import {merge} from 'mingo/util';
 
 

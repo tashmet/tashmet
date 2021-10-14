@@ -6,7 +6,7 @@ import {
   ReplaceOneOptions,
   QueryOptions,
   AggregationPipeline
-} from '@ziqquratu/database';
+} from '@tashmit/database';
 
 export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
   public constructor(

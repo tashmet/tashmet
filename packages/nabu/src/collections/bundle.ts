@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@ziqquratu/core';
-import {Collection, CollectionFactory, Database, MemoryCollection} from '@ziqquratu/database';
+import {AsyncFactory} from '@tashmit/core';
+import {Collection, CollectionFactory, Database, MemoryCollection} from '@tashmit/database';
 import {difference, intersection, isEqual} from 'lodash';
 import {BufferCollection} from './buffer';
 import {Pipeline} from '../pipeline';

@@ -42,10 +42,10 @@ export async function bootstrap<T>(
   logger.inScope('bootstrap').info(`component '${component.name}'`);
 
   container.register(Provider.ofInstance(Container, container));
-  container.register(Provider.ofInstance('ziqquratu.LoggerConfig', loggerConfig));
+  container.register(Provider.ofInstance('tashmit.LoggerConfig', loggerConfig));
   container.register(Provider.ofFactory({
     key: Logger,
-    inject: ['ziqquratu.LoggerConfig'],
+    inject: ['tashmit.LoggerConfig'],
     create: (config: LoggerConfig) => DefaultLogger.fromConfig(config)
   }));
 

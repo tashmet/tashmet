@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/pipe
+npm install @tashmit/pipe
 ```

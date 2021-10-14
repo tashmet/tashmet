@@ -1,12 +1,12 @@
-# Ziqquratu
+# Tashmit
 
-This is the Ziqquratu mono-repo, containing code, tests and documentation for
-the Ziqquratu publishing framework. To get started head over to the
-[user documentation](https://ziqquratu.gitbook.io/).
+This is the Tashmit mono-repo, containing code, tests and documentation for
+the Tashmit publishing framework. To get started head over to the
+[user documentation](https://tashmit.gitbook.io/).
 
 ## Introduction
 
-Ziqquratu is a lightweight open-source database abstraction written in
+Tashmit is a lightweight open-source database abstraction written in
 typescript with the purpose of making it easy to access data from various
 sources in a uniform way.
 
@@ -19,12 +19,12 @@ currently supported sources.
 
 ### MongoDB
 
-Natually the popular database is supported as a backend. The Ziqquratu
+Natually the popular database is supported as a backend. The Tashmit
 collection interface is basically a subset of the MongoDB collection.
 
 ### REST
 
-Why not interface with a RESTful API like it was MongoDB database? Ziqquratu
+Why not interface with a RESTful API like it was MongoDB database? Tashmit
 in a way makes it possible to leverage the power of MongoDB in a client-side
 application.
 
@@ -32,13 +32,13 @@ application.
 
 An in-memory collection allows us to store documents in a volatile way which
 is useful for things like caching. To support the MongoDB query language in
-this setting, Ziqquratu internally uses [mingo](https://github.com/kofrasa/mingo).
+this setting, Tashmit internally uses [mingo](https://github.com/kofrasa/mingo).
 
 ### Files on a file system
 
 Using streams in combination with an in-memory buffer allows for reading
-and writing documents on the file system. There is currently support for 
-working with locally stored documents using vinyl-streams, as well as 
+and writing documents on the file system. There is currently support for
+working with locally stored documents using vinyl-streams, as well as
 remote documents stored on the IPFS (The InterPlanetary File System).
 
 ## Modularity

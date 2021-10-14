@@ -1,4 +1,4 @@
-import {QueryOptions} from '@ziqquratu/database';
+import {QueryOptions} from '@tashmit/database';
 import {expect} from 'chai';
 import 'mocha';
 import {flatQuery} from '../src/query/flat';

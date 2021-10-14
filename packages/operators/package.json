@@ -1,16 +1,16 @@
 {
-	"name": "@ziqquratu/operators",
+	"name": "@tashmit/operators",
 	"version": "0.1.0",
 	"description": "operator presets",
 	"keywords": [
-		"ziqquratu",
+		"tashmit",
 		"operators"
 	],
 	"author": "",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ziqquratu/ziqquratu"
+		"url": "https://github.com/tashmit/tashmit"
 	},
 	"publishConfig": {
 		"access": "public"

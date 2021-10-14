@@ -1,5 +1,5 @@
 {
-	"name": "@ziqquratu/view",
+	"name": "@tashmit/view",
 	"version": "1.2.3",
 	"description": "",
 	"main": "dist/index.js",
@@ -10,14 +10,14 @@
 		"test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
 	},
 	"keywords": [
-		"ziqquratu",
+		"tashmit",
 		"view"
 	],
 	"author": "",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ziqquratu/ziqquratu"
+		"url": "https://github.com/tashmit/tashmit"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -30,7 +30,7 @@
 	],
 	"devDependencies": {
 		"@types/node": "^13.1.8",
-		"@ziqquratu/operators": "^0.1.0",
+		"@tashmit/operators": "^0.1.0",
 		"tslib": "^2.3.1"
 	},
 	"peerDependencies": {
@@ -39,7 +39,7 @@
 	},
 	"gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b",
 	"dependencies": {
-		"@ziqquratu/core": "^1.0.2",
-		"@ziqquratu/database": "^1.3.1"
+		"@tashmit/core": "^1.0.2",
+		"@tashmit/database": "^1.3.1"
 	}
 }

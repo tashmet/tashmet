@@ -1,7 +1,7 @@
 {
-  "name": "@ziqquratu/nabu",
+  "name": "@tashmit/nabu",
   "version": "2.0.0",
-  "description": "Ziqquratu file system persistence",
+  "description": "Tashmit file system persistence",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",
@@ -13,14 +13,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ziqquratu/ziqquratu"
+    "url": "https://github.com/tashmit/tashmit"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@async-generators/to-array": "^0.1.0",
-    "@ziqquratu/pipe": "^1.3.2",
+    "@tashmit/pipe": "^1.3.2",
     "eventemitter3": "^3.0.0",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
@@ -32,13 +32,13 @@
     "@types/js-yaml": "^3.12.1",
     "@types/lodash": "^4.14.149",
     "@types/minimatch": "^3.0.3",
-    "@ziqquratu/core": "^1.0.2",
-    "@ziqquratu/database": "^1.3.1",
-    "@ziqquratu/ziqquratu": "^1.4.0",
+    "@tashmit/core": "^1.0.2",
+    "@tashmit/database": "^1.3.1",
+    "@tashmit/tashmit": "^1.4.0",
     "dedent": "^0.7.0",
     "mock-fs": "^4.10.4"
   },
   "peerDependencies": {
-    "@ziqquratu/ziqquratu": "^1.1.2"
+    "@tashmit/tashmit": "^1.1.2"
   }
 }

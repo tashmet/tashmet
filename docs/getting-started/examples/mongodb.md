@@ -9,17 +9,17 @@ We can interface with MongoDB collections by wrapping them using this module.
 ## Installation
 
 ```text
-$ npm install @ziqquratu/mongodb
+$ npm install @tashmit/mongodb
 ```
 
 ## Usage
 
-Given a MongoDB collection we can easily create a Ziqquratu collection from it.
+Given a MongoDB collection we can easily create a Tashmit collection from it.
 
 ```typescript
 import {Collection as MongoCollection} from 'mongodb';
-import {bootstrap, component, Database} from '@ziqquratu/ziqquratu';
-import {mongodb} from '@ziqquratu/mongodb';
+import {bootstrap, component, Database} from '@tashmit/tashmit';
+import {mongodb} from '@tashmit/mongodb';
 
 let mongoCollection: MongoCollection;
 // Connect to mongo db and set up the collection here

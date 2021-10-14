@@ -1,4 +1,4 @@
-import {Collection, Database, MemoryCollection, Middleware, MiddlewareFactory, QueryAggregator} from '@ziqquratu/database';
+import {Collection, Database, MemoryCollection, Middleware, MiddlewareFactory, QueryAggregator} from '@tashmit/database';
 import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
 import {IDCache} from './id';

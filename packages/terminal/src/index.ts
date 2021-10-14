@@ -1,4 +1,4 @@
-import {ScopeLogFormatter, LogLevel} from '@ziqquratu/core';
+import {ScopeLogFormatter, LogLevel} from '@tashmit/core';
 import chalk from 'chalk';
 
 export class ColoredScopeFormatter extends ScopeLogFormatter {

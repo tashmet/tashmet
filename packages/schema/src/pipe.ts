@@ -1,4 +1,4 @@
-import {Pipe, PipeFactory, eachDocument, PipeHook, PipeFilterHook} from '@ziqquratu/pipe';
+import {Pipe, PipeFactory, eachDocument, PipeHook, PipeFilterHook} from '@tashmit/pipe';
 import {Validator} from './interfaces';
 import {Query as MingoQuery} from 'mingo/query';
 

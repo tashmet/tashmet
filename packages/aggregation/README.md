@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/aggregation
+npm install @tashmit/aggregation
 ```

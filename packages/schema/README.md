@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/schema
+npm install @tashmit/schema
 ```

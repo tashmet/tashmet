@@ -1,9 +1,9 @@
-import {Logger} from '@ziqquratu/core';
+import {Logger} from '@tashmit/core';
 import {MiddlewareFactory, Collection} from './interfaces';
 
 export class LoggingMiddlewareFactory extends MiddlewareFactory {
   public constructor() {
-    super('ziqquratu.DatabaseLogger');
+    super('tashmit.DatabaseLogger');
   }
 
   public create(source: Collection) {

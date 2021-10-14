@@ -2,7 +2,7 @@ import {
   AbstractCursor,
   Filter,
   QueryOptions,
-} from '@ziqquratu/database';
+} from '@tashmit/database';
 import {Fetch} from './interfaces';
 import {HttpQueryBuilder} from './query';
 

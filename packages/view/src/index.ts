@@ -1,4 +1,4 @@
-import {component} from '@ziqquratu/core';
+import {component} from '@tashmit/core';
 import {TrackingFactory} from './tracker';
 import * as Op from './decorators/operator';
 

@@ -11,7 +11,7 @@ import {
   Database,
   memory,
   DocumentError,
-} from '../../packages/ziqquratu/dist';
+} from '../../packages/tashmit/dist';
 import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);

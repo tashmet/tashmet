@@ -1,5 +1,5 @@
-import {aggregate, AggregationPipeline, Collection, Database} from '@ziqquratu/database';
-import {Pipe, PipeFactory} from '@ziqquratu/pipe';
+import {aggregate, AggregationPipeline, Collection, Database} from '@tashmit/database';
+import {Pipe, PipeFactory} from '@tashmit/pipe';
 
 export class AggregationPipeFactory extends PipeFactory {
   public constructor(private pipeline: AggregationPipeline = []) {

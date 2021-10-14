@@ -1,6 +1,7 @@
-import {bootstrap, component, Collection, Database} from '@ziqquratu/ziqquratu';
-import {file, json} from '@ziqquratu/nabu';
-import operators from '@ziqquratu/operators/system';
+import {bootstrap, component} from '@tashmit/core';
+import {Collection, Database} from '@tashmit/database';
+import {file, json} from '@tashmit/nabu';
+import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -22,7 +23,10 @@ function storedKeys() {
 
 describe('file', () => {
   @component({
-    dependencies: [import('../../src')],
+    dependencies: [
+      import('../../src'),
+      import('@tashmit/database'),
+    ],
     providers: [
       Database.configuration({
         collections: {

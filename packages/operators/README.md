@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @ziqquratu/operators
+npm install @tashmit/operators
 ```

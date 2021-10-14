@@ -1,4 +1,4 @@
-import {component, Logger, Provider} from '@ziqquratu/core';
+import {component, Logger, Provider} from '@tashmit/core';
 import {ShardBufferFactory} from './collections/shard';
 import {BundleBufferFactory} from './collections/bundle';
 

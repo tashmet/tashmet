@@ -1,4 +1,4 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 import {omit} from 'lodash';
 
 import jsYaml = require('js-yaml');
@@ -109,8 +109,8 @@ const defaultOptions: YamlConfig = {
 };
 
 /**
- * YAML parsing pipe 
- * 
+ * YAML parsing pipe
+ *
  * @param buffer Buffer containing raw YAML data
  */
 export const fromYaml: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
@@ -135,8 +135,8 @@ export const fromYaml: (config?: YamlConfig) => Pipe<Buffer, any> = config => {
 }
 
 /**
- * YAML parsing pipe 
- * 
+ * YAML parsing pipe
+ *
  * @param buffer Buffer containing raw YAML data
  */
 export const toYaml: (config?: YamlConfig) => Pipe<any, Buffer> = config => {

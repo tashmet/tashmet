@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@ziqquratu/core';
-import {Pipe} from '@ziqquratu/pipe';
+import {AsyncFactory} from '@tashmit/core';
+import {Pipe} from '@tashmit/pipe';
 import toArray from '@async-generators/to-array';
 import {File, FileAccess, PipelineSink, Serializer} from '../interfaces';
 import {input, onKey, output} from './common';

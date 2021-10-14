@@ -1,4 +1,4 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 
 export abstract class Transform<In = any, Out = In> {
   public abstract apply(gen: AsyncGenerator<In>): AsyncGenerator<Out>;

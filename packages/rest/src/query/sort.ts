@@ -1,4 +1,4 @@
-import {Query, SortingDirection} from '@ziqquratu/database';
+import {Query, SortingDirection} from '@tashmit/database';
 import {Param} from '../interfaces';
 import {singleParam} from "../query";
 

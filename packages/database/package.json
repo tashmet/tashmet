@@ -1,5 +1,5 @@
 {
-	"name": "@ziqquratu/database",
+	"name": "@tashmit/database",
 	"version": "1.3.1",
 	"description": "",
 	"main": "dist/index.js",
@@ -10,14 +10,14 @@
 		"test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
 	},
 	"keywords": [
-		"ziqquratu",
+		"tashmit",
 		"database"
 	],
 	"author": "Björn Andersson",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ziqquratu/ziqquratu"
+		"url": "https://github.com/tashmit/tashmit"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -29,8 +29,8 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@ziqquratu/core": "^1.0.2",
-		"@ziqquratu/operators": "^0.1.0",
+		"@tashmit/core": "^1.0.2",
+		"@tashmit/operators": "^0.1.0",
 		"bson-objectid": "^1.3.0",
 		"eventemitter3": "^3.0.0",
 		"mingo": "4.1.4"

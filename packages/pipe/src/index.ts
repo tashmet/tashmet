@@ -1,4 +1,4 @@
-import {Middleware, MiddlewareFactory, Collection, Database} from '@ziqquratu/database';
+import {Middleware, MiddlewareFactory, Collection, Database} from '@tashmit/database';
 import {Pipe, PipeHook, PipeFactory, PipeFilterHook, PipeConfig} from './interfaces';
 import {PipeFittingFactory} from './fittings';
 
@@ -28,7 +28,7 @@ export interface EachDocumentConfig {
 
   /**
    * Filter successful documents
-   * 
+   *
    * When set to true the pipe will act as a filter, only forwarding documents
    * that were successfully processed. If the pipe resolves with an error the
    * document is skipped and a document-error event is emitted from the collection.
@@ -58,7 +58,7 @@ export interface IOGate<T = Pipe | PipeFactory> {
 
 /**
  * Middleware for processing incoming and outgoing documents separately
- * 
+ *
  * @param gate The gate containg the pipes
  */
 export const io = (gate: IOGate) => {

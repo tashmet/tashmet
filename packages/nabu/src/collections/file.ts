@@ -1,4 +1,4 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
 import {FileStreamConfig, ReadableFile, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
@@ -17,10 +17,10 @@ export interface FileConfig<T extends object, TStored = T> extends FileStreamCon
 
   /**
    * Stream the collection as a dictionary instead of a list
-   * 
+   *
    * If set the collection will be streamed as a dictionary with keys
    * being the IDs of each document.
-   * 
+   *
    * @default false
    */
   dictionary?: boolean;

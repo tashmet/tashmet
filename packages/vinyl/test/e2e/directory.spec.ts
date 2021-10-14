@@ -1,7 +1,7 @@
-import {bootstrap, component} from '@ziqquratu/ziqquratu';
-import {Collection, Database} from '@ziqquratu/database';
-import {directoryContent, json} from '@ziqquratu/nabu';
-import operators from '@ziqquratu/operators/system';
+import {bootstrap, component} from '@tashmit/core';
+import {Collection, Database} from '@tashmit/database';
+import {directoryContent, json} from '@tashmit/nabu';
+import operators from '@tashmit/operators/system';
 import {vinylfs} from '../../dist';
 import {expect} from 'chai';
 import 'mocha';
@@ -23,7 +23,10 @@ function storedFiles(): string[] {
 
 describe('directory', () => {
   @component({
-    dependencies: [import('../../dist')],
+    dependencies: [
+      import('@tashmit/database'),
+      import('../../dist'),
+    ],
     providers: [
       Database.configuration({
         collections: {

@@ -1,4 +1,4 @@
-import {Pipe} from '@ziqquratu/pipe';
+import {Pipe} from '@tashmit/pipe';
 import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
 import {File, ReadableFile, FileContentConfig, MultiFilesWithContentConfig, FileStreamConfig, ExtractedFileContentConfig} from '../interfaces'
 import * as Pipes from '../pipes';

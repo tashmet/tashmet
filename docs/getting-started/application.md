@@ -5,7 +5,7 @@
 In your project, use npm to install the package.
 
 ```text
-$ npm install @ziqquratu/ziqquratu
+$ npm install @tashmit/tashmit
 ```
 
 ## Your first application
@@ -13,7 +13,7 @@ $ npm install @ziqquratu/ziqquratu
 In the following example we will set up a an application, create a collection and insert a document into it.
 
 ```typescript
-import {bootstrap, component, memory, Database} from '@ziqquratu/ziqquratu';
+import {bootstrap, component, memory, Database} from '@tashmit/tashmit';
 
 @component({
   inject: [Database],
@@ -34,5 +34,5 @@ export class Application {
 bootstrap(Application).then(app => app.run());
 ```
 
-The application is defined as a [component](../ziqquratu/core/ioc/components.md). When we bootstrap it the database is injected into its constructor and we can use it to create a collection and insert a document.
+The application is defined as a [component](../tashmit/core/ioc/components.md). When we bootstrap it the database is injected into its constructor and we can use it to create a collection and insert a document.
 
