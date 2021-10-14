@@ -33,8 +33,8 @@
   * [Filtering](tashmit/views/filtering.md)
   * [Sorting](tashmit/views/sorting.md)
 * [Markdown](tashmit/markdown.md)
-* [Nabu](tashmit/nabu/README.md)
-  * [IPFS](tashmit/nabu/ipfs.md)
-  * [Vinyl](tashmit/nabu/vinyl.md)
+* [File](tashmit/file/README.md)
+  * [IPFS](tashmit/file/ipfs.md)
+  * [Vinyl](tashmit/file/vinyl.md)
 * [Server](tashmit/server.md)
 

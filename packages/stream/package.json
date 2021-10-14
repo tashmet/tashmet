@@ -26,6 +26,6 @@
 		"@tashmit/tashmit": "^1.4.0"
 	},
 	"dependencies": {
-		"@tashmit/nabu": "^2.0.0"
+		"@tashmit/file": "^2.0.0"
 	}
 }

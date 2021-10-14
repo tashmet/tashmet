@@ -1,5 +1,5 @@
 import {Pipe} from '@tashmit/pipe';
-import {File} from '@tashmit/nabu';
+import {File} from '@tashmit/file';
 import {Stream} from '@tashmit/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';

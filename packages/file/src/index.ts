@@ -16,9 +16,9 @@ export * as Pipes from './pipes';
 @component({
   providers: [
     Provider.ofFactory({
-      key: 'nabu.Logger',
+      key: 'file.Logger',
       inject: [Logger],
-      create: (logger: Logger) => logger.inScope('nabu')
+      create: (logger: Logger) => logger.inScope('file')
     }),
   ],
   factories: [
@@ -26,4 +26,4 @@ export * as Pipes from './pipes';
     ShardBufferFactory,
   ]
 })
-export default class Nabu {}
+export default class File {}

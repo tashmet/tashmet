@@ -1,6 +1,6 @@
 import {bootstrap, component} from '@tashmit/core';
 import {Collection, Database} from '@tashmit/database';
-import {file, json} from '@tashmit/nabu';
+import {file, json} from '@tashmit/file';
 import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
 import 'mocha';

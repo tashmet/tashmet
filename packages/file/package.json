@@ -1,5 +1,5 @@
 {
-  "name": "@tashmit/nabu",
+  "name": "@tashmit/file",
   "version": "2.0.0",
   "description": "Tashmit file system persistence",
   "scripts": {

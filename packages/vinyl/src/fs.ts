@@ -1,5 +1,5 @@
 import {AsyncFactory} from '@tashmit/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/nabu';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
 import {Stream} from '@tashmit/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';

@@ -80,7 +80,7 @@ Stored queries and views monitoring subsets of documents in a collection.
 
 These are packages that provide additional server-side functionality.
 
-#### [Nabu](tashmit/nabu/)
+#### [File](tashmit/file/)
 
 A set of tools for reading and writing content on disk. It allows us to store collections in files with support for common formats like JSON, YAML and Markdown.
 

@@ -2,16 +2,16 @@
 description: Reading and writing content stored on disk
 ---
 
-# Nabu
+# File
 
 ## Introduction
 
-Nabu is a set of tools for reading and writing Tashmit content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown.
+File is a set of tools for reading and writing Tashmit content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown.
 
 ### Installation
 
 ```text
-$ npm install @tashmit/nabu
+$ npm install @tashmit/file
 ```
 
 ### Usage
@@ -21,10 +21,10 @@ The package exports a component that should be imported as a dependency in your 
 ```typescript
 @component({
   dependencies: [
-    import('@tashmit/nabu')
+    import('@tashmit/file')
   ],
   providers: [
-    Provider.ofInstance<FileSystemConfig>('nabu.FileSystemConfig', {
+    Provider.ofInstance<FileSystemConfig>('file.FileSystemConfig', {
       watch: true
     })
   ]
@@ -55,7 +55,7 @@ The function takes two arguments, a path to the file and a [serializer]() used f
 
 The collection will be populated and and cached in memory as soon as it is created and can be queried like any other collection.
 
-If Nabu was configured to watch for file changes, events will be triggered whenever a user edits the file, adding, removing or updating a document.
+If File was configured to watch for file changes, events will be triggered whenever a user edits the file, adding, removing or updating a document.
 
 ### Directory
 
@@ -84,7 +84,7 @@ In the example above we create a collection of posts written in markdown with YA
 
 The collection will be populated and cached in memory as soon as it is created and can be queried like any other collection.
 
-If Nabu was configured to watch for file changes, events will be triggered whenever a user adds, removes or edits a document in this directory.
+If File was configured to watch for file changes, events will be triggered whenever a user adds, removes or edits a document in this directory.
 
 ## Serializers
 

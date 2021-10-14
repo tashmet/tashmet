@@ -1,5 +1,5 @@
 import {AsyncFactory} from '@tashmit/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/nabu';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
 import path from 'path';
 import minimatch from 'minimatch';
 
