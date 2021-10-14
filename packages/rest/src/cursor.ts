@@ -27,7 +27,8 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   public async count(applySkipLimit = true): Promise<number> {
-    const resp = await this.query(this.filter, applySkipLimit ? this.options : {}, {method: 'HEAD'});
+    const options = applySkipLimit ? this.options : {};
+    const resp = await this.query(this.filter, options, {method: 'HEAD'});
     const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
       throw new Error('failed to get "x-total-count" header');
@@ -36,7 +37,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   private query(filter?: Filter<T>, options?: QueryOptions, init?: RequestInit): Promise<Response> {
-    return this.fetch(this.queryBuilder.serialize(filter || {}, options || {}),
+    return this.fetch(this.queryBuilder.serialize(filter, options),
       Object.assign({}, init, {headers: this.headers}));
   }
 }
