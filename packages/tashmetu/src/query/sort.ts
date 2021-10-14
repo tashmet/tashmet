@@ -1,5 +1,5 @@
 import {SortingMap} from '@ziqquratu/ziqquratu';
-import {parseQs} from '../query';
+import {parseQs} from './common';
 
 export interface NestedSortConfig {
   param: string;
