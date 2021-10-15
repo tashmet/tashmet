@@ -1,5 +1,14 @@
 import 'reflect-metadata';
-import {MethodDecoratorConfig, Newable, ParameterDecoratorConfig, PropertyDecoratorConfig} from './interfaces';
+import {
+  ClassDecorator,
+  MethodDecorator,
+  MethodDecoratorConfig,
+  Newable,
+  ParameterDecorator,
+  ParameterDecoratorConfig,
+  PropertyDecorator,
+  PropertyDecoratorConfig
+} from './interfaces';
 
 function decorate(target: object, annotation: any) {
   const annotations = Reflect.getOwnMetadata('annotations', target) || [];
@@ -27,7 +36,9 @@ function decorateParameter(
   Reflect.defineMetadata('parameters', parameters, target, propertyKey);
 }
 
-export function classDecorator<T>(factory: (target: Newable<any>) => any) {
+export function classDecorator<T>(
+  factory: (target: Newable<any>) => any
+): ClassDecorator<T> {
   return function Decorator<C extends Newable<T>>(target: C): C {
     decorate(target, factory(target));
     return target;
@@ -36,30 +47,24 @@ export function classDecorator<T>(factory: (target: Newable<any>) => any) {
 
 export function methodDecorator<T = any>(
   factory: (config: MethodDecoratorConfig) => any
-) {
-  return function Decorator<K extends string, C extends Record<K, T>>(
-    target: C, propertyKey: K, descriptor: PropertyDescriptor
-  ) {
+): MethodDecorator<T> {
+  return (target, propertyKey, descriptor) =>
     decorateProperty(target, propertyKey, factory({target, propertyKey, descriptor}));
-  };
 }
+
 
 export function propertyDecorator<T = any>(
   factory: (config: PropertyDecoratorConfig) => any
-) {
-  return function Decorator<K extends string, C extends Record<K, T>>(
-    target: C, propertyKey: K
-  ) {
+): PropertyDecorator<T> {
+  return (target, propertyKey) =>
     decorateProperty(target, propertyKey, factory({target, propertyKey}));
-  };
 }
 
 export function parameterDecorator(
   factory: (config: ParameterDecoratorConfig) => any
-) {
-  return function Decorator(target: any, propertyKey: string, parameterIndex: number) {
-    decorateParameter(
-      target, propertyKey, parameterIndex, factory({target, propertyKey, parameterIndex})
+): ParameterDecorator {
+  return (target: any, propertyKey: string, parameterIndex: number) =>
+    decorateParameter(target, propertyKey, parameterIndex,
+      factory({target, propertyKey, parameterIndex})
     );
-  };
 }
