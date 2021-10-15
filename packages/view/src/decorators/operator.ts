@@ -1,6 +1,15 @@
-import {Projection, SortingDirection} from "@tashmit/database";
+import {PropertyDecorator} from "@tashmit/core";
+import {Projection, SortingDirection, SortingMap} from "@tashmit/database";
 import {stageDecorator} from "./pipeline";
 import {queryOpDecorator, RegexConfig} from "./query";
+
+
+export const stage = stageDecorator;
+
+type SortType<T> =
+  T extends string ? SortingDirection | undefined :
+  T extends undefined ? SortingMap | undefined :
+  never;
 
 /**
  * Sort documents according to a given key and order.
@@ -13,18 +22,34 @@ import {queryOpDecorator, RegexConfig} from "./query";
  * ```typescript
  * class MyView extends ItemSet {
  *   @Op.$sort('datePublished')
- *   public dateSort = SortingDirection.Descending;
+ *   public dateSort = -1;
+ * }
+ * ```
+ *
+ * If no key is given, the decorated property is expected to be a sorting map:
+ *
+ * ```typescript
+ * class MyView extends ItemSet {
+ *   @Op.$sort()
+ *   public dateSort = {datePublished: -1};
  * }
  * ```
  */
-export const $sort = (key: string) => stageDecorator<SortingDirection | undefined>(
-  '$sort', value => ({[key]: value}));
+export function $sort<T extends string | undefined = undefined>(key?: T)
+  : PropertyDecorator<SortType<T>>
+{
+  return typeof key === 'string'
+    ? stage<SortingDirection | undefined>('$sort', value => ({[key]: value}))
+    : stage<SortingMap | undefined>('$sort');
+}
 
-export const $skip = stageDecorator<number | undefined>('$skip');
-export const $limit = stageDecorator<number | undefined>('$limit');
 
-export const $match = stageDecorator<object | undefined>('$match');
-export const $project = stageDecorator<Projection<any> | undefined>('$project');
+export const $skip = stage<number | undefined>('$skip');
+export const $limit = stage<number | undefined>('$limit');
+
+export const $match = stage<object | undefined>('$match');
+export const $project = stage<Projection<any> | undefined>('$project');
+export const $group = stage<Record<string, any>>('$group');
 
 /** Matches values that are equal to a specified value. */
 export const $eq = (key?: string) =>
