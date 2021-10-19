@@ -2,11 +2,11 @@ import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { QueryAggregator, SortingDirection } from '../dist';
+import {QueryAggregator} from '../dist';
 
 chai.use(chaiAsPromised);
 
-describe.only('QueryAggregator', () => {
+describe('QueryAggregator', () => {
   describe('to pipeline', () => {
     it('should contain a match stage when filter is provided', () => {
       expect(new QueryAggregator({foo: 'bar'}, {}).pipeline).to.eql([
