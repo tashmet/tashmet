@@ -28,7 +28,7 @@ export const flatFilter = (config: FlatFilterConfig) => {
     }
 
     const serializeValue = (v: any): any =>
-      Array.isArray(v) ? v.map(serializeValue).join(',') : v;
+      Array.isArray(v) ? v.map(serializeValue).join(',') : encodeURIComponent(v);
 
     const isExpr = (v: any) => typeof v === 'object' && !Array.isArray(v);
     const makeParams = (k: string, v: any) => isExpr(v)

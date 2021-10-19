@@ -43,6 +43,14 @@ describe('flatFilter', () => {
     expect(s({filter})).to.eql('category=foo');
   });
 
+  it('should url-encode special characters', async () => {
+    const s = flatFilter({format: lhsColon});
+    const filter = {
+      title: 'Hello World',
+    }
+    expect(s({filter})).to.eql('title=Hello%20World');
+  });
+
   it('should serialize array operations', async () => {
     const s = flatFilter({format: lhsColon});
     const filter = {

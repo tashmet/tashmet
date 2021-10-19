@@ -4,7 +4,7 @@ import {HttpQueryBuilder} from './query';
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 
 export class Param {
-  public constructor(public name: string, public value?: string | number) {}
+  public constructor(public name: string, public value?: string | number | boolean) {}
 
   public toString() { return `${this.name}=${this.value}`; }
 }
