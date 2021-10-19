@@ -1,3 +1,4 @@
+import {Filter} from '@tashmit/database';
 import {stageDecorator} from './pipeline';
 
 export interface RegexConfig {
@@ -14,7 +15,7 @@ export interface RegexConfig {
 export function queryOpDecorator<T = any>(
   compile: (value: T) => any, key?: string,
 ) {
-  return stageDecorator('$match', (value, propertyKey) => ({
+  return stageDecorator<any, Filter<any>>('$match', (value, propertyKey) => ({
     [key || propertyKey]: compile(value)
   }));
 }

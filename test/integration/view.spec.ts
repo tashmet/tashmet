@@ -15,7 +15,7 @@ import {
   memory,
   SortingDirection,
 } from '../../packages/tashmit/dist';
-import ViewComponent, {Op} from '../../packages/view/dist';
+import ViewComponent, {match, sort, limit} from '../../packages/view/dist';
 import operators from '../../packages/operators/basic';
 
 chai.use(chaiAsPromised);
@@ -35,13 +35,13 @@ describe('view', () => {
     // monitor: ['sort', 'category']
   })
   class TestView extends ItemSet {
-    @Op.$eq('item.category')
+    @match.eq('item.category')
     category: string | undefined = undefined;
 
-    @Op.$sort('amount')
+    @sort('amount')
     sort = SortingDirection.Descending;
 
-    @Op.$limit limit = 2;
+    @limit limit = 2;
   }
 
   @component({

@@ -1,14 +1,12 @@
-import * as Op from '../../src/decorators/operator';
+import {sort} from '../../src/decorators/operator';
 import {ViewAggregator} from '../../src/aggregator';
 import {expect} from 'chai';
 import 'mocha';
 
-
 describe('SortBy', () => {
   it('should apply sorting with key', async () => {
     class TestAggregator extends ViewAggregator {
-      @Op.$sort('foo')
-      sort = 1
+      @sort('foo') sort = 1
     }
 
     expect(new TestAggregator().pipeline).to.eql([
@@ -18,8 +16,7 @@ describe('SortBy', () => {
 
   it('should apply sorting without key', async () => {
     class TestAggregator extends ViewAggregator {
-      @Op.$sort()
-      sort = {foo: 1}
+      @sort() sort = {foo: 1}
     }
 
     expect(new TestAggregator().pipeline).to.eql([
@@ -29,8 +26,7 @@ describe('SortBy', () => {
 
   it('should not apply sorting when value is undefined', async () => {
     class TestAggregator extends ViewAggregator {
-      @Op.$sort('foo')
-      sort = undefined
+      @sort('foo') sort = undefined
     }
 
     expect(new TestAggregator().pipeline).to.eql([]);
@@ -38,8 +34,7 @@ describe('SortBy', () => {
 
   it('should not apply sorting without key when value is undefined', async () => {
     class TestAggregator extends ViewAggregator {
-      @Op.$sort()
-      sort = undefined
+      @sort() sort = undefined
     }
 
     expect(new TestAggregator().pipeline).to.eql([]);

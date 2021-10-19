@@ -17,7 +17,9 @@ export class StageAnnotation extends ViewAggregatorAnnotation {
   }
 }
 
-export function stageDecorator<T>(stage: string, compile?: (value: any, propertyKey: string) => any) {
+export type StageCompile<T, ResultT = any> = (value: T, propertyKey: string) => ResultT;
+
+export function stageDecorator<T, ResultT = any>(stage: string, compile?: StageCompile<T, ResultT>) {
   return propertyDecorator<T>(
     ({propertyKey}) => new StageAnnotation(propertyKey, stage, compile));
 }

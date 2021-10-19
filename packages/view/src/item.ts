@@ -1,4 +1,4 @@
-import * as Op from './decorators/operator';
+import {limit} from './decorators/operator';
 import {View} from './view';
 
 /**
@@ -7,7 +7,7 @@ import {View} from './view';
 export abstract class Item<T = any> extends View<T> {
   protected _data: T | null;
 
-  @Op.$limit public readonly limit = 1;
+  @limit public readonly limit = 1;
 
   /** The document in this view */
   public get data(): T | null {

@@ -3,7 +3,6 @@ import {Projection, SortingDirection, SortingMap} from "@tashmit/database";
 import {stageDecorator} from "./pipeline";
 import {queryOpDecorator, RegexConfig} from "./query";
 
-
 export const stage = stageDecorator;
 
 type SortType<T> =
@@ -21,8 +20,7 @@ type SortType<T> =
  *
  * ```typescript
  * class MyView extends ItemSet {
- *   @Op.$sort('datePublished')
- *   public dateSort = -1;
+ *   @sort('datePublished') public dateSort = -1;
  * }
  * ```
  *
@@ -30,12 +28,11 @@ type SortType<T> =
  *
  * ```typescript
  * class MyView extends ItemSet {
- *   @Op.$sort()
- *   public dateSort = {datePublished: -1};
+ *   @sort() public dateSort = {datePublished: -1};
  * }
  * ```
  */
-export function $sort<T extends string | undefined = undefined>(key?: T)
+export function sort<T extends string | undefined = undefined>(key?: T)
   : PropertyDecorator<SortType<T>>
 {
   return typeof key === 'string'
@@ -43,65 +40,57 @@ export function $sort<T extends string | undefined = undefined>(key?: T)
     : stage<SortingMap | undefined>('$sort');
 }
 
-
-export const $skip = stage<number | undefined>('$skip');
-export const $limit = stage<number | undefined>('$limit');
-
-export const $match = stage<object | undefined>('$match');
-export const $project = stage<Projection<any> | undefined>('$project');
-export const $group = stage<Record<string, any>>('$group');
-
-/** Matches values that are equal to a specified value. */
-export const $eq = (key?: string) =>
-  queryOpDecorator(v => ({$eq: v}), key);
-
-/** Matches values that are greater than a specified value. */
-export const $gt = (key?: string) =>
-  queryOpDecorator(v => ({$gt: v}), key);
-
-/** Matches values that are greater than or equal to a specified value. */
-export const $gte = (key?: string) =>
-  queryOpDecorator(v => ({$gte: v}), key);
-
-/** Matches any of the values specified in an array. */
-export const $in = (key?: string) =>
-  queryOpDecorator(v => ({$in: v}), key);
-
-/** Matches values that are less than a specified value. */
-export const $lt = (key?: string) =>
-  queryOpDecorator(v => ({$lt: v}), key);
-
-/** Matches values that are less than or equal to a specified value. */
-export const $lte = (key?: string) =>
-  queryOpDecorator(v => ({$lte: v}), key);
-
-/** Matches all values that are not equal to a specified value. */
-export const $ne = (key?: string) =>
-  queryOpDecorator<string>(v => ({$ne: v}), key);
-
-/** Matches none of the values specified in an array. */
-export const $nin = (key?: string) =>
-  queryOpDecorator<any[]>(v => ({$nin: v}), key);
-
-/** Matches documents that have the specified field. */
-export const $exists = (key?: string) =>
-  queryOpDecorator<boolean>(v => ({$exists: v}), key);
-
-/** Selects documents if a field is of the specified type. */
-export const $type = (key?: string) =>
-  queryOpDecorator<string>(v => ({$type: v}), key);
-
-export const $regex = (configOrKey?: RegexConfig | string) => {
-  const config = typeof configOrKey === 'string'
-    ? {key: configOrKey}
-    : configOrKey || {};
-  return queryOpDecorator<string>(v => ({
-    $regex: v, $options: config.options
-  }), config.key);
+function matchOp<T = any>(op: string) {
+  return (key?: string) => queryOpDecorator<T>(v => ({[op]: v}), key);
 }
 
-export const $all = (key?: string) =>
-  queryOpDecorator<any[]>(v => ({$all: v}), key);
+export const skip = stage<number | undefined>('$skip');
+export const limit = stage<number | undefined>('$limit');
+export const project = stage<Projection<any> | undefined>('$project');
+export const group = stage<Record<string, any>>('$group');
+export const count = stage<string>('$count');
 
-export const $size = (key?: string) =>
-  queryOpDecorator<number>(v => ({$size: v}), key);
+export const match = {
+  /** Matches values that are equal to a specified value. */
+  eq: matchOp('$eq'),
+
+  /** Matches values that are greater than a specified value. */
+  gt: matchOp('$gt'),
+
+  /** Matches values that are greater than or equal to a specified value. */
+  gte: matchOp('$gte'),
+
+  /** Matches any of the values specified in an array. */
+  in: matchOp<any[]>('$in'),
+
+  /** Matches values that are less than a specified value. */
+  lt: matchOp('$lt'),
+
+  /** Matches values that are less than or equal to a specified value. */
+  lte: matchOp('$lte'),
+
+  /** Matches all values that are not equal to a specified value. */
+  ne: matchOp('$ne'),
+
+  /** Matches none of the values specified in an array. */
+  nin: matchOp<any[]>('$nin'),
+
+  /** Matches documents that have the specified field. */
+  exists: matchOp<boolean>('$exists'),
+
+  /** Selects documents if a field is of the specified type. */
+  type: matchOp<string>('$type'),
+
+  regex: (configOrKey?: RegexConfig | string) => {
+    const config = typeof configOrKey === 'string'
+      ? {key: configOrKey}
+      : configOrKey || {};
+    return queryOpDecorator<RegExp>(v => ({
+      $regex: v, $options: config.options
+    }), config.key);
+  },
+
+  all: matchOp<any[]>('$all'),
+
+  size: matchOp<number>('$size'),
+}
