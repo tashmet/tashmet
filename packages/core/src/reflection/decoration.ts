@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import {
   ClassDecorator,
+  Metadata,
   MethodDecorator,
   MethodDecoratorConfig,
   Newable,
@@ -10,36 +11,50 @@ import {
   PropertyDecoratorConfig
 } from './interfaces';
 
-function decorate(target: object, annotation: any) {
-  const annotations = Reflect.getOwnMetadata('annotations', target) || [];
-  annotations.push(annotation);
-  Reflect.defineMetadata('annotations', annotations, target);
+function metadata<T>(
+  name: string, target: any, initialState: T, propertyKey?: string | symbol
+) {
+  const read = (inherit?: boolean) => {
+    const reader = inherit ? Reflect.getMetadata : Reflect.getOwnMetadata as any
+    return reader(name, target, propertyKey) || initialState;
+  }
+
+  return {
+    mutate: (fn: (data: T) => T) => {
+      const data = fn(read());
+      if (propertyKey) {
+        Reflect.defineMetadata(name, data, target, propertyKey);
+      } else {
+        Reflect.defineMetadata(name, data, target);
+      }
+    },
+    read,
+  } as Metadata<T>
+}
+
+export const annotations = (target: any) =>
+  metadata<any[]>('annotations', target, []);
+
+export const propMetadata = (target: any) =>
+  metadata<Record<string | symbol, any>>('propMetadata', target, {});
+
+export const parameters = (target: any, propertyKey?: string | symbol) =>
+  metadata<any[]>('parameters', target, [], propertyKey);
+
+function decorate(target: any, annotation: any) {
+  annotations(target).mutate(data => data.concat(annotation));
 }
 
 function decorateProperty(target: object, propertyKey: string, annotation: any) {
-  let properties = Reflect.getOwnMetadata('propMetadata', target.constructor);
-  properties = properties || {};
-  properties[propertyKey] = properties[propertyKey] || [];
-  properties[propertyKey].push(annotation);
-  Reflect.defineMetadata('propMetadata', properties, target.constructor);
+  propMetadata(target.constructor).mutate(props =>
+    Object.assign(props, {[propertyKey]: (props[propertyKey] || []).concat(annotation)}));
   decorate(target.constructor, annotation);
-}
-
-function decorateParameter(
-  target: object, propertyKey: string, parameterIndex: number, annotation: any
-) {
-  const parameters: any[][] = Reflect.getMetadata('parameters', target, propertyKey) || [];
-  while (parameters.length <= parameterIndex) {
-    parameters.push([]);
-  }
-  parameters[parameterIndex] = (parameters[parameterIndex] || []).concat(annotation);
-  Reflect.defineMetadata('parameters', parameters, target, propertyKey);
 }
 
 export function classDecorator<T>(
   factory: (target: Newable<any>) => any
 ): ClassDecorator<T> {
-  return function Decorator<C extends Newable<T>>(target: C): C {
+  return target => {
     decorate(target, factory(target));
     return target;
   };
@@ -64,7 +79,6 @@ export function parameterDecorator(
   factory: (config: ParameterDecoratorConfig) => any
 ): ParameterDecorator {
   return (target: any, propertyKey: string, parameterIndex: number) =>
-    decorateParameter(target, propertyKey, parameterIndex,
-      factory({target, propertyKey, parameterIndex})
-    );
+    parameters(target.constructor, propertyKey)
+      .mutate(p => p.concat(factory({target, propertyKey, parameterIndex})));
 }

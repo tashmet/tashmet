@@ -14,6 +14,8 @@ describe('annotation', () => {
       ) { super(); }
     }
 
+    class OtherAnnotation extends Annotation {}
+
     const testDecorator = (foo: number, bar: number) =>
       classDecorator(target => new TestAnnotation(foo, bar, target));
 
@@ -29,8 +31,14 @@ describe('annotation', () => {
     it('should exist on decorated class', () => {
       expect(TestAnnotation.existsOnClass(Base)).to.be.true;
     });
+    it('should not exist on decorated class with other annotation', () => {
+      expect(OtherAnnotation.existsOnClass(Base)).to.be.false;
+    });
     it('should have one instance', () => {
       expect(TestAnnotation.onClass(Base)).to.have.lengthOf(1);
+    });
+    it('should have no instance of other annotation', () => {
+      expect(OtherAnnotation.onClass(Base)).to.have.lengthOf(0);
     });
     it('should not exist directly on derived class', () => {
       expect(TestAnnotation.existsOnClass(Derived)).to.be.false;
@@ -55,6 +63,8 @@ describe('annotation', () => {
       public constructor(public propertyKey: string) { super(); }
     }
 
+    class OtherAnnotation extends Annotation {}
+
     const propDec = () => propertyDecorator(({propertyKey}) =>
       new PropertyAnnotation(propertyKey));
 
@@ -66,8 +76,14 @@ describe('annotation', () => {
     it('should exist on class', () => {
       expect(PropertyAnnotation.existsOnClass(Test)).to.be.true;
     });
+    it('should not exist on class when using other annotation', () => {
+      expect(OtherAnnotation.existsOnClass(Test)).to.be.false;
+    });
     it('should be accessible on class', () => {
       expect(PropertyAnnotation.onClass(Test).length).to.eql(1);
+    });
+    it('should not be accessible on class when using other annotation', () => {
+      expect(OtherAnnotation.onClass(Test).length).to.eql(0);
     });
     it('should exist on decorated method', () => {
       expect(PropertyAnnotation.onProperty(Test, 'decorated').length).to.eql(1);
@@ -84,6 +100,8 @@ describe('annotation', () => {
     class ParamAnnotation extends Annotation {
       public constructor(public propertyKey: string, public index: number) { super(); }
     }
+
+    class OtherAnnotation extends Annotation {}
 
     const paramDec = () => parameterDecorator(({propertyKey, parameterIndex}) =>
       new ParamAnnotation(propertyKey, parameterIndex));
@@ -104,6 +122,9 @@ describe('annotation', () => {
     it('should exist on decorated constructor', () => {
       expect(ParamAnnotation.onParameters(Test).length).to.eql(1);
     });
+    it('should not exist on decorated constructor with other annotation', () => {
+      expect(OtherAnnotation.onParameters(Test).length).to.eql(0);
+    });
     it('should not exist on undecorated method', () => {
       expect(ParamAnnotation.onParameters(Test, 'undecorated').length).to.eql(0);
     });
@@ -114,8 +135,8 @@ describe('annotation', () => {
       expect(ParamAnnotation.onParameters(Test, 'decorated')[0].propertyKey).to.eql('decorated');
     });
     it('should have correct index', () => {
-      expect(ParamAnnotation.onParameters(Test, 'decorated')[0].index).to.eql(1);
-      expect(ParamAnnotation.onParameters(Test, 'decorated')[1].index).to.eql(3);
+      expect(ParamAnnotation.onParameters(Test, 'decorated')[0].index).to.eql(3);
+      expect(ParamAnnotation.onParameters(Test, 'decorated')[1].index).to.eql(1);
     });
   });
 });

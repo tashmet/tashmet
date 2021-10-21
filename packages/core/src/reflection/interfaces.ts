@@ -17,6 +17,12 @@ export interface Constructor<T> extends Newable<T> {
   name?: string;
 }
 
+export interface Metadata<T> {
+  mutate(fn: (data: T) => T): void;
+
+  read(inherit?: boolean): T;
+}
+
 export type ClassDecorator<T> = <C extends Newable<T>>(target: C) => C;
 
 export type PropertyDecorator<T> = <K extends string, C extends Record<K, T>>(

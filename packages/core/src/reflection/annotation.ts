@@ -1,7 +1,11 @@
-import {getType} from 'reflect-helper';
+import {annotations, parameters, propMetadata} from './decoration';
 import {Constructor} from './interfaces';
 
 export type StaticThis<T> = { new (...args: any[]): T };
+
+function ofInstance<T>(cls: StaticThis<T>, annotations: any[] = []) {
+  return annotations.filter(a => a instanceof cls);
+}
 
 /**
  * Annotation base class.
@@ -16,7 +20,7 @@ export class Annotation {
   public static onClass<T extends Annotation>(
     this: StaticThis<T>, ctr: Function | Constructor<any>, inherit?: boolean): T[]
   {
-    return getType(ctr).getAnnotations(this, inherit);
+    return ofInstance(this, annotations(ctr).read(inherit));
   }
 
   /**
@@ -28,7 +32,7 @@ export class Annotation {
   public static onProperty<T extends Annotation>(
     this: StaticThis<T>, ctr: Function | Constructor<any>, key: string): T[]
   {
-    return getType(ctr).getProperty(key).getAnnotations(this);
+    return ofInstance(this, propMetadata(ctr).read(true)[key]);
   }
 
   /**
@@ -42,19 +46,10 @@ export class Annotation {
   public static onParameters<T extends Annotation>(
     this: StaticThis<T>, ctr: Function | Constructor<any>, methodName?: string): T[]
   {
-    if (!methodName) {
-      return (Reflect.getMetadata('parameters', ctr) || [])
-        .reduce((acc: any[], val: any) => acc.concat(val), []);
-    }
-
-    let annotations: T[] = [];
-    const method = getType(ctr).methods.find(m => m.name === methodName);
-    if (method) {
-      for (const param of method.parameters) {
-        annotations = annotations.concat(param.getAnnotations().filter(a => a instanceof this));
-      }
-    }
-    return annotations;
+    return ofInstance(this, methodName
+      ? parameters(ctr, methodName).read(true)
+      : parameters(ctr.constructor).read(true)
+    );
   }
 
   /**
@@ -66,6 +61,6 @@ export class Annotation {
   public static existsOnClass<T extends Annotation>(
     this: StaticThis<T>, ctr: Function | Constructor<any>, inherit?: boolean): boolean
   {
-    return getType(ctr).hasAnnotation(this, inherit);
+    return ofInstance(this, annotations(ctr).read(inherit)).length > 0;
   }
 }

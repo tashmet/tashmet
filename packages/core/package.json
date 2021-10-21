@@ -29,7 +29,6 @@
     "README.md"
   ],
   "dependencies": {
-    "reflect-helper": "^1.1.1",
     "reflect-metadata": "^0.1.13",
     "tslib": "^2.3.1"
   },
