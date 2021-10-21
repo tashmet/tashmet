@@ -66,8 +66,7 @@ describe('directory', () => {
 
   afterEach(async () => {
     await col.deleteMany({});
-    // TODO: Collection interface needs this method.
-    (col as any).removeAllListeners();
+    col.removeAllListeners();
   });
 
   after(() => {
