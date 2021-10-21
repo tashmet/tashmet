@@ -8,7 +8,8 @@ import {
   AggregationPipeline,
   Database,
   QueryAggregator,
-  AutoEventCollection,
+  Collection,
+  withAutoEvent,
 } from '@tashmit/database';
 
 import {Fetch, RestCollectionConfig} from './interfaces';
@@ -17,16 +18,23 @@ import {HttpQueryBuilder} from './query';
 import {jsonQuery} from './query/json';
 
 
-export class RestCollection<T> extends AutoEventCollection<T> {
+export class RestCollection<T> extends Collection<T> {
   private queryBuilder: HttpQueryBuilder;
   private fetch: Fetch;
+
+  public static fromConfig<T = any>(
+    name: string, database: Database, config: RestCollectionConfig
+  ) {
+    const instance = new RestCollection<T>(name, config, database);
+    return config.emitter === undefined ? withAutoEvent(instance) : instance;
+  }
 
   public constructor(
     public readonly name: string,
     private config: RestCollectionConfig,
     private database: Database,
   ) {
-    super(config.emitter !== undefined);
+    super();
 
     const qs = config.queryString || jsonQuery();
 
@@ -159,6 +167,6 @@ export class RestCollectionFactory extends CollectionFactory {
   }
 
   public async create(name: string, database: Database) {
-    return new RestCollection(name, this.config, database);
+    return RestCollection.fromConfig(name, database, this.config);
   }
 }
