@@ -1,91 +1,24 @@
-import {
-  Collection,
-  AutoEventCollection,
-  Cursor,
-  Filter,
-  ReplaceOneOptions,
-  QueryOptions,
-  AggregationPipeline
-} from '@tashmit/database';
+import {Collection, withMiddleware, changeObserver, DatabaseChange} from '@tashmit/database';
 
-export abstract class BufferCollection<T = any> extends AutoEventCollection<T> {
-  public constructor(
-    protected cache: Collection,
-  ) {
-    super();
-  }
+export type BufferWrite = (change: DatabaseChange) => Promise<void>;
 
-  public toString(): string {
-    return `buffer collection '${this.name}'`;
-  }
+export const buffer = (cache: Collection, write: BufferWrite) =>
+  withMiddleware(cache, [writer(write)]);
 
-  public aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
-    return this.cache.aggregate(pipeline);
-  }
+export const writer = (write: BufferWrite) => changeObserver(async change => {
+  const {action, data, collection} = change;
 
-  public async insertOne(doc: any, writeThrough = true): Promise<any> {
-    const res = await this.cache.insertOne(doc);
-    try {
-      if (writeThrough) {
-        await this.write([res]);
-      }
-    } catch (err) {
-      await this.cache.deleteOne({_id: doc._id});
-      throw err;
+  const rollback = () => {
+    switch (action) {
+      case 'insert': return collection.deleteMany({_id: {$in: data.map(d => d._id)}});
+      case 'delete': return collection.insertMany(data);
+      case 'replace': return collection.replaceOne({_id: data[1]}, data[0]);
     }
-    return res;
   }
 
-  public async insertMany(docs: any[], writeThrough = true): Promise<any[]> {
-    const res = await this.cache.insertMany(docs);
-    try {
-      if (writeThrough) {
-        await this.write(docs);
-      }
-    } catch (err) {
-      await this.cache.deleteMany({_id: {$in: docs.map(d => d._id)}});
-      throw err;
-    }
-    return res;
+  try {
+    await write(change);
+  } catch (err) {
+    await rollback();
   }
-
-  public async replaceOne(filter: Filter<T>, doc: any, options: ReplaceOneOptions = {}, writeThrough = true): Promise<any> {
-    const result = await this.cache.replaceOne(filter, doc, options);
-    if (result) {
-      if (writeThrough) {
-        await this.write([result]);
-      }
-    }
-    return result;
-  }
-
-  public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
-    return this.cache.find(filter, options);
-  }
-
-  public async findOne(filter: Filter<T>): Promise<any> {
-    return this.cache.findOne(filter);
-  }
-
-  public async deleteOne(filter: Filter<T>, writeThrough = true): Promise<any> {
-    const affected = await this.cache.deleteOne(filter);
-    if (affected) {
-      if (writeThrough) {
-        await this.write([affected], true);
-      }
-    }
-    return affected;
-  }
-
-  public async deleteMany(filter: Filter<T>): Promise<any[]> {
-    const affected = await this.cache.deleteMany(filter);
-    await this.write(affected, true);
-    return affected;
-  }
-
-  public get name(): string {
-    return this.cache.name;
-  }
-
-  protected abstract write(affectedDocs: any[], deletion?: boolean): Promise<void>;
-}
+});

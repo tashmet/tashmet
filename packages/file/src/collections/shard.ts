@@ -1,6 +1,6 @@
 import {AsyncFactory} from '@tashmit/core';
-import {Collection, CollectionFactory, Database, MemoryCollection} from '@tashmit/database';
-import {BufferCollection} from './buffer';
+import {CollectionFactory, Database, MemoryCollection, withAutoEvent} from '@tashmit/database';
+import {buffer} from './buffer';
 import {Pipeline} from '../pipeline';
 
 export interface ShardStreamConfig<T> {
@@ -24,37 +24,6 @@ export interface ShardBufferConfig<T> {
   stream: ShardStreamFactory<T>;
 }
 
-class ShardBuffer<T> extends BufferCollection<T> {
-  public constructor(
-    private output: (source: Pipeline<T>, deletion: boolean) => Promise<void>,
-    cache: Collection,
-  ) {
-    super(cache);
-  }
-
-  public async populate(seed: Pipeline<T>) {
-    for await (const doc of seed) {
-      await this.cache.insertOne(doc);
-    }
-  }
-
-  public async listen(input: Pipeline<T>) {
-    for await (const doc of input) {
-      await this.replaceOne({_id: doc._id}, doc, {upsert: true}, false);
-    }
-  }
-
-  public async listenDelete(input: Pipeline<Partial<T>>) {
-    for await (const doc of input) {
-      await this.deleteOne({_id: doc._id}, false);
-    }
-  }
-
-  protected write(affectedDocs: any[], deletion: boolean): Promise<void> {
-    return this.output(Pipeline.fromMany(affectedDocs), deletion);
-  }
-}
-
 export class ShardBufferFactory<T> extends CollectionFactory<T> {
   public constructor(private config: ShardBufferConfig<T>) {super()}
 
@@ -62,19 +31,33 @@ export class ShardBufferFactory<T> extends CollectionFactory<T> {
     const {stream} = this.config;
 
     const {seed, input, inputDelete, output} = await stream.create();
-    const cache = new MemoryCollection(name, database, {disableEvents: true});
-    const buffer = new ShardBuffer(output, cache);
+    const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
+    const instance = buffer(cache, async ({action, data}) => {
+      switch (action) {
+        case 'insert':
+        case 'delete':
+          return output(Pipeline.fromMany(data), action === 'delete');
+        case 'replace':
+          await output(Pipeline.fromOne(data[1]), false);
+      }
+    });
+
+    const eachDocument = async (source: Pipeline, fn: (doc: any) => Promise<any>) => {
+      for await (const doc of source) {
+        await fn(doc);
+      }
+    }
 
     if (seed) {
-      await buffer.populate(seed);
+      await eachDocument(seed, doc => cache.insertOne(doc));
     }
     if (input) {
-      buffer.listen(input);
+      eachDocument(input, doc => cache.replaceOne({_id: doc._id}, doc, {upsert: true}));
     }
     if (inputDelete) {
-      buffer.listenDelete(inputDelete);
+      eachDocument(inputDelete, doc => cache.deleteOne({_id: doc._id}));
     }
-    return buffer;
+    return withAutoEvent(instance);
   }
 }
 

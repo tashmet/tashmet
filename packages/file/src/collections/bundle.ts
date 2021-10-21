@@ -1,7 +1,7 @@
 import {AsyncFactory} from '@tashmit/core';
-import {Collection, CollectionFactory, Database, MemoryCollection} from '@tashmit/database';
+import {CollectionFactory, Database, MemoryCollection, withAutoEvent} from '@tashmit/database';
 import {difference, intersection, isEqual} from 'lodash';
-import {BufferCollection} from './buffer';
+import {buffer} from './buffer';
 import {Pipeline} from '../pipeline';
 
 export interface BundleStreamConfig<T> {
@@ -23,53 +23,6 @@ export interface BundleConfig<T> {
   stream: BundleStreamFactory<T>;
 }
 
-export class BundleBuffer<T> extends BufferCollection {
-  public constructor(
-    protected output: (source: AsyncGenerator) => Promise<void>,
-    cache: Collection,
-  ) {
-    super(cache);
-  }
-
-  public async populate(seed: Pipeline<T>) {
-    await this.cache.insertMany(await seed.toArray());
-  }
-
-  public async listen(input: Pipeline<any>) {
-    const data = await input.toArray();
-    const bufferDocs = await this.cache.find().toArray();
-    const getIds = (docs: any[]) => docs.map(doc => doc._id);
-
-    const diff = (a: any[], b: any[]) => {
-      const ids = difference(getIds(a), getIds(b));
-      return a.filter(doc => ids.includes(doc._id));
-    }
-
-    const changed = intersection(getIds(data), getIds(bufferDocs)).reduce((acc, id) => {
-      const doc = data.find((d: any) => d._id === id);
-
-      if (!isEqual(doc, bufferDocs.find(d => d._id === id))) {
-        acc.push(doc);
-      }
-      return acc;
-    }, []);
-
-    for (const doc of diff(bufferDocs, data)) {
-      await this.deleteOne(doc, false);
-    }
-    for (const doc of changed) {
-      await this.replaceOne({_id: doc._id}, doc, {}, false);
-    }
-    for (const doc of diff(data, bufferDocs)) {
-      await this.insertOne(doc, false);
-    }
-  }
-
-  protected async write(): Promise<void> {
-    return this.output(Pipeline.fromCursor(this.cache.find()));
-  }
-}
-
 export class BundleBufferFactory<T> extends CollectionFactory<T> {
   public constructor(private config: BundleConfig<T>) {super()}
 
@@ -77,16 +30,48 @@ export class BundleBufferFactory<T> extends CollectionFactory<T> {
     const {stream} = this.config;
 
     const {seed, input, output} = await stream.create();
-    const cache = new MemoryCollection(name, database, {disableEvents: true});
-    const buffer = new BundleBuffer(output, cache);
+    const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
+
+    const collection = buffer(cache, () =>
+      output(Pipeline.fromCursor(cache.find())));
+
+    const listen = async (input: Pipeline<T>) => {
+      const data = await input.toArray();
+      const bufferDocs = await cache.find().toArray();
+      const getIds = (docs: any[]) => docs.map(doc => doc._id);
+
+      const diff = (a: any[], b: any[]) => {
+        const ids = difference(getIds(a), getIds(b));
+        return a.filter(doc => ids.includes(doc._id));
+      }
+
+      const changed = intersection(getIds(data), getIds(bufferDocs)).reduce((acc, id) => {
+        const doc = data.find((d: any) => d._id === id);
+
+        if (!isEqual(doc, bufferDocs.find(d => d._id === id))) {
+          acc.push(doc);
+        }
+        return acc;
+      }, []);
+
+      for (const doc of diff(bufferDocs, data)) {
+        await cache.deleteOne(doc);
+      }
+      for (const doc of changed) {
+        await cache.replaceOne({_id: doc._id}, doc, {});
+      }
+      for (const doc of diff(data, bufferDocs)) {
+        await cache.insertOne(doc);
+      }
+    }
 
     if (seed) {
-      await buffer.populate(seed);
+      await cache.insertMany(await seed.toArray());
     }
     if (input) {
-      buffer.listen(input);
+      listen(input);
     }
-    return buffer;
+    return withAutoEvent(collection);
   }
 }
 
