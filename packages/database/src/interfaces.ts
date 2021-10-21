@@ -369,13 +369,13 @@ export interface CollectionConfig {
    * Optional list of factories creating middleware that should be applied after any middleware
    * from the database.
    */
-  use?: MiddlewareFactory[];
+  use?: (Middleware | MiddlewareFactory)[];
 
   /**
    * Optional list of factories creating middleware that should be applied before any middleware
    * from the database.
    */
-  useBefore?: MiddlewareFactory[];
+  useBefore?: (Middleware | MiddlewareFactory)[];
 }
 
 /**

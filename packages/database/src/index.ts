@@ -1,16 +1,16 @@
 import {component, Logger, Provider} from '@tashmit/core';
 
-export {AutoEventCollection} from './collections/autoEvent';
 export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
+export {withMiddleware} from './collections/managed';
 export {proxy} from './collections/proxy';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
 export {aggregate, QueryAggregator} from './aggregation';
-export {logging} from './logging';
 export * from './interfaces';
+export * from './middleware';
 
 import {Database} from './interfaces';
 import {DatabaseService} from './database';
-import {LoggingMiddlewareFactory} from './logging';
+import {LoggingMiddlewareFactory} from './middleware/logging';
 
 @component({
   providers: [

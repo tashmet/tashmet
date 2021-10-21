@@ -1,6 +1,6 @@
 import {OperatorType, useOperators} from "mingo/core";
 import {provider, Logger} from '@tashmit/core';
-import {ManagedCollection} from './collections/managed';
+import {withMiddleware} from './collections/managed';
 import {
   Collection,
   CollectionConfig,
@@ -80,15 +80,19 @@ export class DatabaseService extends Database {
       ...(this.config.use || []),
       ...(config.use || [])
     ];
-    return new ManagedCollection(source, await this.createMiddleware(middlewareFactories, source));
+    return withMiddleware(source, await this.createMiddleware(middlewareFactories, source));
   }
 
   private async createMiddleware(
-    factories: MiddlewareFactory[],
+    factories: (MiddlewareFactory | Middleware)[],
     source: Collection
   ): Promise<Middleware[]> {
     return Promise.all(factories.reduce((middleware, factory) => {
-      return middleware.concat(factory.create(source, this));
+      return middleware.concat(
+        factory instanceof MiddlewareFactory
+          ? factory.create(source, this)
+          : Promise.resolve(factory)
+        );
     }, [] as Promise<Middleware>[]));
   }
 }

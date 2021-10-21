@@ -2,6 +2,7 @@ import {Query as MingoQuery} from 'mingo/query';
 import * as mingoCursor from 'mingo/cursor';
 import ObjectID from 'bson-objectid';
 import {
+  Collection,
   CollectionFactory,
   Cursor,
   Filter,
@@ -14,7 +15,7 @@ import {
 } from '../interfaces';
 import {applyQueryOptions, sortingMap} from '../cursor';
 import {aggregate} from '../aggregation';
-import {AutoEventCollection} from './autoEvent';
+import {withAutoEvent} from '../middleware';
 
 export interface MemoryCollectionConfig<T = any> {
   /**
@@ -78,28 +79,33 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 }
 
-export class MemoryCollection<T = any> extends AutoEventCollection<T> {
-  private collection: any[];
+export class MemoryCollection<T = any> extends Collection<T> {
+  public static fromConfig<T = any>(name: string, database: Database, config: MemoryCollectionConfig) {
+    const instance = new MemoryCollection<T>(name, database, config.documents || []);
+
+    return config.disableEvents
+      ? instance
+      : withAutoEvent(instance)
+  }
 
   public constructor(
     public readonly name: string,
     protected database: Database,
-    protected config: MemoryCollectionConfig = {}
+    protected documents: any[] = [],
   ) {
     super();
-    this.collection = config.documents || [];
   }
 
   public toString(): string {
-    return `memory collection '${this.name}' (${this.collection.length} documents)`;
+    return `memory collection '${this.name}' (${this.documents.length} documents)`;
   }
 
   public aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
-    return aggregate(pipeline, this.collection, this.database);
+    return aggregate(pipeline, this.documents, this.database);
   }
 
   public find(filter: Filter<T> = {}, options: QueryOptions<T> = {}): Cursor<T> {
-    return new MemoryCollectionCursor<T>(this.collection, filter, options);
+    return new MemoryCollectionCursor<T>(this.documents, filter, options);
   }
 
   public async findOne(filter: Filter<T>): Promise<T | null> {
@@ -110,15 +116,15 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
   public async insertOne(doc: any): Promise<T> {
     if (!doc.hasOwnProperty('_id')) {
       doc._id = new ObjectID().toHexString();
-      this.collection.push(doc);
+      this.documents.push(doc);
     } else {
-      const index = this.collection.findIndex(o => o._id === doc._id);
+      const index = this.documents.findIndex(o => o._id === doc._id);
       if (index >= 0) {
         throw new Error(
           `Insertion failed: A document with ID '${doc._id}' already exists in '${this.name}'`
         );
       } else {
-        this.collection.push(doc);
+        this.documents.push(doc);
       }
     }
     return doc;
@@ -133,10 +139,10 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
   }
 
   public async replaceOne(filter: Filter<T>, doc: any, options: ReplaceOneOptions = {}): Promise<T | null> {
-    const old = new MingoQuery(filter as any).find(this.collection).next() as any;
+    const old = new MingoQuery(filter as any).find(this.documents).next() as any;
     if (old) {
-      const index = this.collection.findIndex(o => o._id === old._id);
-      return this.collection[index] = Object.assign({}, {_id: old._id}, doc);
+      const index = this.documents.findIndex(o => o._id === old._id);
+      return this.documents[index] = Object.assign({}, {_id: old._id}, doc);
     } else if (options.upsert) {
       return this.insertOne(doc);
     }
@@ -146,7 +152,7 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
   public async deleteOne(filter: Filter<T>): Promise<T> {
     const affected = await this.findOne(filter) as any;
     if (affected) {
-      this.collection = this.collection.filter(doc => doc._id !== affected._id);
+      this.documents = this.documents.filter(doc => doc._id !== affected._id);
     }
     return affected;
   }
@@ -154,7 +160,7 @@ export class MemoryCollection<T = any> extends AutoEventCollection<T> {
   public async deleteMany(filter: Filter<T>): Promise<T[]> {
     const affected = await this.find(filter).toArray() as any[];
     const ids = affected.map(doc => doc._id);
-    this.collection = this.collection.filter(doc => ids.indexOf(doc._id) === -1);
+    this.documents = this.documents.filter(doc => ids.indexOf(doc._id) === -1);
     return affected;
   }
 }
@@ -165,7 +171,7 @@ export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
   }
 
   public async create(name: string, database: Database) {
-    return new MemoryCollection<T>(name, database, this.config);
+    return MemoryCollection.fromConfig<T>(name, database, this.config);
   }
 }
 

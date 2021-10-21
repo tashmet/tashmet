@@ -4,6 +4,15 @@ import {
 } from '../interfaces';
 
 
+export function withMiddleware<T = any>(
+  collection: Collection<T>,
+  middleware: (Middleware | ((collection: Collection<T>) => Middleware))[],
+) {
+  return new ManagedCollection(collection, middleware.map(m =>
+    typeof m === 'function' ? m(collection) : m
+  ));
+}
+
 export class ManagedCollection<T = any> extends Collection<T> {
   public constructor(
     private source: Collection<T>,
