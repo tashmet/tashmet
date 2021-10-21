@@ -1,5 +1,4 @@
 import {
-  AutoEventCollection,
   Cursor,
   Filter,
   ReplaceOneOptions,
@@ -8,9 +7,12 @@ import {
   sortingMap,
   applyQueryOptions,
   QueryOptions,
-  AggregationPipeline
+  AggregationPipeline,
+  Collection,
+  withAutoEvent
 } from '@tashmit/database';
 import mongo from 'mongodb';
+import {MongoDBCollectionConfig} from './interfaces';
 
 export class MongoDBCursor<T = any> implements Cursor<T> {
   public constructor(
@@ -56,7 +58,12 @@ export class MongoDBCursor<T = any> implements Cursor<T> {
   }
 }
 
-export class MongoDBCollection<T> extends AutoEventCollection<T> {
+export class MongoDBCollection<T> extends Collection<T> {
+  public static fromConfig<T = any>(name: string, config: MongoDBCollectionConfig) {
+    const instance = new MongoDBCollection<T>(config.collection, name);
+    return config.disableEvents ? withAutoEvent(instance) : instance;
+  }
+
   public constructor(
     private collection: mongo.Collection,
     public readonly name: string

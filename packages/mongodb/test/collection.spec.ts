@@ -1,3 +1,4 @@
+import {Collection} from '@tashmit/database';
 import {Collection as MongoCollection} from 'mongodb';
 import {MongoDBCollection} from '../src/collection';
 import {expect} from 'chai';
@@ -16,14 +17,16 @@ chai.use(sinonChai);
 
 describe('MongoDBCollection', () => {
   let mongoCollection: MongoCollection;
-  let col: MongoDBCollection<any>;
+  let col: Collection<any>;
 
   before(async () => {
     const client = await MongoClient.connect('mongodb://localhost:27017/test', {});
 
     mongoCollection = client.db('test').collection('test');
 
-    col = new MongoDBCollection(mongoCollection, 'test');
+    col = MongoDBCollection.fromConfig('test', {
+      collection: mongoCollection
+    });
   });
 
   after(async () => {
