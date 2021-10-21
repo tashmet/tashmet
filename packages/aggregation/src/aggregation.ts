@@ -35,7 +35,7 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
 
   public async create(name: string, database: Database) {
     const foreign = await database.collection(this.config.from);
-    const collection = new MemoryCollection<T>(name, database, {
+    const collection = MemoryCollection.fromConfig<T>(name, database, {
       documents: await foreign.aggregate(this.config.pipeline)
     });
 
