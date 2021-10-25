@@ -1,5 +1,5 @@
-import {CachingConfig, CachingMiddlewareFactory} from './middleware';
+import {CachingConfig, cachingMiddleware} from './middleware';
 
 export {CachingConfig};
 
-export const caching = (config?: CachingConfig) => new CachingMiddlewareFactory(config || {});
+export const caching = (config?: CachingConfig) => cachingMiddleware(config || {});
