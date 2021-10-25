@@ -1,6 +1,6 @@
-import {Collection, Database} from '@tashmit/database';
-import {Pipe, PipeFactory, IOGate, io} from '@tashmit/pipe';
-import {AggregationPipeFactory} from './pipe';
+import {Factory} from '@tashmit/core';
+import {PipeFactory, io} from '@tashmit/pipe';
+import {aggregationPipe} from './pipe';
 
 /** Configuration for relatinoship */
 export interface RelationshipConfig {
@@ -51,32 +51,26 @@ export interface RelationshipConfig {
   upsert?: boolean;
 }
 
-export class JoinPipeFactory extends AggregationPipeFactory {
-  public constructor(private config: Required<RelationshipConfig>) {
-    super();
-  }
-
-  public async create(source: Collection, database: Database): Promise<Pipe> {
-    const {to, localField, foreignField, as, single} = this.config;
+export function joinPipe(config: Required<RelationshipConfig>): PipeFactory {
+  return Factory.of(async ({collection, database, container}) => {
+    const {to, localField, foreignField, as, single} = config;
     const foreign = await database.collection(to);
 
     const $lookup = {from: await foreign.find().toArray(), localField, foreignField, as};
     const $set = {[as]: {$arrayElemAt: ['$' + as, 0]}};
 
-    return super.create(source, database, [{$lookup}, ...single ? [{$set}] : []]);
-  }
+    const pipeline = [{$lookup}, ...single ? [{$set}] : []];
+
+    return aggregationPipe(pipeline).resolve(container)({database, collection});
+  });
 }
 
-export class SplitPipeFactory extends PipeFactory {
-  public constructor(private config: Required<RelationshipConfig>) {
-    super();
-  }
-
-  public async create(source: Collection, database: Database): Promise<Pipe> {
-    const {to, localField, foreignField, upsert} = this.config;
+export function splitPipe(config: Required<RelationshipConfig>): PipeFactory {
+  return Factory.of(async ({database}) => {
+    const {to, localField, foreignField, upsert} = config;
     const foreign = await database.collection(to);
 
-    const asField = this.config.as;
+    const asField = config.as;
 
     return async (doc: any) => {
       const clone = Object.assign({}, doc);
@@ -97,24 +91,14 @@ export class SplitPipeFactory extends PipeFactory {
       }
       return clone;
     }
-  }
+  });
 }
 
-export class RelationshipAggregator implements IOGate {
-  public constructor(private config: Required<RelationshipConfig>) {}
+export const relationship = (config: RelationshipConfig) => {
+  const cfg = Object.assign({as: config.localField, single: false, upsert: true}, config);
 
-  get input() {
-    return new SplitPipeFactory(this.config);
-  }
-
-  get output() {
-    return new JoinPipeFactory(this.config);
-  }
+  return io({
+    input: splitPipe(cfg),
+    output: joinPipe(cfg),
+  });
 }
-
-export const relationship = (config: RelationshipConfig) =>
-  io(new RelationshipAggregator(Object.assign({
-    as: config.localField,
-    single: false,
-    upsert: true,
-  }, config)));

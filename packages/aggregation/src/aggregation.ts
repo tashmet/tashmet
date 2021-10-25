@@ -1,9 +1,5 @@
-import {
-  AggregationPipeline,
-  CollectionFactory,
-  MemoryCollection,
-  Database
-} from '@tashmit/database';
+import {Factory} from '@tashmit/core';
+import {AggregationPipeline, CollectionFactory, MemoryCollection} from '@tashmit/database';
 
 const equal = require('fast-deep-equal/es6');
 
@@ -28,19 +24,15 @@ export interface AggregationCollectionConfig {
   sync?: boolean;
 }
 
-export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
-  public constructor(private config: AggregationCollectionConfig) {
-    super();
-  }
-
-  public async create(name: string, database: Database) {
-    const foreign = await database.collection(this.config.from);
+export function aggregation<T = any>(config: AggregationCollectionConfig): CollectionFactory<T> {
+  return Factory.of(async ({name, database}) => {
+    const foreign = await database.collection(config.from);
     const collection = MemoryCollection.fromConfig<T>(name, database, {
-      documents: await foreign.aggregate(this.config.pipeline)
+      documents: await foreign.aggregate(config.pipeline)
     });
 
     const update = async () => {
-      const docs = await foreign.aggregate<any>(this.config.pipeline);
+      const docs = await foreign.aggregate<any>(config.pipeline);
 
       await collection.deleteMany({_id: {$nin: docs.map(d => d._id)}});
 
@@ -52,13 +44,10 @@ export class AggregationCollectionFactory<T> extends CollectionFactory<T> {
       }
     }
 
-    if (this.config.sync !== false) {
+    if (config.sync !== false) {
       foreign.on('change', () => update());
     }
 
     return collection;
-  }
+  });
 }
-
-export const aggregation = (config: AggregationCollectionConfig) =>
-  new AggregationCollectionFactory(config);
