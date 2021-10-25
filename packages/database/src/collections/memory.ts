@@ -1,3 +1,4 @@
+import {Factory} from '@tashmit/core';
 import {Query as MingoQuery} from 'mingo/query';
 import * as mingoCursor from 'mingo/cursor';
 import ObjectID from 'bson-objectid';
@@ -165,16 +166,10 @@ export class MemoryCollection<T = any> extends Collection<T> {
   }
 }
 
-export class MemoryCollectionFactory<T> extends CollectionFactory<T> {
-  public constructor(private config: MemoryCollectionConfig) {
-    super();
-  }
 
-  public async create(name: string, database: Database) {
-    return MemoryCollection.fromConfig<T>(name, database, this.config);
-  }
-}
 
-export function memory<T = any>(config: MemoryCollectionConfig<T> = {}) {
-  return new MemoryCollectionFactory(config);
+export function memory<T = any>(config: MemoryCollectionConfig<T> = {}): CollectionFactory<T> {
+  return Factory.of(async ({name, database}) =>
+    MemoryCollection.fromConfig<T>(name, database, config)
+  );
 }

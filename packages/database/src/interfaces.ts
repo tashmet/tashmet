@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {AsyncFactory, Provider} from '@tashmit/core';
+import {AsyncFactory, Container, Provider} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 
 export type Document = Record<string, any>;
@@ -354,9 +354,12 @@ export interface Middleware<T = any> {
   events?: EventMiddleware<T>;
 }
 
-export abstract class MiddlewareFactory<T = any> extends AsyncFactory<Middleware<T>> {
-  public abstract create(source: Collection, database: Database): Promise<Middleware<T>>;
+export interface MiddlewareContext {
+  collection: Collection;
+  database: Database;
 }
+
+export type MiddlewareFactory<T = any> = AsyncFactory<Middleware<T>, MiddlewareContext>;
 
 
 export interface CollectionConfig {
@@ -369,13 +372,13 @@ export interface CollectionConfig {
    * Optional list of factories creating middleware that should be applied after any middleware
    * from the database.
    */
-  use?: (Middleware | MiddlewareFactory)[];
+  use?: MiddlewareFactory[];
 
   /**
    * Optional list of factories creating middleware that should be applied before any middleware
    * from the database.
    */
-  useBefore?: (Middleware | MiddlewareFactory)[];
+  useBefore?: MiddlewareFactory[];
 }
 
 /**
@@ -446,9 +449,12 @@ export abstract class Database extends EventEmitter implements DatabaseEventEmit
   public abstract createCollection<T = any>(name: string, config: CollectionConfig): Promise<Collection<T>>;
 }
 
-export abstract class CollectionFactory<T = any> extends AsyncFactory<Collection<T>> {
-  public abstract create(name: string, database: Database): Promise<Collection<T>>
+export interface CollectionContext {
+  name: string;
+  database: Database;
 }
+
+export type CollectionFactory<T = any> = AsyncFactory<Collection<T>, CollectionContext>;
 
 export abstract class Aggregator<T = any> {
   abstract get pipeline(): AggregationPipeline;

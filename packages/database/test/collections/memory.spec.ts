@@ -1,3 +1,4 @@
+import {BasicContainer} from '@tashmit/core';
 import {DefaultLogger} from '@tashmit/core/src/logging/logger';
 import operators from '@tashmit/operators/system';
 import {DatabaseService} from '../../src/database';
@@ -22,9 +23,10 @@ describe('MemoryCollection', () => {
     amount: number;
   }
 
-  const col = MemoryCollection.fromConfig<ItemEntry>(
-    'test', new DatabaseService({collections: {}, operators}, new DefaultLogger()), {}
+  const db = new DatabaseService(
+    {collections: {}, operators}, new DefaultLogger(), new BasicContainer()
   );
+  const col = MemoryCollection.fromConfig<ItemEntry>('test', db, {});
 
   beforeEach(async () => {
     await col.insertMany([

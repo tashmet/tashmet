@@ -4,7 +4,6 @@ import {
   DatabaseChange,
   Middleware,
 } from '../interfaces';
-import {withMiddleware} from '../collections/managed';
 
 
 export const changeObserver = (handler: (change: DatabaseChange) => Promise<void>) => (collection: Collection) => {

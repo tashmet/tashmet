@@ -1,5 +1,5 @@
 import {OperatorType, useOperators} from "mingo/core";
-import {provider, Logger} from '@tashmit/core';
+import {provider, Logger, Container, Factory} from '@tashmit/core';
 import {withMiddleware} from './collections/managed';
 import {
   Collection,
@@ -15,19 +15,19 @@ import {
   key: Database,
   inject: [
     'tashmit.DatabaseConfig',
-    'tashmit.DatabaseLogger',
+    Logger.inScope('database.DatabaseService'),
+    Container,
   ]
 })
 export class DatabaseService extends Database {
   private collections: {[name: string]: Promise<Collection>} = {};
-  private logger: Logger;
 
   public constructor(
     private config: DatabaseConfig,
-    logger: Logger,
+    private logger: Logger,
+    private container: Container,
   ) {
     super();
-    this.logger = logger.inScope('DatabaseService');
     for (const name of Object.keys(config.collections)) {
       this.createCollection(name, config.collections[name]);
     }
@@ -47,16 +47,16 @@ export class DatabaseService extends Database {
   }
 
   public createCollection<T = any>(
-    name: string, factory: CollectionFactory<T> | CollectionConfig): Promise<Collection<T>>
+    name: string, factoryOrConfig: CollectionFactory<T> | CollectionConfig): Promise<Collection<T>>
   {
     try {
       if (name in this.collections) {
         throw new Error(`a collection named '${name}' already exists in database`);
       }
 
-      const config: CollectionConfig = factory instanceof CollectionFactory
-        ? {source: factory}
-        : factory;
+      const config: CollectionConfig = factoryOrConfig instanceof Factory
+        ? {source: factoryOrConfig}
+        : factoryOrConfig;
 
       return this.collections[name] = this.createManagedCollection(name, config)
         .then(collection => {
@@ -74,7 +74,7 @@ export class DatabaseService extends Database {
   private async createManagedCollection<T = any>(
     name: string, config: CollectionConfig): Promise<Collection<T>>
   {
-    const source = await config.source.create(name, this);
+    const source = await config.source.resolve(this.container)({name, database: this});
     const middlewareFactories = [
       ...(config.useBefore || []),
       ...(this.config.use || []),
@@ -84,15 +84,13 @@ export class DatabaseService extends Database {
   }
 
   private async createMiddleware(
-    factories: (MiddlewareFactory | Middleware)[],
-    source: Collection
+    factories: MiddlewareFactory[],
+    collection: Collection
   ): Promise<Middleware[]> {
-    return Promise.all(factories.reduce((middleware, factory) => {
-      return middleware.concat(
-        factory instanceof MiddlewareFactory
-          ? factory.create(source, this)
-          : Promise.resolve(factory)
-        );
-    }, [] as Promise<Middleware>[]));
+    const middleware: Middleware[] = [];
+    for (const factory of factories) {
+      middleware.push(await factory.resolve(this.container)({collection, database: this}));
+    }
+    return middleware;
   }
 }
