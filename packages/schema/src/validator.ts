@@ -2,6 +2,7 @@ import {provider} from '@tashmit/core';
 import {Database, DocumentError} from '@tashmit/database';
 import {ValidationConfig} from './interfaces';
 import Ajv from 'ajv';
+import { Validator } from '.';
 
 export class AjvError extends DocumentError {
   private static createMessage(doc: any, error: Ajv.ErrorObject) {
@@ -22,13 +23,14 @@ export class AjvError extends DocumentError {
 }
 
 @provider({
-  key: 'schema.Validator',
+  key: Validator,
   inject: [Database, 'schema.ValidationConfig']
 })
-export class AjvValidator {
+export class AjvValidator extends Validator {
   private ajv: Promise<Ajv.Ajv>;
 
   public constructor(database: Database, config: ValidationConfig) {
+    super();
     this.ajv = new Promise(resolve => {
       database.collection(config.collection)
         .then(collection => collection.find().toArray())

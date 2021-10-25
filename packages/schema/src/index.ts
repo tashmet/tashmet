@@ -1,7 +1,6 @@
 import {component, Provider} from '@tashmit/core';
 import {AjvValidator} from './validator';
 import {ValidationConfig} from './interfaces';
-import {ValidationPipeFactory} from './pipe';
 
 export * from './interfaces';
 export {validation, ValidationPipeStrategy} from './pipe';
@@ -13,6 +12,5 @@ export {validation, ValidationPipeStrategy} from './pipe';
       collection: 'schemas'
     }),
   ],
-  factories: [ValidationPipeFactory]
 })
 export default class Schema {}

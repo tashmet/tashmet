@@ -2,6 +2,6 @@ export interface ValidationConfig {
   collection: string;
 }
 
-export interface Validator {
-  validate(doc: any, schemaId: string): Promise<any>;
+export abstract class Validator {
+  public abstract validate(doc: any, schemaId: string): Promise<any>;
 }

@@ -1,6 +1,7 @@
-import {Pipe, PipeFactory, eachDocument, PipeHook, PipeFilterHook} from '@tashmit/pipe';
-import {Validator} from './interfaces';
+import {Factory} from '@tashmit/core';
+import {PipeFactory, eachDocument, PipeHook, PipeFilterHook} from '@tashmit/pipe';
 import {Query as MingoQuery} from 'mingo/query';
+import {Validator} from './interfaces';
 
 /**
  * Strategies for dealing with validation errors.
@@ -43,7 +44,7 @@ export interface ValidationPipeConfig {
    * validated. The first matching schema will be used. Using this strategy
    * documents with different schemas can be stored in the same collection.
    */
-  schema: string | SchemaLookup;
+  schema: string;
 
   /**
    * Strategy for dealing with failing documents.
@@ -52,6 +53,7 @@ export interface ValidationPipeConfig {
   strategy?: ValidationPipeStrategy;
 }
 
+/*
 export class ValidationPipeFactory extends PipeFactory {
   public constructor(private schema: string | SchemaLookup) {
     super('schema.Validator');
@@ -72,6 +74,13 @@ export class ValidationPipeFactory extends PipeFactory {
     }
     throw Error(`No schema defined for document with ID: '${doc._id}'`);
   }
+}
+*/
+export function validationPipe(schema: string): PipeFactory {
+  return Factory.of(async ({container}) => {
+    const v = container.resolve(Validator);
+    return (doc: any) => v.validate(doc, schema);
+  });
 }
 
 export const validation = (config: ValidationPipeConfig) => {
@@ -102,5 +111,5 @@ export const validation = (config: ValidationPipeConfig) => {
       filter = ['insertMany'];
       break;
   }
-  return eachDocument({pipe: new ValidationPipeFactory(schema), hooks, filter});
+  return eachDocument({pipe: validationPipe(schema), hooks, filter});
 }
