@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@tashmit/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
+import {Factory} from '@tashmit/core';
+import {FileAccess, File, ReadableFile, Pipeline, FileAccessFactory} from '@tashmit/file';
 import path from 'path';
 import minimatch from 'minimatch';
 
@@ -50,12 +50,6 @@ export class IPFSService extends FileAccess  {
   }
 }
 
-export class IPFSServiceFactory extends AsyncFactory<FileAccess> {
-  public constructor(private url: string | undefined) { super(); }
-
-  public async create() {
-    return new IPFSService(createClient({url: this.url}));
-  }
+export function ipfs(url?: string): FileAccessFactory {
+  return Factory.of(async () => new IPFSService(createClient({url})));
 }
-
-export const ipfs = (url?: string) => new IPFSServiceFactory(url);

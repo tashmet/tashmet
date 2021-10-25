@@ -1,5 +1,4 @@
 import {component, Logger, Provider} from '@tashmit/core';
-import {IPFSServiceFactory} from './ipfs';
 
 const createClient = require('ipfs-http-client')
 
@@ -15,8 +14,5 @@ const createClient = require('ipfs-http-client')
       create: () => createClient(),
     }),
   ],
-  factories: [
-    IPFSServiceFactory,
-  ]
 })
 export default class IPFS {}
