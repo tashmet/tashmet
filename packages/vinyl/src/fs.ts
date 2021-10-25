@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@tashmit/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
+import {Factory} from '@tashmit/core';
+import {FileAccess, File, ReadableFile, Pipeline, FileAccessFactory} from '@tashmit/file';
 import {Stream} from '@tashmit/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
@@ -70,17 +70,11 @@ export class VinylFSService extends FileAccess  {
   }
 }
 
-export class VinylFSServiceFactory extends AsyncFactory<FileAccess> {
-  public constructor(private config: FileSystemConfig) {
-    super('chokidar.FSWatcher');
-  }
-
-  public async create() {
-    if (this.config.watch) {
-      return this.resolve(async (watcher: chokidar.FSWatcher) => new VinylFSService(watcher));
-    }
-    return new VinylFSService(undefined);
-  }
+export const vinylfs = (config?: FileSystemConfig): FileAccessFactory => {
+  return Factory.of(async ({container}) => {
+    const watcher = config?.watch
+      ? container.resolve<chokidar.FSWatcher>('chokidar.FSWatcher')
+      : undefined;
+    return new VinylFSService(watcher);
+  });
 }
-
-export const vinylfs = (config?: FileSystemConfig) => new VinylFSServiceFactory(config || {watch: false});
