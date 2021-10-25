@@ -1,24 +1,18 @@
-import {RequestHandler} from 'express';
+import * as express from 'express';
 import onHeaders from 'on-headers';
-import {Logger} from '@tashmit/core';
+import {Factory, Logger} from '@tashmit/core';
 import {RequestHandlerFactory} from './interfaces';
 
-export class RequestLoggerFactory extends RequestHandlerFactory {
-  public constructor() {
-    super('server.Logger');
-  }
+export function requestLogger(): RequestHandlerFactory {
+  return Factory.of(async ({container}) => {
+    const logger = container.resolve(Logger.inScope('server'));
 
-  public create(): Promise<RequestHandler> {
-    return this.resolve(async (logger: Logger) => {
-      return (req, res, next) => {
-        onHeaders(res, () => {
-          const url = decodeURIComponent(req.originalUrl);
-          logger.info(`${req.method} '${url}' ${res.statusCode}`);
-        });
-        next();
-      }
-    });
-  }
+    return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      onHeaders(res, () => {
+        const url = decodeURIComponent(req.originalUrl);
+        logger.info(`${req.method} '${url}' ${res.statusCode}`);
+      });
+      next();
+    }
+  });
 }
-
-export const requestLogger = () => new RequestLoggerFactory();

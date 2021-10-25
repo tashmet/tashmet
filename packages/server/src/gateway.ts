@@ -7,10 +7,9 @@ export interface GatewayConfig {
 }
 
 @provider({
-  key: 'server.SocketGateway',
   inject: [
     'socket.io.Server',
-    'server.Logger',
+    Logger.inScope('server'),
   ]
 })
 export class SocketGateway {

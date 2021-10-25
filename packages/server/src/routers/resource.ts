@@ -1,4 +1,4 @@
-import {Logger} from '@tashmit/core';
+import {Factory, Logger} from '@tashmit/core';
 import {Collection, Database, DatabaseChange, Query} from '@tashmit/database';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
@@ -147,26 +147,20 @@ export class Resource {
   }
 }
 
-export class ResourceFactory extends ControllerFactory {
-  constructor(private config: ResourceConfig) {
-    super(Database, 'server.Logger');
-  }
-
-  public create(): Promise<any> {
-    return this.resolve(async (db: Database, logger: Logger) => {
-      return new Resource(
-        await db.collection(this.config.collection),
-        logger.inScope('Resource'),
-        this.config.readOnly,
-        this.config.queryParser,
-      );
-    });
-  }
-}
-
 /**
  * Create a resource request handler.
  *
  * This function creates a router that interacts with a Ziggurat database collection.
  */
-export const resource = (config: ResourceConfig) => router(new ResourceFactory(config));
+export const resource = (config: ResourceConfig) =>
+  router(Factory.of(async ({container}) => {
+    const database = container.resolve(Database);
+    const logger = container.resolve(Logger.inScope('server'));
+
+    return new Resource(
+      await database.collection(config.collection),
+      logger.inScope('Resource'),
+      config.readOnly,
+      config.queryParser,
+    );
+  }));

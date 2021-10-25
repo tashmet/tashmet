@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as http from 'http';
 import {AddressInfo} from 'net';
-import {provider, Logger, Optional} from '@tashmit/core';
+import {provider, Logger, Optional, Container} from '@tashmit/core';
 import {Route, Server, ServerConfig} from './interfaces';
 import {makeRoutes, mountRoutes} from './routing';
 
@@ -10,7 +10,8 @@ import {makeRoutes, mountRoutes} from './routing';
   inject: [
     'express.Application',
     'http.Server',
-    'server.Logger',
+    Container,
+    Logger.inScope('sever'),
     Optional.of('server.ServerConfig'),
   ]
 })
@@ -20,18 +21,19 @@ export class ExpressServer extends Server {
   public constructor(
     private app: express.Application,
     private server: http.Server,
+    private container: Container,
     logger: Logger,
     config?: ServerConfig,
   ) {
     super();
     this.logger = logger.inScope('Server');
     if (config) {
-      mountRoutes(this.app, ...makeRoutes(config.middleware));
+      mountRoutes(this.app, container, ...makeRoutes(config.middleware));
     }
   }
 
   public mount(route: Route) {
-    mountRoutes(this.app, route);
+    mountRoutes(this.app, this.container, route);
   }
 
   public listen(port: number): http.Server {

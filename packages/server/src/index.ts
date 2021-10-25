@@ -4,9 +4,6 @@ import SocketIO from 'socket.io';
 import express from 'express';
 import {ExpressServer} from './server';
 import {SocketGateway} from './gateway';
-import {ResourceFactory} from './routers/resource';
-import {RouterFactory, ProviderControllerFactory} from './controller';
-import {RequestLoggerFactory} from './logging';
 
 export * from './controller';
 export * from './decorators';
@@ -35,12 +32,6 @@ export * from './query';
       inject: [Logger],
       create: (logger: Logger) => logger.inScope('server')
     })
-  ],
-  factories: [
-    ResourceFactory,
-    RouterFactory,
-    ProviderControllerFactory,
-    RequestLoggerFactory,
   ],
 })
 export default class ServerComponent {}

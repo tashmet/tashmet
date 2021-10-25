@@ -2,9 +2,11 @@ import {AsyncFactory, Provider} from '@tashmit/core';
 import {RequestHandler} from 'express';
 import {AddressInfo} from 'net';
 
-export abstract class RequestHandlerFactory extends AsyncFactory<RequestHandler> {
-  public abstract create(path: string): Promise<RequestHandler>;
+export interface RequestHandlerContext {
+  path: string;
 }
+
+export type RequestHandlerFactory = AsyncFactory<RequestHandler, RequestHandlerContext>;
 
 /**
  * Server middleware.

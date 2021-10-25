@@ -1,5 +1,6 @@
+import {Container, Factory} from '@tashmit/core';
 import * as express from 'express';
-import {Middleware, RequestHandlerFactory, Route, RouteMap} from './interfaces';
+import {Middleware, Route, RouteMap} from './interfaces';
 
 export function makeRoutes(routeMap: RouteMap): Route[] {
   return Object.entries(routeMap).map(([path, handlers]) =>
@@ -24,17 +25,19 @@ function createAsyncHandler(handler: express.RequestHandler): express.RequestHan
   };
 }
 
-async function createHandlers(middleware: Middleware, path: string): Promise<express.RequestHandler[]> {
+async function createHandlers(
+  middleware: Middleware, path: string, container: Container
+): Promise<express.RequestHandler[]> {
   const handlers: express.RequestHandler[] = [];
   for (const m of (Array.isArray(middleware) ? middleware : [middleware])) {
-    handlers.push(createAsyncHandler(m instanceof RequestHandlerFactory ? await m.create(path) : m));
+    handlers.push(createAsyncHandler(m instanceof Factory ? await m.resolve(container)({path}) : m));
   }
   return handlers;
 }
 
-export async function mountRoutes(r: express.Router, ...routes: Route[]): Promise<express.Router> {
+export async function mountRoutes(r: express.Router, container: Container, ...routes: Route[]): Promise<express.Router> {
   for (const route of routes) {
-    const handlers = await createHandlers(route.handlers, route.path || '/')
+    const handlers = await createHandlers(route.handlers, route.path || '/', container)
     if (route.method) {
       (r as any)[route.method](route.path, handlers);
     } else if (route.path) {
