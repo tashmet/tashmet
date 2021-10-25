@@ -1,4 +1,5 @@
 import * as showdown from 'showdown';
+import {MiddlewareFactory} from '@tashmit/database';
 import {io, IOGate} from '@tashmit/pipe';
 
 class MarkdownConverter implements IOGate {
@@ -32,5 +33,6 @@ export interface MarkdownConfig {
   key: string | string[];
 }
 
-export const markdown = (config: MarkdownConfig) =>
-  io(new MarkdownConverter(config.converter, ([] as string[]).concat(config.key)));
+export function markdown(config: MarkdownConfig): MiddlewareFactory {
+  return io(new MarkdownConverter(config.converter, ([] as string[]).concat(config.key)));
+}
