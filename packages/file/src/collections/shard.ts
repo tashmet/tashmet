@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@tashmit/core';
-import {CollectionFactory, Database, MemoryCollection, withAutoEvent} from '@tashmit/database';
+import {AsyncFactory, Factory} from '@tashmit/core';
+import {CollectionFactory, MemoryCollection, withAutoEvent} from '@tashmit/database';
 import {buffer} from './buffer';
 import {Pipeline} from '../pipeline';
 
@@ -16,21 +16,24 @@ export interface ShardStreamConfig<T> {
   output: (source: Pipeline<T>, deletion: boolean) => Promise<void>;
 }
 
-export abstract class ShardStreamFactory<T> extends AsyncFactory<ShardStreamConfig<T>> {
-  public abstract create(): Promise<ShardStreamConfig<T>>;
-}
+export type ShardStreamFactory<T> = AsyncFactory<ShardStreamConfig<T>>;
 
 export interface ShardBufferConfig<T> {
   stream: ShardStreamFactory<T>;
 }
 
-export class ShardBufferFactory<T> extends CollectionFactory<T> {
-  public constructor(private config: ShardBufferConfig<T>) {super()}
+/**
+ * A buffered collection based on documents in multiple locations
+ */
+export function shards<T = any>(config: ShardBufferConfig<T>): CollectionFactory<T> {
+  const eachDocument = async (source: Pipeline, fn: (doc: any) => Promise<any>) => {
+    for await (const doc of source) {
+      await fn(doc);
+    }
+  }
 
-  public async create(name: string, database: Database) {
-    const {stream} = this.config;
-
-    const {seed, input, inputDelete, output} = await stream.create();
+  return Factory.of(async ({name, database, container}) => {
+    const {seed, input, inputDelete, output} = await config.stream.resolve(container)({});
     const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
     const instance = buffer(cache, async ({action, data}) => {
       switch (action) {
@@ -42,12 +45,6 @@ export class ShardBufferFactory<T> extends CollectionFactory<T> {
       }
     });
 
-    const eachDocument = async (source: Pipeline, fn: (doc: any) => Promise<any>) => {
-      for await (const doc of source) {
-        await fn(doc);
-      }
-    }
-
     if (seed) {
       await eachDocument(seed, doc => cache.insertOne(doc));
     }
@@ -58,12 +55,5 @@ export class ShardBufferFactory<T> extends CollectionFactory<T> {
       eachDocument(inputDelete, doc => cache.deleteOne({_id: doc._id}));
     }
     return withAutoEvent(instance);
-  }
-}
-
-/**
- * A buffered collection based on documents in multiple locations
- */
-export function shards<T = any>(config: ShardBufferConfig<T>) {
-  return new ShardBufferFactory<T>(config);
+  });
 }

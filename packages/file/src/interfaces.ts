@@ -1,5 +1,5 @@
-import { AsyncFactory } from "@tashmit/core";
-import {IOGate, Pipe} from "@tashmit/pipe";
+import {AsyncFactory} from "@tashmit/core";
+import {Pipe} from "@tashmit/pipe";
 import {Pipeline} from "./pipeline";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -27,7 +27,7 @@ export abstract class FileAccess {
 
 export type PipelineSink<T = any, TReturn = any> = (pipeline: Pipeline<T>) => Promise<TReturn>;
 
-export interface Serializer<T = any> extends IOGate<Pipe> {
+export interface Serializer<T = any> extends Duplex {
   /**
    * Input pipe for parsing a buffer into the desired type.
    */
@@ -73,11 +73,13 @@ export interface ExtractedFileContentConfig<T> {
   resolveId?: Pipe<File<T>, string>;
 }
 
+export type FileAccessFactory = AsyncFactory<FileAccess>;
+
 export interface FileStreamConfig<T> {
   /**
    * The underlying file system driver to use.
    */
-  driver: AsyncFactory<FileAccess>;
+  driver: FileAccessFactory;
 }
 
 export interface MultiFilesWithContentConfig<T, TStored> {
@@ -91,4 +93,9 @@ export interface MultiFilesWithContentConfig<T, TStored> {
    * given instead.
    */
   content?: FileContentConfig<T, TStored> | boolean;
+}
+
+export interface Duplex {
+  input: Pipe;
+  output: Pipe;
 }

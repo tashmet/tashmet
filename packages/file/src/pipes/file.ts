@@ -1,7 +1,6 @@
-import {AsyncFactory} from '@tashmit/core';
 import {Pipe} from '@tashmit/pipe';
 import toArray from '@async-generators/to-array';
-import {File, FileAccess, PipelineSink, Serializer} from '../interfaces';
+import {File, Serializer} from '../interfaces';
 import {input, onKey, output} from './common';
 
 /**
@@ -25,19 +24,11 @@ export function read(): Pipe<any, File<Buffer>> {
  * @param path The file path given as a string or function returning a string.
  */
 export function create<T>(path: string | Pipe<T, string>): Pipe<T, File<T>> {
-  return async content => ({path: typeof path === 'string' ? path : await path(content), content, isDir: false});
-}
-
-/**
- * A sink that writes files to a file system.
- *
- * @param protocol The file system protocol to use.
- */
-export function write(protocol: AsyncFactory<FileAccess>): PipelineSink<File<Buffer>, void> {
-  return async files => {
-    const fa = await protocol.create();
-    return fa.write(files);
-  }
+  return async content => ({
+    path: typeof path === 'string' ? path : await path(content),
+    content,
+    isDir: false
+  });
 }
 
 /**

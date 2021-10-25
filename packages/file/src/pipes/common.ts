@@ -1,5 +1,6 @@
-import {IOGate, Pipe} from '@tashmit/pipe';
+import {Pipe} from '@tashmit/pipe';
 import {omit} from 'lodash';
+import {Duplex} from '../interfaces';
 import {Disperser, FilterTransform, PipeTransform, Reducer} from '../transform';
 
 export const chain = (pipes: Pipe[]): Pipe => async (data: any) => {
@@ -14,11 +15,11 @@ export function onKey<T extends object, U, K extends keyof T>(key: K, pipe: Pipe
   return async (data: any) => Object.assign(data, {[key]: await pipe(data[key])});
 }
 
-export function input<In, Out>(...transforms: IOGate<Pipe>[]): Pipe<In, Out> {
+export function input<In, Out>(...transforms: Duplex[]): Pipe<In, Out> {
   return chain(transforms.map(t => t.input));
 }
 
-export function output<In, Out>(...transforms: IOGate<Pipe>[]): Pipe<In, Out> {
+export function output<In, Out>(...transforms: Duplex[]): Pipe<In, Out> {
   return chain(transforms.map(t => t.output).reverse());
 }
 

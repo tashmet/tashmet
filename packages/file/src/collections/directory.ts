@@ -1,7 +1,7 @@
 import {Pipe} from '@tashmit/pipe';
 import * as nodePath from 'path';
-import {shards} from '../collections/shard';
-import {GlobStreamFactory, GlobContentStreamFactory} from '../collections/glob';
+import {shards} from './shard';
+import {globFilesStream, globContentStream} from './glob';
 import {ExtractedFileContentConfig, File, FileContentConfig, FileStreamConfig, MultiFilesWithContentConfig, PartialBy} from '../interfaces'
 
 export interface DirectoryConfig<T> extends FileStreamConfig<T> {
@@ -34,7 +34,7 @@ export type DirectoryContentConfig<T = any, TStored = T> =
  */
 export function directoryFiles<T = any, TStored = T>({path, extension, driver}: DirectoryFilesConfig<T, TStored>) {
   return shards<File<T>>({
-    stream: new GlobStreamFactory({
+    stream: globFilesStream({
       driver,
       pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
     })
@@ -50,7 +50,7 @@ export function directoryContent<T = any, TStored = T>(
     nodePath.basename(file.path).split('.')[0]
 
   return shards<T>({
-    stream: new GlobContentStreamFactory({
+    stream: globContentStream({
       driver,
       pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
       serializer,

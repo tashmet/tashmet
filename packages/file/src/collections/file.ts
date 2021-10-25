@@ -1,3 +1,4 @@
+import {Factory} from '@tashmit/core';
 import {Pipe} from '@tashmit/pipe';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
 import {FileStreamConfig, ReadableFile, Serializer} from '../interfaces'
@@ -40,14 +41,12 @@ export interface FileConfig<T extends object, TStored = T> extends FileStreamCon
   beforeSerialize?: Pipe<T, TStored>;
 }
 
-export class FileStreamFactory<T extends object, TStored extends object> extends BundleStreamFactory<T> {
-  public constructor(private config: FileConfig<T, TStored>) {
-    super()
-  }
-
-  public async create(): Promise<BundleStreamConfig<T>> {
-    const {path, serializer, dictionary, afterParse, beforeSerialize} = this.config;
-    const driver = await this.config.driver.create();
+export function file<T extends object = any, TStored extends object = T>(
+  config: FileConfig<T, TStored>
+) {
+  const streamFactory: BundleStreamFactory<T> = Factory.of(async ({container}) => {
+    const {path, serializer, dictionary, afterParse, beforeSerialize} = config;
+    const driver = await config.driver.resolve(container)({});
 
     const input = (source: Pipeline<ReadableFile>) => source
       .pipe(Pipes.File.read())
@@ -70,12 +69,9 @@ export class FileStreamFactory<T extends object, TStored extends object> extends
       seed: input(driver.read(path)),
       input: watch ? input(watch) : undefined,
       output: (source) => driver.write(output(source)),
-    };
-  }
+    } as BundleStreamConfig<T>;
+  });
+
+  return bundle<T>({stream: streamFactory});
 }
 
-export function file<T extends object = any, TStored extends object = T>(config: FileConfig<T, TStored>) {
-  return bundle<T>({
-    stream: new FileStreamFactory<T, TStored>(config)
-  });
-}

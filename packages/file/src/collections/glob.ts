@@ -1,5 +1,6 @@
+import {Factory} from '@tashmit/core';
 import {Pipe} from '@tashmit/pipe';
-import {shards, ShardStreamConfig, ShardStreamFactory} from '../collections/shard';
+import {shards, ShardStreamConfig, ShardStreamFactory} from './shard';
 import {File, ReadableFile, FileContentConfig, MultiFilesWithContentConfig, FileStreamConfig, ExtractedFileContentConfig} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Pipeline} from '../pipeline';
@@ -16,27 +17,44 @@ export type GlobContentConfig<T = any, TStored = T> =
 export const globResolvePath: Pipe<any, string> = async doc => doc._id
 export const globResolveId: Pipe<File, string> = async file => file.path;
 
-export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
-  public constructor(protected config: GlobFilesConfig<any>) {
-    super()
-  }
+function fileReader(source: Pipeline<ReadableFile>) {
+  return source
+    .pipe(Pipes.filter(async file => !file.isDir))
+    .parallel(Pipes.File.read())
+}
 
-  public async create(): Promise<ShardStreamConfig<any>> {
-    const {pattern, content} = this.config;
-    const driver = await this.config.driver.create();
+function contentParser(source: Pipeline<File<Buffer>>, content: FileContentConfig<any>) {
+  return source
+    .parallel(Pipes.File.parse(content.serializer))
+    .parallel(content.afterParse || Pipes.identity())
+}
+
+function contentSerializer<T>(source: Pipeline<File<any>>, content: FileContentConfig<any>) {
+  return source
+    .pipe(Pipes.onKey('content', Pipes.omitKeys('_id')))
+    .pipe(content.beforeSerialize || Pipes.identity<T>())
+    .pipe(Pipes.File.serialize(content.serializer));
+}
+
+export function globFilesStream<T = any, TStored = T>(
+  config: GlobFilesConfig<T, TStored>
+): ShardStreamFactory<File<T>> {
+  return Factory.of(async ({container}) => {
+    const {pattern, content} = config;
+    const driver = await config.driver.resolve(container)({});
 
     const input = (source: Pipeline<File>) => {
       if (!content) {
         return source;
       }
       if (typeof content !== 'boolean') {
-        return this.contentParser(this.fileReader(source), content);
+        return contentParser(fileReader(source), content);
       }
-      return this.fileReader(source);
+      return fileReader(source);
     }
 
     const output = (source: Pipeline<any>) => content && typeof content !== 'boolean'
-      ? this.contentSerializer(source, content)
+      ? contentSerializer<T>(source, content)
       : source;
 
     const watch = driver.watch(pattern);
@@ -54,56 +72,8 @@ export class GlobStreamFactory<T> extends ShardStreamFactory<T> {
           await driver.write(files);
         }
       }
-    };
-  }
-
-  private fileReader(source: Pipeline<ReadableFile>) {
-    return source
-      .pipe(Pipes.filter(async file => !file.isDir))
-      .parallel(Pipes.File.read())
-  }
-
-  private contentParser(source: Pipeline<File<Buffer>>, content: FileContentConfig<any>) {
-    return source
-      .parallel(Pipes.File.parse(content.serializer))
-      .parallel(content.afterParse || Pipes.identity())
-  }
-
-  private contentSerializer(source: Pipeline<File<any>>, content: FileContentConfig<any>) {
-    return source
-      .pipe(Pipes.onKey('content', Pipes.omitKeys('_id')))
-      .pipe(content.beforeSerialize || Pipes.identity<T>())
-      .pipe(Pipes.File.serialize(content.serializer));
-  }
-}
-
-
-export class GlobContentStreamFactory<T> extends GlobStreamFactory<T> {
-  protected resolvePath: Pipe<T, string>;
-  protected resolveId: Pipe<File<any>, string>;
-
-  public constructor({pattern, driver, resolveId, resolvePath, ...content}: GlobContentConfig<any>) {
-    super({pattern, driver, content});
-    this.resolvePath = resolvePath || globResolvePath;
-    this.resolveId = resolveId || globResolveId;
-  }
-
-  public async create(): Promise<ShardStreamConfig<any>> {
-    const stream = await super.create();
-
-    const input = (source: Pipeline<File<T>>) => source
-      .pipe(Pipes.File.assignContent(async file => ({_id: await this.resolveId(file)})))
-      .pipe(Pipes.File.content());
-
-    const output = (source: Pipeline<T>) =>
-      source.pipe(Pipes.File.create(this.resolvePath));
-
-    return {
-      seed: stream.seed ? input(stream.seed) : undefined,
-      input: stream.input ? input(stream.input) : undefined,
-      output: (source, deletion) => stream.output(output(source), deletion),
-    }
-  }
+    } as ShardStreamConfig<File<T>>
+  });
 }
 
 /**
@@ -112,8 +82,32 @@ export class GlobContentStreamFactory<T> extends GlobStreamFactory<T> {
  * @param config
  */
 export function globFiles<T = any, TStored = T>(config: GlobFilesConfig<T, TStored>) {
-  return shards<File<T>>({
-    stream: new GlobStreamFactory(config)
+  return shards<File<T>>({stream: globFilesStream(config)});
+}
+
+const defaultConfig = {resolveId: globResolveId, resolvePath: globResolvePath};
+
+export function globContentStream<T = any, TStored = T>(
+  config: GlobContentConfig<T, TStored>
+): ShardStreamFactory<T> {
+  const {resolveId, resolvePath, pattern, driver, ...content} =
+    Object.assign({}, defaultConfig, config);
+
+  return Factory.of(async ({container}) => {
+    const stream = await globFilesStream({pattern, driver, content}).resolve(container)({});
+
+    const input = (source: Pipeline<File<T>>) => source
+      .pipe(Pipes.File.assignContent(async file => ({_id: await resolveId(file)})))
+      .pipe(Pipes.File.content());
+
+    const output = (source: Pipeline<T>) =>
+      source.pipe(Pipes.File.create(resolvePath));
+
+    return {
+      seed: stream.seed ? input(stream.seed) : undefined,
+      input: stream.input ? input(stream.input) : undefined,
+      output: (source, deletion) => stream.output(output(source), deletion),
+    } as ShardStreamConfig<any>
   });
 }
 
@@ -123,7 +117,5 @@ export function globFiles<T = any, TStored = T>(config: GlobFilesConfig<T, TStor
  * @param config
  */
 export function globContent<T = any, TStored = T>(config: GlobContentConfig<T, TStored>) {
-  return shards<T>({
-    stream: new GlobContentStreamFactory(config),
-  });
+  return shards<T>({stream: globContentStream(config)});
 }

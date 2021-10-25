@@ -1,8 +1,6 @@
-import {AsyncFactory} from '@tashmit/core';
 import {Cursor} from '@tashmit/database';
 import {Pipe} from '@tashmit/pipe';
 import toArray from '@async-generators/to-array';
-import {File, FileAccess} from './interfaces';
 import {ParallelTransform, Transform} from './transform';
 import {pipe} from './pipes';
 
@@ -34,24 +32,6 @@ export class Pipeline<T = unknown, TReturn = any, TNext = unknown> implements As
       }
     }
     return new Pipeline<T, any, T>(cursorGenerator());
-  }
-
-  /**
-   * Create a new pipeline that yields files from a file system
-   *
-   * @param path
-   * @param protocol
-   */
-  public static fromFiles(
-    path: string | string[], protocol: AsyncFactory<FileAccess>
-  ): Pipeline<File<AsyncGenerator<Buffer> | undefined>> {
-    async function* gen() {
-      const fa = await protocol.create();
-      for await (const file of fa.read(path)) {
-        yield file;
-      }
-    }
-    return new Pipeline(gen());
   }
 
   /**

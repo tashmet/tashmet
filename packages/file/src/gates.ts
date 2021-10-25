@@ -1,11 +1,10 @@
-import {Pipe, IOGate} from '@tashmit/pipe';
-import {Serializer} from './interfaces';
+import {Duplex, Serializer} from './interfaces';
 import * as Pipes from './pipes';
 
-export const dict = (): IOGate<Pipe> => ({
+export const dict = () => ({
   input: Pipes.toList(),
   output: Pipes.toDict()
-});
+}) as Duplex;
 
 export function json<T>(encoding?: Pipes.JsonEncoding): Serializer<T> {
   return {
