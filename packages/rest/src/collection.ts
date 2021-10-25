@@ -160,13 +160,3 @@ export class RestCollection<T> extends Collection<T> {
     }
   }
 }
-
-export class RestCollectionFactory extends CollectionFactory {
-  public constructor(private config: RestCollectionConfig) {
-    super();
-  }
-
-  public async create(name: string, database: Database) {
-    return RestCollection.fromConfig(name, database, this.config);
-  }
-}
