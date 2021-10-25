@@ -1,6 +1,15 @@
-import {Middleware, Collection, Database, Cursor, DocumentError} from '@tashmit/database';
-import {Pipe, PipeHook, PipeConfig, PipeFactory, identityPipe} from './interfaces';
+import {Factory} from '@tashmit/core';
+import {Middleware, Collection, Cursor, DocumentError} from '@tashmit/database';
 import {allSettled} from './allSettled';
+import {
+  Pipe,
+  PipeHook,
+  PipeConfig,
+  PipeFactory,
+  PipeFitting,
+  PipeFittingFactory,
+  identityPipe
+} from './interfaces';
 
 async function filterResults<T>(
   promises: Iterable<Promise<T>>, error: (err: DocumentError) => void): Promise<T[]>
@@ -17,9 +26,6 @@ async function filterResults<T>(
   return fulfilled;
 }
 
-export abstract class PipeFitting {
-  public abstract attach(middleware: Required<Middleware>, source: Collection): void;
-}
 
 export abstract class OneWayPipeFitting extends PipeFitting {
   public constructor(
@@ -156,16 +162,14 @@ export class DocumentRemovedFitting extends OneWayPipeFitting  {
 }
 */
 
-export class PipeFittingFactory {
-  public constructor(
-    private pipes: PipeConfig[]
-  ) {}
+export function pipeFitting(pipes: PipeConfig[]): PipeFittingFactory {
+  return Factory.of(async ({collection, database, container}) => {
+    const createPipe = (pipe: Pipe | PipeFactory) =>
+      pipe instanceof Factory ? pipe.resolve(container)({collection, database}) : pipe;
 
-  public async create(source: Collection, database: Database): Promise<PipeFitting[]> {
-    const createPipe = async (pipe: Pipe | PipeFactory) => {
-      return pipe instanceof PipeFactory
-        ? await pipe.create(source, database)
-        : pipe;
+    const filter = (hook: PipeHook) => {
+      const cfg = pipes.find(p => p.hook === hook);
+      return cfg ? cfg.filter : false;
     }
 
     const hooks: PipeHook[] = [
@@ -175,25 +179,20 @@ export class PipeFittingFactory {
 
     const pipeDict: Record<PipeHook, Pipe> = {} as any;
     for (const hook of hooks) {
-      const cfg = this.pipes.find(p => p.hook === hook);
+      const cfg = pipes.find(p => p.hook === hook);
       pipeDict[hook] = cfg ? await createPipe(cfg.pipe) : identityPipe;
     }
 
     const fittings: PipeFitting[] = [
       new InsertOneFitting(pipeDict.insertOneIn, pipeDict.insertOneOut),
-      new InsertManyFitting(pipeDict.insertManyIn, pipeDict.insertManyOut, this.filter('insertManyIn')),
+      new InsertManyFitting(pipeDict.insertManyIn, pipeDict.insertManyOut, filter('insertManyIn')),
       new ReplaceOneFitting(pipeDict.replaceOneIn, pipeDict.replaceOneOut),
-      new FindFitting(pipeDict.find, this.filter('find')),
-      new FindOneFitting(pipeDict.findOne, this.filter('findOne')),
+      new FindFitting(pipeDict.find, filter('find')),
+      new FindOneFitting(pipeDict.findOne, filter('findOne')),
       // new DocumentUpsertedFitting(pipeDict["document-upserted"]),
       // new DocumentRemovedFitting(pipeDict["document-removed"]),
     ];
 
     return fittings;
-  }
-
-  private filter(hook: PipeHook) {
-    const cfg = this.pipes.find(p => p.hook === hook);
-    return cfg ? cfg.filter : false;
-  }
+  });
 }
