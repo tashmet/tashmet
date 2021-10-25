@@ -33,3 +33,25 @@ export abstract class Resolver<T> {
 }
 
 export type ServiceRequest<T> = ServiceIdentifier<T> | Resolver<T>;
+
+export interface FactoryContext {
+  container: Container;
+}
+
+export class Factory<T, TContext = {}> extends Resolver<(context: TContext) => T> {
+  public static of<T, TContext>(fn: (context: TContext & FactoryContext) => T) {
+    return new Factory<T, TContext>(fn);
+  }
+
+  public constructor(
+    private fn: (context: TContext & FactoryContext) => T
+  ) { super(); }
+
+  public resolve(container: Container): (context: TContext) => T {
+    return context => {
+      return this.fn({...context, container});
+    }
+  }
+}
+
+export class AsyncFactory<T, TContext = {}> extends Factory<Promise<T>, TContext> {}

@@ -6,7 +6,7 @@ export class ScopeLogFormatter implements LogFormatter {
   public format(event: LogEvent) {
     const {message, timestamp, scope, severity} = event;
     const scopeName = scope.join('.');
-    
+
     let output = '';
     if (scopeName !== this.lastScope) {
       output = this.formatScope(scope) + '\n';
@@ -52,18 +52,10 @@ export class ConsoleWriter implements Sink {
   }
 }
 
-export class ConsoleWriterFactory extends SinkFactory {
-  public constructor(
-    private config: ConsoleWriterConfig
-  ) { super(); }
-
-  public create() {
-    return new ConsoleWriter(this.config.format || new ScopeLogFormatter());
-  }
-}
-
 export interface ConsoleWriterConfig {
   format?: LogFormatter;
 }
 
-export const consoleWriter = (config: ConsoleWriterConfig = {}) => new ConsoleWriterFactory(config);
+export function consoleWriter(config: ConsoleWriterConfig = {}): SinkFactory {
+  return () => new ConsoleWriter(config.format || new ScopeLogFormatter());
+}

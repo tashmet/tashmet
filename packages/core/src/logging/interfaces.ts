@@ -1,4 +1,4 @@
-import {Factory} from '../ioc/factory';
+import {Injection} from '../ioc/resolvers';
 
 export const enum LogLevel {
   Debug,
@@ -19,9 +19,7 @@ export interface Sink {
   emit(event: LogEvent): void;
 }
 
-export abstract class SinkFactory extends Factory<Sink> {
-  public abstract create(): Sink;
-}
+export type SinkFactory = () => Sink;
 
 export declare interface Logger {
   readonly scope: string[];
@@ -38,7 +36,11 @@ export declare interface Logger {
   inScope(scope: string): Logger;
 }
 
-export abstract class Logger implements Logger {}
+export abstract class Logger implements Logger {
+  public static inScope(scope: string) {
+    return Injection.of((logger: Logger) => logger.inScope(scope), [Logger]);
+  }
+}
 
 export interface LoggerConfig {
   level: LogLevel;

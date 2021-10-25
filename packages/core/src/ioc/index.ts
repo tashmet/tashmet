@@ -1,5 +1,4 @@
 export {bootstrap} from './bootstrap';
-export {Factory, AsyncFactory} from './factory';
 export * from './interfaces';
 export * from './resolvers';
 export {AbstractContainer, BasicContainer} from './container';

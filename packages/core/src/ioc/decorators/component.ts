@@ -1,7 +1,6 @@
 import {classDecorator, Newable} from '../../reflection';
 import {Container, ServiceRequest} from '../interfaces';
 import {BootstrapAnnotation} from '../bootstrap';
-import {NewableFactory} from '../factory';
 import {Provider} from '../provider';
 
 /**
@@ -12,11 +11,6 @@ export interface ComponentConfig {
    * A list of providers (classes) that the component offers.
    */
   providers?: (Provider<any> | Newable<any>)[];
-
-  /**
-   * A list of factory constructors.
-   */
-  factories?: NewableFactory<any>[];
 
   /**
    * A list of other components that the component depends on.
@@ -53,9 +47,6 @@ class ComponentAnnotation extends BootstrapAnnotation {
     }
     for (const provider of this.config.providers || []) {
       container.register(provider);
-    }
-    for (const factory of this.config.factories || []) {
-      factory.container = container;
     }
   }
 

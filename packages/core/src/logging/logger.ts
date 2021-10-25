@@ -3,7 +3,7 @@ import {Logger, LoggerConfig, Sink, LogLevel, SinkFactory} from './interfaces';
 export class DefaultLogger extends Logger {
   public static fromConfig(config: LoggerConfig): Logger {
     return new DefaultLogger(
-      config.level, ([] as SinkFactory[]).concat(config.sink).map(f => f.create())
+      config.level, ([] as SinkFactory[]).concat(config.sink).map(f => f())
     );
   }
 
