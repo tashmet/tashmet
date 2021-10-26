@@ -1,0 +1,31 @@
+{
+	"name": "@tashmit/qs-parser",
+	"version": "0.1.0",
+	"description": "Http query string to MongoDB query parser",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint --cache --ext .js,.ts src/",
+		"test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
+	},
+	"author": "Björn Andersson",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tashmit/tashmit"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@tashmit/core": "^1.0.2",
+		"@tashmit/database": "^1.3.1",
+		"qs": "^6.10.1",
+		"query-types": "0.1.4"
+	},
+	"devDependencies": {
+		"@types/qs": "^6.9.7",
+		"tslib": "^2.3.1"
+	}
+}
