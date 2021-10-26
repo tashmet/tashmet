@@ -46,3 +46,19 @@ export interface NestedFilterConfig {
   param: string;
   types: boolean;
 }
+
+export interface FlatQueryParserConfig {
+  operator?: OperatorParserConfig;
+  sort?: DelimitedSortConfig;
+  skip?: string;
+  limit?: string;
+  projection?: string;
+}
+
+export interface JsonQueryParserConfig {
+  filter?: string;
+  sort?: string;
+  skip?: string;
+  limit?: string;
+  projection?: string;
+}
