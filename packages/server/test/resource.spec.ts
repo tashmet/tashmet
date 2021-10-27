@@ -1,11 +1,11 @@
-import {bootstrap, component} from '@tashmit/core';
+import {bootstrap, component, Provider} from '@tashmit/core';
 import {memory, Database} from '@tashmit/database';
+import {QueryParser} from '@tashmit/qs-parser';
 import ServerComponent, { resource, Server } from '../dist';
 import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
 import operators from '@tashmit/operators/system';
-import {flatQueryParser} from '../src/query';
 
 describe('Resource', () => {
   @component({
@@ -25,11 +25,11 @@ describe('Resource', () => {
           '/readonly': resource({
             collection: 'test',
             readOnly: true,
-            queryParser: flatQueryParser(),
           }),
           '/readwrite': resource({collection: 'test', readOnly: false}),
         }
       }),
+      Provider.ofInstance(QueryParser, QueryParser.flat()),
     ],
     inject: [Server]
   })

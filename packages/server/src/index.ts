@@ -1,4 +1,5 @@
 import {component, Logger, Provider} from '@tashmit/core';
+import {QueryParser} from '@tashmit/qs-parser';
 import http from 'http';
 import SocketIO from 'socket.io';
 import express from 'express';
@@ -10,7 +11,6 @@ export * from './decorators';
 export * from './interfaces';
 export * from './routers/resource';
 export * from './logging';
-export * from './query';
 
 @component({
   providers: [
@@ -31,7 +31,8 @@ export * from './query';
       key: 'server.Logger',
       inject: [Logger],
       create: (logger: Logger) => logger.inScope('server')
-    })
+    }),
+    Provider.ofInstance(QueryParser, QueryParser.json()),
   ],
 })
 export default class ServerComponent {}

@@ -1,14 +1,27 @@
 import {Factory, Logger} from '@tashmit/core';
 import {Collection, Database, DatabaseChange, Query} from '@tashmit/database';
+import {QueryParser} from '@tashmit/qs-parser';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
 import * as url from 'url';
 import {serializeError} from 'serialize-error';
+import {hashCode} from 'mingo/util';
 import {get, post, put, del} from '../decorators';
-import {router, ControllerFactory} from '../controller';
-import {QueryParser, cacheOrEval} from '../query/common';
-import {jsonQueryParser} from '../query/json';
+import {router} from '../controller';
 
+function cacheOrEval<T>(records: Record<string, T>, value: any, fn: (value: any) => T) {
+  const hash = hashCode(value);
+  let result: T;
+  if (hash) {
+    result = records[hash];
+    if (!result) {
+      result = (records[hash] = fn(value));
+    }
+    return result;
+  } else {
+    return fn(value);
+  }
+}
 export interface ResourceConfig {
   /** The name of the collection */
   collection: string;
@@ -36,7 +49,7 @@ export class Resource {
     protected collection: Collection,
     protected logger: Logger,
     protected readOnly = false,
-    protected queryParser: QueryParser = jsonQueryParser(),
+    protected queryParser: QueryParser,
   ) {
     this.collection.on('change', change => this.onChange(change));
     this.collection.on('error', err => this.onError(err));
@@ -81,7 +94,7 @@ export class Resource {
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
       const {filter, ...options} = cacheOrEval<Query>(this.queryCache, req.url, () => {
-        return this.queryParser(url.parse(req.url).query || '')
+        return this.queryParser.parse(url.parse(req.url).query || '')
       });
       const count = await this.collection.find(filter).count(false);
 
@@ -156,11 +169,12 @@ export const resource = (config: ResourceConfig) =>
   router(Factory.of(async ({container}) => {
     const database = container.resolve(Database);
     const logger = container.resolve(Logger.inScope('server'));
+    const queryParser = config.queryParser || container.resolve(QueryParser);
 
     return new Resource(
       await database.collection(config.collection),
       logger.inScope('Resource'),
       config.readOnly,
-      config.queryParser,
+      queryParser,
     );
   }));
