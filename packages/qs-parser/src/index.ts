@@ -178,7 +178,7 @@ export class QueryParser {
     }));
   }
 
-  public json(config?: JsonQueryParserConfig | string) {
+  public static json(config?: JsonQueryParserConfig | string) {
     return new QueryParser(qs => typeof config === 'string'
       ? parseJson(qs.data[config])
       : ({
