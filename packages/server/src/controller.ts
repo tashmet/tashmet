@@ -21,7 +21,7 @@ export type ControllerFactory = AsyncFactory<any>;
 export function router(factOrProvider: ServiceRequest<any> | ControllerFactory): RequestHandlerFactory {
   return Factory.of(async ({path, container}) => {
     const controller = factOrProvider instanceof Factory
-      ? await factOrProvider.resolve(container)({})
+      ? await factOrProvider.resolve(container)()
       : container.resolve(factOrProvider);
     const logger = container.resolve(Logger.inScope('server.RouterFactory'));
     const gateway = container.resolve(SocketGateway);
