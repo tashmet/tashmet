@@ -1,4 +1,4 @@
-import {component, Logger, Provider} from '@tashmit/core';
+import {component, Provider} from '@tashmit/core';
 import {QueryParser} from '@tashmit/qs-parser';
 import http from 'http';
 import SocketIO from 'socket.io';
@@ -26,11 +26,6 @@ export * from './logging';
       key: 'socket.io.Server',
       inject: ['http.Server'],
       create: (server: http.Server) => SocketIO(server),
-    }),
-    Provider.ofFactory({
-      key: 'server.Logger',
-      inject: [Logger],
-      create: (logger: Logger) => logger.inScope('server')
     }),
     Provider.ofInstance(QueryParser, QueryParser.json()),
   ],
