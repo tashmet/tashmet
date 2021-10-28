@@ -1,8 +1,7 @@
 import {provider} from '@tashmit/core';
 import {Database, DocumentError} from '@tashmit/database';
-import {ValidationConfig} from './interfaces';
+import {Validator, ValidationConfig} from './interfaces';
 import Ajv from 'ajv';
-import { Validator } from '.';
 
 export class AjvError extends DocumentError {
   private static createMessage(doc: any, error: Ajv.ErrorObject) {
