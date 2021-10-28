@@ -6,7 +6,7 @@ import {
 import {Fetch, SerializeQuery} from './interfaces';
 
 
-export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
+export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
     private serialize: SerializeQuery,
     private fetch: Fetch,

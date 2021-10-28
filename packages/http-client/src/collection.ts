@@ -11,9 +11,9 @@ import {
 } from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {Fetch, SerializeQuery} from './interfaces';
-import {RestCollectionCursor} from './cursor';
+import {HttpCollectionCursor} from './cursor';
 
-export class RestCollection<T> extends Collection<T> {
+export class HttpCollection<T> extends Collection<T> {
   public constructor(
     public readonly name: string,
     private database: Database,
@@ -36,10 +36,10 @@ export class RestCollection<T> extends Collection<T> {
 
   public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
     const serializeQuery: SerializeQuery = (filter, options) => {
-      const params = this.querySerializer.serialize({...filter, ...options});
+      const params = this.querySerializer.serialize({filter, ...options});
       return params !== '' ? this.path + '?' + params : this.path;
     }
-    return new RestCollectionCursor<T>(
+    return new HttpCollectionCursor<T>(
       serializeQuery, this.fetch, this.headers, filter, options
     );
   }

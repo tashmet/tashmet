@@ -1,14 +1,17 @@
-import {component, Factory, Provider} from '@tashmit/core';
+import {component, Factory, Logger, Provider} from '@tashmit/core';
 import {CollectionFactory, withAutoEvent} from '@tashmit/database';
-import {RestCollection} from './collection';
-import {HttpCollectionConfig, HttpClientConfig} from './interfaces';
+import {QuerySerializer} from '@tashmit/qs-builder';
+import {HttpCollection} from './collection';
+import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
 
 export * from './interfaces';
 
-
 @component({
   providers: [
-    Provider.ofInstance('tashmit.HttpClientConfig', {}),
+    Provider.ofInstance<HttpClientConfig>('tashmit.HttpClientConfig', {
+      fetch: typeof window !== 'undefined' ? window.fetch : undefined,
+      querySerializer: QuerySerializer.json(),
+    }),
   ]
 })
 export default class HttpClient {
@@ -29,6 +32,10 @@ export default class HttpClient {
         ...config,
       };
 
+      const logger = container.resolve(
+        Logger.inScope(`http-client.HttpCollection (${name})`)
+      );
+
       if (!querySerializer) {
         throw Error('No query serializer configured');
       }
@@ -36,7 +43,14 @@ export default class HttpClient {
         throw Error('No fetch implementation configured');
       }
 
-      const collection = new RestCollection<T>(name, database, path, querySerializer, fetch);
+      const loggedFetch: Fetch = (input, init) => {
+        logger.info(`${init?.method || 'GET'} '${input}'`);
+        return fetch(input, init);
+      }
+
+      const collection = new HttpCollection<T>(
+        name, database, path, querySerializer, loggedFetch
+      );
 
       if (emitter) {
         emitter(collection, path)
