@@ -4,6 +4,7 @@ import {DefaultLogger} from '../logging/logger';
 import {Container, ServiceIdentifier, ServiceRequest, Resolver} from './interfaces';
 import {Provider} from './provider';
 import {ClassProviderAnnotation, FactoryProviderAnnotation} from './decorators/provider';
+import { Factory, FactoryFunction } from '.';
 
 /**
  * Abstract container that can be overridden to plug into an existing DI framework.
@@ -17,6 +18,10 @@ export abstract class AbstractContainer extends Container {
     }
     this.logger.inScope('resolve').debug(`key '${this.nameOf(req)}'`);
     return this.get(req);
+  }
+
+  resolveFactory<T, TContext>(factory: Newable<Factory<T, TContext>>): FactoryFunction<T, TContext> {
+    return this.get(factory).resolve(this);
   }
 
   public register<T>(provider: Provider<T> | Newable<T>): void {

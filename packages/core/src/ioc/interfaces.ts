@@ -13,6 +13,15 @@ export declare interface Container {
   resolve<T>(req: ServiceRequest<T>): T;
 
   /**
+   *  Resolve a factory function.
+   *
+   * @param factory A service identifier of a factory
+   */
+  resolveFactory<T, TContext>(
+    factory: ServiceIdentifier<Factory<T, TContext>>
+  ): FactoryFunction<T, TContext>
+
+  /**
    * Register a resolver used for retrieving instances of T for a given service identifier,
    */
   register<T>(provider: Provider<T> | Newable<T>): void;
@@ -32,26 +41,28 @@ export abstract class Resolver<T> {
   public abstract resolve(container: Container): T;
 }
 
-export type ServiceRequest<T> = ServiceIdentifier<T> | Resolver<T>;
+export type ServiceRequest<T> = ServiceIdentifier<T> | Resolver<T> | Newable<Factory<T>>;
 
 export interface FactoryContext {
   container: Container;
 }
 
-export class Factory<T, TContext = {}> extends Resolver<(context: TContext) => T> {
-  public static of<T, TContext>(fn: (context: TContext & FactoryContext) => T) {
+export type FactoryFunction<T, TContext> = (context: TContext) => T;
+
+export class Factory<T, TContext = void> extends Resolver<FactoryFunction<T, TContext>> {
+  public static of<T, TContext>(fn: FactoryFunction<T, TContext & FactoryContext>) {
     return new Factory<T, TContext>(fn);
   }
 
   public constructor(
-    private fn: (context: TContext & FactoryContext) => T
+    private fn: FactoryFunction<T, TContext & FactoryContext>
   ) { super(); }
 
-  public resolve(container: Container): (context: TContext) => T {
+  public resolve(container: Container): FactoryFunction<T, TContext> {
     return context => {
       return this.fn({...context, container});
     }
   }
 }
 
-export class AsyncFactory<T, TContext = {}> extends Factory<Promise<T>, TContext> {}
+export class AsyncFactory<T, TContext = void> extends Factory<Promise<T>, TContext> {}
