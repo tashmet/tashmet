@@ -2,6 +2,7 @@ import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
+import {BasicContainer} from '@tashmit/core';
 import {Collection, memory} from '@tashmit/database/src';
 import {DatabaseService} from '@tashmit/database/src/database';
 import {DefaultLogger} from '@tashmit/core/src/logging/logger';
@@ -25,7 +26,8 @@ describe('Feed', () => {
     public increment = 2;
   }
 
-  const database = new DatabaseService({collections: {}, operators}, new DefaultLogger());
+  const database = new DatabaseService(
+    {collections: {}, operators}, new DefaultLogger(), new BasicContainer());
   let collection: Collection;
   let feed: TestFeed;
 

@@ -10,7 +10,7 @@ describe('match', () => {
       @match.lte() foo: number = 12;
 
       get pipeline() {
-        return this.compile(({foo,...rest}) => [
+        return this.compile(({foo}) => [
           foo,
           {$match: {foo: {$gte: 4}}},
         ]);
