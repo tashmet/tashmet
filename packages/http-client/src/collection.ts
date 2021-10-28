@@ -8,47 +8,25 @@ import {
   Database,
   QueryAggregator,
   Collection,
-  withAutoEvent,
 } from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
-import {Fetch, RestCollectionConfig, SerializeQuery} from './interfaces';
+import {Fetch, SerializeQuery} from './interfaces';
 import {RestCollectionCursor} from './cursor';
 
-
 export class RestCollection<T> extends Collection<T> {
-  private serializeQuery: SerializeQuery;
-  private fetch: Fetch;
-
-  public static fromConfig<T = any>(
-    name: string, database: Database, config: RestCollectionConfig
-  ) {
-    const instance = new RestCollection<T>(name, config, database);
-    return config.emitter === undefined ? withAutoEvent(instance) : instance;
-  }
-
   public constructor(
     public readonly name: string,
-    private config: RestCollectionConfig,
     private database: Database,
+    private path: string,
+    private querySerializer: QuerySerializer,
+    private fetch: Fetch,
+    private headers: Record<string, string> = {},
   ) {
     super();
-
-    const qs = config.queryString || QuerySerializer.json();
-
-    this.serializeQuery = (filter, options) => {
-      const params = qs.serialize({...filter, ...options});
-      return params !== '' ? this.config.path + '&' + params : this.config.path;
-    }
-    if (config.emitter) {
-      const emitter = config.emitter(this, config.path);
-      emitter.on('change', change => this.emit('change', change));
-      emitter.on('error', error => this.emit('error', error));
-    }
-    this.fetch = config.fetch || window.fetch;
   }
 
   public toString(): string {
-    return `http collection '${this.name}' at '${this.config.path}'`;
+    return `http collection '${this.name}' at '${this.path}'`;
   }
 
   public async aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
@@ -57,8 +35,12 @@ export class RestCollection<T> extends Collection<T> {
   }
 
   public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
+    const serializeQuery: SerializeQuery = (filter, options) => {
+      const params = this.querySerializer.serialize({...filter, ...options});
+      return params !== '' ? this.path + '?' + params : this.path;
+    }
     return new RestCollectionCursor<T>(
-      this.serializeQuery, this.fetch, this.config.headers, filter, options
+      serializeQuery, this.fetch, this.headers, filter, options
     );
   }
 
@@ -112,7 +94,7 @@ export class RestCollection<T> extends Collection<T> {
   }
 
   private async deleteOneById(id: string): Promise<void> {
-    const resp = await this.fetch(this.config.path + '/' + id, {
+    const resp = await this.fetch(this.path + '/' + id, {
       method: 'DELETE',
       headers: this.makeHeaders(),
     });
@@ -122,11 +104,11 @@ export class RestCollection<T> extends Collection<T> {
   }
 
   private async put(doc: any, id: string) {
-    return this.send('PUT', `${this.config.path}/${id}`, doc);
+    return this.send('PUT', `${this.path}/${id}`, doc);
   }
 
   private async post(doc: any) {
-    return this.send('POST', this.config.path, doc);
+    return this.send('POST', this.path, doc);
   }
 
   private async send(method: 'POST' | 'PUT', path: string, doc: any) {
@@ -145,7 +127,7 @@ export class RestCollection<T> extends Collection<T> {
   }
 
   private makeHeaders(headers?: Record<string, string>) {
-    return Object.assign({}, headers, this.config.headers);
+    return Object.assign({}, headers, this.headers);
   }
 
   private async errorMessage(resp: Response): Promise<string> {

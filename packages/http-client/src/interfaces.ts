@@ -3,10 +3,8 @@ import {QuerySerializer} from '@tashmit/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 
-export interface RestCollectionConfig {
-  path: string;
-
-  queryString?: QuerySerializer;
+export interface HttpClientConfig {
+  querySerializer?: QuerySerializer;
 
   emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
 
@@ -23,6 +21,10 @@ export interface RestCollectionConfig {
 
   /** Additional headers */
   headers?: Record<string, string>;
+}
+
+export interface HttpCollectionConfig extends HttpClientConfig {
+  path: string;
 }
 
 export type SerializeQuery = (filter?: Filter<any>, options?: QueryOptions) => string;
