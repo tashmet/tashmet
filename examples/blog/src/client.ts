@@ -1,6 +1,6 @@
 import {bootstrap, component, Database} from '@tashmit/tashmit';
 import {caching} from '@tashmit/caching';
-import {rest} from '@tashmit/rest';
+import {rest} from '@tashmit/http-client';
 import operators from '@tashmit/operators/basic';
 
 @component({
