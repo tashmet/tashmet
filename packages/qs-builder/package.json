@@ -1,0 +1,29 @@
+{
+	"name": "@tashmit/qs-builder",
+	"version": "0.1.0",
+	"description": "MongoDB query to HTTP query string",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint --cache --ext .js,.ts src/",
+		"test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
+	},
+	"author": "Björn Andersson",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tashmit/tashmit"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@tashmit/core": "^1.0.2",
+		"@tashmit/database": "^1.3.1",
+    	"qs-stringify": "^1.2.1"
+	},
+	"devDependencies": {
+		"tslib": "^2.3.1"
+	}
+}
