@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {AsyncFactory, Container, Provider} from '@tashmit/core';
+import {AsyncFactory, Provider} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 
 export type Document = Record<string, any>;

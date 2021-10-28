@@ -1,5 +1,5 @@
-import {Injection, Logger} from '@tashmit/core';
-import {Middleware, Collection} from '../interfaces';
+import {Factory, Logger} from '@tashmit/core';
+import {Middleware, MiddlewareFactory} from '../interfaces';
 
 const loggingMiddleware = (logger: Logger) => {
   const logError = (next: (...args: any[]) => Promise<any>) => async (...args: any[]) => {
@@ -41,5 +41,8 @@ const loggingMiddleware = (logger: Logger) => {
   } as Middleware;
 }
 
-export const logging = () => (source: Collection) => Injection.of((logger: Logger) =>
-  loggingMiddleware(logger.inScope(source.name)), [Logger.inScope('database')]);
+export function logging(): MiddlewareFactory {
+  return Factory.of(async ({container, collection}) =>
+    loggingMiddleware(container.resolve(Logger.inScope(`database.${collection.name}`)))
+  );
+}
