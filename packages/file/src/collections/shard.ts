@@ -33,7 +33,7 @@ export function shards<T = any>(config: ShardBufferConfig<T>): CollectionFactory
   }
 
   return Factory.of(async ({name, database, container}) => {
-    const {seed, input, inputDelete, output} = await config.stream.resolve(container)({});
+    const {seed, input, inputDelete, output} = await config.stream.resolve(container)();
     const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
     const instance = buffer(cache, async ({action, data}) => {
       switch (action) {

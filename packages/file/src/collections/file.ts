@@ -1,7 +1,7 @@
 import {Factory} from '@tashmit/core';
 import {Pipe} from '@tashmit/pipe';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
-import {FileStreamConfig, ReadableFile, Serializer} from '../interfaces'
+import {FileAccessFactory, FileStreamConfig, ReadableFile, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Pipeline} from '../pipeline';
 
@@ -46,7 +46,9 @@ export function file<T extends object = any, TStored extends object = T>(
 ) {
   const streamFactory: BundleStreamFactory<T> = Factory.of(async ({container}) => {
     const {path, serializer, dictionary, afterParse, beforeSerialize} = config;
-    const driver = await config.driver.resolve(container)({});
+    const driver = config.driver
+      ? await config.driver.resolve(container)()
+      : await container.resolveFactory(FileAccessFactory)();
 
     const input = (source: Pipeline<ReadableFile>) => source
       .pipe(Pipes.File.read())

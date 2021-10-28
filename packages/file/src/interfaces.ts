@@ -73,13 +73,13 @@ export interface ExtractedFileContentConfig<T> {
   resolveId?: Pipe<File<T>, string>;
 }
 
-export type FileAccessFactory = AsyncFactory<FileAccess>;
+export class FileAccessFactory extends AsyncFactory<FileAccess> {};
 
 export interface FileStreamConfig<T> {
   /**
    * The underlying file system driver to use.
    */
-  driver: FileAccessFactory;
+  driver?: FileAccessFactory;
 }
 
 export interface MultiFilesWithContentConfig<T, TStored> {

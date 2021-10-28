@@ -1,7 +1,15 @@
 import {Factory} from '@tashmit/core';
 import {Pipe} from '@tashmit/pipe';
 import {shards, ShardStreamConfig, ShardStreamFactory} from './shard';
-import {File, ReadableFile, FileContentConfig, MultiFilesWithContentConfig, FileStreamConfig, ExtractedFileContentConfig} from '../interfaces'
+import {
+  File,
+  FileAccessFactory,
+  FileContentConfig,
+  FileStreamConfig,
+  ExtractedFileContentConfig,
+  MultiFilesWithContentConfig,
+  ReadableFile,
+} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Pipeline} from '../pipeline';
 
@@ -41,7 +49,9 @@ export function globFilesStream<T = any, TStored = T>(
 ): ShardStreamFactory<File<T>> {
   return Factory.of(async ({container}) => {
     const {pattern, content} = config;
-    const driver = await config.driver.resolve(container)({});
+    const driver = config.driver
+      ? await config.driver.resolve(container)()
+      : await container.resolveFactory(FileAccessFactory)();
 
     const input = (source: Pipeline<File>) => {
       if (!content) {
@@ -94,7 +104,7 @@ export function globContentStream<T = any, TStored = T>(
     Object.assign({}, defaultConfig, config);
 
   return Factory.of(async ({container}) => {
-    const stream = await globFilesStream({pattern, driver, content}).resolve(container)({});
+    const stream = await globFilesStream({pattern, driver, content}).resolve(container)();
 
     const input = (source: Pipeline<File<T>>) => source
       .pipe(Pipes.File.assignContent(async file => ({_id: await resolveId(file)})))
