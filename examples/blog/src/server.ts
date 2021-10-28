@@ -1,17 +1,16 @@
 import {
-  bootstrap, component, logging, LogLevel, Database,
+  bootstrap, component, logging, LogLevel, Database, Provider,
 } from '@tashmit/tashmit';
 import {caching} from '@tashmit/caching';
 import {yaml, directoryContent} from '@tashmit/file';
 import {resource, Server} from '@tashmit/server';
+import {QueryParser} from '@tashmit/qs-parser';
 import {terminal} from '@tashmit/terminal';
 import {validation, ValidationPipeStrategy} from '@tashmit/schema';
-import {vinylfs} from '@tashmit/vinyl';
 import operators from '@tashmit/operators/system';
 
 @component({
   dependencies: [
-    import('@tashmit/file'),
     import('@tashmit/server'),
     import('@tashmit/schema'),
     import('@tashmit/vinyl'),
@@ -21,14 +20,12 @@ import operators from '@tashmit/operators/system';
       operators,
       collections: {
         'schemas': directoryContent({
-          driver: vinylfs(),
           path: 'schemas',
           extension: 'yaml',
           serializer: yaml(),
         }),
         'posts': {
           source: directoryContent({
-            driver: vinylfs(),
             path: 'posts',
             extension: 'yaml',
             serializer: yaml({
@@ -52,6 +49,7 @@ import operators from '@tashmit/operators/system';
         '/api/posts': resource({collection: 'posts'}),
       }
     }),
+    Provider.ofInstance(QueryParser, QueryParser.flat()),
   ],
   inject: [Server],
 })

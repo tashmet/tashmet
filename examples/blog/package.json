@@ -25,6 +25,7 @@
     "@tashmit/caching": "^1.2.3",
     "@tashmit/file": "^2.0.0",
     "@tashmit/operators": "^0.1.0",
+    "@tashmit/qs-parser": "^0.1.0",
     "@tashmit/rest": "^0.1.0",
     "@tashmit/schema": "^1.3.3",
     "@tashmit/server": "^1.1.3",
