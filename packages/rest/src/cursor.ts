@@ -3,13 +3,12 @@ import {
   Filter,
   QueryOptions,
 } from '@tashmit/database';
-import {Fetch} from './interfaces';
-import {HttpQueryBuilder} from './query';
+import {Fetch, SerializeQuery} from './interfaces';
 
 
 export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
-    private queryBuilder: HttpQueryBuilder,
+    private serialize: SerializeQuery,
     private fetch: Fetch,
     private headers: Record<string, string> = {},
     selector: object = {},
@@ -37,7 +36,7 @@ export class RestCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   private query(filter?: Filter<T>, options?: QueryOptions, init?: RequestInit): Promise<Response> {
-    return this.fetch(this.queryBuilder.serialize(filter, options),
+    return this.fetch(this.serialize(filter, options),
       Object.assign({}, init, {headers: this.headers}));
   }
 }

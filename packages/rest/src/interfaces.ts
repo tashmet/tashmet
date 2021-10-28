@@ -1,23 +1,12 @@
-import {Collection, DatabaseEventEmitter, Query} from '@tashmit/database';
-import {HttpQueryBuilder} from './query';
+import {Collection, DatabaseEventEmitter, Filter, QueryOptions} from '@tashmit/database';
+import {QuerySerializer} from '@tashmit/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
-
-export class Param {
-  public constructor(public name: string, public value?: string | number | boolean) {}
-
-  public toString() { return `${this.name}=${this.value}`; }
-}
-
-export type QueryConverter<T> = (q: Query) => T;
-export type QueryParamFactory = QueryConverter<string>
-
-export type QueryStringFactory = (path: string) => HttpQueryBuilder;
 
 export interface RestCollectionConfig {
   path: string;
 
-  queryString?: QueryStringFactory;
+  queryString?: QuerySerializer;
 
   emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
 
@@ -36,3 +25,4 @@ export interface RestCollectionConfig {
   headers?: Record<string, string>;
 }
 
+export type SerializeQuery = (filter?: Filter<any>, options?: QueryOptions) => string;

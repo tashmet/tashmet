@@ -1,6 +1,5 @@
 import {
   aggregate,
-  CollectionFactory,
   Cursor,
   Filter,
   QueryOptions,
@@ -11,15 +10,13 @@ import {
   Collection,
   withAutoEvent,
 } from '@tashmit/database';
-
-import {Fetch, RestCollectionConfig} from './interfaces';
+import {QuerySerializer} from '@tashmit/qs-builder';
+import {Fetch, RestCollectionConfig, SerializeQuery} from './interfaces';
 import {RestCollectionCursor} from './cursor';
-import {HttpQueryBuilder} from './query';
-import {jsonQuery} from './query/json';
 
 
 export class RestCollection<T> extends Collection<T> {
-  private queryBuilder: HttpQueryBuilder;
+  private serializeQuery: SerializeQuery;
   private fetch: Fetch;
 
   public static fromConfig<T = any>(
@@ -36,9 +33,12 @@ export class RestCollection<T> extends Collection<T> {
   ) {
     super();
 
-    const qs = config.queryString || jsonQuery();
+    const qs = config.queryString || QuerySerializer.json();
 
-    this.queryBuilder = qs(config.path);
+    this.serializeQuery = (filter, options) => {
+      const params = qs.serialize({...filter, ...options});
+      return params !== '' ? this.config.path + '&' + params : this.config.path;
+    }
     if (config.emitter) {
       const emitter = config.emitter(this, config.path);
       emitter.on('change', change => this.emit('change', change));
@@ -58,7 +58,7 @@ export class RestCollection<T> extends Collection<T> {
 
   public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
     return new RestCollectionCursor<T>(
-      this.queryBuilder, this.fetch, this.config.headers, filter, options
+      this.serializeQuery, this.fetch, this.config.headers, filter, options
     );
   }
 
