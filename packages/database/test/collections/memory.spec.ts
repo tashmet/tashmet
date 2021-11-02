@@ -23,9 +23,7 @@ describe('MemoryCollection', () => {
     amount: number;
   }
 
-  const db = new DatabaseService(
-    {collections: {}, operators}, new DefaultLogger(), new BasicContainer()
-  );
+  const db = new DatabaseService(new DefaultLogger(), new BasicContainer(), operators);
   const col = MemoryCollection.fromConfig<ItemEntry>('test', db, {});
 
   beforeEach(async () => {

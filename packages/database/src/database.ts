@@ -1,37 +1,28 @@
+import {Logger, Container, Factory} from '@tashmit/core';
+import {OperatorConfig} from '@tashmit/operators';
 import {OperatorType, useOperators} from "mingo/core";
-import {provider, Logger, Container, Factory} from '@tashmit/core';
 import {withMiddleware} from './collections/managed';
 import {
   Collection,
   CollectionConfig,
   CollectionFactory,
   Database,
-  DatabaseConfig,
   Middleware,
   MiddlewareFactory,
 } from './interfaces';
 
-@provider({
-  key: Database,
-  inject: [
-    'tashmit.DatabaseConfig',
-    Logger.inScope('database.DatabaseService'),
-    Container,
-  ]
-})
 export class DatabaseService extends Database {
   private collections: {[name: string]: Promise<Collection>} = {};
 
   public constructor(
-    private config: DatabaseConfig,
     private logger: Logger,
     private container: Container,
+    operators: OperatorConfig = {},
+    private middleware: MiddlewareFactory[] = [],
   ) {
     super();
-    for (const name of Object.keys(config.collections)) {
-      this.createCollection(name, config.collections[name]);
-    }
-    const {accumulator, expression, pipeline, projection, query} = config.operators;
+    const {accumulator, expression, pipeline, projection, query} = operators;
+
     useOperators(OperatorType.ACCUMULATOR, accumulator || {});
     useOperators(OperatorType.EXPRESSION, expression || {});
     useOperators(OperatorType.PIPELINE, pipeline || {});
@@ -77,7 +68,7 @@ export class DatabaseService extends Database {
     const source = await config.source.resolve(this.container)({name, database: this});
     const middlewareFactories = [
       ...(config.useBefore || []),
-      ...(this.config.use || []),
+      ...(this.middleware || []),
       ...(config.use || [])
     ];
     return withMiddleware(source, await this.createMiddleware(middlewareFactories, source));

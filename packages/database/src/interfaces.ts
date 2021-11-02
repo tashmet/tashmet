@@ -402,6 +402,8 @@ export interface DatabaseConfig {
   operators: OperatorConfig;
 }
 
+export abstract class DatabaseConfig implements DatabaseConfig {}
+
 export type CollectionChangeAction = 'insert' | 'delete' | 'replace';
 
 export interface DatabaseChange<T = any> {
@@ -414,8 +416,12 @@ export interface DatabaseChange<T = any> {
  *
  */
 export abstract class Database extends EventEmitter implements DatabaseEventEmitter {
-  public static configuration(config: DatabaseConfig) {
-    return Provider.ofInstance<DatabaseConfig>('tashmit.DatabaseConfig', config);
+  public static configuration(config?: Partial<DatabaseConfig>) {
+    const defaultConfig: DatabaseConfig = {
+      operators: {},
+      collections: {},
+    };
+    return Provider.ofInstance(DatabaseConfig, {...defaultConfig, ...config});
   }
 
   /**

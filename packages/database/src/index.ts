@@ -1,5 +1,5 @@
-import {component} from '@tashmit/core';
-import {Database} from './interfaces';
+import {Container, Logger, Provider} from '@tashmit/core';
+import {Database, DatabaseConfig} from './interfaces';
 import {DatabaseService} from './database';
 
 export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
@@ -9,13 +9,30 @@ export {aggregate, QueryAggregator} from './aggregation';
 export * from './interfaces';
 export * from './middleware';
 
-@component({
-  providers: [
-    DatabaseService,
-    Database.configuration({
+export default class DatabasePlugin {
+  public static configure(config: Partial<DatabaseConfig>) {
+    const defaultConfig: DatabaseConfig = {
       collections: {},
       operators: {},
-    }),
-  ],
-})
-export default class DatabaseComponent {}
+    };
+    return new DatabasePlugin({...defaultConfig, ...config});
+  }
+
+  public constructor(private config: DatabaseConfig) {}
+
+  public register(container: Container) {
+    const {collections, use, operators} = this.config;
+
+    container.register(Provider.ofFactory({
+      key: Database,
+      inject: [Logger.inScope('database.Database')],
+      create: (logger: Logger) => {
+        const database = new DatabaseService(logger, container, operators, use);
+        for (const [name, factOrConfig] of Object.entries(collections)) {
+          database.createCollection(name, factOrConfig);
+        }
+        return database;
+      }
+    }));
+  }
+}
