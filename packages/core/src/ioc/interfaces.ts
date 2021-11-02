@@ -24,7 +24,7 @@ export declare interface Container {
   /**
    * Register a resolver used for retrieving instances of T for a given service identifier,
    */
-  register<T>(provider: Provider<T> | Newable<T>): void;
+  register<T>(provider: Provider<T> | Newable<T> | Plugin): void;
 
   /**
    * Returns true if the given service identifier has been registered.
@@ -66,3 +66,7 @@ export class Factory<T, TContext = void> extends Resolver<FactoryFunction<T, TCo
 }
 
 export class AsyncFactory<T, TContext = void> extends Factory<Promise<T>, TContext> {}
+
+export abstract class Plugin {
+  public abstract register(container: Container): void;
+}
