@@ -1,4 +1,4 @@
-import {component, Factory, Logger, Provider} from '@tashmit/core';
+import {Container, Factory, Logger, Plugin, Provider} from '@tashmit/core';
 import {CollectionFactory, withAutoEvent} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {HttpCollection} from './collection';
@@ -6,15 +6,24 @@ import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
 
 export * from './interfaces';
 
-@component({
-  providers: [
-    Provider.ofInstance<HttpClientConfig>('tashmit.HttpClientConfig', {
+export default class HttpClient extends Plugin {
+  public static withConfiguration(config?: Partial<HttpClientConfig>) {
+    const defaultConfig: HttpClientConfig = {
       fetch: typeof window !== 'undefined' ? window.fetch : undefined,
       querySerializer: QuerySerializer.json(),
-    }),
-  ]
-})
-export default class HttpClient {
+      headers: {},
+    }
+    return new HttpClient({...defaultConfig, ...config});
+  }
+
+  public constructor(private config: HttpClientConfig) {
+    super();
+  }
+
+  public register(container: Container) {
+    container.register(Provider.ofInstance(HttpClientConfig, this.config));
+  }
+
   /**
    * A factory creating an HTTP database collection.
    *
@@ -28,7 +37,7 @@ export default class HttpClient {
         : configOrPath;
 
       const {path, emitter, querySerializer, fetch} = {
-        ...container.resolve<HttpClientConfig>('tashmit.HttpClientConfig'),
+        ...container.resolve(HttpClientConfig),
         ...config,
       };
 
@@ -60,9 +69,5 @@ export default class HttpClient {
       }
       return withAutoEvent(collection);
     });
-  }
-
-  public static configuration(config: HttpClientConfig) {
-    return Provider.ofInstance('tashmit.HttpClientConfig', config);
   }
 }

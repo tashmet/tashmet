@@ -4,7 +4,7 @@ import {QuerySerializer} from '@tashmit/qs-builder';
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 
 export interface HttpClientConfig {
-  querySerializer?: QuerySerializer;
+  querySerializer: QuerySerializer;
 
   emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
 
@@ -20,10 +20,12 @@ export interface HttpClientConfig {
   fetch?: Fetch;
 
   /** Additional headers */
-  headers?: Record<string, string>;
+  headers: Record<string, string>;
 }
 
-export interface HttpCollectionConfig extends HttpClientConfig {
+export abstract class HttpClientConfig implements HttpClientConfig {}
+
+export interface HttpCollectionConfig extends Partial<HttpClientConfig> {
   path: string;
 }
 
