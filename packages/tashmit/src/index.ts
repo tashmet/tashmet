@@ -19,7 +19,7 @@ export {
   Optional,
 
   // Bootstrapping
-  bootstrap,
+  createContainer,
 
   // Factory
   Factory,
@@ -34,6 +34,7 @@ export {
   InjectedProviderAnnotation,
   provider,
   Provider,
+  Plugin,
 
   // Logging
   LogLevel,
@@ -63,24 +64,90 @@ export {
 
 } from '@tashmit/core';
 
-import DatabaseComponent from '@tashmit/database';
-import * as core from '@tashmit/core';
-import {Newable} from '@tashmit/core';
+import DatabasePlugin, {
+  DatabaseConfig,
+  CollectionFactory,
+  CollectionConfig,
+  MiddlewareFactory
+} from '@tashmit/database';
+import {
+  Container,
+  createContainer,
+  Newable,
+  Provider,
+  Plugin,
+  Logger,
+  LoggerConfig,
+  LogLevel,
+  LogFormatter,
+  ServiceRequest,
+} from '@tashmit/core';
+import {BootstrapConfig} from '@tashmit/core/dist/ioc/bootstrap';
+import {OperatorConfig} from '@tashmit/operators';
 
-/**
- * Component class decorator.
- *
- * Turns a class into a component which is a collection of providers.
- * A component can have dependencies on other components which means that it can
- * consume whatever those components provide.
- *
- * This is a redefinition of component decorator found in @tashmit/ioc
- * which includes a dependency on @tashmit/database.
- */
-export const component = (config?: core.ComponentConfig) => {
-  config = config || {};
-  config.dependencies = (config.dependencies || []).concat([
-    DatabaseComponent,
-  ]);
-  return core.component(config);
-};
+export interface Configuration extends DatabaseConfig, LoggerConfig, BootstrapConfig {}
+
+
+export default class Tashmit {
+  public static withConfiguration(config: Partial<Configuration>) {
+    return new Tashmit(
+      config.container,
+      [],
+      config.use,
+      config.collections,
+      config.operators,
+      config.logLevel,
+      config.logFormat,
+    );
+  }
+
+  public constructor(
+    private container: ((logger: Logger) => Container) | undefined = undefined,
+    private providers: (Provider<any> | Newable<any> | Plugin)[] = [],
+    private middleware: MiddlewareFactory[] = [],
+    private collections: Record<string, CollectionFactory | CollectionConfig> = {},
+    private operators: OperatorConfig = {},
+    private logLevel: LogLevel = LogLevel.None,
+    private logFormat: LogFormatter | undefined = undefined,
+  ) {}
+
+  public provide(...providers: (Provider<any> | Newable<any> | Plugin)[]) {
+    this.providers.push(...providers);
+    return this;
+  }
+
+  public use(...middleware: MiddlewareFactory[]) {
+    this.middleware.push(...middleware);
+    return this;
+  }
+
+  public collection(name: string, factOrConfig: CollectionFactory | CollectionConfig) {
+    this.collections[name] = factOrConfig;
+    return this;
+  }
+
+  public bootstrap<T>(app: ServiceRequest<T>, fn?: (instance: T) => void): T {
+    const container = createContainer({
+      logFormat: this.logFormat,
+      logLevel: this.logLevel,
+      container: this.container,
+    })
+
+    DatabasePlugin
+      .configure({
+        operators: this.operators,
+        collections: this.collections,
+        use: this.middleware,
+      })
+      .register(container);
+
+    for (const provider of this.providers) {
+      container.register(provider);
+    }
+    const instance = container.resolve(app);
+    if (fn) {
+      fn(instance)
+    }
+    return instance;
+  }
+}
