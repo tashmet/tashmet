@@ -35,7 +35,14 @@ export function shards<T = any>(config: ShardBufferConfig<T>): CollectionFactory
   return Factory.of(async ({name, database, container}) => {
     const {seed, input, inputDelete, output} = await config.stream.resolve(container)();
     const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
-    const instance = buffer(cache, async ({action, data}) => {
+
+    const populate = async () => {
+      if (seed) {
+        await eachDocument(seed, doc => cache.insertOne(doc));
+      }
+    }
+
+    const instance = buffer(cache, populate(), async ({action, data}) => {
       switch (action) {
         case 'insert':
         case 'delete':
@@ -45,9 +52,6 @@ export function shards<T = any>(config: ShardBufferConfig<T>): CollectionFactory
       }
     });
 
-    if (seed) {
-      await eachDocument(seed, doc => cache.insertOne(doc));
-    }
     if (input) {
       eachDocument(input, doc => cache.replaceOne({_id: doc._id}, doc, {upsert: true}));
     }

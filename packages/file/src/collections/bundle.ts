@@ -29,7 +29,13 @@ export function bundle<T>(config: BundleConfig<T>): CollectionFactory {
     const {seed, input, output} = await config.stream.resolve(container)();
     const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
 
-    const collection = buffer(cache, () => output(Pipeline.fromCursor(cache.find())));
+    const populate = async () => {
+      if (seed) {
+        await cache.insertMany(await seed.toArray());
+      }
+    }
+
+    const collection = buffer(cache, populate(), () => output(Pipeline.fromCursor(cache.find())));
 
     const listen = async (input: Pipeline<T>) => {
       const data = await input.toArray();
@@ -61,9 +67,6 @@ export function bundle<T>(config: BundleConfig<T>): CollectionFactory {
       }
     }
 
-    if (seed) {
-      await cache.insertMany(await seed.toArray());
-    }
     if (input) {
       listen(input);
     }
