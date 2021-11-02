@@ -1,6 +1,8 @@
-import {AsyncFactory, Provider} from '@tashmit/core';
+import {AsyncFactory, Lookup} from '@tashmit/core';
+import {QueryParser} from '@tashmit/qs-parser';
 import {RequestHandler} from 'express';
-import {AddressInfo} from 'net';
+import * as express from 'express';
+import http from 'http';
 
 export interface RequestHandlerContext {
   path: string;
@@ -48,20 +50,15 @@ export interface Route {
 }
 
 export interface ServerConfig {
+  queryParser: QueryParser;
+
   middleware: RouteMap;
 }
 
-export abstract class Server {
-  public static configuration(config: ServerConfig) {
-    return Provider.ofInstance('server.ServerConfig', config);
-  }
+export abstract class ServerConfig implements ServerConfig {}
 
-  /**
-   * Starts the server and listens for connections.
-   *
-   * @param port Port to listen on.
-   */
-  public abstract listen(port: number): any;
-
-  public abstract address(): string | AddressInfo | null;
+export const resolvers = {
+  express: Lookup.of<express.Application>('express.Application'),
+  http: Lookup.of<http.Server>('http.Server'),
+  socket: Lookup.of<SocketIO.Server>('socket.io.Server'),
 }

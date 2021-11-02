@@ -8,6 +8,7 @@ import {serializeError} from 'serialize-error';
 import {hashCode} from 'mingo/util';
 import {get, post, put, del} from '../decorators';
 import {router} from '../controller';
+import {ServerConfig} from '../interfaces';
 
 function cacheOrEval<T>(records: Record<string, T>, value: any, fn: (value: any) => T) {
   const hash = hashCode(value);
@@ -169,7 +170,8 @@ export const resource = (config: ResourceConfig) =>
   router(Factory.of(async ({container}) => {
     const database = container.resolve(Database);
     const logger = container.resolve(Logger.inScope('server'));
-    const queryParser = config.queryParser || container.resolve(QueryParser);
+    const queryParser = config.queryParser
+      || container.resolve(ServerConfig).queryParser;
 
     return new Resource(
       await database.collection(config.collection),

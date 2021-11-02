@@ -1,33 +1,66 @@
-import {component, Provider} from '@tashmit/core';
-import {QueryParser} from '@tashmit/qs-parser';
+import {Container, Logger, Plugin, Provider} from '@tashmit/core';
 import http from 'http';
+import {AddressInfo} from 'net';
 import SocketIO from 'socket.io';
 import express from 'express';
-import {ExpressServer} from './server';
+import {ServerConfig, resolvers} from './interfaces';
 import {SocketGateway} from './gateway';
+import {QueryParser} from '@tashmit/qs-parser';
+import {makeRoutes, mountRoutes} from './routing';
 
 export * from './controller';
 export * from './decorators';
 export * from './interfaces';
 export * from './routers/resource';
 export * from './logging';
+export {QueryParser} from '@tashmit/qs-parser';
 
-@component({
-  providers: [
-    SocketGateway,
-    ExpressServer,
-    Provider.ofInstance('express.Application', express()),
-    Provider.ofFactory({
-      key: 'http.Server',
-      inject: ['express.Application'],
-      create: (app: express.Application) => http.createServer(app),
-    }),
-    Provider.ofFactory({
-      key: 'socket.io.Server',
-      inject: ['http.Server'],
+export default class HttpServerPlugin extends Plugin {
+  public static http = resolvers.http;
+  public static express = resolvers.express;
+  public static socket = resolvers.socket;
+
+  public static withConfiguration(config: Partial<ServerConfig>) {
+    const defaultConfig: ServerConfig = {
+      middleware: {},
+      queryParser: QueryParser.json(),
+    };
+
+    return new HttpServerPlugin({...defaultConfig, ...config});
+  }
+
+  public constructor(private config: ServerConfig) {
+    super();
+  }
+
+  public register(container: Container) {
+    container.register(SocketGateway);
+    container.register(Provider.ofInstance(ServerConfig, this.config));
+
+    container.register(Provider.ofFactory({
+      key: HttpServerPlugin.express.key,
+      create: () => {
+        const app = express();
+        mountRoutes(app, container, ...makeRoutes(this.config.middleware));
+        return app;
+      }
+    }));
+
+    container.register(Provider.ofFactory({
+      key: HttpServerPlugin.http.key,
+      inject: [HttpServerPlugin.express, Logger.inScope('http-server.Server')],
+      create: (app: express.Application, logger: Logger) => {
+        const server = http.createServer(app);
+        return server.addListener('listening', () => {
+          logger.info('listening on port ' + (server.address() as AddressInfo).port);
+        });
+      },
+    }));
+
+    container.register(Provider.ofFactory({
+      key: HttpServerPlugin.socket.key,
+      inject: [HttpServerPlugin.http],
       create: (server: http.Server) => SocketIO(server),
-    }),
-    Provider.ofInstance(QueryParser, QueryParser.json()),
-  ],
-})
-export default class ServerComponent {}
+    }));
+  }
+}
