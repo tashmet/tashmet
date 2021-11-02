@@ -23,7 +23,7 @@ export class AjvError extends DocumentError {
 
 @provider({
   key: Validator,
-  inject: [Database, 'schema.ValidationConfig']
+  inject: [Database, ValidationConfig]
 })
 export class AjvValidator extends Validator {
   private ajv: Promise<Ajv.Ajv>;
