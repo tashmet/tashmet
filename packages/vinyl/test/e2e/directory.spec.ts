@@ -1,14 +1,13 @@
-import {bootstrap, component} from '@tashmit/core';
-import {Collection, Database} from '@tashmit/database';
+import Tashmit, {Collection, Database} from '@tashmit/tashmit';
 import {directoryContent, json} from '@tashmit/file';
 import operators from '@tashmit/operators/system';
-import {vinylfs} from '../../dist';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
+import Vinyl from '../../dist';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -22,36 +21,20 @@ function storedFiles(): string[] {
 }
 
 describe('directory', () => {
-  @component({
-    dependencies: [
-      import('@tashmit/database'),
-      import('../../dist'),
-    ],
-    providers: [
-      Database.configuration({
-        collections: {
-          'test': {
-            source: directoryContent({
-              driver: vinylfs(),
-              path: 'test/e2e/testCollection',
-              extension: 'json',
-              serializer: json(),
-            })
-          }
-        },
-        operators,
-      })
-    ],
-    inject: [Database],
-  })
-  class TestComponent {
-    public constructor(public database: Database) {}
-  }
+  const database = Tashmit
+    .withConfiguration({operators})
+    .collection('test', directoryContent({
+      path: 'test/e2e/testCollection',
+      extension: 'json',
+      serializer: json(),
+    }))
+    .provide(Vinyl.withConfiguration({watch: false}))
+    .bootstrap(Database);
 
   let col: Collection;
 
   before(async () => {
-    col = await (await bootstrap(TestComponent)).database.collection('test');
+    col = await database.collection('test');
   });
 
   beforeEach(async () => {

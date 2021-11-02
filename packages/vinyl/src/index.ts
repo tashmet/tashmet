@@ -1,18 +1,30 @@
 export {vinylfs} from './fs';
 export * from './interfaces';
 
-import {vinylfs} from './fs';
-import {component, Provider} from '@tashmit/core';
+import {Container, Plugin, Provider} from '@tashmit/core';
 import {FileAccessFactory} from '@tashmit/file';
 import * as chokidar from 'chokidar';
+import {vinylfs} from './fs';
+import {FileSystemConfig} from './interfaces';
 
-@component({
-  providers: [
-    Provider.ofInstance<chokidar.FSWatcher>('chokidar.FSWatcher', chokidar.watch([], {
-      ignoreInitial: true,
-      persistent: true
-    })),
-    Provider.ofInstance(FileAccessFactory, vinylfs())
-  ],
-})
-export default class Vinyl {}
+export default class Vinyl extends Plugin {
+  public static withConfiguration(config: FileSystemConfig) {
+    return new Vinyl(config);
+  }
+
+  public constructor(private config: FileSystemConfig) {
+    super();
+  }
+
+  public register(container: Container) {
+    if (this.config.watch) {
+      container.register(
+        Provider.ofInstance<chokidar.FSWatcher>('chokidar.FSWatcher', chokidar.watch([], {
+          ignoreInitial: true,
+          persistent: true
+        }))
+      );
+    }
+    container.register(Provider.ofInstance(FileAccessFactory, vinylfs()));
+  }
+}

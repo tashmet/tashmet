@@ -1,5 +1,4 @@
-import {bootstrap, component} from '@tashmit/core';
-import {Collection, Database} from '@tashmit/database';
+import Tashmit, {Collection, Database} from '@tashmit/tashmit';
 import {file, json} from '@tashmit/file';
 import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
@@ -8,7 +7,7 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
-import {vinylfs} from '../../dist';
+import Vinyl from '../../dist';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -22,6 +21,7 @@ function storedKeys() {
 }
 
 describe('file', () => {
+  /*
   @component({
     dependencies: [
       import('../../src'),
@@ -47,11 +47,23 @@ describe('file', () => {
   class TestComponent {
     public constructor(public database: Database) {}
   }
+  */
+
+  const database = Tashmit
+    .withConfiguration({operators})
+    .collection('test', file({
+      path: 'test/e2e/testCollection.json',
+      serializer: json(),
+      dictionary: true,
+    }))
+    .provide(Vinyl.withConfiguration({watch: false}))
+    .bootstrap(Database);
+
 
   let col: Collection;
 
   before(async () => {
-    col = await (await bootstrap(TestComponent)).database.collection('test');
+    col = await database.collection('test');
   });
 
   beforeEach(async () => {
