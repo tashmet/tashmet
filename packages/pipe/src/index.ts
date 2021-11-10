@@ -6,10 +6,10 @@ import {Pipe, PipeHook, PipeFactory, PipeFittingFactory, PipeFilterHook, PipeCon
 export * from './interfaces';
 
 export function pipeMiddleware(fittingFactory: PipeFittingFactory): MiddlewareFactory {
-  return Factory.of(async ({collection, database, container}) => {
+  return Factory.of(({collection, database, container}) => {
     const middleware: Required<Middleware> = {events: {}, methods: {}};
 
-    for (const fitting of await fittingFactory.resolve(container)({collection, database})) {
+    for (const fitting of fittingFactory.resolve(container)({collection, database})) {
       fitting.attach(middleware, collection);
     }
     return middleware;
@@ -62,8 +62,8 @@ export const io = (gate: IOGate) => {
   const inputs: PipeHook[] = ['insertOneIn', 'insertManyIn', 'replaceOneIn'];
   const outputs: PipeHook[] = ['insertOneOut', 'insertManyOut', 'replaceOneOut', 'find', 'findOne', 'document-upserted', 'document-removed'];
 
-  const inPipe = gate.input;
-  const outPipe = gate.output;
+  const inPipe = gate.input instanceof Factory ? gate.input : gate.input.bind(gate);
+  const outPipe = gate.output instanceof Factory ? gate.output : gate.output.bind(gate);
 
   const pipes = [
     ...inputs.map(hook => ({pipe: inPipe, hook: hook, filter: false})),

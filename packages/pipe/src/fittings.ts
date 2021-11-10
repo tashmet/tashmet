@@ -163,9 +163,10 @@ export class DocumentRemovedFitting extends OneWayPipeFitting  {
 */
 
 export function pipeFitting(pipes: PipeConfig[]): PipeFittingFactory {
-  return Factory.of(async ({collection, database, container}) => {
-    const createPipe = (pipe: Pipe | PipeFactory) =>
-      pipe instanceof Factory ? pipe.resolve(container)({collection, database}) : pipe;
+  return Factory.of(({collection, database, container}) => {
+    const createPipe = (pipe: Pipe | PipeFactory) => {
+      return pipe instanceof Factory ? pipe.resolve(container)({collection, database}) : pipe;
+    }
 
     const filter = (hook: PipeHook) => {
       const cfg = pipes.find(p => p.hook === hook);
@@ -180,7 +181,7 @@ export function pipeFitting(pipes: PipeConfig[]): PipeFittingFactory {
     const pipeDict: Record<PipeHook, Pipe> = {} as any;
     for (const hook of hooks) {
       const cfg = pipes.find(p => p.hook === hook);
-      pipeDict[hook] = cfg ? await createPipe(cfg.pipe) : identityPipe;
+      pipeDict[hook] = cfg ? createPipe(cfg.pipe) : identityPipe;
     }
 
     const fittings: PipeFitting[] = [

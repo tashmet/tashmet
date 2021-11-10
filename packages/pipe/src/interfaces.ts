@@ -1,5 +1,5 @@
-import {AsyncFactory} from '@tashmit/core';
-import {Collection, CollectionConfig, CollectionContext, Middleware, MiddlewareContext} from '@tashmit/database';
+import {Factory} from '@tashmit/core';
+import {Collection, Middleware, MiddlewareContext} from '@tashmit/database';
 
 export type PipeHook =
   'insertOneIn' |
@@ -20,13 +20,13 @@ export type PipeFilterHook =
 
 export type Pipe<In = any, Out = In> = (doc: In) => Promise<Out>;
 
-export type PipeFactory = AsyncFactory<Pipe, MiddlewareContext>;
+export type PipeFactory = Factory<Pipe, MiddlewareContext>;
 
 export abstract class PipeFitting {
   public abstract attach(middleware: Required<Middleware>, source: Collection): void;
 }
 
-export type PipeFittingFactory = AsyncFactory<PipeFitting[], MiddlewareContext>;
+export type PipeFittingFactory = Factory<PipeFitting[], MiddlewareContext>;
 
 export interface PipeConfig {
   hook: PipeHook;
