@@ -1,5 +1,5 @@
 import {View} from './view';
-import {TrackingFactory} from './tracker';
+import {Tracker} from './interfaces';
 
 /**
  * A view monitoring a list of documents.
@@ -8,8 +8,8 @@ export abstract class ItemSet<T = any> extends View<T> {
   protected _matchingCount: number = 0;
   protected _data: T[] = [];
 
-  public constructor(fact: TrackingFactory, collection: string, monitor: boolean) {
-    super(fact, collection, monitor);
+  public constructor(tracker: Tracker) {
+    super(tracker);
     this.tracker.on('result-set', (data, matchingCount) => {
       this._data = data;
       this._matchingCount = matchingCount;

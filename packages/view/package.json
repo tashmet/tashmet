@@ -31,11 +31,11 @@
 	"devDependencies": {
 		"@types/node": "^13.1.8",
 		"@tashmit/operators": "^0.1.0",
+		"@tashmit/tashmit": "^1.4.0",
 		"tslib": "^2.3.1"
 	},
 	"peerDependencies": {
-		"eventemitter3": "^3.0.0",
-		"reflect-helper": "^1.1.1"
+		"eventemitter3": "^3.0.0"
 	},
 	"gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b",
 	"dependencies": {

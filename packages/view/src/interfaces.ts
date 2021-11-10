@@ -4,7 +4,7 @@ import {Aggregator} from '@tashmit/database';
 export interface TrackerConfig {
   collection: string;
 
-  aggregator: Aggregator;
+  aggregator?: Aggregator;
 
   /**
    * If set to true, count the documents that are matched by the inital $match
@@ -22,9 +22,9 @@ export interface TrackerConfig {
 }
 
 export interface Tracker<T = any> {
-  readonly collectionName: string;
+  aggregator: Aggregator<T> | undefined;
 
-  refresh(aggregator?: Aggregator): Promise<T[]>;
+  refresh(aggregator?: Aggregator<T>): Promise<T[]>;
 
   /**
    * Test if an input document is affecting the output of the aggregation
@@ -35,5 +35,6 @@ export interface Tracker<T = any> {
   test(doc: T): boolean;
 
   on(event: 'result-set', handler: (resultSet: T[], matchingCount: number) => void): Tracker<T>;
+
   removeAllListeners(event?: string): void;
 }

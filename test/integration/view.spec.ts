@@ -1,4 +1,3 @@
-/*
 import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -8,15 +7,8 @@ import 'mocha';
 
 import {caching} from '../../packages/caching/dist';
 import {view, ItemSet} from '../../packages/view/dist';
-import {
-  bootstrap,
-  component,
-  Collection,
-  Database,
-  memory,
-  SortingDirection,
-} from '../../packages/tashmit/dist';
-import ViewComponent, {match, sort, limit} from '../../packages/view/dist';
+import Tashmit, {Database, Container} from '../../packages/tashmit/dist';
+import {match, sort, limit} from '../../packages/view/dist';
 import operators from '../../packages/operators/basic';
 
 chai.use(chaiAsPromised);
@@ -33,6 +25,7 @@ const data = [
 describe('view', () => {
   @view({
     collection: 'test',
+    monitorDatabase: true,
     // monitor: ['sort', 'category']
   })
   class TestView extends ItemSet {
@@ -40,39 +33,22 @@ describe('view', () => {
     category: string | undefined = undefined;
 
     @sort('amount')
-    sort = SortingDirection.Descending;
+    sort = -1;
 
     @limit limit = 2;
   }
 
-  @component({
-    dependencies: [ViewComponent],
-    providers: [
-      TestView,
-      Database.configuration({
-        collections: {
-          'test': memory()
-        },
-        operators,
-        use: [caching()]
-      })
-    ],
-    inject: [TestView, Database]
-  })
-  class TestComponent {
-    public constructor(public testView: TestView, public database: Database) {}
-  }
+  const container = Tashmit
+    .withConfiguration({operators})
+    .collection('test', [])
+    .use(caching())
+    .provide(TestView)
+    .bootstrap(Container)
 
-  let sut: TestView;
-  let collection: Collection;
+  let sut = container.resolve(TestView);
+  let collection = container.resolve(Database).collection('test');
 
   let sandbox: any;
-
-  before(async () => {
-    const app = (await bootstrap(TestComponent));
-    sut = app.testView;
-    collection = await app.database.collection('test');
-  });
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
@@ -200,5 +176,5 @@ describe('view', () => {
       sut.category = 'cookies';
     });
   });
-});
   */
+});

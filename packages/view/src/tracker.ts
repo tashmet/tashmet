@@ -1,6 +1,6 @@
 import {EventEmitter} from 'eventemitter3';
-import {Container, provider, Resolver} from '@tashmit/core';
-import {Aggregator, AggregationPipeline, Database, Selector} from '@tashmit/database';
+import {Container, Resolver} from '@tashmit/core';
+import {Aggregator, AggregationPipeline, Database, Selector, Collection} from '@tashmit/database';
 import {Tracker, TrackerConfig} from './interfaces';
 
 
@@ -14,8 +14,26 @@ export class Tracking extends Resolver<Tracker> {
   }
 
   public resolve(container: Container) {
-    return container.resolve(TrackingFactory)
-      .createTracker(Object.assign({monitorDatabase: true}, this.config));
+    const {aggregator, countMatching, monitorDatabase}
+      = {monitorDatabase: true, ...this.config};
+
+    const database = container.resolve(Database);
+    const collection = database.collection(this.config.collection);
+
+    const tracker = new AggregationTracker<any>(
+      aggregator,
+      collection,
+      countMatching,
+    );
+
+    if (monitorDatabase) {
+      collection.on('change', ({data}) => {
+        if (data.some((doc: any) => tracker.test(doc))) {
+          tracker.refresh();
+        }
+      });
+    }
+    return tracker;
   }
 }
 
@@ -23,26 +41,24 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
   private cachedPipeline: AggregationPipeline = [];
 
   public constructor(
-    private aggregator: Aggregator<T>,
-    public collectionName: string,
+    public aggregator: Aggregator<T> | undefined,
+    private collection: Collection<any>,
     private readonly countMatching: boolean,
-    private database: Database,
   ) {
     super();
-    this.cachedPipeline = aggregator.pipeline;
+    this.cachedPipeline = aggregator?.pipeline || [];
   }
 
   public async refresh(aggregator?: Aggregator<T>): Promise<T[]> {
     if (aggregator) {
       this.aggregator = aggregator;
     }
-    this.cachedPipeline = this.aggregator.pipeline;
+    this.cachedPipeline = this.aggregator?.pipeline || [];
     if (this.cachedPipeline.length > 0) {
-      const collection = await this.database.collection(this.collectionName);
-      const data = await collection.aggregate<T>(this.cachedPipeline);
+      const data = await this.collection.aggregate<T>(this.cachedPipeline);
 
       const matchingCount = this.countMatching
-        ? await collection.find(this.selector.value).count(false)
+        ? await this.collection.find(this.selector.value).count(false)
         : 0;
 
       this.emit('result-set', data, matchingCount);
@@ -65,44 +81,5 @@ export class AggregationTracker<T = any> extends EventEmitter implements Tracker
     return this.cachedPipeline.length > 0 && '$match' in this.cachedPipeline[0]
       ? new Selector(this.cachedPipeline[0].$match)
       : new Selector();
-  }
-}
-
-@provider({
-  key: TrackingFactory,
-  inject: [Database]
-})
-export class TrackingFactory {
-  private trackers: Tracker<any>[] = [];
-
-  public constructor(private database: Database) {
-    database.on('change', ({collection, data}) => {
-      this.markDirty(collection.name, data);
-    });
-  }
-
-  public createTracker<T = any>(config: TrackerConfig): Tracker<T> {
-    const tracker = new AggregationTracker<any>(
-      config.aggregator,
-      config.collection,
-      config.countMatching,
-      this.database,
-    );
-    if (config.monitorDatabase) {
-      this.trackers.push(tracker);
-    }
-    return tracker;
-  }
-
-  private markDirty(collection: string, docs: any[]) {
-    for (const t of this.collectionTrackers(collection)) {
-      if (docs.some(doc => t.test(doc))) {
-        t.refresh();
-      }
-    }
-  }
-
-  private collectionTrackers(collection: string): Tracker<any>[] {
-    return this.trackers.filter(t => t.collectionName === collection);
   }
 }

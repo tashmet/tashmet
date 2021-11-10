@@ -13,8 +13,8 @@ import {ItemSet} from './itemSet';
  *
  * ```typescript
  * class MyFeed extends Feed {
- *   public limit = 10;
- *   public increment = 5;
+ *   limit = 10;
+ *   increment = 5;
  * }
  * ```
  * Provided that the collection has enough documents available the above feed will make sure that

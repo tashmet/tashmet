@@ -1,5 +1,5 @@
-import {classDecorator, FactoryProviderAnnotation, Newable} from '@tashmit/core';
-import {TrackingFactory} from '../tracker';
+import {classDecorator, Container, FactoryProviderAnnotation, Newable} from '@tashmit/core';
+import {Tracking} from '../tracker';
 import {View} from '../view';
 
 export interface ViewConfig {
@@ -24,7 +24,7 @@ export interface ViewConfig {
 }
 
 export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
-  public inject = [TrackingFactory];
+  public inject = [Container];
 
   public constructor(
     private config: ViewConfig,
@@ -33,9 +33,14 @@ export class ViewAnnotation extends FactoryProviderAnnotation<View<any>> {
     super(target);
   }
 
-  public create(fact: TrackingFactory) {
+  public create(container: Container) {
     const {collection, monitorDatabase} = this.config;
-    const view = new this.target(fact, collection, monitorDatabase !== false);
+    const tracker = container.resolve(Tracking.of({
+      collection,
+      monitorDatabase,
+      countMatching: true,
+    }));
+    const view = new this.target(tracker, collection);
 
     return new Proxy(view, {
       set: (target, key, value): boolean => {

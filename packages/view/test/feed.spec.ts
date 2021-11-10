@@ -2,39 +2,33 @@ import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
-import {BasicContainer} from '@tashmit/core';
-import {Collection, memory} from '@tashmit/database/src';
-import {DatabaseService} from '@tashmit/database/src/database';
-import {DefaultLogger} from '@tashmit/core/src/logging/logger';
+import Tashmit from '@tashmit/tashmit';
 import operators from '@tashmit/operators/basic';
-import {Feed} from '../dist/feed';
-import {TrackingFactory} from '../dist/tracker';
+import {view, Feed, limit} from '../dist';
 
 chai.use(chaiAsPromised);
 
-const data = [
-  {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 },
-  {_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 },
-  {_id: 3, item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 },
-  {_id: 4, item: { category: 'cake', type: 'lemon' }, amount: 30 },
-  {_id: 5, item: { category: 'cake', type: 'carrot' }, amount: 20 },
-];
 
 describe('Feed', () => {
+  @view({collection: 'test'})
   class TestFeed extends Feed {
-    public limit = 2;
-    public increment = 2;
+    @limit limit = 2; // TODO: Should inherit decorator from base class.
+    increment = 2;
   }
 
-  const database = new DatabaseService(
-    {collections: {}, operators}, new DefaultLogger(), new BasicContainer());
-  let collection: Collection;
-  let feed: TestFeed;
+  const feed = Tashmit
+    .withConfiguration({operators})
+    .collection('test', [
+      {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 },
+      {_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 },
+      {_id: 3, item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 },
+      {_id: 4, item: { category: 'cake', type: 'lemon' }, amount: 30 },
+      {_id: 5, item: { category: 'cake', type: 'carrot' }, amount: 20 },
+    ])
+    .provide(TestFeed)
+    .bootstrap(TestFeed)
 
   before(async () => {
-    collection = await database.createCollection('test', memory());
-    feed = new TestFeed(new TrackingFactory(database), 'test', true);
-    await collection.insertMany(data);
     await feed.refresh();
   });
 
