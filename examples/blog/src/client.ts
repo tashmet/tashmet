@@ -1,28 +1,41 @@
-import {bootstrap, component, Database} from '@tashmit/tashmit';
+import Tashmit, {Database, Logger, LogLevel, provider} from '@tashmit/tashmit';
 import {caching} from '@tashmit/caching';
-import {rest} from '@tashmit/http-client';
+import HttpClient, {QuerySerializer} from '@tashmit/http-client';
 import operators from '@tashmit/operators/basic';
+import {terminal} from '@tashmit/terminal';
+import isomorphicFetch from 'isomorphic-fetch';
 
-@component({
-  providers: [
-    Database.configuration({
-      operators,
-      collections: {
-        'posts': rest({path: 'http://localhost:8000/api/posts'})
-      },
-      use: [caching()],
-    }),
-  ],
-  inject: [Database],
+@provider({
+  inject: [Database, Logger.inScope('Application')],
 })
 export class Application {
-  constructor(private database: Database) {}
+  constructor(private database: Database, private logger: Logger) {}
 
   async run() {
-    const posts = await this.database.collection('posts');
-    const docs = await posts.find().toArray();
-    console.log(docs);
+    try {
+      const posts = await this.database.collection('posts');
+      const doc = await posts.findOne({_id: 'helloworld'});
+      await posts.insertOne({_id: 'test'});
+      console.log(doc);
+    } catch (err) {
+      this.logger.error(err.message);
+    }
   }
 }
 
-bootstrap(Application).then(app => app.run());
+Tashmit
+  .withConfiguration({
+    logLevel: LogLevel.Debug,
+    logFormat: terminal(),
+    operators,
+  })
+  .collection('posts', HttpClient.collection('http://localhost:8000/api/posts'))
+  .use(caching())
+  .provide(
+    Application,
+    new HttpClient({
+      querySerializer: QuerySerializer.flat(),
+      fetch: isomorphicFetch,
+    })
+  )
+  .bootstrap(Application, app => app.run());
