@@ -1,9 +1,6 @@
-import {Factory} from '@tashmit/core';
-import {FileAccess, File, ReadableFile, Pipeline, FileAccessFactory} from '@tashmit/file';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
 import path from 'path';
 import minimatch from 'minimatch';
-
-const createClient = require('ipfs-http-client')
 
 export class IPFSService extends FileAccess  {
   public constructor(private ipfs: any) { super(); }
@@ -48,8 +45,4 @@ export class IPFSService extends FileAccess  {
       await this.ipfs.files.rm(file.path);
     }
   }
-}
-
-export function ipfs(url?: string): FileAccessFactory {
-  return Factory.of(async () => new IPFSService(createClient({url})));
 }

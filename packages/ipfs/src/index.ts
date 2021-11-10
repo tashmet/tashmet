@@ -1,18 +1,9 @@
-import {component, Logger, Provider} from '@tashmit/core';
+import {Factory} from '@tashmit/core';
+import {FileAccessFactory} from '@tashmit/file';
+import {IPFSService} from './ipfs';
 
 const createClient = require('ipfs-http-client')
 
-@component({
-  providers: [
-    Provider.ofFactory({
-      key: 'ipfs.Logger',
-      inject: [Logger],
-      create: (logger: Logger) => logger.inScope('ipfs')
-    }),
-    Provider.ofFactory({
-      key: 'ipfs.Client',
-      create: () => createClient(),
-    }),
-  ],
-})
-export default class IPFS {}
+export function ipfs(url?: string): FileAccessFactory {
+  return Factory.of(() => new IPFSService(createClient({url})));
+}
