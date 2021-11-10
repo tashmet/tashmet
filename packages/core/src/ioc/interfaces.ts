@@ -69,4 +69,6 @@ export class AsyncFactory<T, TContext = void> extends Factory<Promise<T>, TConte
 
 export abstract class Plugin {
   public abstract register(container: Container): void;
+
+  public setup(container: Container): void {};
 }
