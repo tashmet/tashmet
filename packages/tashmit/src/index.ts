@@ -25,9 +25,6 @@ export {
   Factory,
   AsyncFactory,
 
-  // Component
-  ComponentConfig,
-
   // Providers
   ClassProviderAnnotation,
   FactoryProviderAnnotation,
@@ -66,8 +63,7 @@ export {
 
 import DatabasePlugin, {
   DatabaseConfig,
-  CollectionFactory,
-  CollectionConfig,
+  CollectionSource,
   MiddlewareFactory
 } from '@tashmit/database';
 import {
@@ -92,20 +88,18 @@ export default class Tashmit {
   public static withConfiguration(config: Partial<Configuration>) {
     return new Tashmit(
       config.container,
-      [],
-      config.use,
-      config.collections,
       config.operators,
       config.logLevel,
       config.logFormat,
     );
   }
 
+  private providers: (Provider<any> | Newable<any> | Plugin)[] = [];
+  private middleware: MiddlewareFactory[] = [];
+  private collections: Record<string, CollectionSource<any>> = {};
+
   public constructor(
     private container: ((logger: Logger) => Container) | undefined = undefined,
-    private providers: (Provider<any> | Newable<any> | Plugin)[] = [],
-    private middleware: MiddlewareFactory[] = [],
-    private collections: Record<string, CollectionFactory | CollectionConfig> = {},
     private operators: OperatorConfig = {},
     private logLevel: LogLevel = LogLevel.None,
     private logFormat: LogFormatter | undefined = undefined,
@@ -121,8 +115,8 @@ export default class Tashmit {
     return this;
   }
 
-  public collection(name: string, factOrConfig: CollectionFactory | CollectionConfig) {
-    this.collections[name] = factOrConfig;
+  public collection<T = any>(name: string, source: CollectionSource<T>) {
+    this.collections[name] = source;
     return this;
   }
 
@@ -131,19 +125,26 @@ export default class Tashmit {
       logFormat: this.logFormat,
       logLevel: this.logLevel,
       container: this.container,
-    })
+    });
 
-    DatabasePlugin
-      .configure({
+    this.providers.unshift(
+      new DatabasePlugin({
         operators: this.operators,
-        collections: this.collections,
         use: this.middleware,
+        collections: this.collections,
       })
-      .register(container);
+    );
 
     for (const provider of this.providers) {
       container.register(provider);
     }
+
+    for (const provider of this.providers) {
+      if (provider instanceof Plugin) {
+        provider.setup(container);
+      }
+    }
+
     const instance = container.resolve(app);
     if (fn) {
       fn(instance)
