@@ -1,19 +1,6 @@
-import {bootstrap, component, memory, Database} from '@tashmit/tashmit';
+import Tashmit, {Database} from '@tashmit/tashmit';
 
-@component({
-  inject: [Database],
-})
-export class Application {
-  constructor(
-    private database: Database,
-  ) {}
-
-  async run() {
-    const posts = await this.database.createCollection('posts', memory());
-    console.log(await posts.insertOne({
-      title: 'Hello World!'
-    }));
-  }
-}
-
-bootstrap(Application).then(app => app.run());
+new Tashmit().bootstrap(Database, async database => {
+  const doc = await database.collection('posts').insertOne({title: 'Hello World!'});
+  console.log(doc);
+});
