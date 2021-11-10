@@ -10,7 +10,7 @@ import {
   Collection,
 } from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
-import {Fetch, SerializeQuery} from './interfaces';
+import {Fetch} from './interfaces';
 import {HttpCollectionCursor} from './cursor';
 
 export class HttpCollection<T> extends Collection<T> {
@@ -30,17 +30,17 @@ export class HttpCollection<T> extends Collection<T> {
   }
 
   public async aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
-    const input = await QueryAggregator.fromPipeline(pipeline).execute(this);
-    return aggregate<U>(pipeline, input, this.database);
+    try {
+      return QueryAggregator.fromPipeline(pipeline, true).execute(this);
+    } catch (error) {
+      const input = await QueryAggregator.fromPipeline(pipeline).execute(this);
+      return aggregate<U>(pipeline, input, this.database);
+    }
   }
 
   public find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T> {
-    const serializeQuery: SerializeQuery = (filter, options) => {
-      const params = this.querySerializer.serialize({filter, ...options});
-      return params !== '' ? this.path + '?' + params : this.path;
-    }
     return new HttpCollectionCursor<T>(
-      serializeQuery, this.fetch, this.headers, filter, options
+      this.path, this.querySerializer, this.fetch, this.headers, filter, options
     );
   }
 

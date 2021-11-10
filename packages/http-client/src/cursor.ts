@@ -3,12 +3,14 @@ import {
   Filter,
   QueryOptions,
 } from '@tashmit/database';
-import {Fetch, SerializeQuery} from './interfaces';
+import {QuerySerializer} from '@tashmit/qs-builder';
+import {Fetch} from './interfaces';
 
 
 export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
-    private serialize: SerializeQuery,
+    private path: string,
+    private querySerializer: QuerySerializer,
     private fetch: Fetch,
     private headers: Record<string, string> = {},
     selector: object = {},
@@ -36,7 +38,10 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   }
 
   private query(filter?: Filter<T>, options?: QueryOptions, init?: RequestInit): Promise<Response> {
-    return this.fetch(this.serialize(filter, options),
-      Object.assign({}, init, {headers: this.headers}));
+    const params = this.querySerializer.serialize({filter, ...options});
+    const path = params !== ''
+      ? this.path + '?' + params
+      : this.path;
+    return this.fetch(path, Object.assign({}, init, {headers: this.headers}));
   }
 }

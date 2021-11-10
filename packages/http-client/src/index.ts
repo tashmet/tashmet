@@ -5,19 +5,20 @@ import {HttpCollection} from './collection';
 import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
 
 export * from './interfaces';
+export {QuerySerializer} from '@tashmit/qs-builder';
 
 export default class HttpClient extends Plugin {
-  public static withConfiguration(config?: Partial<HttpClientConfig>) {
-    const defaultConfig: HttpClientConfig = {
-      fetch: typeof window !== 'undefined' ? window.fetch : undefined,
-      querySerializer: QuerySerializer.json(),
-      headers: {},
-    }
-    return new HttpClient({...defaultConfig, ...config});
+  private static defaultConfig: HttpClientConfig = {
+    fetch: typeof window !== 'undefined' ? window.fetch : undefined,
+    querySerializer: QuerySerializer.json(),
+    headers: {},
   }
 
-  public constructor(private config: HttpClientConfig) {
+  private config: HttpClientConfig;
+
+  public constructor(config: Partial<HttpClientConfig> = {}) {
     super();
+    this.config = {...HttpClient.defaultConfig, ...config};
   }
 
   public register(container: Container) {
@@ -31,7 +32,7 @@ export default class HttpClient extends Plugin {
    * @returns An HTTP database collection
    */
   public static collection<T = any>(configOrPath: HttpCollectionConfig | string): CollectionFactory<T> {
-    return Factory.of(async ({name, database, container}) => {
+    return Factory.of(({name, database, container}) => {
       const config: HttpCollectionConfig = typeof configOrPath === 'string'
         ? {path: configOrPath}
         : configOrPath;
