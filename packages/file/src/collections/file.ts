@@ -44,11 +44,11 @@ export interface FileConfig<T extends object, TStored = T> extends FileStreamCon
 export function file<T extends object = any, TStored extends object = T>(
   config: FileConfig<T, TStored>
 ) {
-  const streamFactory: BundleStreamFactory<T> = Factory.of(async ({container}) => {
+  const streamFactory: BundleStreamFactory<T> = Factory.of(({container}) => {
     const {path, serializer, dictionary, afterParse, beforeSerialize} = config;
     const driver = config.driver
-      ? await config.driver.resolve(container)()
-      : await container.resolveFactory(FileAccessFactory)();
+      ? config.driver.resolve(container)()
+      : container.resolveFactory(FileAccessFactory)();
 
     const input = (source: Pipeline<ReadableFile>) => source
       .pipe(Pipes.File.read())

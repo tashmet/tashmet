@@ -6,14 +6,14 @@ export const dict = () => ({
   output: Pipes.toDict()
 }) as Duplex;
 
-export function json<T>(encoding?: Pipes.JsonEncoding): Serializer<T> {
+export function json<T = any>(encoding?: Pipes.JsonEncoding): Serializer<T> {
   return {
     input: Pipes.fromJson(encoding),
     output: Pipes.toJson(encoding)
   }
 };
 
-export function yaml<T>(config?: Pipes.YamlConfig): Serializer<T> {
+export function yaml<T = any>(config?: Pipes.YamlConfig): Serializer<T> {
   return {
     input: Pipes.fromYaml(config),
     output: Pipes.toYaml(config)

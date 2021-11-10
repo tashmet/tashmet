@@ -1,4 +1,4 @@
-import {AsyncFactory, Factory} from '@tashmit/core';
+import {Factory} from '@tashmit/core';
 import {CollectionFactory, MemoryCollection, withAutoEvent} from '@tashmit/database';
 import {buffer} from './buffer';
 import {Pipeline} from '../pipeline';
@@ -16,7 +16,7 @@ export interface ShardStreamConfig<T> {
   output: (source: Pipeline<T>, deletion: boolean) => Promise<void>;
 }
 
-export type ShardStreamFactory<T> = AsyncFactory<ShardStreamConfig<T>>;
+export type ShardStreamFactory<T> = Factory<ShardStreamConfig<T>>;
 
 export interface ShardBufferConfig<T> {
   stream: ShardStreamFactory<T>;
@@ -32,8 +32,8 @@ export function shards<T = any>(config: ShardBufferConfig<T>): CollectionFactory
     }
   }
 
-  return Factory.of(async ({name, database, container}) => {
-    const {seed, input, inputDelete, output} = await config.stream.resolve(container)();
+  return Factory.of(({name, database, container}) => {
+    const {seed, input, inputDelete, output} = config.stream.resolve(container)();
     const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
 
     const populate = async () => {

@@ -47,11 +47,11 @@ function contentSerializer<T>(source: Pipeline<File<any>>, content: FileContentC
 export function globFilesStream<T = any, TStored = T>(
   config: GlobFilesConfig<T, TStored>
 ): ShardStreamFactory<File<T>> {
-  return Factory.of(async ({container}) => {
+  return Factory.of(({container}) => {
     const {pattern, content} = config;
     const driver = config.driver
-      ? await config.driver.resolve(container)()
-      : await container.resolveFactory(FileAccessFactory)();
+      ? config.driver.resolve(container)()
+      : container.resolveFactory(FileAccessFactory)();
 
     const input = (source: Pipeline<File>) => {
       if (!content) {
@@ -103,8 +103,8 @@ export function globContentStream<T = any, TStored = T>(
   const {resolveId, resolvePath, pattern, driver, ...content} =
     Object.assign({}, defaultConfig, config);
 
-  return Factory.of(async ({container}) => {
-    const stream = await globFilesStream({pattern, driver, content}).resolve(container)();
+  return Factory.of(({container}) => {
+    const stream = globFilesStream({pattern, driver, content}).resolve(container)();
 
     const input = (source: Pipeline<File<T>>) => source
       .pipe(Pipes.File.assignContent(async file => ({_id: await resolveId(file)})))

@@ -1,4 +1,10 @@
-import {Collection, withMiddleware, changeObserver, DatabaseChange, Middleware} from '@tashmit/database';
+import {
+  Collection,
+  withMiddleware,
+  changeObserver,
+  DatabaseChange,
+  Middleware
+} from '@tashmit/database';
 
 export type BufferWrite = (change: DatabaseChange) => Promise<void>;
 

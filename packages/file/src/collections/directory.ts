@@ -2,7 +2,14 @@ import {Pipe} from '@tashmit/pipe';
 import * as nodePath from 'path';
 import {shards} from './shard';
 import {globFilesStream, globContentStream} from './glob';
-import {ExtractedFileContentConfig, File, FileContentConfig, FileStreamConfig, MultiFilesWithContentConfig, PartialBy} from '../interfaces'
+import {
+  ExtractedFileContentConfig,
+  File,
+  FileContentConfig,
+  FileStreamConfig,
+  MultiFilesWithContentConfig,
+  PartialBy
+} from '../interfaces'
 
 export interface DirectoryConfig<T> extends FileStreamConfig<T> {
   /**

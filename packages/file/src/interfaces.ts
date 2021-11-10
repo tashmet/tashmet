@@ -1,4 +1,4 @@
-import {AsyncFactory} from "@tashmit/core";
+import {Factory} from "@tashmit/core";
 import {Pipe} from "@tashmit/pipe";
 import {Pipeline} from "./pipeline";
 
@@ -73,7 +73,7 @@ export interface ExtractedFileContentConfig<T> {
   resolveId?: Pipe<File<T>, string>;
 }
 
-export class FileAccessFactory extends AsyncFactory<FileAccess> {};
+export class FileAccessFactory extends Factory<FileAccess> {};
 
 export interface FileStreamConfig<T> {
   /**

@@ -1,4 +1,4 @@
-import {AsyncFactory, Factory} from '@tashmit/core';
+import {Factory} from '@tashmit/core';
 import {CollectionFactory, MemoryCollection, withAutoEvent} from '@tashmit/database';
 import {difference, intersection, isEqual} from 'lodash';
 import {buffer} from './buffer';
@@ -15,7 +15,7 @@ export interface BundleStreamConfig<T> {
   output: (source: Pipeline<T>) => Promise<void>;
 }
 
-export type BundleStreamFactory<T> = AsyncFactory<BundleStreamConfig<T>>;
+export type BundleStreamFactory<T> = Factory<BundleStreamConfig<T>>;
 
 export interface BundleConfig<T> {
   stream: BundleStreamFactory<T>;
@@ -25,8 +25,8 @@ export interface BundleConfig<T> {
  * A buffered collection stored in a single location
  */
 export function bundle<T>(config: BundleConfig<T>): CollectionFactory {
-  return Factory.of(async ({name, database, container}) => {
-    const {seed, input, output} = await config.stream.resolve(container)();
+  return Factory.of(({name, database, container}) => {
+    const {seed, input, output} = config.stream.resolve(container)();
     const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
 
     const populate = async () => {
