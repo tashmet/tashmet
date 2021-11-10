@@ -3,58 +3,36 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
+import Tashmit, {Database, DocumentError} from '../../packages/tashmit'
 import {eachDocument} from '../../packages/pipe/dist';
-import {
-  bootstrap,
-  component,
-  Collection,
-  Database,
-  memory,
-  DocumentError,
-} from '../../packages/tashmit/dist';
 import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
 describe('pipe', () => {
-  @component({
-    providers: [
-      Database.configuration({
-        collections: {
-          'test': {
-            source: memory(),
-            use: [
-              eachDocument({
-                hooks: [
-                  'insertOneIn',
-                  'insertOneOut',
-                  'insertManyIn',
-                  'insertManyOut',
-                  'replaceOneIn',
-                  'replaceOneOut',
-                  'find',
-                  'findOne'
-                ],
-                pipe: async doc => Object.assign({}, doc, {amount: doc.amount + 1})
-              })
-            ]
-          }
-        },
-        operators,
-      })
-    ],
-    inject: [Database]
-  })
-  class TestComponent {
-    public constructor(public database: Database) {}
-  }
+  const db = Tashmit
+    .withConfiguration({operators})
+    .collection('test', {
+      source: [],
+      use: [
+        eachDocument({
+          hooks: [
+            'insertOneIn',
+            'insertOneOut',
+            'insertManyIn',
+            'insertManyOut',
+            'replaceOneIn',
+            'replaceOneOut',
+            'find',
+            'findOne'
+          ],
+          pipe: async doc => Object.assign({}, doc, {amount: doc.amount + 1})
+        })
+      ]
+    })
+    .bootstrap(Database);
 
-  let collection: Collection;
-
-  before(async () => {
-    const app = (await bootstrap(TestComponent));
-    collection = await app.database.collection('test');
-  });
+  const collection = db.collection('test') ;
 
   beforeEach(async () => {
     await collection.deleteMany({});
@@ -113,47 +91,32 @@ describe('pipe', () => {
   });
 
   describe('filtering', () => {
-    @component({
-      providers: [
-        Database.configuration({
-          collections: {
-            'test': {
-              source: memory({documents: [{_id: 1, error: true}, {_id: 2, error: false}]}),
-              use: [
-                eachDocument({
-                  hooks: [
-                    'insertOneIn',
-                    'insertManyIn',
-                    'replaceOneIn',
-                    'find',
-                    'findOne'
-                  ],
-                  pipe: async doc => {
-                    if (doc.error) {
-                      throw new DocumentError(doc, `error in '${doc._id}'`);
-                    }
-                    return doc;
-                  },
-                  filter: true,
-                })
-              ]
-            }
-          },
-          operators: {},
-        })
-      ],
-      inject: [Database]
-    })
-    class TestComponent {
-      public constructor(public database: Database) {}
-    }
+    const db = Tashmit
+      .withConfiguration({operators})
+      .collection('test', {
+        source: [{_id: 1, error: true}, {_id: 2, error: false}],
+        use: [
+          eachDocument({
+            hooks: [
+              'insertOneIn',
+              'insertManyIn',
+              'replaceOneIn',
+              'find',
+              'findOne'
+            ],
+            pipe: async doc => {
+              if (doc.error) {
+                throw new DocumentError(doc, `error in '${doc._id}'`);
+              }
+              return doc;
+            },
+            filter: true,
+          })
+        ]
+      })
+      .bootstrap(Database);
 
-    let collection: Collection;
-
-    before(async () => {
-      const app = (await bootstrap(TestComponent));
-      collection = await app.database.collection('test');
-    });
+    const collection = db.collection('test') ;
 
     afterEach(() => {
       collection.removeAllListeners();

@@ -5,49 +5,26 @@ import 'mocha';
 
 import * as showdown from 'showdown';
 import {markdown} from '../../packages/markdown/dist';
-import {
-  bootstrap,
-  component,
-  Collection,
-  Database,
-  memory,
-} from '../../packages/tashmit/dist';
+import Tashmit, {Database} from '../../packages/tashmit'
 import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
 describe('markdown', () => {
-  @component({
-    providers: [
-      Database.configuration({
-        collections: {
-          'posts': {
-            source: memory({documents: [
-              {_id: 1, content: '# h1 Heading'},
-            ]}),
-            use: [
-              markdown({
-                converter: new showdown.Converter(),
-                key: 'content',
-              })
-            ],
-          }
-        },
-        operators,
-      })
-    ],
-    inject: [Database]
-  })
-  class TestComponent {
-    public constructor(public database: Database) {}
-  }
+  const db = Tashmit
+    .withConfiguration({operators})
+    .collection('users', {
+      source: [{_id: 1, content: '# h1 Heading'}],
+      use: [
+        markdown({
+          converter: new showdown.Converter(),
+          key: 'content',
+        })
+      ]
+    })
+    .bootstrap(Database);
 
-  let collection: Collection;
-
-  before(async () => {
-    const app = (await bootstrap(TestComponent));
-    collection = await app.database.collection('posts');
-  });
+  const collection = db.collection('users');
 
   describe('outgoing', () => {
     afterEach(() => {

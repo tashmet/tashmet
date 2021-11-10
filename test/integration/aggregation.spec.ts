@@ -3,14 +3,8 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
+import Tashmit, {Database} from '../../packages/tashmit'
 import {aggregation} from '../../packages/aggregation/dist';
-import {
-  bootstrap,
-  component,
-  Collection,
-  Database,
-  memory,
-} from '../../packages/tashmit/dist';
 import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
@@ -19,55 +13,34 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const salesData = [
-  { _id : 1, item : 'abc', price : 10,  quantity: 2},
-  { _id : 2, item : 'jkl', price : 20,  quantity: 1},
-  { _id : 3, item : 'xyz', price : 5,   quantity: 10},
-  { _id : 4, item : 'xyz', price : 5,   quantity: 20},
-  { _id : 5, item : 'abc', price : 10,  quantity: 10},
-  { _id : 6, item : 'def', price : 7.5, quantity: 5},
-  { _id : 7, item : 'def', price : 7.5, quantity: 10},
-  { _id : 8, item : 'abc', price : 10,  quantity: 5},
-];
-
 describe('aggregation', () => {
-  @component({
-    providers: [
-      Database.configuration({
-        collections: {
-          sales: memory({documents: salesData}),
-          totals: aggregation({
-            from: 'sales',
-            pipeline: [
-              {
-                $group: {
-                  _id : '$item',
-                  totalSaleAmount: {$sum: {$multiply: ['$price', '$quantity']}}
-                }
-              },
-              {
-                $match: {'totalSaleAmount': {$gte: 100}}
-              }
-            ]
-          })
-        },
-        operators,
-      })
-    ],
-    inject: [Database]
-  })
-  class TestComponent {
-    public constructor(public database: Database) {}
-  }
+  let database = Tashmit
+    .withConfiguration({operators})
+    .collection('sales', [
+      { _id : 1, item : 'abc', price : 10,  quantity: 2},
+      { _id : 2, item : 'jkl', price : 20,  quantity: 1},
+      { _id : 3, item : 'xyz', price : 5,   quantity: 10},
+      { _id : 4, item : 'xyz', price : 5,   quantity: 20},
+      { _id : 5, item : 'abc', price : 10,  quantity: 10},
+      { _id : 6, item : 'def', price : 7.5, quantity: 5},
+      { _id : 7, item : 'def', price : 7.5, quantity: 10},
+      { _id : 8, item : 'abc', price : 10,  quantity: 5},
+    ])
+    .collection('totals', aggregation({
+      from: 'sales',
+      pipeline: [
+        {$group: {
+          _id : '$item',
+          totalSaleAmount: {$sum: {$multiply: ['$price', '$quantity']}}
+        }},
+        {$match: {'totalSaleAmount': {$gte: 100}}}
+      ]
+    }))
+    .bootstrap(Database);
 
-  let sales: Collection;
-  let totals: Collection;
 
-  before(async () => {
-    const app = (await bootstrap(TestComponent));
-    sales = await app.database.collection('sales');
-    totals = await app.database.collection('totals');
-  });
+  let sales = database.collection('sales');
+  let totals = database.collection('totals');
 
   it('should initially have correct documents', async () => {
     return expect(totals.find().toArray())

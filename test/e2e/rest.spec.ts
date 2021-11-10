@@ -3,14 +3,8 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import {
-  bootstrap,
-  component,
-  Collection,
-  Database,
-  SortingDirection,
-} from '../../packages/tashmit/dist';
-import {rest} from '../../packages/rest/dist';
+import Tashmit, {Database, LogLevel} from '../../packages/tashmit/dist'
+import HttpClient from '../../packages/http-client/dist';
 import {socket} from '../../packages/socket/dist';
 import operators from '../../packages/operators/system';
 import fetch from 'isomorphic-fetch';
@@ -18,33 +12,18 @@ import fetch from 'isomorphic-fetch';
 chai.use(chaiAsPromised);
 
 describe('rest', () => {
-  @component({
-    providers: [
-      Database.configuration({
-        collections: {
-          'test': {
-            source: rest({
-              path: 'http://localhost:8000/api/test',
-              fetch,
-              emitter: socket(),
-            }),
-          }
-        },
-        operators,
+  const db = Tashmit
+    .withConfiguration({operators, logLevel: LogLevel.None})
+    .collection('test', HttpClient.collection('http://localhost:8000/api/test'))
+    .provide(
+      new HttpClient({
+        fetch,
+        emitter: socket(),
       })
-    ],
-    inject: [Database]
-  })
-  class ClientComponent {
-    public constructor(public database: Database) {}
-  }
+    )
+    .bootstrap(Database);
 
-  let col: Collection;
-
-  before(async () => {
-    const client = (await bootstrap(ClientComponent));
-    col = await client.database.collection('test');
-  });
+  const col = db.collection('test');
 
   beforeEach(async () => {
     await col.insertMany([
@@ -179,7 +158,7 @@ describe('rest', () => {
     it('should do filtering, sorting and projection', async () => {
       const pipeline = [
         {$match: {'item.category': 'cake'}},
-        {$sort: {amount: SortingDirection.Descending}},
+        {$sort: {amount: -1}},
         {$project: {_id: 0, 'item.type': 1}},
       ];
       expect(await col.aggregate(pipeline)).to.eql([

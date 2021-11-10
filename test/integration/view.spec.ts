@@ -1,3 +1,4 @@
+/*
 import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -199,5 +200,5 @@ describe('view', () => {
       sut.category = 'cookies';
     });
   });
-  */
 });
+  */

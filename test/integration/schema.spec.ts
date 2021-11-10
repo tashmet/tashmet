@@ -3,14 +3,8 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
+import Tashmit, {Database} from '../../packages/tashmit'
 import Schema, {validation, ValidationPipeStrategy} from '../../packages/schema/dist';
-import {
-  bootstrap,
-  component,
-  Collection,
-  Database,
-  memory,
-} from '../../packages/tashmit/dist';
 import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
@@ -35,42 +29,27 @@ const schemaDoc = {
 };
 
 describe('schema', () => {
-  @component({
-    dependencies: [Schema],
-    providers: [
-      Database.configuration({
-        collections: {
-          'schemas': memory({documents: [schemaDoc]}),
-          'products': {
-            source: memory({documents: [
-              {_id: 1, type: 'product', productId: 10, productName: 'Valid product'},
-              {_id: 2, type: 'product', productName: 'Invalid product'},
-            ]}),
-            use: [
-              validation({
-                schema: {
-                  'http://example.com/product.schema.json': {type: 'product'}
-                },
-                strategy: ValidationPipeStrategy.ErrorInFilterOut,
-              })
-            ],
-          }
-        },
-        operators,
-      })
-    ],
-    inject: [Database]
-  })
-  class TestComponent {
-    public constructor(public database: Database) {}
-  }
+  const db = Tashmit
+    .withConfiguration({operators})
+    .collection('schemas', [schemaDoc])
+    .collection('products', {
+      source: [
+        {_id: 1, type: 'product', productId: 10, productName: 'Valid product'},
+        {_id: 2, type: 'product', productName: 'Invalid product'},
+      ],
+      use: [
+        validation({
+          schema: {
+            'http://example.com/product.schema.json': {type: 'product'}
+          },
+          strategy: ValidationPipeStrategy.ErrorInFilterOut,
+        })
+      ]
+    })
+    .provide(new Schema({collection: 'schemas'}))
+    .bootstrap(Database);
 
-  let collection: Collection;
-
-  before(async () => {
-    const app = (await bootstrap(TestComponent));
-    collection = await app.database.collection('products');
-  });
+  const collection = db.collection('products');
 
   describe('outgoing', () => {
     afterEach(() => {

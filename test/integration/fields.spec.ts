@@ -4,48 +4,25 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
 import {fields} from '../../packages/aggregation/dist';
-import {
-  bootstrap,
-  component,
-  Collection,
-  Database,
-  memory,
-} from '../../packages/tashmit/dist';
+import Tashmit, {Database} from '../../packages/tashmit'
 import operators from '../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
 describe('fields', () => {
-  @component({
-    providers: [
-      Database.configuration({
-        collections: {
-          'users': {
-            source: memory({documents: [
-              {_id: 1, givenName: 'John', familyName: 'Doe' },
-            ]}),
-            use: [
-              fields({
-                name: {$concat: ['$givenName', ' ', '$familyName']},
-              }),
-            ],
-          }
-        },
-        operators,
-      })
-    ],
-    inject: [Database]
-  })
-  class TestComponent {
-    public constructor(public database: Database) {}
-  }
+  const db = Tashmit
+    .withConfiguration({operators})
+    .collection('users', {
+      source: [{_id: 1, givenName: 'John', familyName: 'Doe' }],
+      use: [
+        fields({
+          name: {$concat: ['$givenName', ' ', '$familyName']},
+        })
+      ]
+    })
+    .bootstrap(Database);
 
-  let users: Collection;
-
-  before(async () => {
-    const app = (await bootstrap(TestComponent));
-    users = await app.database.collection('users');
-  });
+  let users = db.collection('users');
 
   describe('outgoing', () => {
     afterEach(() => {
