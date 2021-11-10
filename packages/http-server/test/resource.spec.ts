@@ -1,49 +1,23 @@
-import {bootstrap, component, Provider} from '@tashmit/core';
-import {memory, Database} from '@tashmit/database';
+import Tashmit from '@tashmit/tashmit';
 import {QueryParser} from '@tashmit/qs-parser';
-import ServerComponent, { resource, Server } from '../dist';
+import HttpServer from '../src';
 import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
 import operators from '@tashmit/operators/system';
 
 describe('Resource', () => {
-  @component({
-    dependencies: [
-      import('@tashmit/database'),
-      ServerComponent,
-    ],
-    providers: [
-      Database.configuration({
-        collections: {
-          'test': memory({documents: [{_id: 'doc1'}, {_id: 'doc2'}]})
-        },
-        operators,
-      }),
-      Server.configuration({
-        middleware: {
-          '/readonly': resource({
-            collection: 'test',
-            readOnly: true,
-          }),
-          '/readwrite': resource({collection: 'test', readOnly: false}),
-        }
-      }),
-      Provider.ofInstance(QueryParser, QueryParser.flat()),
-    ],
-    inject: [Server]
-  })
-  class TestComponent {
-    constructor(
-      public server: Server
-    ) {}
-  }
-
-  let app: Server;
-
-  before(async () => {
-    app = (await bootstrap(TestComponent)).server;
-  });
+  const app = Tashmit
+    .withConfiguration({
+      operators,
+    })
+    .collection('test', [{_id: 'doc1'}, {_id: 'doc2'}])
+    .provide(
+      new HttpServer({queryParser: QueryParser.flat()})
+        .resource('/readonly', {collection: 'test', readOnly: true})
+        .resource('/readwrite', {collection: 'test', readOnly: false})
+    )
+    .bootstrap(HttpServer.http);
 
   describe('get', () => {
     it('should get all documents', () => {

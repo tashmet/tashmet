@@ -167,14 +167,14 @@ export class Resource {
  * This function creates a router that interacts with a Ziggurat database collection.
  */
 export const resource = (config: ResourceConfig) =>
-  router(Factory.of(async ({container}) => {
+  router(Factory.of(({container}) => {
     const database = container.resolve(Database);
     const logger = container.resolve(Logger.inScope('server'));
     const queryParser = config.queryParser
       || container.resolve(ServerConfig).queryParser;
 
     return new Resource(
-      await database.collection(config.collection),
+      database.collection(config.collection),
       logger.inScope('Resource'),
       config.readOnly,
       queryParser,

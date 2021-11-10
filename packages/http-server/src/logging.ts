@@ -4,7 +4,7 @@ import {Factory, Logger} from '@tashmit/core';
 import {RequestHandlerFactory} from './interfaces';
 
 export function requestLogger(): RequestHandlerFactory {
-  return Factory.of(async ({container}) => {
+  return Factory.of(({container}) => {
     const logger = container.resolve(Logger.inScope('server'));
 
     return (req: express.Request, res: express.Response, next: express.NextFunction) => {

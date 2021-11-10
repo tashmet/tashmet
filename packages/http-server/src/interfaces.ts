@@ -1,4 +1,4 @@
-import {AsyncFactory, Lookup} from '@tashmit/core';
+import {Factory, Lookup} from '@tashmit/core';
 import {QueryParser} from '@tashmit/qs-parser';
 import {RequestHandler} from 'express';
 import * as express from 'express';
@@ -8,15 +8,14 @@ export interface RequestHandlerContext {
   path: string;
 }
 
-export type RequestHandlerFactory = AsyncFactory<RequestHandler, RequestHandlerContext>;
+export type RequestHandlerFactory = Factory<RequestHandler, RequestHandlerContext>;
 
 /**
  * Server middleware.
  */
-export type Middleware =
-  RequestHandler | RequestHandlerFactory | (RequestHandler | RequestHandlerFactory)[];
+export type Middleware = RequestHandler | RequestHandlerFactory;
 
-export type RouteMap = {[path: string]: Middleware};
+export type RouteMap = {[path: string]: Middleware | Middleware[]};
 
 export type RouteMethod =
   'checkout' |
@@ -46,7 +45,7 @@ export type RouteMethod =
 export interface Route {
   path?: string;
   method?: RouteMethod;
-  handlers: Middleware;
+  handlers: Middleware[];
 }
 
 export interface ServerConfig {

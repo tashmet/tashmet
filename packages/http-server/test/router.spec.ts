@@ -1,13 +1,10 @@
-import {bootstrap, component} from '@tashmit/core';
-import {Server} from '../src/interfaces';
+import Tashmit from '@tashmit/tashmit';
+import HttpServer from '../src';
 import {get, post, method} from '../src/decorators';
-import ServerComponent from '../src/index';
 import express from 'express';
-import bodyParser from 'body-parser';
 import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
-import {router} from '../src/controller';
 
 describe('Router', () => {
   class TestRouter {
@@ -33,29 +30,12 @@ describe('Router', () => {
     }
   }
 
-  @component({
-    providers: [
+  const app = new Tashmit()
+    .provide(
       TestRouter,
-      Server.configuration({
-        middleware: {
-          '/route': router(TestRouter),
-        }
-      })
-    ],
-    dependencies: [ServerComponent],
-    inject: [Server]
-  })
-  class TestComponent {
-    constructor(
-      public server: Server
-    ) {}
-  }
-
-  let app: Server;
-
-  before(async () => {
-    app = (await bootstrap(TestComponent)).server;
-  });
+      new HttpServer().router('/route', TestRouter)
+    )
+    .bootstrap(HttpServer.http);
 
   it('should add router by resolver', () => {
     return request(app)

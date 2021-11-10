@@ -1,5 +1,5 @@
 import * as express from 'express';
-import {AsyncFactory, Factory, Logger, ServiceRequest} from '@tashmit/core';
+import {Factory, Logger, ServiceRequest} from '@tashmit/core';
 import {RequestHandlerFactory, Route} from './interfaces';
 import {SocketGateway} from './gateway';
 import {RouterAnnotation} from './decorators/middleware';
@@ -9,7 +9,7 @@ export function controllerName(ctr: any): string {
   return typeof ctr.toString === 'function' ? ctr.toString() : ctr.constructor.name;
 }
 
-export type ControllerFactory = AsyncFactory<any>;
+export type ControllerFactory = Factory<any>;
 
 /**
  * Create a request handler factory from a controller provider or controller factory.
@@ -19,9 +19,9 @@ export type ControllerFactory = AsyncFactory<any>;
  * @param controller A provider of or factory of a controller.
  */
 export function router(factOrProvider: ServiceRequest<any> | ControllerFactory): RequestHandlerFactory {
-  return Factory.of(async ({path, container}) => {
+  return Factory.of(({path, container}) => {
     const controller = factOrProvider instanceof Factory
-      ? await factOrProvider.resolve(container)()
+      ? factOrProvider.resolve(container)()
       : container.resolve(factOrProvider);
     const logger = container.resolve(Logger.inScope('server.RouterFactory'));
     const gateway = container.resolve(SocketGateway);
