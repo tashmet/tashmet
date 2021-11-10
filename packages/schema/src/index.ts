@@ -7,10 +7,6 @@ export * from './interfaces';
 export {validation, ValidationPipeStrategy} from './pipe';
 
 export default class Schema extends Plugin {
-  public static withConfiguration(config: ValidationConfig) {
-    return new Schema(config);
-  }
-
   public static validation = validation;
 
   public constructor(private config: ValidationConfig) {

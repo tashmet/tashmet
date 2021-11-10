@@ -31,8 +31,7 @@ export class AjvValidator extends Validator {
   public constructor(database: Database, config: ValidationConfig) {
     super();
     this.ajv = new Promise(resolve => {
-      database.collection(config.collection)
-        .then(collection => collection.find().toArray())
+      database.collection(config.collection).find().toArray()
         .then(docs => resolve(new Ajv().addSchema(docs)));
     });
   }

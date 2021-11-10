@@ -1,6 +1,7 @@
 import {memory, Collection} from '@tashmit/database';
 import {DatabaseService} from '@tashmit/database/dist/database';
 import {DefaultLogger} from '@tashmit/core/dist/logging/logger';
+import {BasicContainer} from '@tashmit/core';
 import {validation, ValidationPipeStrategy} from '../src/pipe';
 import 'mocha';
 import {expect} from 'chai';
@@ -29,7 +30,7 @@ const schemaDoc = {
 };
 
 describe('validation', () => {
-  const database = new DatabaseService({collections: {}, operators: {}}, new DefaultLogger());
+  const database = new DatabaseService(new DefaultLogger(), new BasicContainer());
 
   before(async () => {
     await database.createCollection('schemas', memory({documents: [schemaDoc]}))

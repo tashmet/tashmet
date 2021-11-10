@@ -44,7 +44,7 @@ export interface ValidationPipeConfig {
    * validated. The first matching schema will be used. Using this strategy
    * documents with different schemas can be stored in the same collection.
    */
-  schema: string;
+  schema: string | SchemaLookup;
 
   /**
    * Strategy for dealing with failing documents.
@@ -53,40 +53,27 @@ export interface ValidationPipeConfig {
   strategy?: ValidationPipeStrategy;
 }
 
-/*
-export class ValidationPipeFactory extends PipeFactory {
-  public constructor(private schema: string | SchemaLookup) {
-    super('schema.Validator');
-  }
-
-  public async create(): Promise<Pipe> {
-    return this.resolve(async (v: Validator) => (doc: any) => v.validate(doc, this.resolveSchema(doc)));
-  }
-
-  private resolveSchema(doc: any): string {
-    if (typeof this.schema === 'string') {
-      return this.schema;
+export function validationPipe(schema: string | SchemaLookup): PipeFactory {
+  const resolveSchema = (doc: any) => {
+    if (typeof schema === 'string') {
+      return schema;
     }
-    for (const schemaId of Object.keys(this.schema)) {
-      if (new MingoQuery(this.schema[schemaId] as any).test(doc)) {
+    for (const [schemaId, filter] of Object.entries(schema)) {
+      if (new MingoQuery(filter as any).test(doc)) {
         return schemaId;
       }
     }
     throw Error(`No schema defined for document with ID: '${doc._id}'`);
   }
-}
-*/
-export function validationPipe(schema: string): PipeFactory {
-  return Factory.of(async ({container}) => {
+
+  return Factory.of(({container}) => {
     const v = container.resolve(Validator);
-    return (doc: any) => v.validate(doc, schema);
+    return (doc: any) => v.validate(doc, resolveSchema(doc));
   });
 }
 
 export const validation = (config: ValidationPipeConfig) => {
-  const {schema, strategy} = Object.assign({
-    strategy: ValidationPipeStrategy.ErrorIn,
-  }, config);
+  const {schema, strategy} = {strategy: ValidationPipeStrategy.ErrorIn, ...config};
 
   let hooks: PipeHook[] = [];
   let filter: PipeFilterHook[] = [];
