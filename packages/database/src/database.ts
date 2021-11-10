@@ -1,6 +1,7 @@
 import {Logger, Container, Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 import {OperatorType, useOperators} from "mingo/core";
+import {memory} from './collections/memory';
 import {withMiddleware} from './collections/managed';
 import {
   Collection,
@@ -12,7 +13,7 @@ import {
 } from './interfaces';
 
 export class DatabaseService extends Database {
-  private collections: {[name: string]: Promise<Collection>} = {};
+  private collections: {[name: string]: Collection} = {};
 
   public constructor(
     private logger: Logger,
@@ -30,57 +31,60 @@ export class DatabaseService extends Database {
     useOperators(OperatorType.QUERY, query || {});
   }
 
-  public collection(name: string): Promise<Collection> {
+  public collection(name: string): Collection {
     if (Object.keys(this.collections).includes(name)) {
       return this.collections[name];
     }
-    throw new Error(`no collection named '${name}' exists in database`);
+    return this.createCollection(name, memory());
   }
 
   public createCollection<T = any>(
-    name: string, factoryOrConfig: CollectionFactory<T> | CollectionConfig): Promise<Collection<T>>
+    name: string, source: CollectionFactory<T> | CollectionConfig | T[]): Collection<T>
   {
     try {
       if (name in this.collections) {
         throw new Error(`a collection named '${name}' already exists in database`);
       }
 
-      const config: CollectionConfig = factoryOrConfig instanceof Factory
-        ? {source: factoryOrConfig}
-        : factoryOrConfig;
+      const config: CollectionConfig = source instanceof Factory
+        ? {source}
+        : Array.isArray(source) ? {source: memory({documents: source})} : source;
 
-      return this.collections[name] = this.createManagedCollection(name, config)
-        .then(collection => {
-          collection.on('change', change => this.emit('change', change));
-          collection.on('error', error => this.emit('error', error));
-          this.logger.inScope('createCollection').info(collection.toString());
-          return collection;
-        });
+      const c = this.collections[name] = this.createManagedCollection(name, config);
+      c.on('change', change => this.emit('change', change));
+      c.on('error', error => this.emit('error', error));
+      this.logger.inScope('createCollection').info(c.toString());
+      return c;
     } catch (err) {
       this.logger.error(err.message);
       throw err;
     }
   }
 
-  private async createManagedCollection<T = any>(
-    name: string, config: CollectionConfig): Promise<Collection<T>>
+  private createManagedCollection<T = any>(
+    name: string, config: CollectionConfig): Collection<T>
   {
-    const source = await config.source.resolve(this.container)({name, database: this});
+    const fact = config.source instanceof Factory
+      ? config.source
+      : memory({documents: config.source})
+
+    const source = fact.resolve(this.container)({name, database: this});
+
     const middlewareFactories = [
       ...(config.useBefore || []),
       ...(this.middleware || []),
       ...(config.use || [])
     ];
-    return withMiddleware(source, await this.createMiddleware(middlewareFactories, source));
+    return withMiddleware(source, this.createMiddleware(middlewareFactories, source));
   }
 
-  private async createMiddleware(
+  private createMiddleware(
     factories: MiddlewareFactory[],
     collection: Collection
-  ): Promise<Middleware[]> {
+  ): Middleware[] {
     const middleware: Middleware[] = [];
     for (const factory of factories) {
-      middleware.push(await factory.resolve(this.container)({collection, database: this}));
+      middleware.push(factory.resolve(this.container)({collection, database: this}));
     }
     return middleware;
   }

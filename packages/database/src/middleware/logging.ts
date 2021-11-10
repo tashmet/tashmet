@@ -42,7 +42,7 @@ const loggingMiddleware = (logger: Logger) => {
 }
 
 export function logging(): MiddlewareFactory {
-  return Factory.of(async ({container, collection}) =>
+  return Factory.of(({container, collection}) =>
     loggingMiddleware(container.resolve(Logger.inScope(`database.${collection.name}`)))
   );
 }

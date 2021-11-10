@@ -1,4 +1,4 @@
-import {Container, Logger, Provider} from '@tashmit/core';
+import {Container, Logger, Plugin, Provider} from '@tashmit/core';
 import {Database, DatabaseConfig} from './interfaces';
 import {DatabaseService} from './database';
 
@@ -9,30 +9,34 @@ export {aggregate, QueryAggregator} from './aggregation';
 export * from './interfaces';
 export * from './middleware';
 
-export default class DatabasePlugin {
-  public static configure(config: Partial<DatabaseConfig>) {
-    const defaultConfig: DatabaseConfig = {
-      collections: {},
-      operators: {},
-    };
-    return new DatabasePlugin({...defaultConfig, ...config});
+export default class DatabasePlugin extends Plugin {
+  private static defaultConfig: DatabaseConfig = {
+    operators: {},
+    collections: {},
+  };
+
+  private config: DatabaseConfig;
+
+  public constructor(config: Partial<DatabaseConfig> = {}) {
+    super();
+    this.config = {...DatabasePlugin.defaultConfig, ...config};
   }
 
-  public constructor(private config: DatabaseConfig) {}
-
   public register(container: Container) {
-    const {collections, use, operators} = this.config;
+    const {use, operators} = this.config;
 
     container.register(Provider.ofFactory({
       key: Database,
       inject: [Logger.inScope('database.Database')],
-      create: (logger: Logger) => {
-        const database = new DatabaseService(logger, container, operators, use);
-        for (const [name, factOrConfig] of Object.entries(collections)) {
-          database.createCollection(name, factOrConfig);
-        }
-        return database;
-      }
+      create: (logger: Logger) =>
+        new DatabaseService(logger, container, operators, use)
     }));
+  }
+
+  public setup(container: Container) {
+    const database = container.resolve(Database)
+    for (const [name, source] of Object.entries(this.config.collections)) {
+      database.createCollection(name, source);
+    }
   }
 }

@@ -1,5 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
-import {AsyncFactory, Provider} from '@tashmit/core';
+import {Factory, Provider} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 
 export type Document = Record<string, any>;
@@ -359,14 +359,14 @@ export interface MiddlewareContext {
   database: Database;
 }
 
-export type MiddlewareFactory<T = any> = AsyncFactory<Middleware<T>, MiddlewareContext>;
+export type MiddlewareFactory<T = any> = Factory<Middleware<T>, MiddlewareContext>;
 
 
-export interface CollectionConfig {
+export interface CollectionConfig<T = any> {
   /**
    * Factory creating the collection.
    */
-  source: CollectionFactory;
+  source: CollectionFactory | T[];
 
   /**
    * Optional list of factories creating middleware that should be applied after any middleware
@@ -381,15 +381,12 @@ export interface CollectionConfig {
   useBefore?: MiddlewareFactory[];
 }
 
+export type CollectionSource<T> = CollectionFactory<T> | CollectionConfig | T[];
+
 /**
  * Configuration for the database.
  */
 export interface DatabaseConfig {
-  /**
-   * A map of producers of collections to be created by the database.
-   */
-  collections: {[name: string]: CollectionFactory | CollectionConfig};
-
   /**
    * Optional list of factories creating middleware that should be applied to all collections in
    * the database.
@@ -400,6 +397,8 @@ export interface DatabaseConfig {
    *
    */
   operators: OperatorConfig;
+
+  collections: Record<string, CollectionSource<any>>;
 }
 
 export abstract class DatabaseConfig implements DatabaseConfig {}
@@ -412,25 +411,14 @@ export interface DatabaseChange<T = any> {
   action: CollectionChangeAction;
 }
 
-/**
- *
- */
-export abstract class Database extends EventEmitter implements DatabaseEventEmitter {
-  public static configuration(config?: Partial<DatabaseConfig>) {
-    const defaultConfig: DatabaseConfig = {
-      operators: {},
-      collections: {},
-    };
-    return Provider.ofInstance(DatabaseConfig, {...defaultConfig, ...config});
-  }
-
+export interface Database {
   /**
    * Get an existing collection by name.
    *
    * @param name The name of the collection.
    * @returns The instance of the collection.
    */
-  public abstract collection<T = any>(name: string): Promise<Collection<T>>;
+  collection<T = any>(name: string): Collection<T>;
 
   /**
    * Create a collection.
@@ -441,7 +429,7 @@ export abstract class Database extends EventEmitter implements DatabaseEventEmit
    * @param factory The factory creating the collection.
    * @returns An instance of the collection.
    */
-  public abstract createCollection<T = any>(name: string, factory: CollectionFactory<T>): Promise<Collection<T>>;
+  createCollection<T = any>(name: string, factory: CollectionFactory<T>): Collection<T>;
 
   /**
    * Create a collection.
@@ -452,15 +440,26 @@ export abstract class Database extends EventEmitter implements DatabaseEventEmit
    * @param config The configuration.
    * @returns An instance of the collection.
    */
-  public abstract createCollection<T = any>(name: string, config: CollectionConfig): Promise<Collection<T>>;
+  createCollection<T = any>(name: string, config: CollectionConfig): Collection<T>;
+
+  createCollection<T = any>(name: string, documents: T[]): Collection<T>;
+
+  createCollection<T = any>(
+    name: string, source: CollectionFactory<T> | CollectionConfig | T[]
+  ): Collection<T>;
 }
+
+/**
+ *
+ */
+export abstract class Database extends EventEmitter implements Database, DatabaseEventEmitter {}
 
 export interface CollectionContext {
   name: string;
   database: Database;
 }
 
-export type CollectionFactory<T = any> = AsyncFactory<Collection<T>, CollectionContext>;
+export type CollectionFactory<T = any> = Factory<Collection<T>, CollectionContext>;
 
 export abstract class Aggregator<T = any> {
   abstract get pipeline(): AggregationPipeline;
