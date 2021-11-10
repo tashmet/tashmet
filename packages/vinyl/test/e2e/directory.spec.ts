@@ -1,4 +1,4 @@
-import Tashmit, {Collection, Database} from '@tashmit/tashmit';
+import Tashmit, {Database} from '@tashmit/tashmit';
 import {directoryContent, json} from '@tashmit/file';
 import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
@@ -28,14 +28,10 @@ describe('directory', () => {
       extension: 'json',
       serializer: json(),
     }))
-    .provide(Vinyl.withConfiguration({watch: false}))
+    .provide(new Vinyl({watch: false}))
     .bootstrap(Database);
 
-  let col: Collection;
-
-  before(async () => {
-    col = await database.collection('test');
-  });
+  let col = database.collection('test');
 
   beforeEach(async () => {
     await col.insertMany([

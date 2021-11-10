@@ -8,10 +8,6 @@ import {vinylfs} from './fs';
 import {FileSystemConfig} from './interfaces';
 
 export default class Vinyl extends Plugin {
-  public static withConfiguration(config: FileSystemConfig) {
-    return new Vinyl(config);
-  }
-
   public constructor(private config: FileSystemConfig) {
     super();
   }

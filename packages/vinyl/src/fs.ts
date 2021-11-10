@@ -71,7 +71,7 @@ export class VinylFSService extends FileAccess  {
 }
 
 export const vinylfs = (config?: FileSystemConfig): FileAccessFactory => {
-  return Factory.of(async ({container}) => {
+  return Factory.of(({container}) => {
     const watcher = config?.watch
       ? container.resolve<chokidar.FSWatcher>('chokidar.FSWatcher')
       : undefined;

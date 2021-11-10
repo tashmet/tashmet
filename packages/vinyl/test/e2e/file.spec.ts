@@ -1,4 +1,4 @@
-import Tashmit, {Collection, Database} from '@tashmit/tashmit';
+import Tashmit, {Database} from '@tashmit/tashmit';
 import {file, json} from '@tashmit/file';
 import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
@@ -21,50 +21,18 @@ function storedKeys() {
 }
 
 describe('file', () => {
-  /*
-  @component({
-    dependencies: [
-      import('../../src'),
-      import('@tashmit/database'),
-    ],
-    providers: [
-      Database.configuration({
-        collections: {
-          'test': {
-            source: file({
-              driver: vinylfs(),
-              path: 'test/e2e/testCollection.json',
-              serializer: json(),
-              dictionary: true,
-            })
-          }
-        },
-        operators,
-      })
-    ],
-    inject: [Database],
-  })
-  class TestComponent {
-    public constructor(public database: Database) {}
-  }
-  */
-
   const database = Tashmit
     .withConfiguration({operators})
     .collection('test', file({
       path: 'test/e2e/testCollection.json',
-      serializer: json(),
+      serializer: json<any>(),
       dictionary: true,
     }))
-    .provide(Vinyl.withConfiguration({watch: false}))
+    .provide(new Vinyl({watch: false}))
     .bootstrap(Database);
 
 
-  let col: Collection;
-
-  before(async () => {
-    col = await database.collection('test');
-  });
+  let col = database.collection('test');
 
   beforeEach(async () => {
     await col.insertMany([
@@ -78,8 +46,7 @@ describe('file', () => {
 
   afterEach(async () => {
     await col.deleteMany({});
-    // TODO: Collection interface needs this method.
-    (col as any).removeAllListeners();
+    col.removeAllListeners();
   });
 
   describe('insertOne', () => {
