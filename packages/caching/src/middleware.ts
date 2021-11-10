@@ -10,7 +10,7 @@ export interface CachingConfig {
 }
 
 export function cachingMiddleware(config: CachingConfig): MiddlewareFactory {
-  return Factory.of(async ({collection, database}) => {
+  return Factory.of(({collection, database}) => {
     const evaluators: CacheEvaluator[] = [
       new QueryCache(config.ttl),
       new IDCache(config.ttl)
