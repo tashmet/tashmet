@@ -52,13 +52,10 @@ export interface RelationshipConfig {
 }
 
 export function joinPipe(config: Required<RelationshipConfig>): PipeFactory {
-  return Factory.of(async ({collection, database, container}) => {
+  return Factory.of(({collection, database, container}) => {
     const {to, localField, foreignField, as, single} = config;
-    const foreign = await database.collection(to);
-
-    const $lookup = {from: await foreign.find().toArray(), localField, foreignField, as};
+    const $lookup = {from: to, localField, foreignField, as};
     const $set = {[as]: {$arrayElemAt: ['$' + as, 0]}};
-
     const pipeline = [{$lookup}, ...single ? [{$set}] : []];
 
     return aggregationPipe(pipeline).resolve(container)({database, collection});
@@ -66,9 +63,9 @@ export function joinPipe(config: Required<RelationshipConfig>): PipeFactory {
 }
 
 export function splitPipe(config: Required<RelationshipConfig>): PipeFactory {
-  return Factory.of(async ({database}) => {
+  return Factory.of(({database}) => {
     const {to, localField, foreignField, upsert} = config;
-    const foreign = await database.collection(to);
+    const foreign = database.collection(to);
 
     const asField = config.as;
 

@@ -1,27 +1,41 @@
+import Tashmit, {Container, Database} from '@tashmit/tashmit';
+import {MiddlewareContext} from '@tashmit/database';
 import {Pipe} from '@tashmit/pipe';
-import {SetPipeFactory, UnsetPipeFactory} from '../../src/middleware/fields';
+import {setPipe, unsetPipe} from '../../src/middleware/fields';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {Collection} from '@tashmit/database/dist';
 import operators from '@tashmit/operators/system';
-import {DatabaseService} from '@tashmit/database/dist/database';
-import {DefaultLogger} from '@tashmit/core/dist/logging/logger';
 
 chai.use(chaiAsPromised);
 
 describe('fields', () => {
-  const database = new DatabaseService({collections: {}, operators}, new DefaultLogger());
+  let database: Database;
+  let container: Container;
+  let middlewareContext: MiddlewareContext;
 
-  describe('SetPipeFactory', () => {
-    const fact = new SetPipeFactory({
+  before(async () => {
+    container = Tashmit
+      .withConfiguration({operators})
+      .bootstrap(Container);
+
+    database = container.resolve(Database);
+
+    middlewareContext = {
+      database,
+      collection: database.collection('test'),
+    }
+  });
+
+  describe('setPipe', () => {
+    const fact = setPipe({
       name: {$concat: ['$givenName', ' ', '$familyName']},
     });
     let pipe: Pipe;
 
-    before(async () => {
-      pipe = await fact.create({} as Collection, database);
+    before(() => {
+      pipe = fact.resolve(container)(middlewareContext);
     });
 
     it('should add provided fields', async () => {
@@ -39,13 +53,13 @@ describe('fields', () => {
     });
 
     describe('nested fields', () => {
-      const fact = new SetPipeFactory({
+      const fact = setPipe({
         'specs.fuelType': 'unleaded'
       });
       let pipe: Pipe;
 
       before(async () => {
-        pipe = await fact.create({} as Collection, database);
+        pipe = fact.resolve(container)(middlewareContext);
       });
 
       it('should add provided fields', async () => {
@@ -55,12 +69,12 @@ describe('fields', () => {
     });
   });
 
-  describe('UnsetPipeFactory', () => {
-    const fact = new UnsetPipeFactory(['name']);
+  describe('unsetPipe', () => {
+    const fact = unsetPipe(['name']);
     let pipe: Pipe;
 
     before(async () => {
-      pipe = await fact.create({} as Collection, database);
+      pipe = fact.resolve(container)(middlewareContext);
     });
 
     it('should unset provided fields', async () => {
@@ -78,11 +92,11 @@ describe('fields', () => {
     });
 
     describe('nested fields', () => {
-      const fact = new UnsetPipeFactory(['specs.fuelType']);
+      const fact = unsetPipe(['specs.fuelType']);
       let pipe: Pipe;
 
       before(async () => {
-        pipe = await fact.create({} as Collection, database);
+        pipe = fact.resolve(container)(middlewareContext);
       });
 
       it('should unset provided fields', async () => {

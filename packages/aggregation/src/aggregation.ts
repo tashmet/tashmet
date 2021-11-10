@@ -25,11 +25,10 @@ export interface AggregationCollectionConfig {
 }
 
 export function aggregation<T = any>(config: AggregationCollectionConfig): CollectionFactory<T> {
-  return Factory.of(async ({name, database}) => {
-    const foreign = await database.collection(config.from);
-    const collection = MemoryCollection.fromConfig<T>(name, database, {
-      documents: await foreign.aggregate(config.pipeline)
-    });
+  return Factory.of(({name, database}) => {
+    const foreign = database.collection(config.from);
+    const collection = MemoryCollection.fromConfig<T>(name, database, {});
+    foreign.aggregate<any>(config.pipeline).then(docs => collection.insertMany(docs));
 
     const update = async () => {
       const docs = await foreign.aggregate<any>(config.pipeline);
@@ -43,6 +42,8 @@ export function aggregation<T = any>(config: AggregationCollectionConfig): Colle
         }
       }
     }
+
+    update();
 
     if (config.sync !== false) {
       foreign.on('change', () => update());
