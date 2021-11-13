@@ -1,24 +1,19 @@
 import {Factory, Logger} from '@tashmit/core';
 import {Middleware, MiddlewareFactory} from '../interfaces';
+import {mutation} from './mutation';
 
 const loggingMiddleware = (logger: Logger) => {
-  const logError = (next: (...args: any[]) => Promise<any>) => async (...args: any[]) => {
+  const logError = mutation(async (type, next, ...args) => {
     try {
       return await next(...args);
     } catch (err) {
       logger.error(err.message);
       throw (err);
     }
-  }
+  });
 
   return {
-    methods: {
-      insertOne: logError,
-      insertMany: logError,
-      replaceOne: logError,
-      deleteOne: logError,
-      deleteMany: logError,
-    },
+    methods: logError.methods,
     events: {
       change: next => async change => {
         switch (change.action) {

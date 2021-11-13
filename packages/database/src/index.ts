@@ -8,6 +8,7 @@ export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor'
 export {aggregate, QueryAggregator} from './aggregation';
 export * from './interfaces';
 export * from './middleware';
+export * from './util';
 
 export default class DatabasePlugin extends Plugin {
   private static defaultConfig: DatabaseConfig = {

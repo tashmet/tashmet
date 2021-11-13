@@ -3,10 +3,11 @@ import {OperatorConfig} from '@tashmit/operators';
 import {OperatorType, useOperators} from "mingo/core";
 import {memory} from './collections/memory';
 import {withMiddleware} from './collections/managed';
+import {view} from './collections/view';
 import {
   Collection,
   CollectionConfig,
-  CollectionFactory,
+  CollectionSource,
   Database,
   Middleware,
   MiddlewareFactory,
@@ -39,17 +40,13 @@ export class DatabaseService extends Database {
   }
 
   public createCollection<T = any>(
-    name: string, source: CollectionFactory<T> | CollectionConfig | T[]): Collection<T>
+    name: string, source: CollectionSource<T>): Collection<T>
   {
     try {
       if (name in this.collections) {
         throw new Error(`a collection named '${name}' already exists in database`);
       }
-
-      const config: CollectionConfig = source instanceof Factory
-        ? {source}
-        : Array.isArray(source) ? {source: memory({documents: source})} : source;
-
+      const config = this.createConfig(source);
       const c = this.collections[name] = this.createManagedCollection(name, config);
       c.on('change', change => this.emit('change', change));
       c.on('error', error => this.emit('error', error));
@@ -59,6 +56,15 @@ export class DatabaseService extends Database {
       this.logger.error(err.message);
       throw err;
     }
+  }
+
+  private createConfig<T = any>(source: CollectionSource<T>) {
+    if ('viewOf' in source) {
+      return {use: source.use, useBefore: source.useBefore, source: view(source)}
+    }
+    return source instanceof Factory
+      ? {source}
+      : Array.isArray(source) ? {source: memory({documents: source})} : source;
   }
 
   private createManagedCollection<T = any>(

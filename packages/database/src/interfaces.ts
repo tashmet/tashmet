@@ -362,6 +362,8 @@ export interface MiddlewareContext {
 export type MiddlewareFactory<T = any> = Factory<Middleware<T>, MiddlewareContext>;
 
 
+/** Configuration for view collection */
+
 export interface CollectionConfig<T = any> {
   /**
    * Factory creating the collection.
@@ -381,7 +383,15 @@ export interface CollectionConfig<T = any> {
   useBefore?: MiddlewareFactory[];
 }
 
-export type CollectionSource<T> = CollectionFactory<T> | CollectionConfig | T[];
+export interface ViewCollectionConfig extends Pick<CollectionConfig, 'use' | 'useBefore'>{
+  /** The name of the collection to aggregate from */
+  viewOf: string;
+
+  /** The aggregation pipeline */
+  pipeline: AggregationPipeline;
+}
+
+export type CollectionSource<T> = CollectionFactory<T> | CollectionConfig | ViewCollectionConfig | T[];
 
 /**
  * Configuration for the database.
@@ -442,11 +452,11 @@ export interface Database {
    */
   createCollection<T = any>(name: string, config: CollectionConfig): Collection<T>;
 
+  createCollection<T = any>(name: string, config: ViewCollectionConfig): Collection<T>;
+
   createCollection<T = any>(name: string, documents: T[]): Collection<T>;
 
-  createCollection<T = any>(
-    name: string, source: CollectionFactory<T> | CollectionConfig | T[]
-  ): Collection<T>;
+  createCollection<T = any>(name: string, source: CollectionSource<T>): Collection<T>;
 }
 
 /**
@@ -468,3 +478,4 @@ export abstract class Aggregator<T = any> {
     return collection.aggregate<T>(this.pipeline);
   }
 }
+

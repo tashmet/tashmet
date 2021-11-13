@@ -17,6 +17,7 @@ import {
 import {applyQueryOptions, sortingMap} from '../cursor';
 import {aggregate} from '../aggregation';
 import {withAutoEvent} from '../middleware';
+import {idSet} from '../util';
 
 export interface MemoryCollectionConfig<T = any> {
   /**
@@ -159,9 +160,9 @@ export class MemoryCollection<T = any> extends Collection<T> {
   }
 
   public async deleteMany(filter: Filter<T>): Promise<T[]> {
-    const affected = await this.find(filter).toArray() as any[];
-    const ids = affected.map(doc => doc._id);
-    this.documents = this.documents.filter(doc => ids.indexOf(doc._id) === -1);
+    const affected = new MingoQuery(filter).find(this.documents).all() as any[];
+    const ids = idSet(affected);
+    this.documents = this.documents.filter(doc => !ids.has(doc._id));
     return affected;
   }
 }
