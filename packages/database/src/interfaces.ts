@@ -371,6 +371,11 @@ export interface CollectionConfig<T = any> {
   source: CollectionFactory | T[];
 
   /**
+   * Allows users to specify validation rules or expressions for the collection
+   */
+  validator?: Document;
+
+  /**
    * Optional list of factories creating middleware that should be applied after any middleware
    * from the database.
    */

@@ -3,8 +3,8 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Database} from '../../packages/tashmit'
-import operators from '../../packages/operators/system';
+import Tashmit, {Database} from '../../../packages/tashmit'
+import operators from '../../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 

@@ -3,17 +3,12 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Database} from '../../packages/tashmit'
-import {aggregation} from '../../packages/aggregation/dist';
-import operators from '../../packages/operators/system';
+import Tashmit, {Database} from '../../../packages/tashmit'
+import operators from '../../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-describe('aggregation', () => {
+describe('view', () => {
   let database = Tashmit
     .withConfiguration({operators})
     .collection('sales', [
@@ -26,23 +21,27 @@ describe('aggregation', () => {
       { _id : 7, item : 'def', price : 7.5, quantity: 10},
       { _id : 8, item : 'abc', price : 10,  quantity: 5},
     ])
-    .collection('totals', aggregation({
-      from: 'sales',
+    .collection('totals', {
+      viewOf: 'sales',
       pipeline: [
         {$group: {
           _id : '$item',
           totalSaleAmount: {$sum: {$multiply: ['$price', '$quantity']}}
         }},
         {$match: {'totalSaleAmount': {$gte: 100}}}
-      ]
-    }))
+      ],
+    })
     .bootstrap(Database);
 
 
   let sales = database.collection('sales');
   let totals = database.collection('totals');
 
-  it('should initially have correct documents', async () => {
+  afterEach(async () => {
+    totals.removeAllListeners();
+  });
+
+  it('should initially have correct documents', () => {
     return expect(totals.find().toArray())
       .to.eventually.eql([
         {_id : 'abc', 'totalSaleAmount': 170},
@@ -53,7 +52,6 @@ describe('aggregation', () => {
 
   it('should update on replace', async () => {
     await sales.replaceOne({_id: 1}, {_id : 1, item: 'abc', price: 12, quantity: 2});
-    await sleep(20);
 
     return expect(totals.findOne({_id: 'abc'}))
       .to.eventually.eql({_id : 'abc', 'totalSaleAmount': 174});
@@ -61,7 +59,6 @@ describe('aggregation', () => {
 
   it('should update on delete', async () => {
     await sales.deleteOne({_id: 1});
-    await sleep(20);
 
     return expect(totals.findOne({_id: 'abc'}))
       .to.eventually.eql({_id : 'abc', 'totalSaleAmount': 150});
@@ -69,7 +66,6 @@ describe('aggregation', () => {
 
   it('should remove no longer existing documents', async () => {
     await sales.deleteMany({item: 'abc'});
-    await sleep(20);
 
     return expect(totals.find().toArray())
       .to.eventually.eql([
@@ -80,9 +76,68 @@ describe('aggregation', () => {
 
   it('should add new documents', async () => {
     await sales.insertOne({item: 'ghi', price: 20, quantity: 10});
-    await sleep(20);
 
     return expect(totals.findOne({_id: 'ghi'}))
       .to.eventually.eql({_id : 'ghi', 'totalSaleAmount': 200});
+  });
+
+  it('should emit insert change event', (done) => {
+    totals.on('change', ({action, data}) => {
+      expect(action).to.eql('insert');
+      expect(data).to.eql([{_id: 'mno', totalSaleAmount: 200}]);
+      done();
+    });
+
+    sales.insertOne({item: 'mno', price: 20, quantity: 10});
+  });
+
+  it('should emit delete change event', (done) => {
+    totals.on('change', ({action, data}) => {
+      expect(action).to.eql('delete');
+      expect(data).to.eql([{_id: 'mno', totalSaleAmount: 200}]);
+      done();
+    });
+
+    sales.deleteOne({item: 'mno'});
+  });
+
+  it('should emit replace change event', (done) => {
+    totals.on('change', ({action, data}) => {
+      expect(action).to.eql('replace');
+      expect(data).to.eql([
+        { _id: 'xyz', totalSaleAmount: 150 },
+        { _id: 'xyz', totalSaleAmount: 100 }
+      ]);
+      done();
+    });
+
+    sales.deleteOne({_id: 3});
+  });
+
+  describe('mutation', () => {
+    it('should not be possible with insertOne', () => {
+      expect(totals.insertOne({item: 'mno', price: 20, quantity: 10}))
+        .to.eventually.throw();
+    });
+
+    it('should not be possible with insertMany', () => {
+      expect(totals.insertMany([{item: 'mno', price: 20, quantity: 10}]))
+        .to.eventually.throw();
+    });
+
+    it('should not be possible with deleteOne', () => {
+      expect(totals.deleteOne([{item: 'mno'}]))
+        .to.eventually.throw();
+    });
+
+    it('should not be possible with deleteMany', () => {
+      expect(totals.deleteMany([{item: 'mno'}]))
+        .to.eventually.throw();
+    });
+
+    it('should not be possible with replaceOne', () => {
+      expect(totals.replaceOne({_id: 1}, {item: 'mno', price: 20, quantity: 10}))
+        .to.eventually.throw();
+    });
   });
 });

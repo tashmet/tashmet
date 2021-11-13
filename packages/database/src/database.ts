@@ -12,6 +12,7 @@ import {
   Middleware,
   MiddlewareFactory,
 } from './interfaces';
+import { validation } from './middleware/validation';
 
 export class DatabaseService extends Database {
   private collections: {[name: string]: Collection} = {};
@@ -81,7 +82,12 @@ export class DatabaseService extends Database {
       ...(this.middleware || []),
       ...(config.use || [])
     ];
-    return withMiddleware(source, this.createMiddleware(middlewareFactories, source));
+    const middleware = this.createMiddleware(middlewareFactories, source);
+    if (config.validator) {
+      middleware.push(validation(config.validator));
+    }
+
+    return withMiddleware(source, middleware);
   }
 
   private createMiddleware(
