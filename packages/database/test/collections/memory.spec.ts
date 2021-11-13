@@ -43,11 +43,10 @@ describe('MemoryCollection', () => {
 
   describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
-      const doc = await col.insertOne(
+      const result = await col.insertOne(
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
-      expect(doc.amount).to.eql(10);
-      expect(doc).to.haveOwnProperty('_id');
+      expect(result.acknowledged).to.be.true;
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertOne(
@@ -68,16 +67,16 @@ describe('MemoryCollection', () => {
   });
 
   describe('insertMany', () => {
-    it('should add a multiple documents and give them ids', async () => {
-      const docs = await col.insertMany([
+    it('should add multiple documents and give them ids', async () => {
+      const docs = [
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
-      ]);
-      expect(docs.length).to.eql(2);
-      expect(docs[0].amount).to.eql(10);
-      expect(docs[1].amount).to.eql(12);
-      expect(docs[0]).to.haveOwnProperty('_id');
-      expect(docs[1]).to.haveOwnProperty('_id');
+      ];
+      const result = await col.insertMany(docs);
+      expect(result.acknowledged).to.be.true;
+      expect(result.insertedCount).to.eql(2);
+      expect(result.insertedIds[0]).to.eql((docs[0] as any)._id);
+      expect(result.insertedIds[1]).to.eql((docs[1] as any)._id);
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertMany([

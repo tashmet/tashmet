@@ -7,6 +7,8 @@ import {
   CollectionFactory,
   Cursor,
   Filter,
+  InsertOneResult,
+  InsertManyResult,
   ReplaceOneOptions,
   QueryOptions,
   SortingKey,
@@ -115,27 +117,28 @@ export class MemoryCollection<T = any> extends Collection<T> {
     return result.length > 0 ? result[0] : null;
   }
 
-  public async insertOne(doc: any): Promise<T> {
+  public async insertOne(doc: any): Promise<InsertOneResult> {
     if (!doc.hasOwnProperty('_id')) {
       doc._id = new ObjectID().toHexString();
-      this.documents.push(doc);
-    } else {
-      const index = this.documents.findIndex(o => o._id === doc._id);
-      if (index >= 0) {
-        throw new Error(
-          `Insertion failed: A document with ID '${doc._id}' already exists in '${this.name}'`
-        );
-      } else {
-        this.documents.push(doc);
-      }
+    } else if (this.documents.findIndex(o => o._id === doc._id) >= 0) {
+      throw new Error(
+        `Insertion failed: A document with ID '${doc._id}' already exists in '${this.name}'`
+      );
     }
-    return doc;
+    this.documents.push(doc);
+    return {acknowledged: true, insertedId: doc._id};
   }
 
-  public async insertMany(docs: T[]): Promise<T[]> {
-    const result: any[] = [];
-    for (const doc of docs) {
-      result.push(await this.insertOne(doc));
+  public async insertMany(docs: T[]): Promise<InsertManyResult> {
+    let result: InsertManyResult = {
+      insertedCount: 0,
+      insertedIds: {},
+      acknowledged: true
+    };
+    for (let i=0; i<docs.length; i++) {
+      const resultOne = await this.insertOne(docs[i]);
+      result.insertedCount += 1;
+      result.insertedIds[i] = resultOne.insertedId;
     }
     return result;
   }
@@ -146,7 +149,8 @@ export class MemoryCollection<T = any> extends Collection<T> {
       const index = this.documents.findIndex(o => o._id === old._id);
       return this.documents[index] = Object.assign({}, {_id: old._id}, doc);
     } else if (options.upsert) {
-      return this.insertOne(doc);
+      await this.insertOne(doc);
+      return doc;
     }
     return null;
   }

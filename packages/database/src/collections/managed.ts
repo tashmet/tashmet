@@ -1,6 +1,13 @@
+import { InsertManyResult, InsertOneResult } from '..';
 import {
-  Cursor, Filter, Middleware, ReplaceOneOptions, QueryOptions, AggregationPipeline,
-  DatabaseChange, Collection
+  AggregationPipeline,
+  Collection,
+  Cursor,
+  DatabaseChange,
+  Filter,
+  Middleware,
+  QueryOptions,
+  ReplaceOneOptions,
 } from '../interfaces';
 
 
@@ -68,11 +75,11 @@ export class ManagedCollection<T = any> extends Collection<T> {
     return this.source.findOne(filter);
   }
 
-  public async insertOne(doc: T): Promise<T> {
+  public async insertOne(doc: T): Promise<InsertOneResult> {
     return this.source.insertOne(doc);
   }
 
-  public async insertMany(docs: T[]): Promise<T[]> {
+  public async insertMany(docs: T[]): Promise<InsertManyResult> {
     return this.source.insertMany(docs);
   }
 

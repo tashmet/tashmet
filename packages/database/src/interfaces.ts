@@ -1,4 +1,5 @@
 import {EventEmitter} from 'eventemitter3';
+import ObjectId from 'bson-objectid';
 import {Factory, Provider} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 
@@ -238,7 +239,7 @@ export declare interface Collection<T = any> {
    * @returns A promise for the inserted document.
    * @throws Error if a document with the same ID already exists
    */
-  insertOne(doc: T): Promise<T>;
+  insertOne(doc: T): Promise<InsertOneResult>;
 
   /**
    * Insert multiple documents into the collection
@@ -250,7 +251,7 @@ export declare interface Collection<T = any> {
    * @returns A promise for the inserted documents
    * @throws Error if a document with the same ID already exists
    */
-  insertMany(docs: T[]): Promise<T[]>;
+  insertMany(docs: T[]): Promise<InsertManyResult>;
 
   /**
    * Replace a document in a collection with another document
@@ -327,7 +328,7 @@ export interface EventMiddleware<T = any> {
 export type Aggregate<T> = (pipeline: AggregationPipeline) => Promise<T[]>;
 export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
 export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
-export type InsertOne<T> = (doc: T) => Promise<T>;
+export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
 export type InsertMany<T> = (docs: T[]) => Promise<T[]>;
 export type ReplaceOne<T> = (filter: Filter<T>, doc: T, options?: ReplaceOneOptions)
   => Promise<T | null>;
@@ -488,4 +489,31 @@ export type Validator<T> = (doc: T) => Promise<T>;
 
 export abstract class ValidatorFactory {
   public abstract create<T>(rules: Document): Validator<T>;
+}
+
+/** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
+export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
+  ? // eslint-disable-next-line @typescript-eslint/ban-types
+    {} extends IdType // TODO(NODE-3285): Improve type readability
+    ? // eslint-disable-next-line @typescript-eslint/ban-types
+      Exclude<IdType, {}>
+    : unknown extends IdType
+    ? ObjectId
+    : IdType
+  : ObjectId; // user has not defined _id on schema
+
+export interface InsertOneResult<TSchema = Document> {
+  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
+  acknowledged: boolean;
+  /** The identifier that was inserted. If the server generated the identifier, this value will be null as the driver does not have access to that data */
+  insertedId: InferIdType<TSchema>;
+}
+
+export interface InsertManyResult<TSchema = Document> {
+  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
+  acknowledged: boolean;
+  /** The number of inserted documents for this operations */
+  insertedCount: number;
+  /** Map of the index of the inserted document to the id of the inserted document */
+  insertedIds: { [key: number]: InferIdType<TSchema> };
 }
