@@ -1,6 +1,5 @@
 import {Factory} from '@tashmit/core';
-import {CollectionFactory, MemoryCollection, withAutoEvent} from '@tashmit/database';
-import {difference, intersection, isEqual} from 'lodash';
+import {CollectionFactory, ChangeSet, MemoryCollection, withAutoEvent} from '@tashmit/database';
 import {buffer} from './buffer';
 import {Pipeline} from '../pipeline';
 
@@ -38,33 +37,8 @@ export function bundle<T>(config: BundleConfig<T>): CollectionFactory {
     const collection = buffer(cache, populate(), () => output(Pipeline.fromCursor(cache.find())));
 
     const listen = async (input: Pipeline<T>) => {
-      const data = await input.toArray();
-      const bufferDocs = await cache.find().toArray();
-      const getIds = (docs: any[]) => docs.map(doc => doc._id);
-
-      const diff = (a: any[], b: any[]) => {
-        const ids = difference(getIds(a), getIds(b));
-        return a.filter(doc => ids.includes(doc._id));
-      }
-
-      const changed = intersection(getIds(data), getIds(bufferDocs)).reduce((acc, id) => {
-        const doc = data.find((d: any) => d._id === id);
-
-        if (!isEqual(doc, bufferDocs.find(d => d._id === id))) {
-          acc.push(doc);
-        }
-        return acc;
-      }, []);
-
-      for (const doc of diff(bufferDocs, data)) {
-        await cache.deleteOne(doc);
-      }
-      for (const doc of changed) {
-        await cache.replaceOne({_id: doc._id}, doc, {});
-      }
-      for (const doc of diff(data, bufferDocs)) {
-        await cache.insertOne(doc);
-      }
+      return ChangeSet.fromDiff(await cache.find().toArray(), await input.toArray())
+        .applyTo(cache);
     }
 
     if (input) {
