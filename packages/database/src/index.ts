@@ -1,11 +1,13 @@
 import {Container, Logger, Plugin, Provider} from '@tashmit/core';
-import {Database, DatabaseConfig} from './interfaces';
+import {Database, DatabaseConfig, ValidatorFactory} from './interfaces';
 import {DatabaseService} from './database';
+import {SimpleValidatorFactory} from './validator';
 
 export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
 export {withMiddleware} from './collections/managed';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
 export {aggregate, QueryAggregator} from './aggregation';
+export {filterValidator} from './validator';
 export * from './interfaces';
 export * from './middleware';
 export * from './util';
@@ -26,11 +28,16 @@ export default class DatabasePlugin extends Plugin {
   public register(container: Container) {
     const {use, operators} = this.config;
 
+    container.register(SimpleValidatorFactory);
+
     container.register(Provider.ofFactory({
       key: Database,
-      inject: [Logger.inScope('database.Database')],
-      create: (logger: Logger) =>
-        new DatabaseService(logger, container, operators, use)
+      inject: [
+        Logger.inScope('database.Database'),
+        ValidatorFactory,
+      ],
+      create: (logger: Logger, validatorFactory: ValidatorFactory) =>
+        new DatabaseService(logger, container, validatorFactory, operators, use)
     }));
   }
 

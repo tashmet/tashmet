@@ -4,6 +4,7 @@ import {OperatorType, useOperators} from "mingo/core";
 import {memory} from './collections/memory';
 import {withMiddleware} from './collections/managed';
 import {view} from './collections/view';
+import {validation} from './middleware/validation';
 import {
   Collection,
   CollectionConfig,
@@ -11,8 +12,8 @@ import {
   Database,
   Middleware,
   MiddlewareFactory,
+  ValidatorFactory,
 } from './interfaces';
-import { validation } from './middleware/validation';
 
 export class DatabaseService extends Database {
   private collections: {[name: string]: Collection} = {};
@@ -20,6 +21,7 @@ export class DatabaseService extends Database {
   public constructor(
     private logger: Logger,
     private container: Container,
+    private validatorFactory: ValidatorFactory,
     operators: OperatorConfig = {},
     private middleware: MiddlewareFactory[] = [],
   ) {
@@ -83,8 +85,9 @@ export class DatabaseService extends Database {
       ...(config.use || [])
     ];
     const middleware = this.createMiddleware(middlewareFactories, source);
-    if (config.validator) {
-      middleware.push(validation(config.validator));
+    const validator = config.validator;
+    if (validator) {
+      middleware.push(validation(this.validatorFactory.create(validator), validator));
     }
 
     return withMiddleware(source, middleware);

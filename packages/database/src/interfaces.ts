@@ -332,7 +332,7 @@ export type InsertMany<T> = (docs: T[]) => Promise<T[]>;
 export type ReplaceOne<T> = (filter: Filter<T>, doc: T, options?: ReplaceOneOptions)
   => Promise<T | null>;
 export type DeleteOne<T> = (filter: Filter<T>) => Promise<T | null>;
-export type DeleteMany<T> = (filter?: Filter<T>) => Promise<T[]>;
+export type DeleteMany<T> = (filter: Filter<T>) => Promise<T[]>;
 
 
 export interface MethodMiddleware<T = any> {
@@ -484,3 +484,8 @@ export abstract class Aggregator<T = any> {
   }
 }
 
+export type Validator<T> = (doc: T) => Promise<T>;
+
+export abstract class ValidatorFactory {
+  public abstract create<T>(rules: Document): Validator<T>;
+}
