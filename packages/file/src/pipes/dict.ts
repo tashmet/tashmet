@@ -1,5 +1,5 @@
-import {Pipe} from '@tashmit/pipe';
 import {omit} from 'lodash';
+import {Pipe} from '../interfaces';
 
 export function toList<T>(): Pipe<Record<string, T>, T[]> {
   return async dict => Object.keys(dict).reduce((list, key) => {

@@ -1,4 +1,4 @@
-import {Pipe} from '@tashmit/pipe';
+import {Pipe} from './interfaces';
 
 export abstract class Transform<In = any, Out = In> {
   public abstract apply(gen: AsyncGenerator<In>): AsyncGenerator<Out>;

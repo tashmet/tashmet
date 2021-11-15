@@ -1,9 +1,10 @@
 import {Factory} from "@tashmit/core";
-import {Pipe} from "@tashmit/pipe";
 import {Pipeline} from "./pipeline";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
+export type Pipe<TIn = any, TOut = TIn> = (input: TIn) => Promise<TOut>;
 
 export interface File<T = any> {
   path: string;

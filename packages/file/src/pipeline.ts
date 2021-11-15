@@ -1,6 +1,6 @@
 import {Cursor} from '@tashmit/database';
-import {Pipe} from '@tashmit/pipe';
 import toArray from '@async-generators/to-array';
+import {Pipe} from './interfaces';
 import {ParallelTransform, Transform} from './transform';
 import {pipe} from './pipes';
 

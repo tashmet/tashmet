@@ -1,4 +1,4 @@
-import {Pipe} from '@tashmit/pipe';
+import {Pipe} from '../interfaces';
 
 export type JsonEncoding = 'utf-8' | 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'ucs-2' | 'base64' | 'latin1' | 'binary' | 'hex' | undefined;
 

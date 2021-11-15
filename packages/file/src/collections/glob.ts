@@ -1,5 +1,4 @@
 import {Factory} from '@tashmit/core';
-import {Pipe} from '@tashmit/pipe';
 import {shards, ShardStreamConfig, ShardStreamFactory} from './shard';
 import {
   File,
@@ -8,6 +7,7 @@ import {
   FileStreamConfig,
   ExtractedFileContentConfig,
   MultiFilesWithContentConfig,
+  Pipe,
   ReadableFile,
 } from '../interfaces'
 import * as Pipes from '../pipes';

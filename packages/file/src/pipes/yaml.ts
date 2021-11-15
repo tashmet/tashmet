@@ -1,5 +1,5 @@
-import {Pipe} from '@tashmit/pipe';
 import {omit} from 'lodash';
+import {Pipe} from '../interfaces';
 
 import jsYaml = require('js-yaml');
 const yamlFront = require('yaml-front-matter');

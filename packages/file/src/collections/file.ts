@@ -1,7 +1,6 @@
 import {Factory} from '@tashmit/core';
-import {Pipe} from '@tashmit/pipe';
 import {bundle, BundleStreamConfig, BundleStreamFactory} from '../collections/bundle';
-import {FileAccessFactory, FileStreamConfig, ReadableFile, Serializer} from '../interfaces'
+import {FileAccessFactory, FileStreamConfig, Pipe, ReadableFile, Serializer} from '../interfaces'
 import * as Pipes from '../pipes';
 import {Pipeline} from '../pipeline';
 

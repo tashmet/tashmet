@@ -1,6 +1,5 @@
-import {Pipe} from '@tashmit/pipe';
 import toArray from '@async-generators/to-array';
-import {File, Serializer} from '../interfaces';
+import {File, Pipe, Serializer} from '../interfaces';
 import {input, onKey, output} from './common';
 
 /**

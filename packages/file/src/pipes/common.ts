@@ -1,6 +1,5 @@
-import {Pipe} from '@tashmit/pipe';
 import {omit} from 'lodash';
-import {Duplex} from '../interfaces';
+import {Duplex, Pipe} from '../interfaces';
 import {Disperser, FilterTransform, PipeTransform, Reducer} from '../transform';
 
 export const chain = (pipes: Pipe[]): Pipe => async (data: any) => {
