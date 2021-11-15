@@ -1,21 +1,39 @@
-import {Factory} from '@tashmit/core';
-import {MemoryCollection, Middleware, MiddlewareFactory, QueryAggregator} from '@tashmit/database';
+import {provider} from '@tashmit/core';
+import {
+  CachingLayer,
+  Collection,
+  Database,
+  MemoryCollection,
+  Middleware,
+  QueryAggregator
+} from '@tashmit/database';
+import {CachingConfig} from './interfaces';
 import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
 import {IDCache} from './id';
 import {QueryCache} from './query';
 
-export interface CachingConfig {
-  ttl?: number;
-}
+@provider({
+  key: CachingLayer,
+  inject: [
+    Database,
+    CachingConfig,
+  ]
+})
+export class CachingLayerService extends CachingLayer {
+  public constructor(
+    private database: Database,
+    private config: CachingConfig
+  ) {
+    super();
+  }
 
-export function cachingMiddleware(config: CachingConfig): MiddlewareFactory {
-  return Factory.of(({collection, database}) => {
+  public create<T>(collection: Collection<T>): Middleware<T> {
     const evaluators: CacheEvaluator[] = [
-      new QueryCache(config.ttl),
-      new IDCache(config.ttl)
+      new QueryCache(this.config.ttl),
+      new IDCache(this.config.ttl)
     ];
-    const cache = MemoryCollection.fromConfig(collection.name, database, {});
+    const cache = MemoryCollection.fromConfig(collection.name, this.database, {});
 
     for (const evaluator of evaluators) {
       cache.on('change', ({action, data}) => {
@@ -61,5 +79,5 @@ export function cachingMiddleware(config: CachingConfig): MiddlewareFactory {
         },
       }
     } as Middleware;
-  });
+  }
 }
