@@ -42,11 +42,11 @@ describe('rest', () => {
 
   describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
-      const doc = await col.insertOne(
-        {item: { category: 'brownies', type: 'blondie' }, amount: 10 }
-      );
-      expect(doc.amount).to.eql(10);
+      let doc = {item: { category: 'brownies', type: 'blondie' }, amount: 10 };
+      const result = await col.insertOne(doc)
+      expect(result.acknowledged).to.be.true;
       expect(doc).to.haveOwnProperty('_id');
+      expect((doc as any)._id).to.eql(result.insertedId);
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertOne(
@@ -68,15 +68,12 @@ describe('rest', () => {
 
   describe('insertMany', () => {
     it('should add a multiple documents and give them ids', async () => {
-      const docs = await col.insertMany([
+      const result = await col.insertMany([
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
-      expect(docs.length).to.eql(2);
-      expect(docs[0].amount).to.eql(10);
-      expect(docs[1].amount).to.eql(12);
-      expect(docs[0]).to.haveOwnProperty('_id');
-      expect(docs[1]).to.haveOwnProperty('_id');
+      expect(result.acknowledged).to.be.true;
+      expect(result.insertedCount).to.eql(2);
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertMany([
