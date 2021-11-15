@@ -1,6 +1,6 @@
 import {EventEmitter} from 'eventemitter3';
 import ObjectId from 'bson-objectid';
-import {Factory, Provider} from '@tashmit/core';
+import {Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 
 export type Document = Record<string, any>;
@@ -329,7 +329,7 @@ export type Aggregate<T> = (pipeline: AggregationPipeline) => Promise<T[]>;
 export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
 export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
 export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
-export type InsertMany<T> = (docs: T[]) => Promise<T[]>;
+export type InsertMany<T> = (docs: T[]) => Promise<InsertManyResult>;
 export type ReplaceOne<T> = (filter: Filter<T>, doc: T, options?: ReplaceOneOptions)
   => Promise<T | null>;
 export type DeleteOne<T> = (filter: Filter<T>) => Promise<T | null>;

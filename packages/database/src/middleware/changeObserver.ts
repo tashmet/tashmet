@@ -22,8 +22,16 @@ export const changeObserver = (handler: (change: DatabaseChange) => Promise<void
 
   return {
     methods: {
-      insertOne: observeChange('insert'),
-      insertMany: observeChange('insert'),
+      insertOne: next => async doc => {
+        const result = await next(doc);
+        await handle('insert', [doc]);
+        return result;
+      },
+      insertMany: next => async docs => {
+        const result = await next(docs);
+        await handle('insert', docs);
+        return result;
+      },
       deleteOne: observeChange('delete'),
       deleteMany: observeChange('delete'),
       replaceOne: next => async (filter, doc, options) => {
