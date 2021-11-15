@@ -58,7 +58,7 @@ describe('Resource', () => {
         .post('/readwrite')
         .send({_id: 'doc3'})
         .expect(201)
-        .then(res => expect(res.body).to.eql({_id: 'doc3'}));
+        .then(res => expect(res.body).to.eql({acknowledged: true, insertedId: 'doc3'}));
     });
 
     it('should have added document to collection', () => {
