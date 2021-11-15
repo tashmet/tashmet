@@ -54,12 +54,11 @@ describe('directory', () => {
 
   describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
-      const doc = await col.insertOne(
-        {item: { category: 'brownies', type: 'blondie' }, amount: 10 }
-      );
-      expect(doc.amount).to.eql(10);
+      const doc = {item: { category: 'brownies', type: 'blondie' }, amount: 10 };
+      const result = await col.insertOne(doc);
+      expect(result.acknowledged).to.be.true
       expect(doc).to.haveOwnProperty('_id');
-      expect(await storedDoc(doc._id))
+      expect(await storedDoc((doc as any)._id))
         .to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 10 });
     });
     it('should throw when trying to insert a document with already existing ID', () => {
@@ -84,18 +83,14 @@ describe('directory', () => {
 
   describe('insertMany', () => {
     it('should add a multiple documents and give them ids', async () => {
-      const docs = await col.insertMany([
+      const result = await col.insertMany([
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
-      expect(docs.length).to.eql(2);
-      expect(docs[0].amount).to.eql(10);
-      expect(docs[1].amount).to.eql(12);
-      expect(docs[0]).to.haveOwnProperty('_id');
-      expect(docs[1]).to.haveOwnProperty('_id');
-      expect(storedDoc(docs[0]._id))
+      expect(result.insertedCount).to.eql(2);
+      expect(storedDoc(result.insertedIds[0] as any))
         .to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 10 });
-      expect(storedDoc(docs[1]._id))
+      expect(storedDoc(result.insertedIds[1] as any))
         .to.eql({item: { category: 'brownies', type: 'baked' }, amount: 12 });
     });
     it('should throw when trying to insert a document with already existing ID', () => {
