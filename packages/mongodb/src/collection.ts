@@ -9,6 +9,8 @@ import {
   QueryOptions,
   AggregationPipeline,
   Collection,
+  InsertOneResult,
+  InsertManyResult,
   withAutoEvent
 } from '@tashmit/database';
 import mongo from 'mongodb';
@@ -83,23 +85,12 @@ export class MongoDBCollection<T> extends Collection<T> {
     return this.collection.findOne(filter);
   }
 
-  public async insertOne(doc: any): Promise<T> {
-    let res = await this.collection.insertOne(doc);
-    if (!res.acknowledged) {
-      throw Error('Failed to insert document');
-    }
-    return Object.assign({_id: res.insertedId}, doc);
+  public async insertOne(doc: any): Promise<InsertOneResult> {
+    return this.collection.insertOne(doc) as any;
   }
 
-  public async insertMany(docs: any[]): Promise<T[]> {
-    let res = await this.collection.insertMany(docs);
-    if (!res.acknowledged) {
-      throw Error('Failed to insert documents');
-    }
-    return Object.keys(res.insertedIds).map(key => {
-      const i = parseInt(key);
-      return Object.assign({_id: res.insertedIds[i]}, docs[i]);
-    })
+  public async insertMany(docs: any[]): Promise<InsertManyResult> {
+    return this.collection.insertMany(docs) as any;
   }
 
   public async replaceOne(filter: Filter<T>, doc: any, options?: ReplaceOneOptions): Promise<any> {
