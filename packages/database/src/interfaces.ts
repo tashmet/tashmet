@@ -491,6 +491,10 @@ export abstract class ValidatorFactory {
   public abstract create<T>(rules: Document): Validator<T>;
 }
 
+export abstract class CachingLayer {
+  public abstract create<T>(collection: Collection<T>): Middleware<T>;
+}
+
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
 export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
   ? // eslint-disable-next-line @typescript-eslint/ban-types
