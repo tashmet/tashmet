@@ -5,7 +5,6 @@ import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import 'mocha';
 
-import {caching} from '../../packages/caching/dist';
 import {view, ItemSet} from '../../packages/view/dist';
 import Tashmit, {Database, Container} from '../../packages/tashmit/dist';
 import {match, sort, limit} from '../../packages/view/dist';
@@ -41,7 +40,6 @@ describe('view', () => {
   const container = Tashmit
     .withConfiguration({operators})
     .collection('test', [])
-    .use(caching())
     .provide(TestView)
     .bootstrap(Container)
 

@@ -5,6 +5,7 @@ import 'mocha';
 
 import Tashmit, {Database, LogLevel} from '../../packages/tashmit/dist'
 import HttpClient from '../../packages/http-client/dist';
+import Caching from '../../packages/caching/dist';
 import {socket} from '../../packages/socket/dist';
 import operators from '../../packages/operators/system';
 import fetch from 'isomorphic-fetch';
@@ -19,7 +20,8 @@ describe('rest', () => {
       new HttpClient({
         fetch,
         emitter: socket(),
-      })
+      }),
+      new Caching({}),
     )
     .bootstrap(Database);
 
