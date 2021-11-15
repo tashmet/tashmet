@@ -8,6 +8,7 @@ import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {SortingDirection} from '../../dist';
+import {SimpleValidatorFactory} from '../../dist/validator';
 
 chai.use(chaiAsPromised);
 
@@ -23,7 +24,8 @@ describe('MemoryCollection', () => {
     amount: number;
   }
 
-  const db = new DatabaseService(new DefaultLogger(), new BasicContainer(), operators);
+  const db = new DatabaseService(
+    new DefaultLogger(), new BasicContainer(), new SimpleValidatorFactory(), operators);
   const col = MemoryCollection.fromConfig<ItemEntry>('test', db, {});
 
   beforeEach(async () => {
