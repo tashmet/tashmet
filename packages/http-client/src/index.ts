@@ -1,5 +1,5 @@
 import {Container, Factory, Logger, Plugin, Provider} from '@tashmit/core';
-import {CollectionFactory, withAutoEvent} from '@tashmit/database';
+import {CachingLayer, Collection, CollectionFactory, withAutoEvent, withMiddleware} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {HttpCollection} from './collection';
 import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
@@ -58,9 +58,16 @@ export default class HttpClient extends Plugin {
         return fetch(input, init);
       }
 
-      const collection = new HttpCollection<T>(
+      let collection: Collection = new HttpCollection<T>(
         name, database, path, querySerializer, loggedFetch
       );
+
+      try {
+        const cachingLayer = container.resolve(CachingLayer);
+        collection = withMiddleware(collection, [cachingLayer.create(collection)]);
+      } catch (error) {
+        logger.warn('No caching layer available');
+      }
 
       if (emitter) {
         emitter(collection, path)
