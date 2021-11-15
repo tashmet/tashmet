@@ -8,6 +8,8 @@ import {
   Database,
   QueryAggregator,
   Collection,
+  InsertOneResult,
+  InsertManyResult,
 } from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {Fetch} from './interfaces';
@@ -52,14 +54,22 @@ export class HttpCollection<T> extends Collection<T> {
     return docs[0];
   }
 
-  public async insertOne(doc: any): Promise<any> {
-    return this.post(doc);
+  public async insertOne(doc: any): Promise<InsertOneResult> {
+    const result = await this.post(doc);
+    doc._id = result.insertedId;
+    return result;
   }
 
-  public async insertMany(docs: any[]): Promise<any[]> {
-    const result: any[] = [];
-    for (const doc of docs) {
-      result.push(await this.insertOne(doc));
+  public async insertMany(docs: any[]): Promise<InsertManyResult> {
+    let result: InsertManyResult = {
+      insertedCount: 0,
+      insertedIds: {},
+      acknowledged: true
+    };
+    for (let i=0; i<docs.length; i++) {
+      const resultOne = await this.insertOne(docs[i]);
+      result.insertedCount += 1;
+      result.insertedIds[i] = resultOne.insertedId;
     }
     return result;
   }
@@ -71,7 +81,8 @@ export class HttpCollection<T> extends Collection<T> {
     if (old) {
       return this.put(Object.assign({_id: old._id}, doc), old._id);
     } else if (options.upsert) {
-      return this.insertOne(doc);
+      const result = await this.insertOne(doc);
+      return Object.assign(doc, {_id: result.insertedId});
     }
     return null;
   }
