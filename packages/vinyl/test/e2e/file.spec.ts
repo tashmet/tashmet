@@ -45,8 +45,8 @@ describe('file', () => {
   });
 
   afterEach(async () => {
-    await col.deleteMany({});
     col.removeAllListeners();
+    await col.deleteMany({});
   });
 
   describe('insertOne', () => {
@@ -67,6 +67,7 @@ describe('file', () => {
     });
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
+        console.log(action);
         expect(action).to.eql('insert');
         expect(data.length).to.eql(1);
         expect(data[0]).to.eql({_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 });

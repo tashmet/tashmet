@@ -44,8 +44,8 @@ describe('directory', () => {
   });
 
   afterEach(async () => {
-    await col.deleteMany({});
     col.removeAllListeners();
+    await col.deleteMany({});
   });
 
   after(() => {
@@ -250,10 +250,6 @@ describe('directory', () => {
         .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
     it('should return non-zero deletedCount when documents match selector', async () => {
-      return expect(col.deleteMany({'item.category': 'cookies'}))
-        .to.eventually.eql({acknowledged: true, deletedCount: 2});
-    });
-    it('should return a list of deleted documents', async () => {
       const storedCount = storedFiles().length;
       const result = await col.deleteMany({'item.category': 'cookies'});
       expect(result.deletedCount).to.eql(2);

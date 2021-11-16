@@ -2,9 +2,8 @@ import {Logger, Container, Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 import {OperatorType, useOperators} from "mingo/core";
 import {memory} from './collections/memory';
-import {withMiddleware} from './collections/managed';
 import {view} from './collections/view';
-import {validation} from './middleware/validation';
+import {withMiddleware, validation} from './middleware';
 import {
   Collection,
   CollectionConfig,

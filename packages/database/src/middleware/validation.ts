@@ -1,8 +1,4 @@
-import {
-  Document,
-  Middleware,
-  Validator
-} from '../interfaces';
+import {Middleware, Validator} from '../interfaces';
 
 export function validation<T = any>(
   validate: Validator<T>,

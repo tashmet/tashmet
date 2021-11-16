@@ -4,7 +4,7 @@ import {DatabaseService} from './database';
 import {SimpleValidatorFactory} from './validator';
 
 export {memory, MemoryCollection, MemoryCollectionConfig} from './collections/memory';
-export {withMiddleware} from './collections/managed';
+export {withMiddleware} from './middleware';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
 export {aggregate, QueryAggregator} from './aggregation';
 export {filterValidator} from './validator';

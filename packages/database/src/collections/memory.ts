@@ -173,7 +173,6 @@ export class MemoryCollection<T = any> extends Collection<T> {
 }
 
 
-
 export function memory<T = any>(config: MemoryCollectionConfig<T> = {}): CollectionFactory<T> {
   return Factory.of(({name, database}) =>
     MemoryCollection.fromConfig<T>(name, database, config)

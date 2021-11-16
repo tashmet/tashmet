@@ -1,5 +1,5 @@
 import {Factory} from '@tashmit/core';
-import {withMiddleware} from './managed';
+import {withMiddleware} from '../middleware';
 import {MemoryCollection, MemoryCollectionCursor} from './memory';
 import {
   AggregationPipeline,
