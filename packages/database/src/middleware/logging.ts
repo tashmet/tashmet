@@ -1,38 +1,24 @@
 import {Factory, Logger} from '@tashmit/core';
 import {Middleware, MiddlewareFactory} from '../interfaces';
-import {mutation} from './mutation';
+import {mutationSideEffect} from './mutation';
+
 
 const loggingMiddleware = (logger: Logger) => {
-  const logError = mutation(async (type, next, ...args) => {
-    try {
-      return await next(...args);
-    } catch (err) {
-      logger.error(err.message);
-      throw (err);
-    }
-  });
+  const handleError = (error: Error) => logger.error(error.message);
 
   return {
-    methods: logError.methods,
-    events: {
-      change: next => async change => {
-        switch (change.action) {
-          case 'insert':
-            logger.info(`inserted ${change.data.map(d => d._id).join(',')}`);
-            break;
-          case 'delete':
-            logger.info(`deleted ${change.data.map(d => d._id).join(',')}`);
-            break;
-          case 'replace':
-            logger.info(`replaced ${change.data[0]._id}`)
-        }
-        return next(change);
-      },
-      error: next => async err => {
-        logger.error(err.message);
-        return next(err);
-      }
-    }
+    insertOne: mutationSideEffect(({insertedId}) =>
+      logger.info(`inserted ${insertedId}`), handleError
+    ),
+    insertMany: mutationSideEffect(({insertedIds}) =>
+      logger.info(`inserted ${Object.keys(insertedIds).join(',')}`), handleError,
+    ),
+    deleteOne: mutationSideEffect(({deletedCount}) =>
+      logger.info(`deleted ${deletedCount} document`), handleError
+    ),
+    deleteMany: mutationSideEffect(({deletedCount}) =>
+      logger.info(`deleted ${deletedCount} documents`), handleError
+    )
   } as Middleware;
 }
 

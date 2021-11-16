@@ -87,7 +87,7 @@ export class DatabaseService extends Database {
     const middleware = this.createMiddleware(middlewareFactories, source);
     const validator = config.validator;
     if (validator) {
-      middleware.push(validation(this.validatorFactory.create(validator), validator));
+      middleware.push(validation(this.validatorFactory.create(validator)));
     }
 
     return withMiddleware(source, middleware);

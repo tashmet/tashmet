@@ -27,11 +27,6 @@ export class ManagedCollection<T = any> extends Collection<T> {
   ) {
     super();
 
-    const emitters = {
-      'change': 'processChange',
-      'error': 'processError',
-    };
-
     source.on('change', change => {
       this.processChange(change)
         .then(change => this.emit('change', change))
@@ -42,16 +37,7 @@ export class ManagedCollection<T = any> extends Collection<T> {
     });
 
     for (const mw of middleware.slice(0).reverse()) {
-      this.use(mw.methods || {});
-    }
-    for (const mw of middleware) {
-      if (mw.events) {
-        for (const event of Object.keys(emitters)) {
-          if ((mw.events as any)[event]) {
-            this.proxy((mw.events as any)[event], (emitters as any)[event]);
-          }
-        }
-      }
+      this.use(mw);
     }
   }
 

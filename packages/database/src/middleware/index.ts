@@ -4,6 +4,7 @@ import {changeObserver} from './changeObserver';
 
 export {changeObserver};
 export {logging} from './logging';
+export * from './mutation';
 
 export const autoEvent = () => changeObserver(async change => {
   change.collection.emit('change', change);

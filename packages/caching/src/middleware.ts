@@ -3,9 +3,11 @@ import {
   CachingLayer,
   Collection,
   Database,
+  Filter,
   MemoryCollection,
   Middleware,
-  QueryAggregator
+  QueryAggregator,
+  mutationSideEffect,
 } from '@tashmit/database';
 import {CachingConfig} from './interfaces';
 import {CachingCursor} from './cursor';
@@ -48,36 +50,30 @@ export class CachingLayerService extends CachingLayer {
     }
 
     return {
-      events: {
-        change: next => async ({action, data, collection}) => {
-          switch (action) {
-            case 'insert':
-              for (const doc of data) {
-                await cache.replaceOne({_id: doc._id}, doc, {upsert: true});
-              }
-              break;
-            case 'delete':
-              await cache.deleteMany({_id: {$in: data.map(d => d._id)}});
-              break;
-            case 'replace':
-              const [original, replacement] = data;
-              await cache.replaceOne({_id: original._id}, replacement, {upsert: true});
-              break;
-          }
-          return next({action, data, collection});
-        }
+      insertOne: mutationSideEffect(async (result, doc: any) => {
+        await cache.replaceOne({_id: result.insertedId}, doc);
+      }),
+      insertMany: mutationSideEffect(async (result, docs: any) => {
+        await cache.insertMany(docs)
+      }),
+      deleteOne: mutationSideEffect(async (result, filter: Filter<any>) => {
+        await cache.deleteOne(filter)
+      }),
+      deleteMany: mutationSideEffect(async (result, filter: Filter<any>) => {
+        await cache.deleteMany(filter)
+      }),
+      replaceOne: mutationSideEffect(async (result, filter: Filter<any>, replacement: any) => {
+        await cache.replaceOne(filter, replacement, {upsert: true})
+      }),
+      aggregate: next => async pipeline => {
+        const query = QueryAggregator.fromPipeline(pipeline);
+        const cursor = new CachingCursor(evaluators, cache, collection.find.bind(collection), query.filter, query.options);
+        await cursor.toArray();
+        return cache.aggregate(pipeline);
       },
-      methods: {
-        aggregate: next => async pipeline => {
-          const query = QueryAggregator.fromPipeline(pipeline);
-          const cursor = new CachingCursor(evaluators, cache, collection.find.bind(collection), query.filter, query.options);
-          await cursor.toArray();
-          return cache.aggregate(pipeline);
-        },
-        find: next => (filter, options) => {
-          return new CachingCursor(evaluators, cache, next, filter, options);
-        },
-      }
+      find: next => (filter, options) => {
+        return new CachingCursor(evaluators, cache, next, filter, options);
+      },
     } as Middleware;
   }
 }

@@ -320,10 +320,6 @@ export type MiddlewareHook<T> = (next: T) => T;
 
 export type DatabaseChangeEvent<T> = (change: DatabaseChange<T>) => Promise<void>;
 export type DatabaseErrorEvent = (error: DatabaseError) => Promise<void>;
-export interface EventMiddleware<T = any> {
-  change?: MiddlewareHook<DatabaseChangeEvent<T>>;
-  error?: MiddlewareHook<DatabaseErrorEvent>;
-}
 
 export type Aggregate<T> = (pipeline: AggregationPipeline) => Promise<T[]>;
 export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
@@ -336,7 +332,7 @@ export type DeleteOne<T> = (filter: Filter<T>) => Promise<DeleteResult>;
 export type DeleteMany<T> = (filter: Filter<T>) => Promise<DeleteResult>;
 
 
-export interface MethodMiddleware<T = any> {
+export interface Middleware<T = any> {
   aggregate?: MiddlewareHook<Aggregate<any>>;
   find?: MiddlewareHook<Find<T>>;
   findOne?: MiddlewareHook<FindOne<T>>;
@@ -345,14 +341,6 @@ export interface MethodMiddleware<T = any> {
   replaceOne?: MiddlewareHook<ReplaceOne<T>>;
   deleteOne?: MiddlewareHook<DeleteOne<T>>;
   deleteMany?: MiddlewareHook<DeleteMany<T>>;
-}
-
-export interface Middleware<T = any> {
-  /** Middleware intercepting method calls on collection. */
-  methods?: MethodMiddleware<T>;
-
-  /** Middleware intercepting events emitted from collection. */
-  events?: EventMiddleware<T>;
 }
 
 export interface MiddlewareContext {

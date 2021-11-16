@@ -36,26 +36,24 @@ export const locked = (lock: Promise<any>) => () => {
   }
 
   return {
-    methods: {
-      aggregate: handler,
-      insertOne: handler,
-      insertMany: handler,
-      deleteOne: handler,
-      deleteMany: handler,
-      replaceOne: handler,
-      findOne: handler,
-      find: next => (filter, options) => new Proxy(next(filter, options), {
-        get: (target, propKey) => {
-          if (['toArray', 'next', 'foreach'].includes(propKey.toString())) {
-            return async (...args: any[]) => {
-              await lock;
-              return (target as any)[propKey].apply(target, args)
-            }
-          } else {
-            return (...args: any[]) => (target as any)[propKey].apply(target, args);
+    aggregate: handler,
+    insertOne: handler,
+    insertMany: handler,
+    deleteOne: handler,
+    deleteMany: handler,
+    replaceOne: handler,
+    findOne: handler,
+    find: next => (filter, options) => new Proxy(next(filter, options), {
+      get: (target, propKey) => {
+        if (['toArray', 'next', 'foreach'].includes(propKey.toString())) {
+          return async (...args: any[]) => {
+            await lock;
+            return (target as any)[propKey].apply(target, args)
           }
-        },
-      })
-    }
+        } else {
+          return (...args: any[]) => (target as any)[propKey].apply(target, args);
+        }
+      },
+    })
   } as Middleware;
 }
