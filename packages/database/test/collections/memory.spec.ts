@@ -234,12 +234,13 @@ describe('MemoryCollection', () => {
   });
 
   describe('deleteOne', () => {
-    it('should return null when no document match selector', () => {
-      return expect(col.deleteOne({_id: 7})).to.eventually.be.null;
+    it('should return zero deletedCount when no document match selector', () => {
+      return expect(col.deleteOne({_id: 7}))
+        .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
-    it('should return the deleted document', async () => {
-      const doc = await col.deleteOne({_id: 1});
-      expect(doc).to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+    it('should return non-zero deletedCount when document matches selector', async () => {
+      return expect(col.deleteOne({_id: 1}))
+        .to.eventually.eql({acknowledged: true, deletedCount: 1});
     });
     it('should have removed selected document', async () => {
       await col.deleteOne({_id: 1});
@@ -257,12 +258,13 @@ describe('MemoryCollection', () => {
   });
 
   describe('deleteMany', () => {
-    it('should return empty list when no documents match selector', () => {
-      return expect(col.deleteMany({_id: 7})).to.eventually.be.empty;
+    it('should return zero deletedCount when no document match selector', () => {
+      return expect(col.deleteMany({_id: 7}))
+        .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
-    it('should return a list of deleted documents', async () => {
-      const docs = await col.deleteMany({'item.category': 'cookies'});
-      expect(docs).to.have.length(2);
+    it('should return non-zero deletedCount when documents match selector', async () => {
+      return expect(col.deleteMany({'item.category': 'cookies'}))
+        .to.eventually.eql({acknowledged: true, deletedCount: 2});
     });
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});

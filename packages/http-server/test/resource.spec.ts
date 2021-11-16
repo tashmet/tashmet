@@ -101,11 +101,11 @@ describe('Resource', () => {
         .expect(204);
     });
 
-    it('should delete and return document', () => {
+    it('should delete and return status', () => {
       return request(app)
         .delete('/readwrite/doc3')
         .expect(200)
-        .then(res => expect(res.body).to.eql({_id: 'doc3', foo: 'bar'}));
+        .then(res => expect(res.body).to.eql({acknowledged: true, deletedCount: 1}));
     });
 
     it('should have modified the collection', () => {

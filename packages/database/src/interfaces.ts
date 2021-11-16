@@ -285,7 +285,7 @@ export declare interface Collection<T = any> {
    * @param filter The Filter used to select the document to remove
    * @returns The removed document if found, null otherwise
    */
-  deleteOne(filter: Filter<T>): Promise<T | null>;
+  deleteOne(filter: Filter<T>): Promise<DeleteResult>;
 
   /**
    * Delete multiple documents from a collection
@@ -293,7 +293,7 @@ export declare interface Collection<T = any> {
    * @param filter The Filter used to select the documents to remove
    * @returns A list of all the documents that were removed
    */
-  deleteMany(filter: Filter<T>): Promise<T[]>;
+  deleteMany(filter: Filter<T>): Promise<DeleteResult>;
 }
 
 export abstract class Collection extends EventEmitter implements Collection, DatabaseEventEmitter {}
@@ -332,8 +332,8 @@ export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
 export type InsertMany<T> = (docs: T[]) => Promise<InsertManyResult>;
 export type ReplaceOne<T> = (filter: Filter<T>, doc: T, options?: ReplaceOneOptions)
   => Promise<T | null>;
-export type DeleteOne<T> = (filter: Filter<T>) => Promise<T | null>;
-export type DeleteMany<T> = (filter: Filter<T>) => Promise<T[]>;
+export type DeleteOne<T> = (filter: Filter<T>) => Promise<DeleteResult>;
+export type DeleteMany<T> = (filter: Filter<T>) => Promise<DeleteResult>;
 
 
 export interface MethodMiddleware<T = any> {
@@ -520,4 +520,11 @@ export interface InsertManyResult<TSchema = Document> {
   insertedCount: number;
   /** Map of the index of the inserted document to the id of the inserted document */
   insertedIds: { [key: number]: InferIdType<TSchema> };
+}
+
+export interface DeleteResult {
+  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined. */
+  acknowledged: boolean;
+  /** The number of documents that were deleted */
+  deletedCount: number;
 }

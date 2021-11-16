@@ -11,7 +11,8 @@ import {
   Collection,
   InsertOneResult,
   InsertManyResult,
-  withAutoEvent
+  withAutoEvent,
+  DeleteResult
 } from '@tashmit/database';
 import mongo from 'mongodb';
 import {MongoDBCollectionConfig} from './interfaces';
@@ -97,18 +98,11 @@ export class MongoDBCollection<T> extends Collection<T> {
     return this.collection.replaceOne(filter, doc, options || {});
   }
 
-  public async deleteOne(filter: Filter<T>): Promise<T | null> {
-    const doc = await this.findOne(filter);
-    const res = await this.collection.deleteOne(filter);
-    if (doc && res.deletedCount === 1) {
-      return doc;
-    }
-    return null;
+  public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {
+    return this.collection.deleteOne(filter);
   }
 
-  public async deleteMany(filter: Filter<T>): Promise<T[]> {
-    const docs = await this.find(filter).toArray();
-    await this.collection.deleteMany(filter);
-    return docs;
+  public async deleteMany(filter: Filter<T>): Promise<DeleteResult> {
+    return this.collection.deleteMany(filter);
   }
 }

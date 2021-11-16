@@ -1,4 +1,4 @@
-import { InsertManyResult, InsertOneResult } from '..';
+import { DeleteResult, InsertManyResult, InsertOneResult } from '..';
 import {
   AggregationPipeline,
   Collection,
@@ -87,11 +87,11 @@ export class ManagedCollection<T = any> extends Collection<T> {
     return this.source.replaceOne(filter, doc, options);
   }
 
-  public async deleteOne(filter: Filter<T>): Promise<T | null> {
+  public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {
     return this.source.deleteOne(filter);
   }
 
-  public async deleteMany(filter: Filter<T>): Promise<T[]> {
+  public async deleteMany(filter: Filter<T>): Promise<DeleteResult> {
     return this.source.deleteMany(filter);
   }
 

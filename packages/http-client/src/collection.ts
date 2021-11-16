@@ -10,6 +10,7 @@ import {
   Collection,
   InsertOneResult,
   InsertManyResult,
+  DeleteResult,
 } from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {Fetch} from './interfaces';
@@ -87,21 +88,20 @@ export class HttpCollection<T> extends Collection<T> {
     return null;
   }
 
-  public async deleteOne(filter: Filter<T>): Promise<any> {
+  public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {
     const doc = await this.findOne(filter);
     if (doc) {
       await this.deleteOneById(doc._id);
-      return doc;
     }
-    return null;
+    return {acknowledged: true, deletedCount: doc ? 1 : 0};
   }
 
-  public async deleteMany(filter: Filter<T>): Promise<T[]> {
+  public async deleteMany(filter: Filter<T>): Promise<DeleteResult> {
     const docs = await this.find(filter).toArray();
     for (const doc of docs) {
       await this.deleteOneById((doc as any)._id);
     }
-    return docs;
+    return {acknowledged: true, deletedCount: docs.length};
   }
 
   private async deleteOneById(id: string): Promise<void> {

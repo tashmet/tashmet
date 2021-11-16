@@ -133,12 +133,12 @@ export class Resource {
   @del('/:id', express.json())
   public async deleteOne(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, true, async () => {
-      const doc = await this.collection.deleteOne({_id: req.params.id});
-      if (!doc) {
+      const result = await this.collection.deleteOne({_id: req.params.id});
+      if (!result.acknowledged || result.deletedCount === 0) {
         res.statusCode = 204;
-        res.send(null);
+        res.send(result);
       }
-      return doc;
+      return result;
     });
   }
 

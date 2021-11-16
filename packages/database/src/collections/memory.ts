@@ -6,6 +6,7 @@ import {
   Collection,
   CollectionFactory,
   Cursor,
+  DeleteResult,
   Filter,
   InsertOneResult,
   InsertManyResult,
@@ -155,19 +156,19 @@ export class MemoryCollection<T = any> extends Collection<T> {
     return null;
   }
 
-  public async deleteOne(filter: Filter<T>): Promise<T> {
+  public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {
     const affected = await this.findOne(filter) as any;
     if (affected) {
       this.documents = this.documents.filter(doc => doc._id !== affected._id);
     }
-    return affected;
+    return {acknowledged: true, deletedCount: affected ? 1 : 0};
   }
 
-  public async deleteMany(filter: Filter<T>): Promise<T[]> {
+  public async deleteMany(filter: Filter<T>): Promise<DeleteResult> {
     const affected = new MingoQuery(filter).find(this.documents).all() as any[];
     const ids = idSet(affected);
     this.documents = this.documents.filter(doc => !ids.has(doc._id));
-    return affected;
+    return {acknowledged: true, deletedCount: affected.length};
   }
 }
 
