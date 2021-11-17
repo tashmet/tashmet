@@ -1,3 +1,4 @@
+import {mutationSideEffect} from './mutation';
 import {
   Collection,
   CollectionChangeAction,
@@ -11,20 +12,16 @@ export const changeObserver = (handler: (change: DatabaseChange) => Promise<void
     handler({action, data, collection});
 
   return {
-    insertOne: next => async doc => {
-      const result = await next(doc);
+    insertOne: mutationSideEffect(async (result, doc) => {
       if (result.insertedId !== undefined) {
         await handle('insert', [doc]);
       }
-      return result;
-    },
-    insertMany: next => async docs => {
-      const result = await next(docs);
+    }),
+    insertMany: mutationSideEffect(async (result, docs) => {
       if (result.insertedCount > 0) {
         await handle('insert', docs);
       }
-      return result;
-    },
+    }),
     deleteOne: next => async filter => {
       const match = await collection.findOne(filter);
       const result = await next(filter);
@@ -43,13 +40,17 @@ export const changeObserver = (handler: (change: DatabaseChange) => Promise<void
     },
     replaceOne: next => async (filter, doc, options) => {
       const original = await collection.findOne(filter);
-      const replacement = await next(filter, doc, options);
-      if (!original && replacement) {
+      const result = await next(filter, doc, options);
+      if (result.modifiedCount === 0 && result.upsertedCount === 0) {
+        return result;
+      }
+      const replacement = await collection.findOne({_id: result.upsertedId || original._id})
+      if (result.upsertedCount > 0) {
         await handle('insert', [replacement]);
       } else if(original) {
         await handle('replace', [original, replacement]);
       }
-      return replacement;
+      return result;
     }
   } as Middleware;
 }

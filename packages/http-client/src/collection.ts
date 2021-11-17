@@ -11,12 +11,14 @@ import {
   InsertOneResult,
   InsertManyResult,
   DeleteResult,
+  UpdateResult,
+  Document,
 } from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {Fetch} from './interfaces';
 import {HttpCollectionCursor} from './cursor';
 
-export class HttpCollection<T> extends Collection<T> {
+export class HttpCollection<T extends Document> extends Collection<T> {
   public constructor(
     public readonly name: string,
     private database: Database,
@@ -55,13 +57,13 @@ export class HttpCollection<T> extends Collection<T> {
     return docs[0];
   }
 
-  public async insertOne(doc: any): Promise<InsertOneResult> {
+  public async insertOne(doc: T): Promise<InsertOneResult> {
     const result = await this.post(doc);
-    doc._id = result.insertedId;
+    Object.assign(doc, {_id: result.insertedId});
     return result;
   }
 
-  public async insertMany(docs: any[]): Promise<InsertManyResult> {
+  public async insertMany(docs: T[]): Promise<InsertManyResult> {
     let result: InsertManyResult = {
       insertedCount: 0,
       insertedIds: {},
@@ -76,16 +78,27 @@ export class HttpCollection<T> extends Collection<T> {
   }
 
   public async replaceOne(
-    filter: Filter<T>, doc: any, options: ReplaceOneOptions = {}): Promise<T | null>
+    filter: Filter<T>, replacement: T, options: ReplaceOneOptions = {}): Promise<UpdateResult>
   {
+    const matchedCount = await this.find(filter).count();
     const old = await this.findOne(filter);
+    let upsertedId = undefined;
+    let modifiedCount = 0;
     if (old) {
-      return this.put(Object.assign({_id: old._id}, doc), old._id);
+      await this.put(Object.assign({_id: old._id}, replacement), old._id);
+      modifiedCount = 1;
     } else if (options.upsert) {
-      const result = await this.insertOne(doc);
-      return Object.assign(doc, {_id: result.insertedId});
+      const {insertedId} = await this.insertOne(replacement);
+      Object.assign(replacement, {_id: insertedId});
+      upsertedId = insertedId;
     }
-    return null;
+    return {
+      acknowledged: true,
+      matchedCount,
+      modifiedCount,
+      upsertedCount: upsertedId === undefined ? 0 : 1,
+      upsertedId,
+    };
   }
 
   public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {

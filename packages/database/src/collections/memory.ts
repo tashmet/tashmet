@@ -7,10 +7,12 @@ import {
   CollectionFactory,
   Cursor,
   DeleteResult,
+  Document,
   Filter,
   InsertOneResult,
   InsertManyResult,
   ReplaceOneOptions,
+  UpdateResult,
   QueryOptions,
   SortingKey,
   SortingDirection,
@@ -84,7 +86,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 }
 
-export class MemoryCollection<T = any> extends Collection<T> {
+export class MemoryCollection<T extends Document = any> extends Collection<T> {
   public static fromConfig<T = any>(name: string, database: Database, config: MemoryCollectionConfig) {
     const instance = new MemoryCollection<T>(name, database, config.documents || []);
 
@@ -96,7 +98,7 @@ export class MemoryCollection<T = any> extends Collection<T> {
   public constructor(
     public readonly name: string,
     protected database: Database,
-    protected documents: any[] = [],
+    protected documents: T[] = [],
   ) {
     super();
   }
@@ -144,16 +146,29 @@ export class MemoryCollection<T = any> extends Collection<T> {
     return result;
   }
 
-  public async replaceOne(filter: Filter<T>, doc: any, options: ReplaceOneOptions = {}): Promise<T | null> {
-    const old = new MingoQuery(filter as any).find(this.documents).next() as any;
+  public async replaceOne(
+    filter: Filter<T>, replacement: T, options: ReplaceOneOptions = {}
+  ): Promise<UpdateResult> {
+    const query = new MingoQuery(filter as any);
+    const matchedCount = query.find(this.documents).count();
+    const old = query.find(this.documents).next() as any;
+    let upsertedId = undefined;
+    let modifiedCount = 0;
     if (old) {
       const index = this.documents.findIndex(o => o._id === old._id);
-      return this.documents[index] = Object.assign({}, {_id: old._id}, doc);
+      this.documents[index] = Object.assign({}, {_id: old._id}, replacement);
+      modifiedCount = 1;
     } else if (options.upsert) {
-      await this.insertOne(doc);
-      return doc;
+      const {insertedId} = await this.insertOne(replacement);
+      upsertedId = insertedId;
     }
-    return null;
+    return {
+      acknowledged: true,
+      matchedCount,
+      modifiedCount,
+      upsertedCount: upsertedId === undefined ? 0 : 1,
+      upsertedId,
+    };
   }
 
   public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {

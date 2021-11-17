@@ -79,7 +79,12 @@ describe('Resource', () => {
         .put('/readwrite/doc3')
         .send({_id: 'doc3', foo: 'bar'})
         .expect(200)
-        .then(res => expect(res.body).to.eql({_id: 'doc3', foo: 'bar'}));
+        .then(res => expect(res.body).to.eql({
+          acknowledged: true,
+          matchedCount: 1,
+          modifiedCount: 1,
+          upsertedCount: 0,
+        }));
     });
 
     it('should have updated document in collection', () => {

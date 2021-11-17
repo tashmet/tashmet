@@ -261,7 +261,7 @@ export declare interface Collection<T = any> {
    * @param options Optional settings
    * @returns A promise for the new document
    */
-  replaceOne(filter: Filter<T>, doc: T, options?: ReplaceOneOptions): Promise<T | null>;
+  replaceOne(filter: Filter<T>, doc: T, options?: ReplaceOneOptions): Promise<UpdateResult>;
 
   /**
    * Find documents in the collection.
@@ -327,7 +327,7 @@ export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
 export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
 export type InsertMany<T> = (docs: T[]) => Promise<InsertManyResult>;
 export type ReplaceOne<T> = (filter: Filter<T>, doc: T, options?: ReplaceOneOptions)
-  => Promise<T | null>;
+  => Promise<UpdateResult>;
 export type DeleteOne<T> = (filter: Filter<T>) => Promise<DeleteResult>;
 export type DeleteMany<T> = (filter: Filter<T>) => Promise<DeleteResult>;
 
@@ -515,4 +515,17 @@ export interface DeleteResult {
   acknowledged: boolean;
   /** The number of documents that were deleted */
   deletedCount: number;
+}
+
+export interface UpdateResult {
+  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
+  acknowledged: boolean;
+  /** The number of documents that matched the filter */
+  matchedCount: number;
+  /** The number of documents that were modified */
+  modifiedCount: number;
+  /** The number of documents that were upserted */
+  upsertedCount: number;
+  /** The identifier of the inserted document if an upsert took place */
+  upsertedId: ObjectId | undefined;
 }

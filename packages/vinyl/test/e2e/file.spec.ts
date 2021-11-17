@@ -112,32 +112,43 @@ describe('file', () => {
 
   describe('replaceOne', () => {
     it('should update a single document', async () => {
-      const doc = await col.replaceOne(
+      const result = await col.replaceOne(
         {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
-      expect(doc._id).to.eql(1);
-      expect(doc.amount).to.eql(20);
+      expect(result).to.eql({
+        acknowledged: true,
+        matchedCount: 1,
+        modifiedCount: 1,
+        upsertedCount: 0,
+        upsertedId: undefined,
+      });
       expect(storedDoc(1)).to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 20 });
     });
-    it('should return null if no document matched selector', async () => {
-      const doc = await col.replaceOne(
+    it('should have zero matchedCount and modifiedCount if no document matched selector', async () => {
+      const result = await col.replaceOne(
         {_id: 6}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
-      expect(doc).to.eql(null);
+      expect(result).to.eql({
+        acknowledged: true,
+        matchedCount: 0,
+        modifiedCount: 0,
+        upsertedCount: 0,
+        upsertedId: undefined,
+      });
     });
     it('should completely replace document', async () => {
-      const doc = await col.replaceOne(
+      await col.replaceOne(
         {_id: 1}, { amount: 20 }
       );
-      expect(doc.item).to.eql(undefined);
       expect(storedDoc(1)).to.eql({ amount: 20 });
     });
     it('should upsert when specified', async () => {
-      const doc = await col.replaceOne(
+      const result = await col.replaceOne(
         {_id: 6}, { amount: 20 }, {upsert: true}
       );
-      expect(doc.amount).to.eql(20);
-      expect(storedDoc(doc._id)).to.eql({ amount: 20 });
+      expect(result.upsertedCount).to.eql(1);
+      expect(result.upsertedId).to.not.eql(undefined);
+      expect(storedDoc(result.upsertedId as any)).to.eql({ amount: 20 });
     });
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
