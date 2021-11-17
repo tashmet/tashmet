@@ -221,7 +221,7 @@ export interface DatabaseEventEmitter {
 /**
  * A collection of documents.
  */
-export declare interface Collection<T = any> {
+export declare interface Collection<T extends Document = any> {
   /**
    * Name of the collection.
    */
@@ -262,6 +262,22 @@ export declare interface Collection<T = any> {
    * @returns A promise for the new document
    */
   replaceOne(filter: Filter<T>, doc: T, options?: ReplaceOneOptions): Promise<UpdateResult>;
+
+  /**
+   * Update a single document in a collection
+   *
+   * @param filter - The filter used to select the document to update
+   * @param update - The update operations to be applied to the document
+   */
+  updateOne(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult>;
+
+  /**
+   * Update multiple documents in a collection
+   *
+   * @param filter - The filter used to select the documents to update
+   * @param update - The update operations to be applied to the documents
+   */
+  updateMany(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult>;
 
   /**
    * Find documents in the collection.
@@ -527,5 +543,129 @@ export interface UpdateResult {
   /** The number of documents that were upserted */
   upsertedCount: number;
   /** The identifier of the inserted document if an upsert took place */
-  upsertedId: ObjectId | undefined;
+  upsertedId?: ObjectId
 }
+
+export type EnhancedOmit<TRecordOrUnion, KeyUnion> = string extends keyof TRecordOrUnion
+  ? TRecordOrUnion // TRecordOrUnion has indexed type e.g. { _id: string; [k: string]: any; } or it is "any"
+  : TRecordOrUnion extends any
+  ? Pick<TRecordOrUnion, Exclude<keyof TRecordOrUnion, KeyUnion>> // discriminated unions
+  : never;
+
+export type WithId<TSchema> = EnhancedOmit<TSchema, '_id'> & { _id: InferIdType<TSchema> };
+
+export type OptionalId<TSchema extends { _id?: any }> = ObjectId extends TSchema['_id'] // a Schema with ObjectId _id type or "any" or "indexed type" provided
+  ? EnhancedOmit<TSchema, '_id'> & { _id?: InferIdType<TSchema> } // a Schema provided but _id type is not ObjectId
+  : WithId<TSchema>;
+
+export type IntegerType = number;
+
+export type NumericType = IntegerType;
+
+export type FilterOperations<T> = T extends Record<string, any>
+  ? { [key in keyof T]?: FilterOperators<T[key]> }
+  : FilterOperators<T>;
+
+export type IsAny<Type, ResultIfAny, ResultIfNotAny> = true extends false & Type
+  ? ResultIfAny
+  : ResultIfNotAny;
+
+export type Flatten<Type> = Type extends ReadonlyArray<infer Item> ? Item : Type;
+
+export type OnlyFieldsOfType<TSchema, FieldType = any, AssignableType = FieldType> = IsAny<
+  TSchema[keyof TSchema],
+  Record<string, FieldType>,
+  AcceptedFields<TSchema, FieldType, AssignableType> &
+    NotAcceptedFields<TSchema, FieldType> &
+    Record<string, AssignableType>
+>;
+
+export type MatchKeysAndValues<TSchema> = Readonly<Partial<TSchema>> & Record<string, any>;
+
+export type KeysOfAType<TSchema, Type> = {
+  [key in keyof TSchema]: NonNullable<TSchema[key]> extends Type ? key : never;
+}[keyof TSchema];
+
+export type KeysOfOtherType<TSchema, Type> = {
+  [key in keyof TSchema]: NonNullable<TSchema[key]> extends Type ? never : key;
+}[keyof TSchema];
+
+export type AcceptedFields<TSchema, FieldType, AssignableType> = {
+  readonly [key in KeysOfAType<TSchema, FieldType>]?: AssignableType;
+};
+
+/** It avoids using fields with not acceptable types */
+export type NotAcceptedFields<TSchema, FieldType> = {
+  readonly [key in KeysOfOtherType<TSchema, FieldType>]?: never;
+};
+
+export type ArrayOperator<Type> = {
+  $each?: Array<Flatten<Type>>;
+  $slice?: number;
+  $position?: number;
+  $sort?: SortingMap;
+};
+
+export type SetFields<TSchema> = ({
+  readonly [key in KeysOfAType<TSchema, ReadonlyArray<any> | undefined>]?:
+    | OptionalId<Flatten<TSchema[key]>>
+    | AddToSetOperators<Array<OptionalId<Flatten<TSchema[key]>>>>;
+} &
+  NotAcceptedFields<TSchema, ReadonlyArray<any> | undefined>) & {
+  readonly [key: string]: AddToSetOperators<any> | any;
+};
+
+export type PushOperator<TSchema> = ({
+  readonly [key in KeysOfAType<TSchema, ReadonlyArray<any>>]?:
+    | Flatten<TSchema[key]>
+    | ArrayOperator<Array<Flatten<TSchema[key]>>>;
+} &
+  NotAcceptedFields<TSchema, ReadonlyArray<any>>) & {
+  readonly [key: string]: ArrayOperator<any> | any;
+};
+
+export type PullOperator<TSchema> = ({
+  readonly [key in KeysOfAType<TSchema, ReadonlyArray<any>>]?:
+    | Partial<Flatten<TSchema[key]>>
+    | FilterOperations<Flatten<TSchema[key]>>;
+} &
+  NotAcceptedFields<TSchema, ReadonlyArray<any>>) & {
+  readonly [key: string]: FilterOperators<any> | any;
+};
+
+export type PullAllOperator<TSchema> = ({
+  readonly [key in KeysOfAType<TSchema, ReadonlyArray<any>>]?: TSchema[key];
+} &
+  NotAcceptedFields<TSchema, ReadonlyArray<any>>) & {
+  readonly [key: string]: ReadonlyArray<any>;
+};
+
+export type AddToSetOperators<Type> = {
+  $each?: Array<Flatten<Type>>;
+};
+
+export type UpdateFilter<TSchema> = {
+  $currentDate?: OnlyFieldsOfType<
+    TSchema,
+    Date/* | Timestamp*/,
+    true | { $type: 'date' | 'timestamp' }
+  >;
+  $inc?: OnlyFieldsOfType<TSchema, NumericType | undefined>;
+  $min?: MatchKeysAndValues<TSchema>;
+  $max?: MatchKeysAndValues<TSchema>;
+  $mul?: OnlyFieldsOfType<TSchema, NumericType | undefined>;
+  $rename?: Record<string, string>;
+  $set?: MatchKeysAndValues<TSchema>;
+  $setOnInsert?: MatchKeysAndValues<TSchema>;
+  $unset?: OnlyFieldsOfType<TSchema, any, '' | true | 1>;
+  $addToSet?: SetFields<TSchema>;
+  $pop?: OnlyFieldsOfType<TSchema, ReadonlyArray<any>, 1 | -1>;
+  $pull?: PullOperator<TSchema>;
+  $push?: PushOperator<TSchema>;
+  $pullAll?: PullAllOperator<TSchema>;
+  $bit?: OnlyFieldsOfType<
+    TSchema,
+    NumericType | undefined,
+    { and: IntegerType } | { or: IntegerType } | { xor: IntegerType }
+  >;
+} & Document;

@@ -65,7 +65,7 @@ class ViewCollection<T> extends MemoryCollection<T> {
   }
 
   private async sync() {
-    const result = await this.viewOf.aggregate<any>(this.pipeline);
+    const result = await this.viewOf.aggregate<T>(this.pipeline);
     for (const change of ChangeSet.fromDiff(this.documents, result).toChanges(this)) {
       this.emit('change', change);
     }
@@ -79,6 +79,6 @@ export function view<T = any>(config: ViewCollectionConfig): CollectionFactory<T
       name, database, database.collection(config.viewOf), config.pipeline
     );
 
-    return withMiddleware(collection, [readOnly]);
+    return withMiddleware<T>(collection, [readOnly]);
   });
 }

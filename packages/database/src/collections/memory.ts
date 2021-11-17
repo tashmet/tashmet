@@ -18,9 +18,10 @@ import {
   SortingDirection,
   Database,
   AggregationPipeline,
+  UpdateFilter,
 } from '../interfaces';
 import {applyQueryOptions, sortingMap} from '../cursor';
-import {aggregate} from '../aggregation';
+import {aggregate, updateOne, updateMany} from '../aggregation';
 import {withAutoEvent} from '../middleware';
 import {idSet} from '../util';
 
@@ -92,7 +93,7 @@ export class MemoryCollection<T extends Document = any> extends Collection<T> {
 
     return config.disableEvents
       ? instance
-      : withAutoEvent(instance)
+      : withAutoEvent<T>(instance)
   }
 
   public constructor(
@@ -169,6 +170,29 @@ export class MemoryCollection<T extends Document = any> extends Collection<T> {
       upsertedCount: upsertedId === undefined ? 0 : 1,
       upsertedId,
     };
+  }
+
+  public async updateOne(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
+    const input = await this.findOne(filter);
+    if (!input) {
+      return {acknowledged: true, matchedCount: 0, modifiedCount: 0, upsertedCount: 0};
+    } else {
+      return this.replaceOne({_id: input._id}, updateOne(input, update));
+    }
+  }
+
+  public async updateMany(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
+    const input = await this.find(filter).toArray();
+    let result: UpdateResult = {
+      acknowledged: true,
+      matchedCount: input.length,
+      modifiedCount: input.length, // TODO: Not necessarily true
+      upsertedCount: 0,
+    }
+    for (const doc of updateMany(input, update)) {
+      await this.replaceOne({_id: doc._id}, doc);
+    }
+    return result;
   }
 
   public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {

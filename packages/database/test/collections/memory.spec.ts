@@ -126,14 +126,14 @@ describe('MemoryCollection', () => {
     });
     it('should completely replace document', async () => {
       await col.replaceOne(
-        {_id: 1}, { amount: 20 }
+        {_id: 1}, {item: { category: 'cake', type: 'chiffon' }, amount: 20 }
       );
       const doc = await col.findOne({_id: 1});
-      expect(doc.item).to.eql(undefined);
+      expect(doc?.amount).to.eql(20);
     });
     it('should upsert when specified', async () => {
       const result = await col.replaceOne(
-        {_id: 6}, { amount: 20 }, {upsert: true}
+        {_id: 6}, {item: { category: 'cake', type: 'chiffon' }, amount: 20 }, {upsert: true}
       );
       expect(result.upsertedCount).to.eql(1);
       expect(result.upsertedId).to.not.eql(undefined);
@@ -150,6 +150,26 @@ describe('MemoryCollection', () => {
       );
     });
   });
+
+  describe('updateOne', () => {
+    it('should update a single document', async () => {
+      const result = await col.updateOne(
+        {_id: 1}, {$set: {amount: 25} }
+      );
+      expect(result).to.eql({
+        acknowledged: true,
+        matchedCount: 1,
+        modifiedCount: 1,
+        upsertedCount: 0,
+        upsertedId: undefined,
+      });
+    });
+    it('should have modified the document', async () => {
+      await col.updateOne({_id: 1}, {$set: {amount: 25} });
+      const doc = await col.findOne({_id: 1});
+      expect(doc).to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 25 });
+    })
+  })
 
   describe('count', () => {
     it('should return 0 when no documents are matching', () => {

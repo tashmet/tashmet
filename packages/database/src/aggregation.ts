@@ -1,4 +1,5 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
+import { UpdateFilter } from '.';
 import {
   Aggregator, AggregationPipeline, Collection, Database, Filter, QueryOptions
 } from './interfaces';
@@ -78,4 +79,15 @@ export async function aggregate<U>(
     }
   }
   return new MingoAggregator(pipeline).run(collection) as U[];
+}
+
+export function updateMany<T>(input: T[], update: UpdateFilter<T>): T[] {
+  const pipeline = Object.entries(update).reduce((acc, [k, v]) => {
+    return acc.concat([{[k]: v}]);
+  }, [] as AggregationPipeline);
+  return new MingoAggregator(pipeline).run(input) as T[];
+}
+
+export function updateOne<T>(input: T, update: UpdateFilter<T>): T {
+  return updateMany([input], update)[0];
 }

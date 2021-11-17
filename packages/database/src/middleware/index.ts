@@ -45,5 +45,6 @@ export const autoEvent = () => changeObserver(async change => {
   change.collection.emit('change', change);
 });
 
-export const withAutoEvent = (collection: Collection) =>
-  withMiddleware(collection, [autoEvent()]);
+export function withAutoEvent<T>(collection: Collection<T>) {
+  return withMiddleware<T>(collection, [autoEvent()]);
+}

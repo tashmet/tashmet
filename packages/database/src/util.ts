@@ -28,7 +28,7 @@ export class ChangeSet<T extends Document> {
     );
   }
 
-  toChanges(collection: Collection): DatabaseChange<T>[] {
+  toChanges(collection: Collection<T>): DatabaseChange<T>[] {
     const incIds = idSet(this.incoming);
     const outIds = idSet(this.outgoing);
     const inserted = this.incoming.filter(doc => !outIds.has(doc._id));
