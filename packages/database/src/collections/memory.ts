@@ -3,14 +3,12 @@ import {Query as MingoQuery} from 'mingo/query';
 import * as mingoCursor from 'mingo/cursor';
 import ObjectID from 'bson-objectid';
 import {
-  Collection,
   CollectionFactory,
   Cursor,
   DeleteResult,
   Document,
   Filter,
   InsertOneResult,
-  InsertManyResult,
   ReplaceOneOptions,
   UpdateResult,
   QueryOptions,
@@ -18,10 +16,10 @@ import {
   SortingDirection,
   Database,
   AggregationPipeline,
-  UpdateFilter,
 } from '../interfaces';
+import {AbstractCollection} from './base';
 import {applyQueryOptions, sortingMap} from '../cursor';
-import {aggregate, updateOne, updateMany} from '../aggregation';
+import {aggregate} from '../aggregation';
 import {withAutoEvent} from '../middleware';
 import {idSet} from '../util';
 
@@ -36,6 +34,15 @@ export interface MemoryCollectionConfig<T = any> {
   /** If set to true, no events will be emitted when operations are run on the collection. */
   disableEvents?: boolean;
 }
+
+const makeUpdateResult = (init: Partial<UpdateResult> = {}): UpdateResult =>
+  Object.assign({
+    acknowledged: true,
+    matchedCount: 0,
+    modifiedCount: 0,
+    upsertedCount: 0,
+    upsertedId: undefined,
+  }, init);
 
 export class MemoryCollectionCursor<T> implements Cursor<T> {
   private cursor: mingoCursor.Cursor;
@@ -87,7 +94,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 }
 
-export class MemoryCollection<T extends Document = any> extends Collection<T> {
+export class MemoryCollection<T extends Document = any> extends AbstractCollection<T> {
   public static fromConfig<T = any>(name: string, database: Database, config: MemoryCollectionConfig) {
     const instance = new MemoryCollection<T>(name, database, config.documents || []);
 
@@ -124,7 +131,7 @@ export class MemoryCollection<T extends Document = any> extends Collection<T> {
   public async insertOne(doc: any): Promise<InsertOneResult> {
     if (!doc.hasOwnProperty('_id')) {
       doc._id = new ObjectID().toHexString();
-    } else if (this.documents.findIndex(o => o._id === doc._id) >= 0) {
+    } else if (this.indexOf(doc) >= 0) {
       throw new Error(
         `Insertion failed: A document with ID '${doc._id}' already exists in '${this.name}'`
       );
@@ -133,64 +140,21 @@ export class MemoryCollection<T extends Document = any> extends Collection<T> {
     return {acknowledged: true, insertedId: doc._id};
   }
 
-  public async insertMany(docs: T[]): Promise<InsertManyResult> {
-    let result: InsertManyResult = {
-      insertedCount: 0,
-      insertedIds: {},
-      acknowledged: true
-    };
-    for (let i=0; i<docs.length; i++) {
-      const resultOne = await this.insertOne(docs[i]);
-      result.insertedCount += 1;
-      result.insertedIds[i] = resultOne.insertedId;
-    }
-    return result;
-  }
-
   public async replaceOne(
     filter: Filter<T>, replacement: T, options: ReplaceOneOptions = {}
   ): Promise<UpdateResult> {
     const query = new MingoQuery(filter as any);
-    const matchedCount = query.find(this.documents).count();
-    const old = query.find(this.documents).next() as any;
-    let upsertedId = undefined;
-    let modifiedCount = 0;
-    if (old) {
-      const index = this.documents.findIndex(o => o._id === old._id);
-      this.documents[index] = Object.assign({}, {_id: old._id}, replacement);
-      modifiedCount = 1;
+    let result = makeUpdateResult({
+      matchedCount: query.find(this.documents).count()
+    });
+
+    if (result.matchedCount > 0) {
+      const old = query.find(this.documents).next() as T;
+      this.documents[this.indexOf(old)] = Object.assign({}, {_id: old._id}, replacement);
+      return {...result, modifiedCount: 1};
     } else if (options.upsert) {
       const {insertedId} = await this.insertOne(replacement);
-      upsertedId = insertedId;
-    }
-    return {
-      acknowledged: true,
-      matchedCount,
-      modifiedCount,
-      upsertedCount: upsertedId === undefined ? 0 : 1,
-      upsertedId,
-    };
-  }
-
-  public async updateOne(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
-    const input = await this.findOne(filter);
-    if (!input) {
-      return {acknowledged: true, matchedCount: 0, modifiedCount: 0, upsertedCount: 0};
-    } else {
-      return this.replaceOne({_id: input._id}, updateOne(input, update));
-    }
-  }
-
-  public async updateMany(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
-    const input = await this.find(filter).toArray();
-    let result: UpdateResult = {
-      acknowledged: true,
-      matchedCount: input.length,
-      modifiedCount: input.length, // TODO: Not necessarily true
-      upsertedCount: 0,
-    }
-    for (const doc of updateMany(input, update)) {
-      await this.replaceOne({_id: doc._id}, doc);
+      return {...result, upsertedCount: 1, upsertedId: insertedId};
     }
     return result;
   }
@@ -208,6 +172,10 @@ export class MemoryCollection<T extends Document = any> extends Collection<T> {
     const ids = idSet(affected);
     this.documents = this.documents.filter(doc => !ids.has(doc._id));
     return {acknowledged: true, deletedCount: affected.length};
+  }
+
+  private indexOf(doc: T): number {
+    return this.documents.findIndex(o => o._id === doc._id);
   }
 }
 

@@ -62,7 +62,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
     ];
   }
 
-  public execute(collection: Collection): Promise<T[]> {
+  public execute(collection: Collection<T>): Promise<T[]> {
     return collection.find(this.filter, this.options).toArray();
   }
 }

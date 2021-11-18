@@ -58,7 +58,7 @@ export default class HttpClient extends Plugin {
         return fetch(input, init);
       }
 
-      let collection: Collection = new HttpCollection<T>(
+      let collection: Collection<T> = new HttpCollection<T>(
         name, database, path, querySerializer, loggedFetch
       );
 

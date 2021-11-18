@@ -1,5 +1,6 @@
 import {
   Cursor,
+  Document,
   Filter,
   ReplaceOneOptions,
   SortingDirection,
@@ -12,7 +13,9 @@ import {
   InsertOneResult,
   InsertManyResult,
   withAutoEvent,
-  DeleteResult
+  DeleteResult,
+  UpdateFilter,
+  UpdateResult,
 } from '@tashmit/database';
 import mongo from 'mongodb';
 import {MongoDBCollectionConfig} from './interfaces';
@@ -61,10 +64,10 @@ export class MongoDBCursor<T = any> implements Cursor<T> {
   }
 }
 
-export class MongoDBCollection<T> extends Collection<T> {
+export class MongoDBCollection<T extends Document> extends Collection<T> {
   public static fromConfig<T = any>(name: string, config: MongoDBCollectionConfig) {
     const instance = new MongoDBCollection<T>(config.collection, name);
-    return config.disableEvents ? withAutoEvent(instance) : instance;
+    return config.disableEvents ? withAutoEvent<T>(instance) : instance;
   }
 
   public constructor(
@@ -94,8 +97,16 @@ export class MongoDBCollection<T> extends Collection<T> {
     return this.collection.insertMany(docs) as any;
   }
 
-  public async replaceOne(filter: Filter<T>, doc: any, options?: ReplaceOneOptions): Promise<any> {
-    return this.collection.replaceOne(filter, doc, options || {});
+  public async replaceOne(filter: Filter<T>, doc: any, options?: ReplaceOneOptions): Promise<UpdateResult> {
+    return this.collection.replaceOne(filter, doc, options || {}) as any;
+  }
+
+  public async updateOne(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
+    return this.collection.updateOne(filter, update) as any;
+  }
+
+  public async updateMany(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
+    return this.collection.updateMany(filter, update as any) as any;
   }
 
   public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {

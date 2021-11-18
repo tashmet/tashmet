@@ -1,4 +1,5 @@
 import {
+  AbstractCollection,
   aggregate,
   Cursor,
   Filter,
@@ -7,9 +8,7 @@ import {
   AggregationPipeline,
   Database,
   QueryAggregator,
-  Collection,
   InsertOneResult,
-  InsertManyResult,
   DeleteResult,
   UpdateResult,
   Document,
@@ -18,7 +17,7 @@ import {QuerySerializer} from '@tashmit/qs-builder';
 import {Fetch} from './interfaces';
 import {HttpCollectionCursor} from './cursor';
 
-export class HttpCollection<T extends Document> extends Collection<T> {
+export class HttpCollection<T extends Document> extends AbstractCollection<T> {
   public constructor(
     public readonly name: string,
     private database: Database,
@@ -36,9 +35,9 @@ export class HttpCollection<T extends Document> extends Collection<T> {
 
   public async aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
     try {
-      return QueryAggregator.fromPipeline(pipeline, true).execute(this);
+      return QueryAggregator.fromPipeline<T>(pipeline, true).execute(this) as any;
     } catch (error) {
-      const input = await QueryAggregator.fromPipeline(pipeline).execute(this);
+      const input = await QueryAggregator.fromPipeline<T>(pipeline).execute(this);
       return aggregate<U>(pipeline, input, this.database);
     }
   }
@@ -60,20 +59,6 @@ export class HttpCollection<T extends Document> extends Collection<T> {
   public async insertOne(doc: T): Promise<InsertOneResult> {
     const result = await this.post(doc);
     Object.assign(doc, {_id: result.insertedId});
-    return result;
-  }
-
-  public async insertMany(docs: T[]): Promise<InsertManyResult> {
-    let result: InsertManyResult = {
-      insertedCount: 0,
-      insertedIds: {},
-      acknowledged: true
-    };
-    for (let i=0; i<docs.length; i++) {
-      const resultOne = await this.insertOne(docs[i]);
-      result.insertedCount += 1;
-      result.insertedIds[i] = resultOne.insertedId;
-    }
     return result;
   }
 
