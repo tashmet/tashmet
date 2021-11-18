@@ -1,18 +1,11 @@
-import {
-  AbstractCursor,
-  Filter,
-  QueryOptions,
-} from '@tashmit/database';
+import {AbstractCursor, Filter, QueryOptions} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
-import {Fetch} from './interfaces';
-
+import {HttpRestLayer} from './common';
 
 export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
   public constructor(
-    private path: string,
+    private restLayer: HttpRestLayer,
     private querySerializer: QuerySerializer,
-    private fetch: Fetch,
-    private headers: Record<string, string> = {},
     selector: object = {},
     options: QueryOptions = {},
   ) {
@@ -29,7 +22,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
 
   public async count(applySkipLimit = true): Promise<number> {
     const options = applySkipLimit ? this.options : {};
-    const resp = await this.query(this.filter, options, {method: 'HEAD'});
+    const resp = await this.query(this.filter, options, true);
     const totalCount = resp.headers.get('x-total-count');
     if (!totalCount) {
       throw new Error('failed to get "x-total-count" header');
@@ -37,11 +30,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
     return parseInt(totalCount, 10);
   }
 
-  private query(filter?: Filter<T>, options?: QueryOptions, init?: RequestInit): Promise<Response> {
-    const params = this.querySerializer.serialize({filter, ...options});
-    const path = params !== ''
-      ? this.path + '?' + params
-      : this.path;
-    return this.fetch(path, Object.assign({}, init, {headers: this.headers}));
+  private query(filter?: Filter<T>, options?: QueryOptions, head?: boolean): Promise<Response> {
+    return this.restLayer.get(this.querySerializer.serialize({filter, ...options}), head);
   }
 }

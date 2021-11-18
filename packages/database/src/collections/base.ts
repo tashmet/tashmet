@@ -54,4 +54,10 @@ export abstract class AbstractCollection<T extends Document = any> extends Colle
     }
     return result;
   }
+
+  protected async upsertOne(doc: T): Promise<Partial<UpdateResult>> {
+    const {insertedId} = await this.insertOne(doc);
+    Object.assign(doc, {_id: insertedId});
+    return {upsertedId: insertedId, upsertedCount: 1};
+  }
 }

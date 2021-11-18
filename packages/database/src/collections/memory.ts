@@ -35,7 +35,7 @@ export interface MemoryCollectionConfig<T = any> {
   disableEvents?: boolean;
 }
 
-const makeUpdateResult = (init: Partial<UpdateResult> = {}): UpdateResult =>
+export const makeUpdateResult = (init: Partial<UpdateResult> = {}): UpdateResult =>
   Object.assign({
     acknowledged: true,
     matchedCount: 0,
@@ -153,8 +153,7 @@ export class MemoryCollection<T extends Document = any> extends AbstractCollecti
       this.documents[this.indexOf(old)] = Object.assign({}, {_id: old._id}, replacement);
       return {...result, modifiedCount: 1};
     } else if (options.upsert) {
-      const {insertedId} = await this.insertOne(replacement);
-      return {...result, upsertedCount: 1, upsertedId: insertedId};
+      return Object.assign({...result, ...await this.upsertOne(replacement)});
     }
     return result;
   }

@@ -2,6 +2,7 @@ import {Container, Factory, Logger, Plugin, Provider} from '@tashmit/core';
 import {CachingLayer, Collection, CollectionFactory, withAutoEvent, withMiddleware} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {HttpCollection} from './collection';
+import { HttpRestLayer } from './common';
 import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
 
 export * from './interfaces';
@@ -59,7 +60,7 @@ export default class HttpClient extends Plugin {
       }
 
       let collection: Collection<T> = new HttpCollection<T>(
-        name, database, path, querySerializer, loggedFetch
+        name, database, new HttpRestLayer(path, loggedFetch), querySerializer
       );
 
       try {
