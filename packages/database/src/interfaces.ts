@@ -310,6 +310,17 @@ export declare interface Collection<T extends Document = any> {
    * @returns A list of all the documents that were removed
    */
   deleteMany(filter: Filter<T>): Promise<DeleteResult>;
+
+  /**
+   * The distinct command returns a list of distinct values for the given key across a collection.
+   *
+   * @param key - Field of the document to find distinct values for
+   * @param filter - The filter for filtering the set of documents to which we apply the distinct filter.
+   */
+  distinct<Key extends keyof WithId<T>>(
+    key: Key | string,
+    filter?: Filter<T>
+  ): Promise<Array<Flatten<WithId<T>[Key]>>>;
 }
 
 export abstract class Collection extends EventEmitter implements Collection, DatabaseEventEmitter {}

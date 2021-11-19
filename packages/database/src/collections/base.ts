@@ -2,9 +2,11 @@ import {
   Collection,
   Document,
   Filter,
+  Flatten,
   InsertManyResult,
   UpdateResult,
   UpdateFilter,
+  WithId
 } from '../interfaces';
 import {updateOne, updateMany} from '../aggregation';
 
@@ -53,6 +55,16 @@ export abstract class AbstractCollection<T extends Document = any> extends Colle
       await this.replaceOne({_id: doc._id}, doc);
     }
     return result;
+  }
+
+  public async distinct<Key extends keyof WithId<T>>(
+    key: Key | string,
+    filter: Filter<T> = {}
+  ): Promise<Array<Flatten<WithId<T>[Key]>>> {
+    return this.aggregate<WithId<any>>([
+      {$match: filter},
+      {$group: {_id: `$${key}`}}
+    ]).then(docs => docs.map(doc => doc._id));
   }
 
   protected async upsertOne(doc: T): Promise<Partial<UpdateResult>> {

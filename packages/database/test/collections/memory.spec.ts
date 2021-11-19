@@ -173,10 +173,20 @@ describe('MemoryCollection', () => {
 
   describe('count', () => {
     it('should return 0 when no documents are matching', () => {
-      expect(col.find({'item.category': 'candy'}).count()).to.eventually.eql(0);
+      return expect(col.find({'item.category': 'candy'}).count()).to.eventually.eql(0);
     });
     it('should be a positive number when items are matched', async () => {
-      expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
+      return expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
+    });
+  });
+
+  describe('distinct', () => {
+    it('should return list of distinct values', () => {
+      return expect(col.distinct('item.category')).to.eventually.eql(['cake', 'cookies']);
+    });
+    it('should return list of distinct values with filter', () => {
+      return expect(col.distinct('item.type', {amount: {$gte: 30}}))
+        .to.eventually.eql(['chocolate chip', 'lemon']);
     });
   });
 
