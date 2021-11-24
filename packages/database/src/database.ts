@@ -50,8 +50,8 @@ export class DatabaseService extends Database {
       }
       const config = this.createConfig(source);
       const c = this.collections[name] = this.createManagedCollection(name, config);
-      c.on('change', change => this.emit('change', change));
-      c.on('error', error => this.emit('error', error));
+      //c.on('change', change => this.emit('change', change));
+      //c.on('error', error => this.emit('error', error));
       this.logger.inScope('createCollection').info(c.toString());
       return c;
     } catch (err) {

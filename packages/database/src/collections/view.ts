@@ -1,6 +1,6 @@
 import {Factory} from '@tashmit/core';
 import {withMiddleware} from '../middleware';
-import {MemoryCollection, MemoryCollectionCursor} from './memory';
+import {MemoryCollectionCursor} from './memory';
 import {
   AggregationPipeline,
   Collection,
@@ -39,6 +39,7 @@ class ViewCursor<T> extends AbstractCursor<T> {
 }
 
 
+/*
 class ViewCollection<T> extends MemoryCollection<T> {
   private getDocuments: Promise<T[]>;
 
@@ -72,13 +73,16 @@ class ViewCollection<T> extends MemoryCollection<T> {
     return this.documents = result;
   }
 }
-
+*/
 export function view<T = any>(config: ViewCollectionConfig): CollectionFactory<T> {
   return Factory.of(({name, database}) => {
+    /*
     const collection = new ViewCollection<T>(
       name, database, database.collection(config.viewOf), config.pipeline
     );
 
     return withMiddleware<T>(collection, [readOnly]);
+    */
+   throw Error('view not available');
   });
 }

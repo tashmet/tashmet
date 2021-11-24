@@ -9,6 +9,8 @@ import {
   WithId
 } from '../interfaces';
 import {updateOne, updateMany} from '../aggregation';
+import {ChangeStream} from '../changeStream';
+import { autoEvent, changeObserver, withMiddleware } from '..';
 
 
 const makeUpdateResult = (init: Partial<UpdateResult> = {}): UpdateResult =>
@@ -20,8 +22,16 @@ const makeUpdateResult = (init: Partial<UpdateResult> = {}): UpdateResult =>
     upsertedId: undefined,
   }, init);
 
+  /*
 
 export abstract class AbstractCollection<T extends Document = any> extends Collection<T> {
+  public constructor() {
+    super()
+    return withMiddleware<T, AbstractCollection<T>>(this, [
+      changeObserver(async change => {})
+    ]);
+  }
+
   public async insertMany(docs: T[]): Promise<InsertManyResult> {
     let result: InsertManyResult = {
       insertedCount: 0,
@@ -67,9 +77,14 @@ export abstract class AbstractCollection<T extends Document = any> extends Colle
     ]).then(docs => docs.map(doc => doc._id));
   }
 
+  watch<TLocal = T>(pipeline: Document[] = []): ChangeStream<TLocal> {
+    return new ChangeStream<TLocal>(this, pipeline);
+  }
+
   protected async upsertOne(doc: T): Promise<Partial<UpdateResult>> {
     const {insertedId} = await this.insertOne(doc);
     Object.assign(doc, {_id: insertedId});
     return {upsertedId: insertedId, upsertedCount: 1};
   }
 }
+*/
