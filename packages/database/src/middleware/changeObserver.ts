@@ -1,10 +1,10 @@
 import {mutationSideEffect} from './mutation';
 import {
-  Collection,
   CollectionChangeAction,
   DatabaseChange,
   Middleware,
 } from '../interfaces';
+import {Collection} from '../collection';
 
 
 export function changeObserver<T>(handler: (change: DatabaseChange) => Promise<void>) {

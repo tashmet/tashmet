@@ -2,8 +2,7 @@ import {EventEmitter} from 'eventemitter3';
 import ObjectId from 'bson-objectid';
 import {Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
-import {ChangeStream} from './changeStream';
-import {BulkWriteOperationFactory, CollectionDriver} from './collections/common';
+import {Collection} from './collection';
 
 export type Document = Record<string, any>;
 
@@ -220,195 +219,7 @@ export interface DatabaseEventEmitter {
   on(event: 'error', fn: (error: DatabaseError) => void): this;
 }
 
-/**
- * A collection of documents.
- */
-export declare interface Collection<T extends Document = any> {
-  /**
-   * Name of the collection.
-   */
-  readonly name: string;
 
-  /* Execute an aggregation framework pipeline against the collection */
-  aggregate<U>(pipeline: Document[]): Promise<U[]>
-
-  /**
-   * Insert a document into the collection.
-   *
-   * If the document passed in do not contain the _id field, one will be added to it
-   *
-   * @param doc The document to insert.
-   * @returns A promise for the inserted document.
-   * @throws Error if a document with the same ID already exists
-   */
-  insertOne(doc: OptionalId<T>): Promise<InsertOneResult>;
-
-  /**
-   * Insert multiple documents into the collection
-   *
-   * If documents passed in do not contain the _id field, one will be added to
-   * each of the documents missing it
-   *
-   * @param docs The documents to insert
-   * @returns A promise for the inserted documents
-   * @throws Error if a document with the same ID already exists
-   */
-  insertMany(docs: OptionalId<T>[]): Promise<InsertManyResult>;
-
-  /**
-   * Replace a document in a collection with another document
-   *
-   * @param filter The Filter used to select the document to replace
-   * @param doc The Document that replaces the matching document
-   * @param options Optional settings
-   * @returns A promise for the new document
-   */
-  replaceOne(filter: Filter<T>, doc: T, options?: ReplaceOneOptions): Promise<UpdateResult>;
-
-  /**
-   * Update a single document in a collection
-   *
-   * @param filter - The filter used to select the document to update
-   * @param update - The update operations to be applied to the document
-   */
-  updateOne(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult>;
-
-  /**
-   * Update multiple documents in a collection
-   *
-   * @param filter - The filter used to select the documents to update
-   * @param update - The update operations to be applied to the documents
-   */
-  updateMany(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult>;
-
-  /**
-   * Find documents in the collection.
-   *
-   * @param filter The filter which documents are matched against.
-   * @returns A cursor.
-   */
-  find(filter?: Filter<T>, options?: QueryOptions<T>): Cursor<T>;
-
-  /**
-   * Find a single document in the collection.
-   *
-   * @param selector The selector which documents are matched against.
-   * @returns A promise for the first matching document if one was found, null otherwise
-   */
-  findOne(filter: Filter<T>): Promise<T | null>;
-
-  /**
-   * Delete a document from a collection
-   *
-   * @param filter The Filter used to select the document to remove
-   * @returns The removed document if found, null otherwise
-   */
-  deleteOne(filter: Filter<T>): Promise<DeleteResult>;
-
-  /**
-   * Delete multiple documents from a collection
-   *
-   * @param filter The Filter used to select the documents to remove
-   * @returns A list of all the documents that were removed
-   */
-  deleteMany(filter: Filter<T>): Promise<DeleteResult>;
-
-  /**
-   * The distinct command returns a list of distinct values for the given key across a collection.
-   *
-   * @param key - Field of the document to find distinct values for
-   * @param filter - The filter for filtering the set of documents to which we apply the distinct filter.
-   */
-  distinct<Key extends keyof WithId<T>>(
-    key: Key | string,
-    filter?: Filter<T>
-  ): Promise<Array<Flatten<WithId<T>[Key]>>>;
-
-  /**
-   * Create a new Change Stream, watching for new changes (insertions, updates, replacements, deletions, and invalidations) in this collection.
-   *
-   * @param pipeline - An array of {@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/|aggregation pipeline stages} through which to pass change stream documents. This allows for filtering (using $match) and manipulating the change stream documents.
-   * @param options - Optional settings for the command
-   */
-  watch<TLocal = T>(pipeline: Document[]): ChangeStream<TLocal>;
-}
-
-export class Collection<T extends Document> implements Collection<T> {
-  public constructor(
-    public readonly name: string,
-    private writeOpFactory: BulkWriteOperationFactory<T>,
-    private driver: CollectionDriver<T>,
-    public aggregate: <U>(pipeline: Document[]) => Promise<U[]>
-  ) {}
-
-  public find(filter: Filter<T> = {}, options: QueryOptions<T> = {}) {
-    return this.driver.find(filter, options);
-  }
-
-  public findOne(filter: Filter<T>) {
-    return this.driver.findOne(filter);
-  }
-
-  public async insertOne(document: OptionalId<T>): Promise<InsertOneResult> {
-    const {insertedIds} = await this.bulkWrite([{insertOne: {document}}]);
-    return {acknowledged: true, insertedId: insertedIds[0]};
-  }
-
-  public async insertMany(documents: OptionalId<T>[]): Promise<InsertManyResult> {
-    const {insertedCount, insertedIds} = await this.bulkWrite(
-      documents.map(document => ({insertOne: {document}}))
-    );
-    return {acknowledged: true, insertedCount, insertedIds}
-  }
-
-  public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {
-    const {deletedCount} = await this.bulkWrite([{deleteOne: {filter}}]);
-    return {acknowledged: true, deletedCount}
-  }
-
-  public async deleteMany(filter: Filter<T>): Promise<DeleteResult> {
-    const {deletedCount} = await this.bulkWrite([{deleteMany: {filter}}]);
-    return {acknowledged: true, deletedCount}
-  }
-
-  public async replaceOne(
-    filter: Filter<T>, replacement: T, options?: ReplaceOneOptions
-  ): Promise<UpdateResult> {
-    return this.updateResult(await this.bulkWrite([
-      {replaceOne: {filter, replacement, upsert: options?.upsert}}
-    ]));
-  }
-
-  public async updateOne(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
-    return this.updateResult(await this.bulkWrite([
-      {updateOne: {filter, update}}
-    ]));
-  }
-
-  public async updateMany(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
-    return this.updateResult(await this.bulkWrite([
-      {updateMany: {filter, update}}
-    ]));
-  }
-
-  public async bulkWrite(operations: AnyBulkWriteOperation<T>[]): Promise<BulkWriteResult> {
-    return this.writeOpFactory.createOperation(operations).execute();
-  }
-
-  public async distinct<Key extends keyof WithId<T>>(
-    key: Key | string,
-    filter: Filter<T> = {}
-  ): Promise<Array<Flatten<WithId<T>[Key]>>> {
-    return this.aggregate<WithId<any>>([
-      {$match: filter},
-      {$group: {_id: `$${key}`}}
-    ]).then(docs => docs.map(doc => doc._id));
-  }
-
-  private updateResult({matchedCount, modifiedCount, upsertedCount, upsertedIds}: BulkWriteResult): UpdateResult {
-    return {acknowledged: true, matchedCount, modifiedCount, upsertedCount, upsertedId: upsertedIds[0]};
-  }
-}
 
 export class DocumentError extends Error {
   public name = 'DocumentError';
@@ -612,7 +423,6 @@ export interface InsertOneResult<TSchema = Document> {
   /** The identifier that was inserted. If the server generated the identifier, this value will be null as the driver does not have access to that data */
   insertedId: InferIdType<TSchema>;
 }
-
 export interface InsertManyResult<TSchema = Document> {
   /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
   acknowledged: boolean;
@@ -766,6 +576,7 @@ export type UpdateFilter<TSchema> = {
   >;
 } & Document;
 
+
 export interface InsertOneModel<TSchema extends Document = Document> {
   /** The document to insert. */
   document: OptionalId<TSchema>;
@@ -839,4 +650,19 @@ export interface BulkResult {
   nRemoved: number;
   upserted: Document[];
   // opTime?: Document;
+}
+
+export interface Writer<TModel> {
+  execute(model: TModel): Promise<Partial<BulkWriteResult>>;
+}
+
+export interface CollectionDriver<TSchema extends Document> {
+  insert(document: OptionalId<TSchema>): Promise<void>;
+
+  delete(matched: TSchema[]): Promise<void>
+
+  replace(old: TSchema, replacement: TSchema): Promise<void>
+
+  findOne: FindOne<TSchema>;
+  find: Find<TSchema>;
 }

@@ -3,7 +3,6 @@ import {withMiddleware} from '../middleware';
 import {MemoryCollectionCursor} from './memory';
 import {
   AggregationPipeline,
-  Collection,
   CollectionFactory,
   Cursor,
   Database,
@@ -11,6 +10,7 @@ import {
   QueryOptions,
   ViewCollectionConfig
 } from '../interfaces';
+import {Collection} from '../collection';
 import {readOnly} from '../middleware/mutation';
 import {AbstractCursor} from '../cursor';
 import {ChangeSet} from '../util';

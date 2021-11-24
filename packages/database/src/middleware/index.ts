@@ -1,5 +1,6 @@
-import {Collection, Document, Middleware} from '../interfaces';
+import {Document, Middleware} from '../interfaces';
 import {changeObserver} from './changeObserver';
+import {Collection} from '../collection';
 
 export {changeObserver};
 export {logging} from './logging';

@@ -1,8 +1,9 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
 import { UpdateFilter } from '.';
 import {
-  Aggregator, AggregationPipeline, Collection, Database, Filter, QueryOptions
+  Aggregator, AggregationPipeline, Database, Filter, QueryOptions
 } from './interfaces';
+import { Collection } from './collection';
 
 export class QueryAggregator<T> extends Aggregator<T> {
   public constructor(

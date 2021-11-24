@@ -1,5 +1,6 @@
 import {intersection} from 'mingo/util';
-import {Collection, DatabaseChange, Document} from './interfaces';
+import {DatabaseChange, Document} from './interfaces';
+import {Collection} from './collection';
 
 
 export function idSet(collection: any[]) {

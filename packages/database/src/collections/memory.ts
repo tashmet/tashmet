@@ -3,7 +3,7 @@ import {Query as MingoQuery} from 'mingo/query';
 import * as mingoCursor from 'mingo/cursor';
 import ObjectID from 'bson-objectid';
 import {
-  Collection,
+  CollectionDriver,
   CollectionFactory,
   Cursor,
   Document,
@@ -13,10 +13,11 @@ import {
   SortingKey,
   SortingDirection,
 } from '../interfaces';
+import {Collection} from '../collection';
 import {applyQueryOptions, sortingMap} from '../cursor';
 import {idSet} from '../util';
 import {aggregate} from '../aggregation';
-import {BulkWriteOperationFactory, CollectionDriver} from './common';
+import {BulkWriteOperationFactory} from '../operations/bulk';
 
 export interface MemoryCollectionConfig<T = any> {
   /**

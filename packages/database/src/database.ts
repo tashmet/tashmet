@@ -5,7 +5,6 @@ import {memory} from './collections/memory';
 import {view} from './collections/view';
 import {withMiddleware, validation} from './middleware';
 import {
-  Collection,
   CollectionConfig,
   CollectionSource,
   Database,
@@ -13,6 +12,7 @@ import {
   MiddlewareFactory,
   ValidatorFactory,
 } from './interfaces';
+import {Collection} from './collection';
 
 export class DatabaseService extends Database {
   private collections: {[name: string]: Collection} = {};
