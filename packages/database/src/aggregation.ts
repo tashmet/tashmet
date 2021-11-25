@@ -1,6 +1,6 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
 import {
-  Aggregator, AggregationPipeline, Database, Filter, QueryOptions, UpdateFilter
+  Aggregator, AggregationPipeline, Database, Filter, QueryOptions
 } from './interfaces';
 import { Collection } from './collection';
 

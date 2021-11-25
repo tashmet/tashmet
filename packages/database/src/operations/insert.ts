@@ -11,7 +11,7 @@ export class InsertOneWriter<TSchema extends Document> implements Writer<InsertO
   public async execute(
     {document}: InsertOneModel<TSchema>,
     eventCb?: (change: ChangeStreamDocument) => void,
-  ): Promise<Partial<BulkWriteResult>> {
+  ) {
     await this.driver.insert(document);
 
     if (eventCb) {

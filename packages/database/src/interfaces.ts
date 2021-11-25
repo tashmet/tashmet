@@ -214,13 +214,6 @@ export interface ReplaceOneOptions {
   upsert?: boolean;
 }
 
-export interface DatabaseEventEmitter {
-  on(event: 'change', fn: (change: DatabaseChange) => void): this;
-
-  on(event: 'error', fn: (error: DatabaseError) => void): this;
-}
-
-
 
 export class DocumentError extends Error {
   public name = 'DocumentError';
@@ -380,7 +373,7 @@ export interface Database {
 /**
  *
  */
-export abstract class Database extends EventEmitter implements Database, DatabaseEventEmitter {}
+export abstract class Database implements Database {}
 
 export interface CollectionContext {
   name: string;

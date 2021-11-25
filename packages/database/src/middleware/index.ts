@@ -42,7 +42,7 @@ export function withMiddleware<TSchema extends Document = Document, T extends Co
   }), rest);
 }
 
-export const autoEvent = () => changeObserver(async change => {
+export const autoEvent = () => changeObserver<any>(async change => {
   //change.collection.emit('change', change);
 });
 
