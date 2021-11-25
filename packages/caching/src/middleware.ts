@@ -4,7 +4,6 @@ import {
   Collection,
   Database,
   Filter,
-  MemoryCollection,
   Middleware,
   QueryAggregator,
   mutationSideEffect,
@@ -35,18 +34,21 @@ export class CachingLayerService extends CachingLayer {
       new QueryCache(this.config.ttl),
       new IDCache(this.config.ttl)
     ];
-    const cache = MemoryCollection.fromConfig(collection.name, this.database, {});
+    const cache = this.database.collection(`${collection.name}.__cache__`)
 
     for (const evaluator of evaluators) {
-      cache.on('change', ({action, data}) => {
-        for (const doc of data) {
-          if (action === 'delete') {
-            evaluator.remove(doc);
-          } else {
-            evaluator.add(doc);
-          }
+      const cs = cache.watch();
+      cs.on('change', ({operationType, documentKey, fullDocument}) => {
+        switch(operationType) {
+          case 'delete':
+            evaluator.remove(documentKey);
+            break;
+          case 'insert':
+          case 'replace':
+          case 'update':
+            evaluator.add(fullDocument);
         }
-      })
+      });
     }
 
     return {

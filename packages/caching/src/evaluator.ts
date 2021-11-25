@@ -9,7 +9,7 @@ export abstract class CacheEvaluator {
      return;
   }
 
-  public remove(doc: any): void {
+  public remove(id: any): void {
     return;
   }
 

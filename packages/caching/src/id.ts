@@ -6,8 +6,8 @@ export class IDCache extends CacheEvaluator {
     this.cache(doc._id);
   }
 
-  public remove(doc: any) {
-    this.invalidate(doc._id);
+  public remove(id: any) {
+    this.invalidate(id);
   }
 
   public optimize(filter: Filter<any>) {
