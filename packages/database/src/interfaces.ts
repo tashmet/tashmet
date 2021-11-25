@@ -3,6 +3,7 @@ import ObjectId from 'bson-objectid';
 import {Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 import {Collection} from './collection';
+import { ChangeStreamDocument } from './changeStream';
 
 export type Document = Record<string, any>;
 
@@ -638,25 +639,13 @@ export interface BulkWriteResult {
   upsertedIds: { [key: number]: any };
   insertedIds: { [key: number]: any };
 }
-export interface BulkResult {
-  ok: number;
-  writeErrors: Error[];//WriteError[];
-  //writeConcernErrors: WriteConcernError[];
-  insertedIds: Document[];
-  nInserted: number;
-  nUpserted: number;
-  nMatched: number;
-  nModified: number;
-  nRemoved: number;
-  upserted: Document[];
-  // opTime?: Document;
-}
-
 export interface Writer<TModel> {
-  execute(model: TModel): Promise<Partial<BulkWriteResult>>;
+  execute(model: TModel, eventCb?: (change: ChangeStreamDocument) => void): Promise<Partial<BulkWriteResult>>;
 }
 
 export interface CollectionDriver<TSchema extends Document> {
+  readonly ns: { db: string; coll: string };
+
   insert(document: OptionalId<TSchema>): Promise<void>;
 
   delete(matched: TSchema[]): Promise<void>
@@ -664,5 +653,6 @@ export interface CollectionDriver<TSchema extends Document> {
   replace(old: TSchema, replacement: TSchema): Promise<void>
 
   findOne: FindOne<TSchema>;
+
   find: Find<TSchema>;
 }

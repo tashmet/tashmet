@@ -82,10 +82,31 @@ export interface ChangeStreamEvents<TSchema extends Document> {
 export class ChangeStream<TSchema extends Document = Document>
   extends EventEmitter implements ChangeStreamEvents<TSchema>
 {
-  //public constructor()
-  /*
-  on(event: 'change', fn: (change: ChangeStreamDocument<TSchema>) => void) {
-    super()
+  private documents: ChangeStreamDocument[] = [];
+
+  public constructor(
+    private pipeline: Document[],
+    private closeCb: (cs: ChangeStream) => void,
+  ) { super(); }
+
+  public on(event: 'change', fn: (change: ChangeStreamDocument<TSchema>) => void): this {
+    return super.on(event, fn);
   }
-  */
+
+  public emit(event: 'change', change: ChangeStreamDocument) {
+    this.documents.push(change);
+    return super.emit(event, change);
+  }
+
+  public close(): void {
+    this.closeCb(this);
+  }
+
+  public next(): ChangeStreamDocument | undefined {
+    return this.documents.shift();
+  }
+
+  public hasNext(): boolean {
+    return this.documents.length > 0;
+  }
 }

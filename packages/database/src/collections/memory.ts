@@ -84,6 +84,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
 
 export class MemoryDriver<TSchema extends Document> implements CollectionDriver<TSchema> {
   public constructor(
+    public readonly ns: { db: string; coll: string },
     public documents: TSchema[]
   ) {}
 
@@ -121,7 +122,7 @@ export class MemoryDriver<TSchema extends Document> implements CollectionDriver<
 
 export function memory<T extends Document = Document>(config: MemoryCollectionConfig<T> = {}): CollectionFactory<T> {
   return Factory.of(({name, database}) => {
-    const driver = new MemoryDriver<T>(config.documents || []);
+    const driver = new MemoryDriver<T>({db: 'tashmit', coll: name}, config.documents || []);
     return new Collection(
       name,
       BulkWriteOperationFactory.fromDriver(driver),

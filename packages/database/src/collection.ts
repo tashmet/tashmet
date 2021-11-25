@@ -23,6 +23,8 @@ import {BulkWriteOperationFactory} from "./operations/bulk";
  * A collection of documents.
  */
 export class Collection<T extends Document = any> {
+  private changeStreams: ChangeStream[] = [];
+
   public constructor(
     public readonly name: string,
     private writeOpFactory: BulkWriteOperationFactory<T>,
@@ -55,8 +57,7 @@ export class Collection<T extends Document = any> {
    *
    * If the document passed in do not contain the _id field, one will be added to it
    *
-   * @param doc The document to insert.
-   * @returns A promise for the inserted document.
+   * @param document The document to insert.
    * @throws Error if a document with the same ID already exists
    */
   public async insertOne(document: OptionalId<T>): Promise<InsertOneResult> {
@@ -70,8 +71,7 @@ export class Collection<T extends Document = any> {
    * If documents passed in do not contain the _id field, one will be added to
    * each of the documents missing it
    *
-   * @param docs The documents to insert
-   * @returns A promise for the inserted documents
+   * @param documents The documents to insert
    * @throws Error if a document with the same ID already exists
    */
   public async insertMany(documents: OptionalId<T>[]): Promise<InsertManyResult> {
@@ -85,7 +85,6 @@ export class Collection<T extends Document = any> {
    * Delete a document from a collection
    *
    * @param filter The Filter used to select the document to remove
-   * @returns The removed document if found, null otherwise
    */
   public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {
     const {deletedCount} = await this.bulkWrite([{deleteOne: {filter}}]);
@@ -96,7 +95,6 @@ export class Collection<T extends Document = any> {
    * Delete multiple documents from a collection
    *
    * @param filter The Filter used to select the documents to remove
-   * @returns A list of all the documents that were removed
    */
   public async deleteMany(filter: Filter<T>): Promise<DeleteResult> {
     const {deletedCount} = await this.bulkWrite([{deleteMany: {filter}}]);
@@ -106,10 +104,9 @@ export class Collection<T extends Document = any> {
   /**
    * Replace a document in a collection with another document
    *
-   * @param filter The Filter used to select the document to replace
-   * @param doc The Document that replaces the matching document
-   * @param options Optional settings
-   * @returns A promise for the new document
+   * @param filter - The filter used to select the document to replace
+   * @param replacement - The Document that replaces the matching document
+   * @param options - Optional settings for the command
    */
   public async replaceOne(
     filter: Filter<T>, replacement: T, options?: ReplaceOneOptions
@@ -143,8 +140,31 @@ export class Collection<T extends Document = any> {
     ]));
   }
 
+  /**
+   * Perform a bulkWrite operation without a fluent API
+   *
+   * Legal operation types are
+   *
+   * ```js
+   *  { insertOne: { document: { a: 1 } } }
+   *
+   *  { updateOne: { filter: {a:2}, update: {$set: {a:2}}, upsert:true } }
+   *
+   *  { updateMany: { filter: {a:2}, update: {$set: {a:2}}, upsert:true } }
+   *
+   *  { updateMany: { filter: {}, update: {$set: {"a.$[i].x": 5}}, arrayFilters: [{ "i.x": 5 }]} }
+   *
+   *  { deleteOne: { filter: {c:1} } }
+   *
+   *  { deleteMany: { filter: {c:1} } }
+   *
+   *  { replaceOne: { filter: {c:3}, replacement: {c:4}, upsert:true} }
+   *```
+   *
+   * @param operations - Bulk operations to perform
+   */
   public async bulkWrite(operations: AnyBulkWriteOperation<T>[]): Promise<BulkWriteResult> {
-    return this.writeOpFactory.createOperation(operations).execute();
+    return this.writeOpFactory.createOperation(operations, this.changeStreams).execute();
   }
 
   /**
@@ -169,8 +189,12 @@ export class Collection<T extends Document = any> {
    * @param pipeline - An array of {@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/|aggregation pipeline stages} through which to pass change stream documents. This allows for filtering (using $match) and manipulating the change stream documents.
    * @param options - Optional settings for the command
    */
-  public watch<TLocal = T>(pipeline: Document[]): ChangeStream<TLocal> {
-    throw Error('Not implemented yet');
+  public watch<TLocal = T>(pipeline: Document[] = []): ChangeStream<TLocal> {
+    const cs = new ChangeStream<TLocal>(pipeline, cs => {
+      this.changeStreams.splice(this.changeStreams.indexOf(cs), 1);
+    });
+    this.changeStreams.push(cs);
+    return cs;
   }
 
   private updateResult({matchedCount, modifiedCount, upsertedCount, upsertedIds}: BulkWriteResult): UpdateResult {

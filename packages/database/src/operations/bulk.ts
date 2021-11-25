@@ -5,6 +5,7 @@ import {
   Document,
   Writer,
 } from '../interfaces';
+import {ChangeStream, ChangeStreamDocument} from '../changeStream';
 import {DeleteWriter} from './delete';
 import {InsertOneWriter} from './insert';
 import {ReplaceOneWriter} from './replace';
@@ -28,9 +29,10 @@ export class BulkWriteOperationFactory<TSchema extends Document> {
   }
 
   public createOperation(
-    operations: AnyBulkWriteOperation<TSchema>[]
+    operations: AnyBulkWriteOperation<TSchema>[],
+    changeStreams: ChangeStream[] = [],
   ): BulkWriteOperation<TSchema> {
-    return new BulkWriteOperation(operations, this.writers);
+    return new BulkWriteOperation(operations, this.writers, changeStreams);
   }
 }
 
@@ -38,6 +40,7 @@ export class BulkWriteOperation<TSchema extends Document> {
   public constructor(
     private operations: AnyBulkWriteOperation<TSchema>[],
     private writers: Record<string, Writer<AnyBulkWriteOperation<TSchema>>>,
+    private changeStreams: ChangeStream[] = [],
   ) {}
 
   public async execute() {
@@ -51,9 +54,13 @@ export class BulkWriteOperation<TSchema extends Document> {
       insertedIds: {},
     };
 
+    const changes: ChangeStreamDocument[] = [];
+
     const handleOp = async (op: AnyBulkWriteOperation<TSchema>) => {
       const [name, data] = Object.entries(op)[0];
-      return this.writers[name].execute(data);
+      return this.writers[name].execute(data, change => {
+        changes.push(change);
+      });
     }
 
     for (const op of this.operations) {
@@ -70,6 +77,13 @@ export class BulkWriteOperation<TSchema extends Document> {
       r.modifiedCount += opResult.modifiedCount || 0;
       r.deletedCount += opResult.deletedCount || 0;
     }
+
+    for (const changeStream of this.changeStreams) {
+      for (const change of changes) {
+        changeStream.emit('change', change);
+      }
+    }
+
     return r;
   }
 }
