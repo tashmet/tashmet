@@ -1,5 +1,5 @@
 import {Factory, Logger} from '@tashmit/core';
-import {Collection, Database, DatabaseChange, Query} from '@tashmit/database';
+import {Collection, Database, ChangeStreamDocument, Query} from '@tashmit/database';
 import {QueryParser} from '@tashmit/qs-parser';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
@@ -52,27 +52,16 @@ export class Resource {
     protected readOnly = false,
     protected queryParser: QueryParser,
   ) {
-    this.collection.on('change', change => this.onChange(change));
-    this.collection.on('error', err => this.onError(err));
+    collection.watch().on('change', change => this.onChange(change));
   }
 
-  private onChange({action, data}: DatabaseChange) {
+  private onChange(change: ChangeStreamDocument) {
     for (const socket of Object.values(this.connections)) {
-      socket.emit('change', {action, data});
+      socket.emit('change', change);
     }
     const n = Object.keys(this.connections).length;
     this.logger.debug(
-      `'${this.collection.name}' emitted change "${action}" '${data.map(d => d._id).join(',')}' to '${n}' clients`
-    );
-  }
-
-  private onError(err: Error) {
-    for (const socket of Object.values(this.connections)) {
-      socket.emit('error', err);
-    }
-    const n = Object.keys(this.connections).length;
-    this.logger.debug(
-      `'${this.collection.name}' emitted error '${err.message}' to '${n}' clients`
+      `'${this.collection.name}' emitted change '${change.operationType}' to '${n}' clients`
     );
   }
 
