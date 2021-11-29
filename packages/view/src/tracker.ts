@@ -27,8 +27,9 @@ export class Tracking extends Resolver<Tracker> {
     );
 
     if (monitorDatabase) {
-      collection.on('change', ({data}) => {
-        if (data.some((doc: any) => tracker.test(doc))) {
+      const cs = collection.watch();
+      cs.on('change', ({fullDocument}) => {
+        if (!fullDocument || tracker.test(fullDocument)) {
           tracker.refresh();
         }
       });
