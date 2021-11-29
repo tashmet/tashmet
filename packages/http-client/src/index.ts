@@ -1,8 +1,9 @@
 import {Container, Factory, Logger, Plugin, Provider} from '@tashmit/core';
-import {CachingLayer, Collection, CollectionFactory, withAutoEvent, withMiddleware} from '@tashmit/database';
+import {CachingLayer, Collection, CollectionFactory, withMiddleware} from '@tashmit/database';
+import {BulkWriteOperationFactory} from '@tashmit/database/dist/operations/bulk';
 import {QuerySerializer} from '@tashmit/qs-builder';
-import {HttpCollection} from './collection';
-import { HttpRestLayer } from './common';
+import {HttpDriver} from './driver';
+import {HttpRestLayer} from './common';
 import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
 
 export * from './interfaces';
@@ -38,7 +39,7 @@ export default class HttpClient extends Plugin {
         ? {path: configOrPath}
         : configOrPath;
 
-      const {path, emitter, querySerializer, fetch} = {
+      const {path, /*emitter,*/ querySerializer, fetch} = {
         ...container.resolve(HttpClientConfig),
         ...config,
       };
@@ -59,24 +60,42 @@ export default class HttpClient extends Plugin {
         return fetch(input, init);
       }
 
-      let collection: Collection<T> = new HttpCollection<T>(
-        name, database, new HttpRestLayer(path, loggedFetch), querySerializer
+      const driver = new HttpDriver<T>(
+        {db: 'tashmit', coll: name}, new HttpRestLayer(path, loggedFetch), querySerializer
+      );
+      let collection: Collection<T> = new Collection<T>(
+        name,
+        BulkWriteOperationFactory.fromDriver(driver),
+        driver,
+        pipeline => {
+          throw Error('Not implemented yet');
+          /*
+          try {
+            return QueryAggregator.fromPipeline<T>(pipeline, true).execute(this) as any;
+          } catch (error) {
+            const input = await QueryAggregator.fromPipeline<T>(pipeline).execute(this);
+            return aggregate<U>(pipeline, input, this.database);
+          }
+          */
+        }
       );
 
       try {
         const cachingLayer = container.resolve(CachingLayer);
-        collection = withMiddleware(collection, [cachingLayer.create(collection)]);
+        collection = withMiddleware<T>(collection, [cachingLayer.create(collection)]);
       } catch (error) {
         logger.warn('No caching layer available');
       }
 
+      /*
       if (emitter) {
         emitter(collection, path)
           .on('change', change => collection.emit('change', change))
           .on('error', error => collection.emit('error', error));
         return collection;
       }
-      return withAutoEvent(collection);
+      */
+      return collection;
     });
   }
 }

@@ -1,4 +1,4 @@
-import {Collection, DatabaseEventEmitter, Filter, QueryOptions} from '@tashmit/database';
+import {Filter, QueryOptions} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -6,7 +6,7 @@ export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response
 export interface HttpClientConfig {
   querySerializer: QuerySerializer;
 
-  emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
+  // emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
 
   /**
    * Custom fetch method
