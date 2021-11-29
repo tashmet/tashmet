@@ -1,5 +1,3 @@
-import {Query} from "@tashmit/database";
-
 export class Param {
   public constructor(
     public name: string,
