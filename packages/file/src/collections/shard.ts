@@ -1,5 +1,5 @@
 import {Factory} from '@tashmit/core';
-import {CollectionFactory, MemoryCollection, withAutoEvent} from '@tashmit/database';
+import {CollectionFactory} from '@tashmit/database';
 import {buffer} from './buffer';
 import {Pipeline} from '../pipeline';
 
@@ -34,7 +34,7 @@ export function shards<T = any>(config: ShardBufferConfig<T>): CollectionFactory
 
   return Factory.of(({name, database, container}) => {
     const {seed, input, inputDelete, output} = config.stream.resolve(container)();
-    const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
+    const cache = database.collection(name);
 
     const populate = async () => {
       if (seed) {
@@ -58,6 +58,6 @@ export function shards<T = any>(config: ShardBufferConfig<T>): CollectionFactory
     if (inputDelete) {
       eachDocument(inputDelete, doc => cache.deleteOne({_id: doc._id}));
     }
-    return withAutoEvent(instance);
+    return instance;
   });
 }

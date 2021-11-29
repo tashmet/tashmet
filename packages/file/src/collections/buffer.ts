@@ -1,5 +1,6 @@
 import {
   Collection,
+  Document,
   withMiddleware,
   changeObserver,
   DatabaseChange,
@@ -8,10 +9,13 @@ import {
 
 export type BufferWrite = (change: DatabaseChange) => Promise<void>;
 
-export const buffer = (cache: Collection, lock: Promise<void>, write: BufferWrite) =>
-  withMiddleware(cache, [locked(lock), writer(write)]);
+export function buffer<TSchema extends Document>(
+  cache: Collection<TSchema>, lock: Promise<void>, write: BufferWrite
+) {
+  return withMiddleware<TSchema>(cache, [locked(lock), writer(write)]);
+}
 
-export const writer = (write: BufferWrite) => changeObserver(async change => {
+export const writer = <TSchema>(write: BufferWrite) => changeObserver<TSchema>(async change => {
   const {action, data, collection} = change;
 
   const rollback = () => {

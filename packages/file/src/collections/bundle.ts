@@ -1,5 +1,5 @@
 import {Factory} from '@tashmit/core';
-import {CollectionFactory, ChangeSet, MemoryCollection, withAutoEvent} from '@tashmit/database';
+import {CollectionFactory, ChangeSet} from '@tashmit/database';
 import {buffer} from './buffer';
 import {Pipeline} from '../pipeline';
 
@@ -26,7 +26,7 @@ export interface BundleConfig<T> {
 export function bundle<T>(config: BundleConfig<T>): CollectionFactory {
   return Factory.of(({name, database, container}) => {
     const {seed, input, output} = config.stream.resolve(container)();
-    const cache = MemoryCollection.fromConfig(name, database, {disableEvents: true});
+    const cache = database.collection(name);
 
     const populate = async () => {
       if (seed) {
@@ -44,6 +44,6 @@ export function bundle<T>(config: BundleConfig<T>): CollectionFactory {
     if (input) {
       listen(input);
     }
-    return withAutoEvent(collection);
+    return collection;
   });
 }
