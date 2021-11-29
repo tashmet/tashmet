@@ -9,6 +9,7 @@ export {withMiddleware} from './middleware';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
 export {aggregate, QueryAggregator} from './aggregation';
 export {filterValidator} from './validator';
+export * from './changeStream';
 export * from './interfaces';
 export * from './middleware';
 export * from './util';
