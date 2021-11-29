@@ -12,20 +12,17 @@ import {ReplaceOneWriter} from './replace';
 import {UpdateWriter} from './update';
 
 export class BulkWriteOperationFactory<TSchema extends Document> {
-  public constructor(private writers: Record<string, Writer<AnyBulkWriteOperation<TSchema>>>) {}
+  public constructor(private writers: Record<string, Writer<TSchema, any>>) {}
 
   public static fromDriver<TSchema extends Document>(driver: CollectionDriver<TSchema>) {
-    const insertOne = new InsertOneWriter(driver);
-    const replaceOne = new ReplaceOneWriter(driver, insertOne);
-
     return new BulkWriteOperationFactory<TSchema>({
-      'insertOne': insertOne,
-      'replaceOne': replaceOne,
-      'updateOne': new UpdateWriter(replaceOne, true),
-      'updateMany': new UpdateWriter(replaceOne, false),
-      'deleteOne': new DeleteWriter(driver, true),
-      'deleteMany': new DeleteWriter(driver, false),
-    } as any);
+      insertOne: new InsertOneWriter(driver),
+      replaceOne: new ReplaceOneWriter(driver),
+      updateOne: new UpdateWriter(driver, true),
+      updateMany: new UpdateWriter(driver, false),
+      deleteOne: new DeleteWriter(driver, true),
+      deleteMany: new DeleteWriter(driver, false),
+    });
   }
 
   public createOperation(
@@ -39,7 +36,7 @@ export class BulkWriteOperationFactory<TSchema extends Document> {
 export class BulkWriteOperation<TSchema extends Document> {
   public constructor(
     private operations: AnyBulkWriteOperation<TSchema>[],
-    private writers: Record<string, Writer<AnyBulkWriteOperation<TSchema>>>,
+    private writers: Record<string, Writer<TSchema, any>>,
     private changeStreams: ChangeStream[] = [],
   ) {}
 

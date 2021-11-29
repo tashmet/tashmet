@@ -1,13 +1,8 @@
 import ObjectID from 'bson-objectid';
 import {ChangeStreamDocument} from '../changeStream';
-import {BulkWriteResult, CollectionDriver, Document, InsertOneModel, Writer} from '../interfaces';
+import {Document, InsertOneModel, Writer} from '../interfaces';
 
-
-export class InsertOneWriter<TSchema extends Document> implements Writer<InsertOneModel<TSchema>> {
-  public constructor(
-    private driver: CollectionDriver<TSchema>,
-  ) {}
-
+export class InsertOneWriter<TSchema extends Document> extends Writer<TSchema, InsertOneModel<TSchema>> {
   public async execute(
     {document}: InsertOneModel<TSchema>,
     eventCb?: (change: ChangeStreamDocument) => void,

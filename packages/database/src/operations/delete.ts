@@ -2,11 +2,11 @@ import ObjectID from 'bson-objectid';
 import {ChangeStreamDocument} from '../changeStream';
 import {BulkWriteResult, CollectionDriver, Document, DeleteModel, QueryOptions, Writer} from '../interfaces';
 
-export class DeleteWriter<TSchema extends Document> implements Writer<DeleteModel<TSchema>> {
+export class DeleteWriter<TSchema extends Document> extends Writer<TSchema, DeleteModel<TSchema>> {
   public constructor(
-    public readonly driver: CollectionDriver<TSchema>,
+    driver: CollectionDriver<TSchema>,
     private single: boolean,
-  ) {}
+  ) { super(driver); }
 
   public async execute({filter}: DeleteModel<TSchema>, eventCb?: (change: ChangeStreamDocument) => void): Promise<Partial<BulkWriteResult>> {
     const options: QueryOptions = {

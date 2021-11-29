@@ -1,16 +1,16 @@
+import ObjectID from 'bson-objectid';
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
 import {ChangeStreamDocument} from '../changeStream';
-import {BulkWriteResult, Document, UpdateFilter, UpdateModel, Writer} from '../interfaces';
-import {ReplaceOneWriter} from './replace';
+import {BulkWriteResult, Document, CollectionDriver, UpdateFilter, UpdateModel, Writer} from '../interfaces';
 
-export class UpdateWriter<TSchema extends Document> implements Writer<UpdateModel<TSchema>> {
+export class UpdateWriter<TSchema extends Document> extends Writer<TSchema, UpdateModel<TSchema>> {
   public constructor(
-    protected replaceOne: ReplaceOneWriter<TSchema>,
-    protected single: boolean,
-  ) {}
+    driver: CollectionDriver<TSchema>,
+    private single: boolean,
+  ) { super(driver); }
 
   public async execute(
-    {filter, update, upsert}: UpdateModel<TSchema>,
+    {filter, update}: UpdateModel<TSchema>,
     eventCb: (change: ChangeStreamDocument) => void,
   ) {
     const input = await this.driver.find(filter, this.single ? {limit: 1} : {}).toArray();
@@ -18,12 +18,18 @@ export class UpdateWriter<TSchema extends Document> implements Writer<UpdateMode
       matchedCount: input.length,
       modifiedCount: input.length, // TODO: Not necessarily true
     }
-    for (const replacement of this.updateDocuments(input, update)) {
-      await this.replaceOne.execute({
-        filter: {_id: replacement._id},
-        replacement,
-        upsert
-      }, change => eventCb({...change, operationType: 'update'}));
+    const output = this.updateDocuments(input, update);
+    for (let i=0; i<input.length; i++) {
+      await this.driver.replace(input[i], output[i]);
+      if (eventCb) {
+        eventCb({
+          _id: new ObjectID(),
+          operationType: 'update',
+          ns: this.driver.ns,
+          documentKey: output[i]._id,
+          fullDocument: output[i],
+        })
+      }
     }
     return result;
   }
@@ -34,6 +40,4 @@ export class UpdateWriter<TSchema extends Document> implements Writer<UpdateMode
     }, [] as Document[]);
     return new MingoAggregator(pipeline).run(input) as TSchema[];
   }
-
-  protected get driver() { return this.replaceOne.driver }
 }

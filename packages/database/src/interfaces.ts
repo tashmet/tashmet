@@ -632,8 +632,14 @@ export interface BulkWriteResult {
   upsertedIds: { [key: number]: any };
   insertedIds: { [key: number]: any };
 }
-export interface Writer<TModel> {
-  execute(model: TModel, eventCb?: (change: ChangeStreamDocument) => void): Promise<Partial<BulkWriteResult>>;
+
+export abstract class Writer<TSchema, TModel> {
+  public constructor(protected driver: CollectionDriver<TSchema>) {}
+
+  public abstract execute(
+    model: TModel,
+    eventCb?: (change: ChangeStreamDocument) => void
+  ): Promise<Partial<BulkWriteResult>>;
 }
 
 export interface CollectionDriver<TSchema extends Document> {
