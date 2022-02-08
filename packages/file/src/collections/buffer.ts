@@ -1,10 +1,12 @@
 import {
   Collection,
+  CollectionChangeAction,
   Document,
+  Middleware,
   withMiddleware,
-  changeObserver,
+  mutationSideEffect,
+  locked,
   DatabaseChange,
-  Middleware
 } from '@tashmit/database';
 
 export type BufferWrite = (change: DatabaseChange) => Promise<void>;
@@ -12,7 +14,57 @@ export type BufferWrite = (change: DatabaseChange) => Promise<void>;
 export function buffer<TSchema extends Document>(
   cache: Collection<TSchema>, lock: Promise<void>, write: BufferWrite
 ) {
-  return withMiddleware<TSchema>(cache, [locked(lock), writer(write)]);
+  return withMiddleware<TSchema>(cache, [locked([lock]), writer(write)]);
+}
+
+export function changeObserver<T>(handler: (change: DatabaseChange) => Promise<void>) {
+  return (collection: Collection<T>) => {
+    const handle = (action: CollectionChangeAction, data: any[]) =>
+      handler({action, data, collection});
+
+    return {
+      insertOne: mutationSideEffect(async (result, doc) => {
+        if (result.insertedId !== undefined) {
+          await handle('insert', [doc]);
+        }
+      }),
+      insertMany: mutationSideEffect(async (result, docs) => {
+        if (result.insertedCount > 0) {
+          await handle('insert', docs);
+        }
+      }),
+      deleteOne: next => async filter => {
+        const match = await collection.findOne(filter);
+        const result = await next(filter);
+        if (result.deletedCount > 0) {
+          await handle('delete', [match]);
+        }
+        return result;
+      },
+      deleteMany: next => async filter => {
+        const matching = await collection.find(filter).toArray();
+        const result = await next(filter);
+        if (result.deletedCount > 0) {
+          await handle('delete', matching);
+        }
+        return result;
+      },
+      replaceOne: next => async (filter, doc, options) => {
+        const original = await collection.findOne(filter);
+        const result = await next(filter, doc, options);
+        if (result.modifiedCount === 0 && result.upsertedCount === 0) {
+          return result;
+        }
+        const replacement = await collection.findOne({_id: result.upsertedId || (original as any)._id})
+        if (result.upsertedCount > 0) {
+          await handle('insert', [replacement]);
+        } else if(original) {
+          await handle('replace', [original, replacement]);
+        }
+        return result;
+      }
+    } as Middleware;
+  }
 }
 
 export const writer = <TSchema>(write: BufferWrite) => changeObserver<TSchema>(async change => {
@@ -33,31 +85,3 @@ export const writer = <TSchema>(write: BufferWrite) => changeObserver<TSchema>(a
   }
 });
 
-export const locked = (lock: Promise<any>) => () => {
-  const handler = (next: (...args: any[]) => Promise<any>) => async (...args: any[]) => {
-    await lock;
-    return next(...args);
-  }
-
-  return {
-    aggregate: handler,
-    insertOne: handler,
-    insertMany: handler,
-    deleteOne: handler,
-    deleteMany: handler,
-    replaceOne: handler,
-    findOne: handler,
-    find: next => (filter, options) => new Proxy(next(filter, options), {
-      get: (target, propKey) => {
-        if (['toArray', 'next', 'foreach'].includes(propKey.toString())) {
-          return async (...args: any[]) => {
-            await lock;
-            return (target as any)[propKey].apply(target, args)
-          }
-        } else {
-          return (...args: any[]) => (target as any)[propKey].apply(target, args);
-        }
-      },
-    })
-  } as Middleware;
-}
