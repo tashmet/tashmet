@@ -1,11 +1,10 @@
 import {Document, Middleware} from '../interfaces';
-import {changeObserver} from './changeObserver';
 import {Collection} from '../collection';
 
-export {changeObserver};
 export {logging} from './logging';
 export * from './mutation';
 export * from './validation';
+export * from './locking';
 
 const middlewareMethods = new Set<string | symbol | number>([
   'insertOne',
@@ -41,13 +40,3 @@ export function withMiddleware<TSchema extends Document = Document, T extends Co
     }
   }), rest);
 }
-
-export const autoEvent = () => changeObserver<any>(async change => {
-  //change.collection.emit('change', change);
-});
-
-/*
-export function withAutoEvent<T, TSchema>(collection: Collection<T>) {
-  return withMiddleware<T>(collection, [autoEvent()]);
-}
-*/

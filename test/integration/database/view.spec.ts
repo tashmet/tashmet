@@ -6,6 +6,7 @@ import 'mocha';
 import Tashmit, {Database} from '../../../packages/tashmit'
 import operators from '../../../packages/operators/system';
 
+
 chai.use(chaiAsPromised);
 
 describe('view', () => {
@@ -38,7 +39,7 @@ describe('view', () => {
   let totals = database.collection('totals');
 
   afterEach(async () => {
-    totals.removeAllListeners();
+    // totals.removeAllListeners();
   });
 
   it('should initially have correct documents', () => {
@@ -67,8 +68,9 @@ describe('view', () => {
   it('should remove no longer existing documents', async () => {
     await sales.deleteMany({item: 'abc'});
 
-    return expect(totals.find().toArray())
-      .to.eventually.eql([
+    const result = await totals.find().toArray();
+
+    return expect(result).to.eql([
         {_id : 'xyz', 'totalSaleAmount': 150},
         {_id : 'def', 'totalSaleAmount': 112.5},
       ]);
@@ -80,7 +82,7 @@ describe('view', () => {
     return expect(totals.findOne({_id: 'ghi'}))
       .to.eventually.eql({_id : 'ghi', 'totalSaleAmount': 200});
   });
-
+  /*
   it('should emit insert change event', (done) => {
     totals.on('change', ({action, data}) => {
       expect(action).to.eql('insert');
@@ -140,4 +142,5 @@ describe('view', () => {
         .to.eventually.throw();
     });
   });
+  */
 });

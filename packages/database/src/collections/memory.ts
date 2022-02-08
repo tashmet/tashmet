@@ -18,6 +18,8 @@ import {applyQueryOptions, sortingMap} from '../cursor';
 import {idSet} from '../util';
 import {aggregate} from '../aggregation';
 import {BulkWriteOperationFactory} from '../operations/bulk';
+import {withMiddleware} from '..';
+import {locked} from '../middleware/locking';
 
 export interface MemoryCollectionConfig<T = any> {
   /**
@@ -25,10 +27,7 @@ export interface MemoryCollectionConfig<T = any> {
    *
    * If not provided an empty list will be created.
    */
-  documents?: T[];
-
-  /** If set to true, no events will be emitted when operations are run on the collection. */
-  disableEvents?: boolean;
+  documents?: OptionalId<T>[] | Promise<OptionalId<T>[]>;
 }
 
 export class MemoryCollectionCursor<T> implements Cursor<T> {
@@ -121,13 +120,23 @@ export class MemoryDriver<TSchema extends Document> implements CollectionDriver<
 
 
 export function memory<T extends Document = Document>(config: MemoryCollectionConfig<T> = {}): CollectionFactory<T> {
+  const documents = config.documents || [];
+  const isLocked = documents instanceof Promise;
+
   return Factory.of(({name, database}) => {
-    const driver = new MemoryDriver<T>({db: 'tashmit', coll: name}, config.documents || []);
-    return new Collection(
+    const driver = new MemoryDriver<T>({db: 'tashmit', coll: name}, isLocked || !documents ? [] : documents as T[]);
+
+    const collection = new Collection<T>(
       name,
       BulkWriteOperationFactory.fromDriver(driver),
       driver,
       pipeline => aggregate(pipeline, driver.documents, database)
     );
+
+    if (isLocked) {
+      const populate = async () => collection.insertMany(await documents);
+      return withMiddleware<T>(collection, [locked([populate()])]);
+    }
+    return collection;
   });
 }

@@ -10,6 +10,7 @@ import {
   Database,
   Middleware,
   MiddlewareFactory,
+  OptionalId,
   ValidatorFactory,
 } from './interfaces';
 import {Collection} from './collection';
@@ -66,7 +67,7 @@ export class DatabaseService extends Database {
     }
     return source instanceof Factory
       ? {source}
-      : Array.isArray(source) ? {source: memory({documents: source})} : source;
+      : Array.isArray(source) ? {source: memory({documents: source as OptionalId<T>[]})} : source;
   }
 
   private createManagedCollection<T = any>(

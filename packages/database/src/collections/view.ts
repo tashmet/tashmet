@@ -1,88 +1,32 @@
 import {Factory} from '@tashmit/core';
 import {withMiddleware} from '../middleware';
-import {MemoryCollectionCursor} from './memory';
-import {
-  AggregationPipeline,
-  CollectionFactory,
-  Cursor,
-  Database,
-  Filter,
-  QueryOptions,
-  ViewCollectionConfig
-} from '../interfaces';
-import {Collection} from '../collection';
-import {readOnly} from '../middleware/mutation';
-import {AbstractCursor} from '../cursor';
+import {CollectionFactory, ViewCollectionConfig} from '../interfaces';
+import {locked, readOnly} from '../middleware';
 import {ChangeSet} from '../util';
+import {ChangeStreamDocument, memory, OptionalId} from '..';
 
 
-class ViewCursor<T> extends AbstractCursor<T> {
-  constructor(
-    private getDocuments: Promise<T[]>,
-    filter: Filter<any> = {},
-    options: QueryOptions = {},
-  ) {
-    super(filter, options);
-  }
-
-  public async toArray(): Promise<T[]> {
-    return this.createCursor().then(c => c.toArray());
-  }
-
-  public async count(applySkipLimit?: boolean): Promise<number> {
-    return this.createCursor().then(c => c.count(applySkipLimit));
-  }
-
-  private async createCursor() {
-    return new MemoryCollectionCursor(await this.getDocuments, this.filter, this.options);
-  }
-}
-
-
-/*
-class ViewCollection<T> extends MemoryCollection<T> {
-  private getDocuments: Promise<T[]>;
-
-  public constructor(
-    name: string,
-    database: Database,
-    protected viewOf: Collection<any>,
-    protected pipeline: AggregationPipeline,
-  ) {
-    super(name, database);
-    this.getDocuments = this.sync();
-    viewOf.on('change', () => {
-      this.getDocuments = this.sync()
-    });
-  }
-
-  public async aggregate<U>(pipeline: AggregationPipeline): Promise<U[]> {
-    await this.sync();
-    return super.aggregate(pipeline);
-  }
-
-  public find(filter: Filter<T> = {}, options: QueryOptions<T> = {}): Cursor<T> {
-    return new ViewCursor<T>(this.getDocuments, filter, options);
-  }
-
-  private async sync() {
-    const result = await this.viewOf.aggregate<T>(this.pipeline);
-    for (const change of ChangeSet.fromDiff(this.documents, result).toChanges(this)) {
-      this.emit('change', change);
-    }
-    return this.documents = result;
-  }
-}
-*/
 export function view<T = any>(config: ViewCollectionConfig): CollectionFactory<T> {
-  return Factory.of(({name, database}) => {
-    /*
-    const collection = new ViewCollection<T>(
-      name, database, database.collection(config.viewOf), config.pipeline
+  return Factory.of(({name, database, container}) => {
+    const viewOf = database.collection(config.viewOf);
+    const collection = memory<T>().resolve(container)({name, database});
+    const cs = viewOf.watch();
+    const populate = async () => collection.insertMany(
+      await viewOf.aggregate<OptionalId<T>>(config.pipeline)
     );
+    const locks: Promise<any>[] = [populate()];
 
-    return withMiddleware<T>(collection, [readOnly]);
-    */
-   throw Error('view not available');
+    const handleChange = async (change: ChangeStreamDocument<any>) => {
+      const newDocs = await viewOf.aggregate<T>(config.pipeline);
+      const oldDocs = await collection.find({}).toArray();
+
+      const changeSet = ChangeSet.fromDiff(oldDocs, newDocs);
+      await changeSet.applyTo(collection);
+    }
+
+    cs.on('change', async change => {
+      locks.push(handleChange(change));
+    });
+    return withMiddleware<T>(collection, [readOnly, locked(locks)]);
   });
 }
