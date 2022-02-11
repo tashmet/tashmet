@@ -17,8 +17,7 @@ import {Collection} from '../collection';
 import {applyQueryOptions, sortingMap} from '../cursor';
 import {idSet} from '../util';
 import {aggregate} from '../aggregation';
-import {BulkWriteOperationFactory} from '../operations/bulk';
-import {withMiddleware} from '..';
+import {Database, withMiddleware} from '..';
 import {locked} from '../middleware/locking';
 
 export interface MemoryCollectionConfig<T = any> {
@@ -84,6 +83,7 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
 export class MemoryDriver<TSchema extends Document> implements CollectionDriver<TSchema> {
   public constructor(
     public readonly ns: { db: string; coll: string },
+    public readonly database: Database,
     public documents: TSchema[]
   ) {}
 
@@ -116,6 +116,10 @@ export class MemoryDriver<TSchema extends Document> implements CollectionDriver<
   public find(filter: Filter<TSchema>, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
     return new MemoryCollectionCursor<TSchema>(this.documents, filter, options);
   }
+
+  public aggregate<T>(pipeline: Document[]): Promise<T[]> {
+    return aggregate(pipeline, this.documents, this.database);
+  }
 }
 
 
@@ -124,14 +128,9 @@ export function memory<T extends Document = Document>(config: MemoryCollectionCo
   const isLocked = documents instanceof Promise;
 
   return Factory.of(({name, database}) => {
-    const driver = new MemoryDriver<T>({db: 'tashmit', coll: name}, isLocked || !documents ? [] : documents as T[]);
+    const driver = new MemoryDriver<T>({db: 'tashmit', coll: name}, database, isLocked || !documents ? [] : documents as T[]);
 
-    const collection = new Collection<T>(
-      name,
-      BulkWriteOperationFactory.fromDriver(driver),
-      driver,
-      pipeline => aggregate(pipeline, driver.documents, database)
-    );
+    const collection = new Collection<T>(name, driver);
 
     if (isLocked) {
       const populate = async () => collection.insertMany(await documents);

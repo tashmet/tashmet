@@ -9,8 +9,8 @@ export function idSet(collection: any[]) {
 
 export class ChangeSet<T extends Document> {
   public constructor(
-    public readonly incoming: T[],
-    public readonly outgoing: T[],
+    public readonly incoming: T[] = [],
+    public readonly outgoing: T[] = [],
   ) {}
 
   /**

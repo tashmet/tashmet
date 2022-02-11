@@ -1,9 +1,8 @@
-import {EventEmitter} from 'eventemitter3';
 import ObjectId from 'bson-objectid';
 import {Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 import {Collection} from './collection';
-import { ChangeStreamDocument } from './changeStream';
+import {ChangeStreamDocument} from './changeStream';
 
 export type Document = Record<string, any>;
 
@@ -135,8 +134,6 @@ export type Projection<T> = {
 } &
   Partial<Record<string, 0 | 1 | boolean>>;
 
-export type AggregationPipeline = Record<string, any>[];
-
 export interface Cursor<T> {
   /**
    * Sets the sort order of the cursor query.
@@ -238,7 +235,7 @@ export type MiddlewareHook<T> = (next: T) => T;
 export type DatabaseChangeEvent<T> = (change: DatabaseChange<T>) => Promise<void>;
 export type DatabaseErrorEvent = (error: DatabaseError) => Promise<void>;
 
-export type Aggregate<T> = (pipeline: AggregationPipeline) => Promise<T[]>;
+export type Aggregate<T> = (pipeline: Document[]) => Promise<T[]>;
 export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
 export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
 export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
@@ -299,7 +296,7 @@ export interface ViewCollectionConfig extends Pick<CollectionConfig, 'use' | 'us
   viewOf: string;
 
   /** The aggregation pipeline */
-  pipeline: AggregationPipeline;
+  pipeline: Document[];
 }
 
 export type CollectionSource<T> = CollectionFactory<T> | CollectionConfig | ViewCollectionConfig | T[];
@@ -383,7 +380,7 @@ export interface CollectionContext {
 export type CollectionFactory<T = any> = Factory<Collection<T>, CollectionContext>;
 
 export abstract class Aggregator<T = any> {
-  abstract get pipeline(): AggregationPipeline;
+  abstract get pipeline(): Document[];
 
   public execute(collection: Collection): Promise<T[]> {
     return collection.aggregate<T>(this.pipeline);
@@ -654,4 +651,6 @@ export interface CollectionDriver<TSchema extends Document> {
   findOne: FindOne<TSchema>;
 
   find: Find<TSchema>;
+
+  aggregate<T>(pipeline: Document[]): Promise<T[]>;
 }

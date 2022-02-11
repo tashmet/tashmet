@@ -22,15 +22,20 @@ import {BulkWriteOperationFactory} from "./operations/bulk";
 /**
  * A collection of documents.
  */
-export class Collection<T extends Document = any> {
+export class Collection<TSchema extends Document = any> {
   private changeStreams: ChangeStream[] = [];
+  private writeOpFactory: BulkWriteOperationFactory<TSchema>;
 
   public constructor(
     public readonly name: string,
-    private writeOpFactory: BulkWriteOperationFactory<T>,
-    private driver: CollectionDriver<T>,
-    public aggregate: <U>(pipeline: Document[]) => Promise<U[]>
-  ) {}
+    private driver: CollectionDriver<TSchema>,
+  ) {
+    this.writeOpFactory = BulkWriteOperationFactory.fromDriver(driver);
+  }
+
+  public aggregate<T>(pipeline: Document[]): Promise<T[]> {
+    return this.driver.aggregate(pipeline);
+  }
 
   /**
    * Find documents in the collection.
@@ -38,7 +43,7 @@ export class Collection<T extends Document = any> {
    * @param filter The filter which documents are matched against.
    * @returns A cursor.
    */
-  public find(filter: Filter<T> = {}, options: QueryOptions<T> = {}): Cursor<T> {
+  public find(filter: Filter<TSchema> = {}, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
     return this.driver.find(filter, options);
   }
 
@@ -48,7 +53,7 @@ export class Collection<T extends Document = any> {
    * @param selector The selector which documents are matched against.
    * @returns A promise for the first matching document if one was found, null otherwise
    */
-  public findOne(filter: Filter<T>): Promise<T | null> {
+  public findOne(filter: Filter<TSchema>): Promise<TSchema | null> {
     return this.driver.findOne(filter);
   }
 
@@ -60,7 +65,7 @@ export class Collection<T extends Document = any> {
    * @param document The document to insert.
    * @throws Error if a document with the same ID already exists
    */
-  public async insertOne(document: OptionalId<T>): Promise<InsertOneResult> {
+  public async insertOne(document: OptionalId<TSchema>): Promise<InsertOneResult> {
     const {insertedIds} = await this.bulkWrite([{insertOne: {document}}]);
     return {acknowledged: true, insertedId: insertedIds[0]};
   }
@@ -74,7 +79,7 @@ export class Collection<T extends Document = any> {
    * @param documents The documents to insert
    * @throws Error if a document with the same ID already exists
    */
-  public async insertMany(documents: OptionalId<T>[]): Promise<InsertManyResult> {
+  public async insertMany(documents: OptionalId<TSchema>[]): Promise<InsertManyResult> {
     const {insertedCount, insertedIds} = await this.bulkWrite(
       documents.map(document => ({insertOne: {document}}))
     );
@@ -86,7 +91,7 @@ export class Collection<T extends Document = any> {
    *
    * @param filter The Filter used to select the document to remove
    */
-  public async deleteOne(filter: Filter<T>): Promise<DeleteResult> {
+  public async deleteOne(filter: Filter<TSchema>): Promise<DeleteResult> {
     const {deletedCount} = await this.bulkWrite([{deleteOne: {filter}}]);
     return {acknowledged: true, deletedCount}
   }
@@ -96,7 +101,7 @@ export class Collection<T extends Document = any> {
    *
    * @param filter The Filter used to select the documents to remove
    */
-  public async deleteMany(filter: Filter<T>): Promise<DeleteResult> {
+  public async deleteMany(filter: Filter<TSchema>): Promise<DeleteResult> {
     const {deletedCount} = await this.bulkWrite([{deleteMany: {filter}}]);
     return {acknowledged: true, deletedCount}
   }
@@ -109,7 +114,7 @@ export class Collection<T extends Document = any> {
    * @param options - Optional settings for the command
    */
   public async replaceOne(
-    filter: Filter<T>, replacement: T, options?: ReplaceOneOptions
+    filter: Filter<TSchema>, replacement: TSchema, options?: ReplaceOneOptions
   ): Promise<UpdateResult> {
     return this.updateResult(await this.bulkWrite([
       {replaceOne: {filter, replacement, upsert: options?.upsert}}
@@ -122,7 +127,7 @@ export class Collection<T extends Document = any> {
    * @param filter - The filter used to select the document to update
    * @param update - The update operations to be applied to the document
    */
-  public async updateOne(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
+  public async updateOne(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
     return this.updateResult(await this.bulkWrite([
       {updateOne: {filter, update}}
     ]));
@@ -134,7 +139,7 @@ export class Collection<T extends Document = any> {
    * @param filter - The filter used to select the documents to update
    * @param update - The update operations to be applied to the documents
    */
-  public async updateMany(filter: Filter<T>, update: UpdateFilter<T>): Promise<UpdateResult> {
+  public async updateMany(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
     return this.updateResult(await this.bulkWrite([
       {updateMany: {filter, update}}
     ]));
@@ -163,7 +168,7 @@ export class Collection<T extends Document = any> {
    *
    * @param operations - Bulk operations to perform
    */
-  public async bulkWrite(operations: AnyBulkWriteOperation<T>[]): Promise<BulkWriteResult> {
+  public async bulkWrite(operations: AnyBulkWriteOperation<TSchema>[]): Promise<BulkWriteResult> {
     return this.writeOpFactory.createOperation(operations, this.changeStreams).execute();
   }
 
@@ -173,11 +178,11 @@ export class Collection<T extends Document = any> {
    * @param key - Field of the document to find distinct values for
    * @param filter - The filter for filtering the set of documents to which we apply the distinct filter.
    */
-  public async distinct<Key extends keyof WithId<T>>(
+  public async distinct<Key extends keyof WithId<TSchema>>(
     key: Key | string,
-    filter: Filter<T> = {}
-  ): Promise<Array<Flatten<WithId<T>[Key]>>> {
-    return this.aggregate<WithId<any>>([
+    filter: Filter<TSchema> = {}
+  ): Promise<Array<Flatten<WithId<TSchema>[Key]>>> {
+    return this.driver.aggregate<WithId<any>>([
       {$match: filter},
       {$group: {_id: `$${key}`}}
     ]).then(docs => docs.map(doc => doc._id));
@@ -189,7 +194,7 @@ export class Collection<T extends Document = any> {
    * @param pipeline - An array of {@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/|aggregation pipeline stages} through which to pass change stream documents. This allows for filtering (using $match) and manipulating the change stream documents.
    * @param options - Optional settings for the command
    */
-  public watch<TLocal = T>(pipeline: Document[] = []): ChangeStream<TLocal> {
+  public watch<TLocal = TSchema>(pipeline: Document[] = []): ChangeStream<TLocal> {
     const cs = new ChangeStream<TLocal>(pipeline, cs => {
       this.changeStreams.splice(this.changeStreams.indexOf(cs), 1);
     });

@@ -1,8 +1,6 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
-import {
-  Aggregator, AggregationPipeline, Database, Filter, QueryOptions
-} from './interfaces';
-import { Collection } from './collection';
+import {Aggregator, Database, Document, Filter, QueryOptions} from './interfaces';
+import {Collection} from './collection';
 
 export class QueryAggregator<T> extends Aggregator<T> {
   public constructor(
@@ -10,7 +8,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
     public options: QueryOptions<T>,
   ) { super(); }
 
-  public static fromPipeline<T = any>(pipeline: AggregationPipeline, strict: boolean = false) {
+  public static fromPipeline<T = any>(pipeline: Document[], strict: boolean = false) {
     let filter: Filter<T> = {};
     let options: QueryOptions<T> = {};
 
@@ -50,7 +48,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
     return new QueryAggregator<T>(filter, options);
   }
 
-  public get pipeline(): AggregationPipeline {
+  public get pipeline(): Document[] {
     const {skip, limit, sort, projection} = this.options;
 
     return [
@@ -68,7 +66,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
 }
 
 export async function aggregate<U>(
-  pipeline: AggregationPipeline, collection: any[], database: Database): Promise<U[]>
+  pipeline: Document[], collection: any[], database: Database): Promise<U[]>
 {
   for (const step of pipeline) {
     for (const op of Object.keys(step)) {
