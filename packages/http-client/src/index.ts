@@ -1,6 +1,5 @@
 import {Container, Factory, Logger, Plugin, Provider} from '@tashmit/core';
 import {CachingLayer, Collection, CollectionFactory, withMiddleware} from '@tashmit/database';
-import {BulkWriteOperationFactory} from '@tashmit/database/dist/operations/bulk';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {HttpDriver} from './driver';
 import {HttpRestLayer} from './common';
@@ -34,7 +33,7 @@ export default class HttpClient extends Plugin {
    * @returns An HTTP database collection
    */
   public static collection<T = any>(configOrPath: HttpCollectionConfig | string): CollectionFactory<T> {
-    return Factory.of(({name, database, container}) => {
+    return Factory.of(({name, container}) => {
       const config: HttpCollectionConfig = typeof configOrPath === 'string'
         ? {path: configOrPath}
         : configOrPath;
@@ -63,22 +62,7 @@ export default class HttpClient extends Plugin {
       const driver = new HttpDriver<T>(
         {db: 'tashmit', coll: name}, new HttpRestLayer(path, loggedFetch), querySerializer
       );
-      let collection: Collection<T> = new Collection<T>(
-        name,
-        BulkWriteOperationFactory.fromDriver(driver),
-        driver,
-        pipeline => {
-          throw Error('Not implemented yet');
-          /*
-          try {
-            return QueryAggregator.fromPipeline<T>(pipeline, true).execute(this) as any;
-          } catch (error) {
-            const input = await QueryAggregator.fromPipeline<T>(pipeline).execute(this);
-            return aggregate<U>(pipeline, input, this.database);
-          }
-          */
-        }
-      );
+      let collection: Collection<T> = new Collection<T>(driver);
 
       try {
         const cachingLayer = container.resolve(CachingLayer);

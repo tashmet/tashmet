@@ -4,33 +4,31 @@ import {
   Filter,
   QueryOptions,
   Document,
-  OptionalId,
+  ChangeSet,
 } from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {HttpCollectionCursor} from './cursor';
 import {HttpRestLayer} from './common';
 
-export class HttpDriver<TSchema extends Document> implements CollectionDriver<TSchema> {
+export class HttpDriver<TSchema extends Document> extends CollectionDriver<TSchema> {
   public constructor(
-    public readonly ns: { db: string; coll: string },
+    ns: { db: string; coll: string },
     public restLayer: HttpRestLayer,
     private querySerializer: QuerySerializer,
-  ) {}
+  ) { super(ns); }
 
-  public async insert(document: OptionalId<TSchema>) {
-    const result = await this.restLayer.post(document);
-    Object.assign(document, {_id: result.insertedId});
-    return result;
-  }
-
-  public async delete(matched: TSchema[]) {
-    for (const doc of matched) {
+  public async write(cs: ChangeSet<TSchema>) {
+    for (const doc of cs.deletions) {
       await this.restLayer.delete(doc._id);
     }
-  }
-
-  public async replace(old: TSchema, replacement: TSchema) {
-    await this.restLayer.put(Object.assign({_id: old._id}, replacement), old._id);
+    for (const doc of cs.insertions) {
+      const result = await this.restLayer.post(doc);
+      Object.assign(doc, {_id: result.insertedId});
+      return result;
+    }
+    for (const doc of cs.replacements) {
+      await this.restLayer.put(doc, doc._id);
+    }
   }
 
   public async findOne(filter: Filter<TSchema>): Promise<TSchema | null> {
@@ -41,5 +39,17 @@ export class HttpDriver<TSchema extends Document> implements CollectionDriver<TS
     return new HttpCollectionCursor<TSchema>(
       this.restLayer, this.querySerializer, filter, options
     );
+  }
+
+  public aggregate<T>(pipeline: Document[]): Promise<T[]> {
+    throw Error('Not implemented yet');
+    /*
+    try {
+      return QueryAggregator.fromPipeline<T>(pipeline, true).execute(this) as any;
+    } catch (error) {
+      const input = await QueryAggregator.fromPipeline<T>(pipeline).execute(this);
+      return aggregate<U>(pipeline, input, this.database);
+    }
+    */
   }
 }
