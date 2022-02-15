@@ -6,7 +6,7 @@ import 'mocha';
 import Tashmit, {Database, LogLevel} from '../../packages/tashmit/dist'
 import HttpClient from '../../packages/http-client/dist';
 import Caching from '../../packages/caching/dist';
-import {socket} from '../../packages/socket/dist';
+// import {socket} from '../../packages/socket/dist';
 import operators from '../../packages/operators/system';
 import fetch from 'isomorphic-fetch';
 
@@ -19,7 +19,7 @@ describe('rest', () => {
     .provide(
       new HttpClient({
         fetch,
-        emitter: socket(),
+        //emitter: socket(),
       }),
       new Caching({}),
     )
@@ -38,7 +38,7 @@ describe('rest', () => {
   });
 
   afterEach(async () => {
-    col.removeAllListeners();
+    // col.removeAllListeners();
     await col.deleteMany({});
   });
 
@@ -55,6 +55,7 @@ describe('rest', () => {
         {_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       )).to.eventually.be.rejected;
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('insert');
@@ -66,6 +67,7 @@ describe('rest', () => {
         {_id: '6', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
     });
+    */
   });
 
   describe('insertMany', () => {
@@ -83,6 +85,7 @@ describe('rest', () => {
         {_id: '1', item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
+    /*
     it('should emit a change event for each document', async () => {
       const docs: any[] = [];
       col.on('change', ({data}) => {
@@ -94,6 +97,7 @@ describe('rest', () => {
       ]);
       return expect(docs.length).to.eql(2);
     });
+    */
   });
 
   describe('replaceOne', () => {
@@ -135,6 +139,7 @@ describe('rest', () => {
       expect(result.upsertedCount).to.eql(1);
       expect(result.upsertedId).to.not.eql(undefined);
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('replace');
@@ -146,6 +151,7 @@ describe('rest', () => {
         {_id: '1'}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
     });
+    */
   });
 
   describe('count', () => {
@@ -248,6 +254,7 @@ describe('rest', () => {
       await col.deleteOne({_id: '1'});
       return expect(col.findOne({_id: '1'})).to.eventually.be.null;
     });
+    /*
     it('should emit a change event if a document was removed', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -257,6 +264,7 @@ describe('rest', () => {
       });
       col.deleteOne({_id: '1'});
     });
+    */
   });
 
   describe('deleteMany', () => {
@@ -276,6 +284,7 @@ describe('rest', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
     });
+    /*
     it('should emit a change event for each removed document', async () => {
       const docs: any[] = [];
       col.on('change', ({data}) => {
@@ -284,5 +293,6 @@ describe('rest', () => {
       const res = await col.deleteMany({'item.category': 'cookies'});
       return expect(res.deletedCount).to.eql(docs.length);
     });
+    */
   });
 });

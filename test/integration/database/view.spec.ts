@@ -71,9 +71,9 @@ describe('view', () => {
     const result = await totals.find().toArray();
 
     return expect(result).to.eql([
-        {_id : 'xyz', 'totalSaleAmount': 150},
-        {_id : 'def', 'totalSaleAmount': 112.5},
-      ]);
+      {_id : 'xyz', 'totalSaleAmount': 150},
+      {_id : 'def', 'totalSaleAmount': 112.5},
+    ]);
   });
 
   it('should add new documents', async () => {

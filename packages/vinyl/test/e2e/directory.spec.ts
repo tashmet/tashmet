@@ -20,7 +20,7 @@ function storedFiles(): string[] {
   return fs.readdirSync('test/e2e/testCollection');
 }
 
-describe.only('directory', () => {
+describe('directory', () => {
   const database = Tashmit
     .withConfiguration({operators})
     .collection('test', directoryContent({
@@ -44,7 +44,7 @@ describe.only('directory', () => {
   });
 
   afterEach(async () => {
-    col.removeAllListeners();
+    //col.removeAllListeners();
     await col.deleteMany({});
   });
 
@@ -68,6 +68,7 @@ describe.only('directory', () => {
       expect(storedDoc(1))
         .to.eql({item: { category: 'cake', type: 'chiffon' }, amount: 10 });
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('insert');
@@ -79,6 +80,7 @@ describe.only('directory', () => {
         {_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
     });
+    */
   });
 
   describe('insertMany', () => {
@@ -99,6 +101,7 @@ describe.only('directory', () => {
         {_id: 1, item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('insert');
@@ -110,6 +113,7 @@ describe.only('directory', () => {
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
     });
+    */
   });
 
   describe('replaceOne', () => {
@@ -152,6 +156,7 @@ describe.only('directory', () => {
       expect(result.upsertedId).to.not.eql(undefined);
       expect(storedDoc(result.upsertedId as any)).to.eql({ amount: 20 });
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('replace');
@@ -163,6 +168,7 @@ describe.only('directory', () => {
         {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
     });
+    */
   });
 
   describe('count', () => {
@@ -244,6 +250,7 @@ describe.only('directory', () => {
       expect(storedFiles().length).to.eql(storedCount - 1);
       expect(storedFiles()).to.not.contain('1.json');
     });
+    /*
     it('should emit a change event if a document was removed', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -253,6 +260,7 @@ describe.only('directory', () => {
       });
       col.deleteOne({_id: 1});
     });
+    */
   });
 
   describe('deleteMany', () => {
@@ -274,6 +282,7 @@ describe.only('directory', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -282,5 +291,6 @@ describe.only('directory', () => {
       });
       col.deleteMany({'item.category': 'cookies'});
     });
+    */
   });
 });

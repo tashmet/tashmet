@@ -45,7 +45,7 @@ describe('file', () => {
   });
 
   afterEach(async () => {
-    col.removeAllListeners();
+    //col.removeAllListeners();
     await col.deleteMany({});
   });
 
@@ -65,6 +65,7 @@ describe('file', () => {
       expect(storedDoc(1))
         .to.eql({item: { category: 'cake', type: 'chiffon' }, amount: 10 });
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         console.log(action);
@@ -77,6 +78,7 @@ describe('file', () => {
         {_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
     });
+    */
   });
 
   describe('insertMany', () => {
@@ -97,6 +99,7 @@ describe('file', () => {
         {_id: 1, item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('insert');
@@ -108,6 +111,7 @@ describe('file', () => {
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
     });
+    */
   });
 
   describe('replaceOne', () => {
@@ -150,6 +154,7 @@ describe('file', () => {
       expect(result.upsertedId).to.not.eql(undefined);
       expect(storedDoc(result.upsertedId as any)).to.eql({ amount: 20 });
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('replace');
@@ -161,6 +166,7 @@ describe('file', () => {
         {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
     });
+    */
   });
 
   describe('count', () => {
@@ -242,6 +248,7 @@ describe('file', () => {
       expect(storedKeys().length).to.eql(storedCount - 1);
       expect(storedKeys()).to.not.contain('1');
     });
+    /*
     it('should emit a change event if a document was removed', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -251,6 +258,7 @@ describe('file', () => {
       });
       col.deleteOne({_id: 1});
     });
+    */
   });
 
   describe('deleteMany', () => {
@@ -272,6 +280,7 @@ describe('file', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -280,5 +289,6 @@ describe('file', () => {
       });
       col.deleteMany({'item.category': 'cookies'});
     });
+    */
   });
 });
