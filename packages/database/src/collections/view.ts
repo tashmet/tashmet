@@ -2,7 +2,7 @@ import {Factory} from '@tashmit/core';
 import {withMiddleware} from '../middleware';
 import {CollectionFactory, ViewCollectionConfig} from '../interfaces';
 import {locked, readOnly} from '../middleware';
-import {ChangeSet} from '../util';
+import {ChangeSet} from '../changeSet';
 import {ChangeStreamDocument, memory, OptionalId} from '..';
 
 
@@ -20,8 +20,7 @@ export function view<T = any>(config: ViewCollectionConfig): CollectionFactory<T
       const newDocs = await viewOf.aggregate<T>(config.pipeline);
       const oldDocs = await collection.find({}).toArray();
 
-      const changeSet = ChangeSet.fromDiff(oldDocs, newDocs);
-      await changeSet.applyTo(collection);
+      await ChangeSet.fromDiff(oldDocs, newDocs).applyTo(collection);
     }
 
     cs.on('change', async change => {

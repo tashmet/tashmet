@@ -12,7 +12,7 @@ export {filterValidator} from './validator';
 export * from './changeStream';
 export * from './interfaces';
 export * from './middleware';
-export * from './util';
+export * from './changeSet';
 
 export default class DatabasePlugin extends Plugin {
   private static defaultConfig: DatabaseConfig = {

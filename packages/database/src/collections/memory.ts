@@ -15,9 +15,9 @@ import {
 } from '../interfaces';
 import {Collection} from '../collection';
 import {applyQueryOptions, sortingMap} from '../cursor';
-import {idSet} from '../util';
+import {idSet} from '../changeSet';
 import {aggregate} from '../aggregation';
-import {Database, withMiddleware} from '..';
+import {ChangeSet, Database, withMiddleware} from '..';
 import {locked} from '../middleware/locking';
 
 export interface MemoryCollectionConfig<T = any> {
@@ -80,40 +80,43 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
 }
 
 
-export class MemoryDriver<TSchema extends Document> implements CollectionDriver<TSchema> {
+export class MemoryDriver<TSchema extends Document> extends CollectionDriver<TSchema> {
   public constructor(
-    public readonly ns: { db: string; coll: string },
+    ns: { db: string; coll: string },
     public readonly database: Database,
     public documents: TSchema[]
-  ) {}
+  ) { super(ns); }
 
-  public indexOf(document: OptionalId<TSchema>) {
+  public indexOf(document: TSchema) {
     return this.documents.findIndex(o => o._id === document._id);
   }
 
-  public async insert(document: OptionalId<TSchema>) {
-    if (!document.hasOwnProperty('_id')) {
-      document._id = new ObjectID().toHexString() as any;
-    } else if (this.indexOf(document) >= 0) {
-      throw new Error('Duplicate IDs');
+  public async write(cs: ChangeSet<TSchema>) {
+    for (const document of cs.insertions) {
+      if (!document.hasOwnProperty('_id')) {
+        (document as any)._id = new ObjectID().toHexString() as any;
+      } else if (this.indexOf(document) >= 0) {
+        throw new Error('Duplicate IDs');
+      }
+      this.documents.push(document);
     }
-    this.documents.push(document as TSchema);
-  }
 
-  public async delete(matched: TSchema[]) {
-    const ids = idSet(matched);
-    this.documents = this.documents.filter(doc => !ids.has(doc._id));
-  }
+    for (const document of cs.replacements) {
+      this.documents[this.indexOf(document as any)] = {_id: document._id, ...document};
+    }
 
-  public async replace(old: TSchema, replacement: TSchema) {
-    this.documents[this.indexOf(old as any)] = {_id: old._id, ...replacement};
+    const deletions = cs.deletions;
+    if (deletions.length > 0) {
+      const ids = idSet(deletions);
+      this.documents = this.documents.filter(doc => !ids.has(doc._id));
+    }
   }
 
   public async findOne(filter: Filter<TSchema>): Promise<TSchema | null> {
     return new MingoQuery(filter).find(this.documents).next() as any || null;
   }
 
-  public find(filter: Filter<TSchema>, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
+  public find(filter: Filter<TSchema> = {}, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
     return new MemoryCollectionCursor<TSchema>(this.documents, filter, options);
   }
 
@@ -129,8 +132,7 @@ export function memory<T extends Document = Document>(config: MemoryCollectionCo
 
   return Factory.of(({name, database}) => {
     const driver = new MemoryDriver<T>({db: 'tashmit', coll: name}, database, isLocked || !documents ? [] : documents as T[]);
-
-    const collection = new Collection<T>(name, driver);
+    const collection = new Collection<T>(driver);
 
     if (isLocked) {
       const populate = async () => collection.insertMany(await documents);

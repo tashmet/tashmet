@@ -1,5 +1,4 @@
-import ObjectID from 'bson-objectid';
-import {ChangeStreamDocument} from '../changeStream';
+import {makeWriteChange, ChangeSet} from '../changeSet';
 import {BulkWriteResult, CollectionDriver, Document, DeleteModel, QueryOptions, Writer} from '../interfaces';
 
 export class DeleteWriter<TSchema extends Document> extends Writer<TSchema, DeleteModel<TSchema>> {
@@ -8,24 +7,17 @@ export class DeleteWriter<TSchema extends Document> extends Writer<TSchema, Dele
     private single: boolean,
   ) { super(driver); }
 
-  public async execute({filter}: DeleteModel<TSchema>, eventCb?: (change: ChangeStreamDocument) => void): Promise<Partial<BulkWriteResult>> {
+  public async execute({filter}: DeleteModel<TSchema>): Promise<Partial<BulkWriteResult>> {
     const options: QueryOptions = {
-      projection: {_id: 1},
+      //projection: {_id: 1},
       limit: this.single ? 1 : undefined,
     };
     const matched = await this.driver.find(filter, options).toArray();
     if (matched.length !== 0) {
-      await this.driver.delete(matched as any);
+      await this.driver.write(ChangeSet.fromDelete(matched));
 
-      if (eventCb) {
-        for (const document of matched) {
-          eventCb({
-            _id: new ObjectID(),
-            operationType: 'delete',
-            ns: this.driver.ns,
-            documentKey: document._id,
-          });
-        }
+      for (const document of matched) {
+        this.driver.emit('change', makeWriteChange('delete', document, this.driver.ns));
       }
     }
     return {deletedCount: matched.length};

@@ -27,10 +27,18 @@ export class Collection<TSchema extends Document = any> {
   private writeOpFactory: BulkWriteOperationFactory<TSchema>;
 
   public constructor(
-    public readonly name: string,
     private driver: CollectionDriver<TSchema>,
   ) {
     this.writeOpFactory = BulkWriteOperationFactory.fromDriver(driver);
+    this.driver.on('change', change => {
+      for (const changeStream of this.changeStreams) {
+        changeStream.emit('change', change);
+      }
+    });
+  }
+
+  public get name(): string {
+    return this.driver.ns.coll;
   }
 
   public aggregate<T>(pipeline: Document[]): Promise<T[]> {
@@ -169,7 +177,7 @@ export class Collection<TSchema extends Document = any> {
    * @param operations - Bulk operations to perform
    */
   public async bulkWrite(operations: AnyBulkWriteOperation<TSchema>[]): Promise<BulkWriteResult> {
-    return this.writeOpFactory.createOperation(operations, this.changeStreams).execute();
+    return this.writeOpFactory.createOperation(operations).execute();
   }
 
   /**

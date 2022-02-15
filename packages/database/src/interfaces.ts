@@ -1,8 +1,10 @@
 import ObjectId from 'bson-objectid';
+import {EventEmitter} from 'eventemitter3';
 import {Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 import {Collection} from './collection';
 import {ChangeStreamDocument} from './changeStream';
+import {ChangeSet} from './changeSet';
 
 export type Document = Record<string, any>;
 
@@ -639,18 +641,22 @@ export abstract class Writer<TSchema, TModel> {
   ): Promise<Partial<BulkWriteResult>>;
 }
 
-export interface CollectionDriver<TSchema extends Document> {
-  readonly ns: { db: string; coll: string };
+export abstract class CollectionDriver<TSchema extends Document> extends EventEmitter {
+  public constructor(
+    public readonly ns: { db: string; coll: string }
+  ) { super(); }
 
-  insert(document: OptionalId<TSchema>): Promise<void>;
+  public emitAll(cs: ChangeSet<TSchema>) {
+    for (const change of cs.toChanges(this.ns)) {
+      this.emit('change', change);
+    }
+  }
 
-  delete(matched: TSchema[]): Promise<void>
+  public abstract write(changeSet: ChangeSet<TSchema>): Promise<void>;
 
-  replace(old: TSchema, replacement: TSchema): Promise<void>
+  public abstract findOne(filter: Filter<TSchema>): Promise<TSchema | null>;
 
-  findOne: FindOne<TSchema>;
+  public abstract find(filter?: Filter<TSchema>, options?: QueryOptions<TSchema>): Cursor<TSchema>;
 
-  find: Find<TSchema>;
-
-  aggregate<T>(pipeline: Document[]): Promise<T[]>;
+  public abstract aggregate<T>(pipeline: Document[]): Promise<T[]>;
 }
