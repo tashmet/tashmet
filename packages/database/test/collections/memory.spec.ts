@@ -26,7 +26,7 @@ describe('MemoryCollection', () => {
 
   const container = new BasicContainer();
   const db = new DatabaseService(
-    new DefaultLogger(), new BasicContainer(), new SimpleValidatorFactory(), operators);
+    new DefaultLogger(), container, new SimpleValidatorFactory(), operators);
 
   const col = memory<any>().resolve(container)({database: db, name: 'test'});
 

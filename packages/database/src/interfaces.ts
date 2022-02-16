@@ -5,6 +5,7 @@ import {OperatorConfig} from '@tashmit/operators';
 import {Collection} from './collection';
 import {ChangeStreamDocument} from './changeStream';
 import {ChangeSet} from './changeSet';
+import {ChangeStreamEvents} from '.';
 
 export type Document = Record<string, any>;
 
@@ -641,10 +642,16 @@ export abstract class Writer<TSchema, TModel> {
   ): Promise<Partial<BulkWriteResult>>;
 }
 
-export abstract class CollectionDriver<TSchema extends Document> extends EventEmitter {
+export abstract class CollectionDriver<TSchema extends Document>
+  extends EventEmitter implements ChangeStreamEvents<TSchema>
+{
   public constructor(
     public readonly ns: { db: string; coll: string }
   ) { super(); }
+
+  public on(event: 'change', fn: (change: ChangeStreamDocument<TSchema>) => void): this {
+    return super.on(event, fn);
+  }
 
   public emitAll(cs: ChangeSet<TSchema>) {
     for (const change of cs.toChanges(this.ns)) {
