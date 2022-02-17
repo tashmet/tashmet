@@ -5,6 +5,7 @@ export class ReplaceOneWriter<TSchema extends Document> extends Writer<TSchema, 
   public async execute({filter, replacement, upsert}: ReplaceOneModel<TSchema>) {
     let result: Partial<BulkWriteResult> = {
       matchedCount: await this.driver.find(filter).count(),
+      modifiedCount: 0,
     };
 
     if (result.matchedCount && result.matchedCount > 0) {
