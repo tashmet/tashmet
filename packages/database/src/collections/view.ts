@@ -20,7 +20,7 @@ export function view<T = any>(config: ViewCollectionConfig): CollectionFactory<T
       const newDocs = await viewOf.aggregate<T>(config.pipeline);
       const oldDocs = await collection.find({}).toArray();
 
-      await ChangeSet.fromDiff(oldDocs, newDocs).applyTo(collection);
+      await collection.bulkWrite(ChangeSet.fromDiff(oldDocs, newDocs).toOperations());
     }
 
     cs.on('change', async change => {

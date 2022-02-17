@@ -1,8 +1,7 @@
 import ObjectID from 'bson-objectid';
 import {intersection} from 'mingo/util';
 import {Document} from './interfaces';
-import {Collection} from './collection';
-import {ChangeStreamDocument } from '.';
+import {AnyBulkWriteOperation, ChangeStreamDocument, OptionalId } from '.';
 
 
 export function idSet(collection: any[]) {
@@ -56,7 +55,15 @@ export class ChangeSet<T extends Document> {
       ...this.insertions.map(doc => makeWriteChange('insert', doc, ns)),
       ...this.deletions.map(doc => makeWriteChange('delete', doc, ns)),
       ...this.replacements.map(doc => makeWriteChange('replace', doc, ns)),
-    ]
+    ];
+  }
+
+  public toOperations(): AnyBulkWriteOperation<T>[] {
+    return [
+      ...this.insertions.map(doc => ({insertOne: {document: doc as OptionalId<T>}})),
+      ...this.deletions.map(doc => ({deleteOne: {filter: {_id: doc._id}}})),
+      ...this.replacements.map(doc => ({replaceOne: {filter: {_id: doc._id}, replacement: doc}})),
+    ];
   }
 
   public toInverse(): ChangeSet<T> {
@@ -76,21 +83,5 @@ export class ChangeSet<T extends Document> {
   public get replacements(): T[] {
     const outIds = idSet(this.outgoing);
     return this.incoming.filter(doc => outIds.has(doc._id));
-  }
-
-  async applyTo(collection: Collection) {
-    const inserted = this.insertions;
-    const deleted = this.deletions;
-    const replaced = this.replacements;
-
-    if (inserted.length > 0) {
-      await collection.insertMany(inserted);
-    }
-    if (deleted.length > 0) {
-      await collection.deleteMany({_id: {$in: deleted.map(doc => doc._id)}});
-    }
-    for (const doc of replaced) {
-      await collection.replaceOne({_id: doc._id}, doc);
-    }
   }
 }
