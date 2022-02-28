@@ -1,85 +1,44 @@
-import {Container, Factory, Logger, Plugin, Provider} from '@tashmit/core';
-import {CachingLayer, Collection, CollectionFactory, withMiddleware} from '@tashmit/database';
+import {Container, Logger, Optional, provider, Provider} from '@tashmit/core';
+import {CachingLayer, Client, Database} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
-import {HttpDriver} from './driver';
-import {HttpRestLayer} from './common';
-import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
+import {HttpClientConfig} from './interfaces';
+import {HttpDatabase} from './database';
 
 export * from './interfaces';
 export {QuerySerializer} from '@tashmit/qs-builder';
 
-export default class HttpClient extends Plugin {
+
+@provider({
+  key: HttpClient,
+  inject: [
+    HttpClientConfig,
+    Logger.inScope('http-client'),
+    Optional.of(CachingLayer),
+  ]
+})
+export default class HttpClient extends Client<Database> {
   private static defaultConfig: HttpClientConfig = {
     fetch: typeof window !== 'undefined' ? window.fetch : undefined,
     querySerializer: QuerySerializer.json(),
     headers: {},
   }
 
-  private config: HttpClientConfig;
+  public static configure(config: Partial<HttpClientConfig> = {}) {
+    return (container: Container) => {
+      container.register(Provider.ofInstance(HttpClientConfig, {...HttpClient.defaultConfig, ...config}));
+      container.register(HttpClient);
+    }
+  }
 
-  public constructor(config: Partial<HttpClientConfig> = {}) {
+  public constructor(
+    private config: HttpClientConfig,
+    private logger: Logger,
+    private cachingLayer?: CachingLayer)
+  {
     super();
-    this.config = {...HttpClient.defaultConfig, ...config};
   }
 
-  public register(container: Container) {
-    container.register(Provider.ofInstance(HttpClientConfig, this.config));
-  }
-
-  /**
-   * A factory creating an HTTP database collection.
-   *
-   * @param configOrPath A path to the API endpoint or a configuration.
-   * @returns An HTTP database collection
-   */
-  public static collection<T = any>(configOrPath: HttpCollectionConfig | string): CollectionFactory<T> {
-    return Factory.of(({name, container}) => {
-      const config: HttpCollectionConfig = typeof configOrPath === 'string'
-        ? {path: configOrPath}
-        : configOrPath;
-
-      const {path, /*emitter,*/ querySerializer, fetch} = {
-        ...container.resolve(HttpClientConfig),
-        ...config,
-      };
-
-      const logger = container.resolve(
-        Logger.inScope(`http-client.HttpCollection (${name})`)
-      );
-
-      if (!querySerializer) {
-        throw Error('No query serializer configured');
-      }
-      if (!fetch) {
-        throw Error('No fetch implementation configured');
-      }
-
-      const loggedFetch: Fetch = (input, init) => {
-        logger.info(`${init?.method || 'GET'} '${input}'`);
-        return fetch(input, init);
-      }
-
-      const driver = new HttpDriver<T>(
-        {db: 'tashmit', coll: name}, new HttpRestLayer(path, loggedFetch), querySerializer
-      );
-      let collection: Collection<T> = new Collection<T>(driver);
-
-      try {
-        const cachingLayer = container.resolve(CachingLayer);
-        collection = withMiddleware<T>(collection, [cachingLayer.create(collection)]);
-      } catch (error) {
-        logger.warn('No caching layer available');
-      }
-
-      /*
-      if (emitter) {
-        emitter(collection, path)
-          .on('change', change => collection.emit('change', change))
-          .on('error', error => collection.emit('error', error));
-        return collection;
-      }
-      */
-      return collection;
-    });
+  db(name: string): HttpDatabase {
+    return new HttpDatabase(name, this.config, this.logger, this.cachingLayer);
   }
 }
