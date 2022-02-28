@@ -1,4 +1,3 @@
-import {Factory} from "@tashmit/core";
 import {Pipeline} from "./pipeline";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -74,14 +73,12 @@ export interface ExtractedFileContentConfig<T> {
   resolveId?: Pipe<File<T>, string>;
 }
 
-export class FileAccessFactory extends Factory<FileAccess> {};
-
+//export class FileAccessFactory extends Factory<FileAccess> {};
+/*
 export interface FileStreamConfig<T> {
-  /**
-   * The underlying file system driver to use.
-   */
   driver?: FileAccessFactory;
 }
+*/
 
 export interface MultiFilesWithContentConfig<T, TStored> {
   /**
@@ -100,3 +97,63 @@ export interface Duplex {
   input: Pipe;
   output: Pipe;
 }
+
+export interface FileConfig<T extends object, TStored = T> {
+  /**
+   * Path to the file containing the collection.
+   */
+  path: string;
+
+  /**
+   * A serializer that will parse and serialize incoming and outgoing data.
+   */
+  serializer: Serializer<TStored[] | Record<string, TStored>>;
+
+  /**
+   * Stream the collection as a dictionary instead of a list
+   *
+   * If set the collection will be streamed as a dictionary with keys
+   * being the IDs of each document.
+   *
+   * @default false
+   */
+  dictionary?: boolean;
+
+  /**
+   * An optional pipe that can modify incoming documents after they have been parsed.
+   */
+  afterParse?: Pipe<TStored, T>;
+
+  /**
+   * An optional pipe that can modify outgoing documents before the they are
+   * serialized and written to the file system.
+   *
+   * This is a good opportunity to, for instance, remove run-time data that
+   * does not need to be persisted.
+   */
+  beforeSerialize?: Pipe<T, TStored>;
+}
+
+export interface DirectoryConfig<T> {
+  /**
+   * Path to the directory to where the files reside
+   */
+  path: string;
+
+  /**
+   * Extension of the files.
+   *
+   * Should be provided without a dot, ie 'json' or 'yaml' etc. This both serves
+   * as a filter for incoming files, as well as a basis for determining the
+   * name of outgoing files if the content is extracted.
+   */
+  extension: string;
+}
+
+export type DirectoryFilesConfig<T = any, TStored = T> =
+  PartialBy<DirectoryConfig<T>, 'extension'> & MultiFilesWithContentConfig<T, TStored>;
+
+export type DirectoryContentConfig<T = any, TStored = T> =
+  DirectoryConfig<T> & FileContentConfig<T, TStored> & ExtractedFileContentConfig<T>;
+
+  export type ShardOutput<T> = (source: Pipeline<T>, deletion: boolean) => Promise<void>;

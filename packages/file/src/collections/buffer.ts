@@ -13,9 +13,8 @@ import {Pipeline} from '../pipeline';
  */
 export abstract class BufferDriver<TSchema> extends CollectionDriver<TSchema> {
   public constructor(
-    ns: { db: string; coll: string },
     public buffer: CollectionDriver<TSchema>,
-  ) { super(ns); }
+  ) { super(buffer.ns); }
 
   public async write(cs: ChangeSet<TSchema>) {
     await this.buffer.write(cs);
