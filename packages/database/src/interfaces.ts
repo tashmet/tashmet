@@ -1,6 +1,5 @@
 import ObjectId from 'bson-objectid';
 import {EventEmitter} from 'eventemitter3';
-import {Factory} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 import {Collection} from './collection';
 import {ChangeStreamDocument} from './changeStream';
@@ -214,29 +213,7 @@ export interface ReplaceOneOptions {
   upsert?: boolean;
 }
 
-
-export class DocumentError extends Error {
-  public name = 'DocumentError';
-
-  public constructor(public instance: any, message: string) {
-    super(message);
-  }
-}
-
-export class DatabaseError extends DocumentError {
-  public name = 'DatabaseError';
-
-  public constructor(
-    public collection: Collection,
-    instance: any,
-    message: string
-  ) { super(instance, message); }
-}
-
 export type MiddlewareHook<T> = (next: T) => T;
-
-export type DatabaseChangeEvent<T> = (change: DatabaseChange<T>) => Promise<void>;
-export type DatabaseErrorEvent = (error: DatabaseError) => Promise<void>;
 
 export type Aggregate<T> = (pipeline: Document[]) => Promise<T[]>;
 export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
@@ -265,36 +242,16 @@ export interface MiddlewareContext {
   database: Database;
 }
 
-export type MiddlewareFactory<T = any> = Factory<Middleware<T>, MiddlewareContext>;
-
 
 /** Configuration for view collection */
-
-export interface CollectionConfig<T = any> {
-  /**
-   * Factory creating the collection.
-   */
-  source: CollectionFactory | T[];
-
+export interface CollectionConfig {
   /**
    * Allows users to specify validation rules or expressions for the collection
    */
   validator?: Document;
-
-  /**
-   * Optional list of factories creating middleware that should be applied after any middleware
-   * from the database.
-   */
-  use?: MiddlewareFactory[];
-
-  /**
-   * Optional list of factories creating middleware that should be applied before any middleware
-   * from the database.
-   */
-  useBefore?: MiddlewareFactory[];
 }
 
-export interface ViewCollectionConfig extends Pick<CollectionConfig, 'use' | 'useBefore'>{
+export interface ViewCollectionConfig {
   /** The name of the collection to aggregate from */
   viewOf: string;
 
@@ -302,35 +259,20 @@ export interface ViewCollectionConfig extends Pick<CollectionConfig, 'use' | 'us
   pipeline: Document[];
 }
 
-export type CollectionSource<T> = CollectionFactory<T> | CollectionConfig | ViewCollectionConfig | T[];
-
 /**
  * Configuration for the database.
  */
-export interface DatabaseConfig {
-  /**
-   * Optional list of factories creating middleware that should be applied to all collections in
-   * the database.
-   */
-  use?: MiddlewareFactory[];
-
+export interface MemoryClientConfig {
   /**
    *
    */
   operators: OperatorConfig;
-
-  collections: Record<string, CollectionSource<any>>;
 }
 
-export abstract class DatabaseConfig implements DatabaseConfig {}
+
+export abstract class MemoryClientConfig implements MemoryClientConfig {}
 
 export type CollectionChangeAction = 'insert' | 'delete' | 'replace';
-
-export interface DatabaseChange<T = any> {
-  data: T[];
-  collection: Collection<T>;
-  action: CollectionChangeAction;
-}
 
 export interface Database {
   /**
@@ -340,47 +282,28 @@ export interface Database {
    * @returns The instance of the collection.
    */
   collection<T = any>(name: string): Collection<T>;
-
-  /**
-   * Create a collection.
-   *
-   * This function will create a new instance given a name and factory.
-   *
-   * @param name The name of the collection.
-   * @param factory The factory creating the collection.
-   * @returns An instance of the collection.
-   */
-  createCollection<T = any>(name: string, factory: CollectionFactory<T>): Collection<T>;
-
-  /**
-   * Create a collection.
-   *
-   * This function will create a new instance given a name and configuration.
-   *
-   * @param name The name of the collection.
-   * @param config The configuration.
-   * @returns An instance of the collection.
-   */
-  createCollection<T = any>(name: string, config: CollectionConfig): Collection<T>;
-
-  createCollection<T = any>(name: string, config: ViewCollectionConfig): Collection<T>;
-
-  createCollection<T = any>(name: string, documents: T[]): Collection<T>;
-
-  createCollection<T = any>(name: string, source: CollectionSource<T>): Collection<T>;
 }
 
 /**
  *
  */
-export abstract class Database implements Database {}
+export abstract class Database implements Database {
+  protected collections: {[name: string]: Collection} = {};
+
+  public constructor(public readonly name: string) {}
+
+  public collection(name: string): Collection {
+    if (Object.keys(this.collections).includes(name)) {
+      return this.collections[name];
+    }
+    throw Error(`Collection '${name}' does not exist in database`);
+  }
+}
 
 export interface CollectionContext {
   name: string;
   database: Database;
 }
-
-export type CollectionFactory<T = any> = Factory<Collection<T>, CollectionContext>;
 
 export abstract class Aggregator<T = any> {
   abstract get pipeline(): Document[];
@@ -506,7 +429,7 @@ export type ArrayOperator<Type> = {
   $sort?: SortingMap;
 };
 
-export type SetFields<TSchema> = ({
+export type SetFields<TSchema extends Document> = ({
   readonly [key in KeysOfAType<TSchema, ReadonlyArray<any> | undefined>]?:
     | OptionalId<Flatten<TSchema[key]>>
     | AddToSetOperators<Array<OptionalId<Flatten<TSchema[key]>>>>;
@@ -666,4 +589,8 @@ export abstract class CollectionDriver<TSchema extends Document>
   public abstract find(filter?: Filter<TSchema>, options?: QueryOptions<TSchema>): Cursor<TSchema>;
 
   public abstract aggregate<T>(pipeline: Document[]): Promise<T[]>;
+}
+
+export abstract class Client<TDatabase> {
+  public abstract db(name: string): TDatabase;
 }

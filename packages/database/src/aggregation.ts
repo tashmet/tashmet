@@ -1,5 +1,4 @@
-import {Aggregator as MingoAggregator} from 'mingo/aggregator';
-import {Aggregator, Database, Document, Filter, QueryOptions} from './interfaces';
+import {Aggregator, Document, Filter, QueryOptions} from './interfaces';
 import {Collection} from './collection';
 
 export class QueryAggregator<T> extends Aggregator<T> {
@@ -63,18 +62,4 @@ export class QueryAggregator<T> extends Aggregator<T> {
   public execute(collection: Collection<T>): Promise<T[]> {
     return collection.find(this.filter, this.options).toArray();
   }
-}
-
-export async function aggregate<U>(
-  pipeline: Document[], collection: any[], database: Database): Promise<U[]>
-{
-  for (const step of pipeline) {
-    for (const op of Object.keys(step)) {
-      if (op === '$lookup' && typeof step[op].from === 'string') {
-        const foreignCol = await database.collection(step[op].from);
-        step[op].from = await foreignCol.find().toArray();
-      }
-    }
-  }
-  return new MingoAggregator(pipeline).run(collection) as U[];
 }

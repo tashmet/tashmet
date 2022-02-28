@@ -1,52 +1,53 @@
-import {Container, Logger, Plugin, Provider} from '@tashmit/core';
-import {Database, DatabaseConfig, ValidatorFactory} from './interfaces';
-import {DatabaseService} from './database';
+import {Container, Logger, provider, Provider} from '@tashmit/core';
+import {Database, MemoryClientConfig, ValidatorFactory, Client} from './interfaces';
+import {MemoryDatabase} from './database';
 import {SimpleValidatorFactory} from './validator';
 
+export {MemoryDatabase};
 export {Collection} from './collection';
-export {memory, MemoryCollectionConfig} from './collections/memory';
+export {MemoryDriver, MemoryCollectionConfig} from './collections/memory';
 export {withMiddleware} from './middleware';
 export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
-export {aggregate, QueryAggregator} from './aggregation';
+export {QueryAggregator} from './aggregation';
 export {filterValidator} from './validator';
 export * from './changeStream';
 export * from './interfaces';
 export * from './middleware';
 export * from './changeSet';
 
-export default class DatabasePlugin extends Plugin {
-  private static defaultConfig: DatabaseConfig = {
+
+@provider({
+  key: MemoryClient,
+  inject: [Logger, ValidatorFactory, 'tashmit.MemoryClientConfig']
+})
+export default class MemoryClient extends Client<Database> {
+  private static defaultConfig: MemoryClientConfig = {
     operators: {},
-    collections: {},
   };
 
-  private config: DatabaseConfig;
-
-  public constructor(config: Partial<DatabaseConfig> = {}) {
-    super();
-    this.config = {...DatabasePlugin.defaultConfig, ...config};
-  }
-
-  public register(container: Container) {
-    const {use, operators} = this.config;
-
-    container.register(SimpleValidatorFactory);
-
-    container.register(Provider.ofFactory({
-      key: Database,
-      inject: [
-        Logger.inScope('database.Database'),
-        ValidatorFactory,
-      ],
-      create: (logger: Logger, validatorFactory: ValidatorFactory) =>
-        new DatabaseService(logger, container, validatorFactory, operators, use)
-    }));
-  }
-
-  public setup(container: Container) {
-    const database = container.resolve(Database)
-    for (const [name, source] of Object.entries(this.config.collections)) {
-      database.createCollection(name, source);
+  public static configure(config: Partial<MemoryClientConfig> = {}) {
+    return (container: Container) => {
+      container.register(SimpleValidatorFactory);
+      container.register(Provider.ofInstance('tashmit.MemoryClientConfig', {
+        ...MemoryClient.defaultConfig,
+        ...config
+      }));
+      container.register(MemoryClient);
     }
+  }
+
+  public constructor(
+    private logger: Logger,
+    private validatorFactory: ValidatorFactory,
+    private config: MemoryClientConfig,
+  ) { super(); }
+
+  public db(name: string) {
+    return new MemoryDatabase(
+      name,
+      this.logger,
+      this.validatorFactory,
+      this.config.operators,
+    );
   }
 }

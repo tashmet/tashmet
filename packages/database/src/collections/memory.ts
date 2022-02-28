@@ -1,10 +1,9 @@
-import {Factory} from '@tashmit/core';
 import {Query as MingoQuery} from 'mingo/query';
+import {Aggregator as MingoAggregator} from 'mingo/aggregator';
 import * as mingoCursor from 'mingo/cursor';
 import ObjectID from 'bson-objectid';
 import {
   CollectionDriver,
-  CollectionFactory,
   Cursor,
   Document,
   Filter,
@@ -13,12 +12,9 @@ import {
   SortingKey,
   SortingDirection,
 } from '../interfaces';
-import {Collection} from '../collection';
 import {applyQueryOptions, sortingMap} from '../cursor';
 import {idSet} from '../changeSet';
-import {aggregate} from '../aggregation';
-import {ChangeSet, Database, withMiddleware} from '..';
-import {locked} from '../middleware/locking';
+import {ChangeSet} from '../changeSet';
 
 export interface MemoryCollectionConfig<T = any> {
   /**
@@ -28,6 +24,8 @@ export interface MemoryCollectionConfig<T = any> {
    */
   documents?: OptionalId<T>[] | Promise<OptionalId<T>[]>;
 }
+
+export type CollectionResolver = (name: string) => any[];
 
 export class MemoryCollectionCursor<T> implements Cursor<T> {
   private cursor: mingoCursor.Cursor;
@@ -79,13 +77,22 @@ export class MemoryCollectionCursor<T> implements Cursor<T> {
   }
 }
 
+export interface MemoryDriverConfig<TSchema extends Document = any> {
+  ns: {db: string, coll: string};
+  collectionResolver?: CollectionResolver;
+  documents?: TSchema[];
+}
 
 export class MemoryDriver<TSchema extends Document> extends CollectionDriver<TSchema> {
   public constructor(
     ns: { db: string; coll: string },
-    public readonly database: Database,
-    public documents: TSchema[]
+    private collectionResolver: CollectionResolver | undefined  = undefined,
+    public documents: TSchema[] = []
   ) { super(ns); }
+
+  public static fromConfig<TSchema>({ns, collectionResolver, documents}: MemoryDriverConfig<TSchema>) {
+    return new MemoryDriver(ns, collectionResolver, documents);
+  }
 
   public indexOf(document: TSchema) {
     return this.documents.findIndex(o => o._id === document._id);
@@ -120,24 +127,7 @@ export class MemoryDriver<TSchema extends Document> extends CollectionDriver<TSc
     return new MemoryCollectionCursor<TSchema>(this.documents, filter, options);
   }
 
-  public aggregate<T>(pipeline: Document[]): Promise<T[]> {
-    return aggregate(pipeline, this.documents, this.database);
+  public async aggregate<T>(pipeline: Document[]): Promise<T[]> {
+    return new MingoAggregator(pipeline, {collectionResolver: this.collectionResolver}).run(this.documents) as T[];
   }
-}
-
-
-export function memory<T extends Document = Document>(config: MemoryCollectionConfig<T> = {}): CollectionFactory<T> {
-  const documents = config.documents || [];
-  const isLocked = documents instanceof Promise;
-
-  return Factory.of(({name, database}) => {
-    const driver = new MemoryDriver<T>({db: 'tashmit', coll: name}, database, isLocked || !documents ? [] : documents as T[]);
-    const collection = new Collection<T>(driver);
-
-    if (isLocked) {
-      const populate = async () => collection.insertMany(await documents);
-      return withMiddleware<T>(collection, [locked([populate()])]);
-    }
-    return collection;
-  });
 }

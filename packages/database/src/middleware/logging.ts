@@ -1,5 +1,5 @@
-import {Factory, Logger} from '@tashmit/core';
-import {Middleware, MiddlewareFactory} from '../interfaces';
+import {Logger} from '@tashmit/core';
+import {Middleware} from '../interfaces';
 import {mutationSideEffect} from './mutation';
 
 
@@ -22,8 +22,10 @@ const loggingMiddleware = (logger: Logger) => {
   } as Middleware;
 }
 
+/*
 export function logging(): MiddlewareFactory {
   return Factory.of(({container, collection}) =>
     loggingMiddleware(container.resolve(Logger.inScope(`database.${collection.name}`)))
   );
 }
+*/

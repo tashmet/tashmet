@@ -1,7 +1,7 @@
 import {Document, Middleware} from '../interfaces';
 import {Collection} from '../collection';
 
-export {logging} from './logging';
+//export {logging} from './logging';
 export * from './mutation';
 export * from './validation';
 export * from './locking';

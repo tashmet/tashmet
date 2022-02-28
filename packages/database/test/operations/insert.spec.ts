@@ -6,20 +6,11 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import 'mocha';
 import { ChangeSet } from '../../dist';
-import operators from '@tashmit/operators/system';
-import { BasicContainer } from '@tashmit/core';
-import { DatabaseService } from '../../dist/database';
-import { DefaultLogger } from '@tashmit/core/dist/logging/logger';
-import { SimpleValidatorFactory } from '../../dist/validator';
 
 chai.use(sinonChai);
 
 const sandbox = sinon.createSandbox();
-
-const container = new BasicContainer();
-const db = new DatabaseService(
-  new DefaultLogger(), container, new SimpleValidatorFactory(), operators);
-const driver = new MemoryDriver<any>({db: 'tashmit', coll: 'test'}, db, []);
+const driver = new MemoryDriver<any>({db: 'tashmit', coll: 'test'});
 
 
 describe('InsertOneWriter', () => {

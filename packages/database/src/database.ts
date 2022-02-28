@@ -1,31 +1,28 @@
-import {Logger, Container, Factory} from '@tashmit/core';
+import {Logger} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
 import {OperatorType, useOperators} from "mingo/core";
-import {memory} from './collections/memory';
-import {view} from './collections/view';
-import {withMiddleware, validation} from './middleware';
+import {MemoryDriver} from './collections/memory';
+import {withMiddleware, validation, readOnly, locked} from './middleware';
 import {
   CollectionConfig,
-  CollectionSource,
   Database,
-  Middleware,
-  MiddlewareFactory,
   OptionalId,
   ValidatorFactory,
 } from './interfaces';
 import {Collection} from './collection';
+import {ChangeSet, ChangeStreamDocument, ViewCollectionConfig} from '.';
 
-export class DatabaseService extends Database {
-  private collections: {[name: string]: Collection} = {};
+
+export class MemoryDatabase extends Database {
+  private data: Record<string, MemoryDriver<any>> = {};
 
   public constructor(
+    name: string,
     private logger: Logger,
-    private container: Container,
     private validatorFactory: ValidatorFactory,
     operators: OperatorConfig = {},
-    private middleware: MiddlewareFactory[] = [],
   ) {
-    super();
+    super(name);
     const {accumulator, expression, pipeline, projection, query} = operators;
 
     useOperators(OperatorType.ACCUMULATOR, accumulator || {});
@@ -39,18 +36,35 @@ export class DatabaseService extends Database {
     if (Object.keys(this.collections).includes(name)) {
       return this.collections[name];
     }
-    return this.createCollection(name, memory());
+    return this.createCollection(name, {});
   }
 
   public createCollection<T = any>(
-    name: string, source: CollectionSource<T>): Collection<T>
+    name: string, config: CollectionConfig | ViewCollectionConfig): Collection<T>
   {
     try {
       if (name in this.collections) {
         throw new Error(`a collection named '${name}' already exists in database`);
       }
-      const config = this.createConfig(source);
-      const c = this.collections[name] = this.createManagedCollection(name, config);
+
+      const driver = MemoryDriver.fromConfig<T>({
+        ns: {db: this.name, coll: name},
+        collectionResolver: name => this.data[name].documents
+      });
+      let c: Collection<T>;
+
+      if ('viewOf' in config) {
+        c = this.createView(driver, config);
+      } else {
+        const validator = config.validator;
+        c = new Collection<T>(driver);
+        if (validator) {
+          c = withMiddleware<T>(c, [validation(this.validatorFactory.create(validator))]);
+        }
+      }
+      this.collections[name] = c;
+      this.data[name] = driver;
+
       //c.on('change', change => this.emit('change', change));
       //c.on('error', error => this.emit('error', error));
       this.logger.inScope('createCollection').info(c.toString());
@@ -61,46 +75,25 @@ export class DatabaseService extends Database {
     }
   }
 
-  private createConfig<T = any>(source: CollectionSource<T>) {
-    if ('viewOf' in source) {
-      return {use: source.use, useBefore: source.useBefore, source: view(source)}
-    }
-    return source instanceof Factory
-      ? {source}
-      : Array.isArray(source) ? {source: memory({documents: source as OptionalId<T>[]})} : source;
-  }
+  private createView<T = any>(driver: MemoryDriver<T>, config: ViewCollectionConfig) {
+    const viewOf = this.collection(config.viewOf);
+    const collection = new Collection<T>(driver);
+    const cs = viewOf.watch();
+    const populate = async () => collection.insertMany(
+      await viewOf.aggregate<OptionalId<T>>(config.pipeline)
+    );
+    const locks: Promise<any>[] = [populate()];
 
-  private createManagedCollection<T = any>(
-    name: string, config: CollectionConfig): Collection<T>
-  {
-    const fact = config.source instanceof Factory
-      ? config.source
-      : memory({documents: config.source})
+    const handleChange = async (change: ChangeStreamDocument<any>) => {
+      const newDocs = await viewOf.aggregate<T>(config.pipeline);
+      const oldDocs = await collection.find({}).toArray();
 
-    const source = fact.resolve(this.container)({name, database: this});
-
-    const middlewareFactories = [
-      ...(config.useBefore || []),
-      ...(this.middleware || []),
-      ...(config.use || [])
-    ];
-    const middleware = this.createMiddleware(middlewareFactories, source);
-    const validator = config.validator;
-    if (validator) {
-      middleware.push(validation(this.validatorFactory.create(validator)));
+      await collection.bulkWrite(ChangeSet.fromDiff(oldDocs, newDocs).toOperations());
     }
 
-    return withMiddleware(source, middleware);
-  }
-
-  private createMiddleware(
-    factories: MiddlewareFactory[],
-    collection: Collection
-  ): Middleware[] {
-    const middleware: Middleware[] = [];
-    for (const factory of factories) {
-      middleware.push(factory.resolve(this.container)({collection, database: this}));
-    }
-    return middleware;
+    cs.on('change', async change => {
+      locks.push(handleChange(change));
+    });
+    return withMiddleware<T>(collection, [readOnly, locked(locks)]);
   }
 }

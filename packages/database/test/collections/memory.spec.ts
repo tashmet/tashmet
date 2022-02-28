@@ -1,14 +1,12 @@
-import {BasicContainer} from '@tashmit/core';
 import {DefaultLogger} from '@tashmit/core/src/logging/logger';
 import operators from '@tashmit/operators/system';
-import {DatabaseService} from '../../src/database';
+import {MemoryDatabase} from '../../src/database';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import {SortingDirection} from '../../dist';
 import {SimpleValidatorFactory} from '../../dist/validator';
-import {memory} from '../../src';
 
 chai.use(chaiAsPromised);
 
@@ -24,11 +22,10 @@ describe('MemoryCollection', () => {
     amount: number;
   }
 
-  const container = new BasicContainer();
-  const db = new DatabaseService(
-    new DefaultLogger(), container, new SimpleValidatorFactory(), operators);
+  const db = new MemoryDatabase(
+    'testdb', new DefaultLogger(), new SimpleValidatorFactory(), operators);
 
-  const col = memory<any>().resolve(container)({database: db, name: 'test'});
+  const col = db.collection('test');
 
   beforeEach(async () => {
     await col.insertMany([
