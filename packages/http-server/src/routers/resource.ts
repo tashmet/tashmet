@@ -1,5 +1,5 @@
-import {Factory, Logger} from '@tashmit/core';
-import {Collection, Database, ChangeStreamDocument, Query} from '@tashmit/database';
+import {Logger} from '@tashmit/core';
+import {Collection, ChangeStreamDocument, Query} from '@tashmit/database';
 import {QueryParser} from '@tashmit/qs-parser';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
@@ -7,8 +7,6 @@ import * as url from 'url';
 import {serializeError} from 'serialize-error';
 import {hashCode} from 'mingo/util';
 import {get, post, put, del} from '../decorators';
-import {router} from '../controller';
-import {ServerConfig} from '../interfaces';
 
 function cacheOrEval<T>(records: Record<string, T>, value: any, fn: (value: any) => T) {
   const hash = hashCode(value);
@@ -25,7 +23,7 @@ function cacheOrEval<T>(records: Record<string, T>, value: any, fn: (value: any)
 }
 export interface ResourceConfig {
   /** The name of the collection */
-  collection: string;
+  collection: Collection;
 
   /**
    * If set, the resource will be in read-only mode meaning that only GET
@@ -149,23 +147,3 @@ export class Resource {
     }
   }
 }
-
-/**
- * Create a resource request handler.
- *
- * This function creates a router that interacts with a Ziggurat database collection.
- */
-export const resource = (config: ResourceConfig) =>
-  router(Factory.of(({container}) => {
-    const database = container.resolve(Database);
-    const logger = container.resolve(Logger.inScope('server'));
-    const queryParser = config.queryParser
-      || container.resolve(ServerConfig).queryParser;
-
-    return new Resource(
-      database.collection(config.collection),
-      logger.inScope('Resource'),
-      config.readOnly,
-      queryParser,
-    );
-  }));

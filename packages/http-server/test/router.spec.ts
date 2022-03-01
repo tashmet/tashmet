@@ -33,26 +33,28 @@ describe('Router', () => {
   const app = new Tashmit()
     .provide(
       TestRouter,
-      new HttpServer().router('/route', TestRouter)
+      //new HttpServer().router('/route', TestRouter)
     )
-    .bootstrap(HttpServer.http);
+    .use(HttpServer.configure())
+    .bootstrap(HttpServer);
+  app.router('/route', new TestRouter());
 
   it('should add router by resolver', () => {
-    return request(app)
+    return request(app.http)
       .get('/route')
       .expect(200)
       .then(res => expect(res.body).to.eql({foo: 'bar'}));
   });
 
   it('should be possible to add routes by method decorator', () => {
-    return request(app)
+    return request(app.http)
       .get('/route/methodGet')
       .expect(200)
       .then(res => expect(res.body).to.eql({foo: 'bar'}));
   });
 
   it('should post to router and recieve reply', () => {
-    return request(app)
+    return request(app.http)
       .post('/route/post')
       .send({foo: 'bar'})
       .expect(200)

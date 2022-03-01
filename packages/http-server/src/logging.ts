@@ -1,3 +1,4 @@
+/*
 import * as express from 'express';
 import onHeaders from 'on-headers';
 import {Factory, Logger} from '@tashmit/core';
@@ -16,3 +17,4 @@ export function requestLogger(): RequestHandlerFactory {
     }
   });
 }
+*/

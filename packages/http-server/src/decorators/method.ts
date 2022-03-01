@@ -1,12 +1,12 @@
 import {RequestHandler} from 'express';
 import {RouterAnnotation} from './middleware';
-import {Route, RouteMethod, RequestHandlerFactory} from '../interfaces';
+import {Route, RouteMethod} from '../interfaces';
 
 export class RouterMethodAnnotation extends RouterAnnotation {
   public constructor(
     private method: RouteMethod,
     private path: string,
-    private middleware: (RequestHandler | RequestHandlerFactory)[],
+    private middleware: RequestHandler[],
     private propertyKey: string
   ) { super(); }
 

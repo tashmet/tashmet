@@ -1,4 +1,3 @@
-import {Container, Factory} from '@tashmit/core';
 import * as express from 'express';
 import {Middleware, Route, RouteMap} from './interfaces';
 
@@ -25,19 +24,17 @@ function createAsyncHandler(handler: express.RequestHandler): express.RequestHan
   };
 }
 
-function createHandlers(
-  middleware: Middleware[], path: string, container: Container
-): express.RequestHandler[] {
+function createHandlers(middleware: Middleware[]): express.RequestHandler[] {
   const handlers: express.RequestHandler[] = [];
   for (const m of middleware) {
-    handlers.push(createAsyncHandler(m instanceof Factory ? m.resolve(container)({path}) : m));
+    handlers.push(createAsyncHandler(m));
   }
   return handlers;
 }
 
-export function mountRoutes(r: express.Router, container: Container, ...routes: Route[]): express.Router {
+export function mountRoutes(r: express.Router, ...routes: Route[]): express.Router {
   for (const route of routes) {
-    const handlers = createHandlers(route.handlers, route.path || '/', container)
+    const handlers = createHandlers(route.handlers)
     if (route.method) {
       (r as any)[route.method](route.path, handlers);
     } else if (route.path) {

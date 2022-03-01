@@ -1,6 +1,6 @@
 import {provider, Logger} from '@tashmit/core';
 import * as SocketIO from 'socket.io';
-import {controllerName} from './controller';
+import {controllerName} from './interfaces';
 
 export interface GatewayConfig {
   namespace?: string;

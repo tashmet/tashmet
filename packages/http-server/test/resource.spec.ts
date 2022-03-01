@@ -1,4 +1,5 @@
-import Tashmit from '@tashmit/tashmit';
+import Tashmit, {Container} from '@tashmit/tashmit';
+import Memory from '@tashmit/database';
 import {QueryParser} from '@tashmit/qs-parser';
 import HttpServer from '../src';
 import request from 'supertest-as-promised';
@@ -6,18 +7,38 @@ import 'mocha';
 import {expect} from 'chai';
 import operators from '@tashmit/operators/system';
 
-describe('Resource', () => {
-  const app = Tashmit
+describe.skip('Resource', () => {
+  const container = Tashmit
     .withConfiguration({
       operators,
     })
-    .collection('test', [{_id: 'doc1'}, {_id: 'doc2'}])
+    .use(HttpServer.configure({queryParser: QueryParser.flat()}))
+    .bootstrap(Container);
+    //.collection('test', [{_id: 'doc1'}, {_id: 'doc2'}])
+    /*
     .provide(
       new HttpServer({queryParser: QueryParser.flat()})
         .resource('/readonly', {collection: 'test', readOnly: true})
         .resource('/readwrite', {collection: 'test', readOnly: false})
     )
-    .bootstrap(HttpServer.http);
+    */
+
+  let app: any;
+
+  before(async () => {
+    const collection = container
+      .resolve(Memory)
+      .db('test')
+      .collection('test')
+
+    await collection.insertMany([{_id: 'doc1'}, {_id: 'doc2'}]);
+
+    const server = container.resolve(HttpServer);
+    server.resource('/readonly', {collection, readOnly: true});
+    server.resource('/readonly', {collection, readOnly: false});
+
+    app = server.http;
+  });
 
   describe('get', () => {
     it('should get all documents', () => {

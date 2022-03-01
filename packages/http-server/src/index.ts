@@ -1,23 +1,32 @@
-import {Container, Logger, Plugin, Provider, ServiceRequest} from '@tashmit/core';
+import {Container, Logger, provider, Provider} from '@tashmit/core';
 import http from 'http';
 import {AddressInfo} from 'net';
 import SocketIO from 'socket.io';
 import express from 'express';
-import {ServerConfig, Middleware, resolvers} from './interfaces';
+import {ServerConfig, Middleware, resolvers, Route, controllerName} from './interfaces';
 import {SocketGateway} from './gateway';
 import {QueryParser} from '@tashmit/qs-parser';
 import {makeRoutes, mountRoutes} from './routing';
-import {resource, ResourceConfig} from './routers/resource';
-import {router, ControllerFactory} from './controller';
+import {Resource, ResourceConfig} from './routers/resource';
+import {RouterAnnotation} from './decorators/middleware';
 
-export * from './controller';
 export * from './decorators';
 export * from './interfaces';
 export * from './routers/resource';
-export * from './logging';
+//export * from './logging';
 export {QueryParser} from '@tashmit/qs-parser';
 
-export default class HttpServer extends Plugin {
+@provider({
+  key: HttpServer,
+  inject: [
+    ServerConfig,
+    HttpServer.http,
+    HttpServer.express,
+    Logger.inScope('server'),
+    SocketGateway
+  ]
+})
+export default class HttpServer {
   public static http = resolvers.http;
   public static express = resolvers.express;
   public static socket = resolvers.socket;
@@ -27,62 +36,86 @@ export default class HttpServer extends Plugin {
     queryParser: QueryParser.json(),
   }
 
-  private config: ServerConfig;
+  public constructor(
+    private config: ServerConfig,
+    public readonly http: http.Server,
+    public readonly express: express.Application,
+    private logger: Logger,
+    private gateway: SocketGateway,
+  ) {};
 
-  public constructor(config: Partial<ServerConfig> = {}) {
-    super();
-    this.config = {...HttpServer.defaultConfig, ...config};
+  public router(path: string, controller: any) {
+    const logger = this.logger.inScope('server.RouterFactory');
+
+    logger.info(`'${path}' as ${controllerName(controller)}`);
+    let routes: Route[] = [];
+
+    for (const annotation of RouterAnnotation.onClass(controller.constructor, true)) {
+      routes = routes.concat(annotation.routes(controller));
+    }
+    for (const route of routes) {
+      logger.info(`  - ${route.method}\t'${route.path}'`);
+    }
+    this.gateway.register(controller, {namespace: path});
+
+    return this.use(path, mountRoutes(express.Router(), ...routes));
   }
 
-  public router(path: string, factOrProvider: ServiceRequest<any> | ControllerFactory) {
-    return this.use(path, router(factOrProvider));
-  }
-
-  public resource(path: string, config: ResourceConfig) {
-    return this.use(path, resource(config));
+  public resource(path: string, {collection, queryParser, readOnly}: ResourceConfig) {
+    return this.router(path, new Resource(
+      collection,
+      this.logger.inScope('Resource'),
+      readOnly,
+      queryParser || this.config.queryParser,
+    ));
   }
 
   public use(path: string, middleware: Middleware) {
+    /*
     const toArray = (value: any | any[]) => Array.isArray(value) ? value : [value];
     let mwList = [middleware];
 
     if (path in this.config.middleware) {
       mwList = toArray(this.config.middleware[path]).concat(mwList)
     }
-    this.config.middleware[path] = mwList;
+    */
+    //mountRoutes(this.express, ...makeRoutes(this.config.middleware));
+    mountRoutes(this.express, ...makeRoutes({[path]: middleware}));
     return this;
   }
 
-  public register(container: Container) {
-    container.register(SocketGateway);
-    container.register(Provider.ofInstance(ServerConfig, this.config));
-
-    container.register(Provider.ofFactory({
-      key: HttpServer.express.key,
-      create: () => express(),
-    }));
-
-    container.register(Provider.ofFactory({
-      key: HttpServer.http.key,
-      inject: [HttpServer.express, Logger.inScope('http-server.Server')],
-      create: (app: express.Application, logger: Logger) => {
-        const server = http.createServer(app);
-        return server.addListener('listening', () => {
-          logger.info('listening on port ' + (server.address() as AddressInfo).port);
-        });
-      },
-    }));
-
-    container.register(Provider.ofFactory({
-      key: HttpServer.socket.key,
-      inject: [HttpServer.http],
-      create: (server: http.Server) => SocketIO(server),
-    }));
+  public listen(port: number) {
+    return this.http.listen(port);
   }
 
-  public setup(container: Container) {
-    mountRoutes(container.resolve(
-      HttpServer.express), container, ...makeRoutes(this.config.middleware)
-    );
+  public static configure(config: Partial<ServerConfig> = {}) {
+    return (container: Container) => {
+      container.register(SocketGateway);
+      container.register(Provider.ofInstance(ServerConfig, {...HttpServer.defaultConfig, ...config}));
+
+      container.register(Provider.ofFactory({
+        key: HttpServer.express.key,
+        create: () => express(),
+      }));
+
+      container.register(Provider.ofFactory({
+        key: HttpServer.http.key,
+        inject: [HttpServer.express, Logger.inScope('http-server.Server')],
+        create: (app: express.Application, logger: Logger) => {
+          const server = http.createServer(app);
+          return server.addListener('listening', () => {
+            logger.info('listening on port ' + (server.address() as AddressInfo).port);
+          });
+        },
+      }));
+
+      container.register(Provider.ofFactory({
+        key: HttpServer.socket.key,
+        inject: [HttpServer.http],
+        create: (server: http.Server) => SocketIO(server),
+      }));
+
+      container.register(HttpServer);
+    };
   }
 }
