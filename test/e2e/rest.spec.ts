@@ -164,7 +164,7 @@ describe('rest', () => {
       const pipeline = [
         {$group: {_id: "$item.category", count: { $sum: 1 } } }
       ];
-      expect(await col.aggregate(pipeline)).to.eql([
+      expect(await col.aggregate(pipeline).toArray()).to.eql([
         {_id: 'cake', count: 3},
         {_id: 'cookies', count: 2 }
       ]);
@@ -175,7 +175,7 @@ describe('rest', () => {
         {$sort: {amount: -1}},
         {$project: {_id: 0, 'item.type': 1}},
       ];
-      expect(await col.aggregate(pipeline)).to.eql([
+      expect(await col.aggregate(pipeline).toArray()).to.eql([
         {item: {type: 'lemon' }},
         {item: {type: 'carrot' }},
         {item: {type: 'chiffon' }},

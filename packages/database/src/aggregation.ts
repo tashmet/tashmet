@@ -1,4 +1,4 @@
-import {Aggregator, Document, Filter, QueryOptions} from './interfaces';
+import {Aggregator, Cursor, Document, Filter, QueryOptions} from './interfaces';
 import {Collection} from './collection';
 
 export class QueryAggregator<T> extends Aggregator<T> {
@@ -59,7 +59,7 @@ export class QueryAggregator<T> extends Aggregator<T> {
     ];
   }
 
-  public execute(collection: Collection<T>): Promise<T[]> {
-    return collection.find(this.filter, this.options).toArray();
+  public execute(collection: Collection<T>): Cursor<T> {
+    return collection.find(this.filter, this.options);
   }
 }

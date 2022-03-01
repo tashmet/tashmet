@@ -215,7 +215,7 @@ export interface ReplaceOneOptions {
 
 export type MiddlewareHook<T> = (next: T) => T;
 
-export type Aggregate<T> = (pipeline: Document[]) => Promise<T[]>;
+export type Aggregate<T> = (pipeline: Document[]) => Cursor<T>;
 export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
 export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
 export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
@@ -308,7 +308,7 @@ export interface CollectionContext {
 export abstract class Aggregator<T = any> {
   abstract get pipeline(): Document[];
 
-  public execute(collection: Collection): Promise<T[]> {
+  public execute(collection: Collection): Cursor<T> {
     return collection.aggregate<T>(this.pipeline);
   }
 }
@@ -588,7 +588,7 @@ export abstract class CollectionDriver<TSchema extends Document>
 
   public abstract find(filter?: Filter<TSchema>, options?: QueryOptions<TSchema>): Cursor<TSchema>;
 
-  public abstract aggregate<T>(pipeline: Document[]): Promise<T[]>;
+  public abstract aggregate<T>(pipeline: Document[]): Cursor<T>;
 }
 
 export abstract class Client<TDatabase> {

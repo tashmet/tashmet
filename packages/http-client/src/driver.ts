@@ -41,7 +41,7 @@ export class HttpDriver<TSchema extends Document> extends CollectionDriver<TSche
     );
   }
 
-  public aggregate<T>(pipeline: Document[]): Promise<T[]> {
+  public aggregate<T>(pipeline: Document[]): Cursor<T> {
     throw Error('Not implemented yet');
     /*
     try {

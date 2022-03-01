@@ -36,7 +36,7 @@ export abstract class BufferDriver<TSchema> extends CollectionDriver<TSchema> {
     return this.buffer.findOne(filter);
   }
 
-  public aggregate<T>(pipeline: Document[]): Promise<T[]> {
+  public aggregate<T>(pipeline: Document[]): Cursor<T> {
     return this.buffer.aggregate(pipeline);
   }
 

@@ -27,13 +27,13 @@ export interface MemoryCollectionConfig<T = any> {
 
 export type CollectionResolver = (name: string) => any[];
 
-export class MemoryCollectionCursor<T> implements Cursor<T> {
+export class MemoryCursor<T> implements Cursor<T> {
   private cursor: mingoCursor.Cursor;
 
   public constructor(
     private collection: any[],
-    private filter: Filter<T>,
-    options: QueryOptions,
+    private filter: Filter<T> = {},
+    options: QueryOptions = {},
   ) {
     this.cursor = new MingoQuery(filter).find(collection, options.projection);
     applyQueryOptions(this, options);
@@ -124,10 +124,12 @@ export class MemoryDriver<TSchema extends Document> extends CollectionDriver<TSc
   }
 
   public find(filter: Filter<TSchema> = {}, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
-    return new MemoryCollectionCursor<TSchema>(this.documents, filter, options);
+    return new MemoryCursor<TSchema>(this.documents, filter, options);
   }
 
-  public async aggregate<T>(pipeline: Document[]): Promise<T[]> {
-    return new MingoAggregator(pipeline, {collectionResolver: this.collectionResolver}).run(this.documents) as T[];
+  public aggregate<T>(pipeline: Document[]): Cursor<T> {
+    return new MemoryCursor<T>(
+      new MingoAggregator(pipeline, {collectionResolver: this.collectionResolver}).run(this.documents) as T[]
+    );
   }
 }

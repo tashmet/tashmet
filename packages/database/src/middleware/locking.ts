@@ -1,4 +1,19 @@
-import {Middleware} from '../interfaces';
+import {Cursor, Middleware} from '../interfaces';
+
+export function lockedCursor<T = any>(cursor: Cursor<T>, lock: Promise<any>): Cursor<T> {
+  return new Proxy(cursor, {
+    get: (target, propKey) => {
+      if (['toArray', 'next', 'foreach'].includes(propKey.toString())) {
+        return async (...args: any[]) => {
+          await lock;
+          return (target as any)[propKey].apply(target, args)
+        }
+      } else {
+        return (...args: any[]) => (target as any)[propKey].apply(target, args);
+      }
+    },
+  });
+}
 
 export const locked = (locks: Promise<any>[]) => () => {
   const resolveLocks = async () => {
@@ -12,24 +27,13 @@ export const locked = (locks: Promise<any>[]) => () => {
   }
 
   return {
-    aggregate: handler,
     insertOne: handler,
     insertMany: handler,
     deleteOne: handler,
     deleteMany: handler,
     replaceOne: handler,
     findOne: handler,
-    find: next => (filter, options) => new Proxy(next(filter, options), {
-      get: (target, propKey) => {
-        if (['toArray', 'next', 'foreach'].includes(propKey.toString())) {
-          return async (...args: any[]) => {
-            await resolveLocks();
-            return (target as any)[propKey].apply(target, args)
-          }
-        } else {
-          return (...args: any[]) => (target as any)[propKey].apply(target, args);
-        }
-      },
-    })
+    find: next => (filter, options) => lockedCursor(next(filter, options), resolveLocks()),
+    aggregate: next => pipeline => lockedCursor(next(pipeline), resolveLocks()),
   } as Middleware;
 }

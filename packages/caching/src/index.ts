@@ -9,6 +9,7 @@ import MemoryClient, {
   Middleware,
   QueryAggregator,
   mutationSideEffect,
+  lockedCursor,
   Database,
 } from '@tashmit/database';
 import {CachingConfig} from './interfaces';
@@ -81,11 +82,10 @@ export default class CachingLayerPlugin extends CachingLayer {
       replaceOne: mutationSideEffect(async (result, filter: Filter<any>, replacement: any) => {
         await cache.replaceOne(filter, replacement, {upsert: true})
       }),
-      aggregate: next => async pipeline => {
+      aggregate: next => pipeline => {
         const query = QueryAggregator.fromPipeline(pipeline);
         const cursor = new CachingCursor(evaluators, cache, collection.find.bind(collection), query.filter, query.options);
-        await cursor.toArray();
-        return cache.aggregate(pipeline);
+        return lockedCursor(cache.aggregate(pipeline), cursor.toArray());
       },
       find: next => (filter, options) => {
         return new CachingCursor(evaluators, cache, next, filter, options);

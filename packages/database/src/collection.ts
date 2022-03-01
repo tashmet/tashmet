@@ -41,7 +41,7 @@ export class Collection<TSchema extends Document = any> {
     return this.driver.ns.coll;
   }
 
-  public aggregate<T>(pipeline: Document[]): Promise<T[]> {
+  public aggregate<T>(pipeline: Document[]): Cursor<T> {
     return this.driver.aggregate(pipeline);
   }
 
@@ -193,7 +193,7 @@ export class Collection<TSchema extends Document = any> {
     return this.driver.aggregate<WithId<any>>([
       {$match: filter},
       {$group: {_id: `$${key}`}}
-    ]).then(docs => docs.map(doc => doc._id));
+    ]).toArray().then(docs => docs.map(doc => doc._id));
   }
 
   /**

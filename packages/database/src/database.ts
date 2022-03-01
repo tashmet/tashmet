@@ -80,12 +80,12 @@ export class MemoryDatabase extends Database {
     const collection = new Collection<T>(driver);
     const cs = viewOf.watch();
     const populate = async () => collection.insertMany(
-      await viewOf.aggregate<OptionalId<T>>(config.pipeline)
+      await viewOf.aggregate<OptionalId<T>>(config.pipeline).toArray()
     );
     const locks: Promise<any>[] = [populate()];
 
     const handleChange = async (change: ChangeStreamDocument<any>) => {
-      const newDocs = await viewOf.aggregate<T>(config.pipeline);
+      const newDocs = await viewOf.aggregate<T>(config.pipeline).toArray();
       const oldDocs = await collection.find({}).toArray();
 
       await collection.bulkWrite(ChangeSet.fromDiff(oldDocs, newDocs).toOperations());
