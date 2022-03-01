@@ -1,26 +1,91 @@
-export {vinylfs} from './fs';
+import * as chokidar from 'chokidar';
+import Vinyl from 'vinyl';
+import * as stream from 'stream';
+import * as vfs from 'vinyl-fs';
+import * as fs from 'fs';
+import minimatch from 'minimatch';
 export * from './interfaces';
 
-import {Container, Plugin, Provider} from '@tashmit/core';
-import {FileAccessFactory} from '@tashmit/file';
-import * as chokidar from 'chokidar';
-import {vinylfs} from './fs';
+import {Container, Optional, provider, Provider} from '@tashmit/core';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
+import {Stream} from '@tashmit/stream';
+import * as Pipes from './pipes';
 import {FileSystemConfig} from './interfaces';
 
-export default class Vinyl extends Plugin {
-  public constructor(private config: FileSystemConfig) {
-    super();
+
+@provider({
+  key: FileAccess,
+  inject: [Optional.of('chokidar.FSWatcher')]
+})
+export default class VinylFS extends FileAccess  {
+  public static configure(config: FileSystemConfig) {
+    return (container: Container) => {
+      if (config.watch) {
+        container.register(
+          Provider.ofInstance<chokidar.FSWatcher>('chokidar.FSWatcher', chokidar.watch([], {
+            ignoreInitial: true,
+            persistent: true
+          }))
+        );
+      }
+      container.register(VinylFS);
+    }
   }
 
-  public register(container: Container) {
-    if (this.config.watch) {
-      container.register(
-        Provider.ofInstance<chokidar.FSWatcher>('chokidar.FSWatcher', chokidar.watch([], {
-          ignoreInitial: true,
-          persistent: true
-        }))
-      );
+  public constructor(
+    private watcher: chokidar.FSWatcher | undefined
+  ) { super(); }
+
+  public read(location: string | string[]): Pipeline<ReadableFile> {
+    return Stream.toPipeline<Vinyl>(vfs.src(location, {buffer: false}))
+      .pipe<File>(Pipes.fromVinyl());
+  }
+
+  public async write(files: Pipeline<File>): Promise<void> {
+    return files
+      .pipe(Pipes.toVinyl())
+      .sink(Stream.toSink(vfs.dest('.')));
+  }
+
+  public async remove(files: AsyncGenerator<File>): Promise<void> {
+    for await (const file of files) {
+      if (fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
     }
-    container.register(Provider.ofInstance(FileAccessFactory, vinylfs()));
+  }
+
+  public watch(globs: string | string[], deletion = false): Pipeline<File> | null {
+    if (!this.watcher) {
+      return null;
+    }
+
+    this.watcher.add(globs);
+
+    const readable = new stream.Readable({
+      objectMode: true,
+      read() { return; }
+    });
+
+    const onChange = (path: string, event: string) => {
+      const contents = () => {
+        if (event === 'unlink') {
+          return Buffer.from('{}');
+        }
+        return fs.createReadStream(path);
+      }
+
+      for (const pattern of Array.isArray(globs) ? globs : [globs]) {
+        if (minimatch(path, pattern)) {
+          readable.push(new Vinyl({path: path, contents: contents()}))
+        }
+      }
+    }
+
+    for (const ev of deletion ? ['unlink'] : ['add', 'change']) {
+      this.watcher.on(ev, path => onChange(path, ev));
+    }
+
+    return Stream.toPipeline(readable).pipe<File>(Pipes.fromVinyl());
   }
 }

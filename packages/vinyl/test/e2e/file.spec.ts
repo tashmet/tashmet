@@ -1,5 +1,5 @@
-import Tashmit, {Database} from '@tashmit/tashmit';
-import {file, json} from '@tashmit/file';
+import Tashmit from '@tashmit/tashmit';
+import File, {json} from '@tashmit/file';
 import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
 import 'mocha';
@@ -21,18 +21,19 @@ function storedKeys() {
 }
 
 describe('file', () => {
-  const database = Tashmit
+  const col = Tashmit
     .withConfiguration({operators})
-    .collection('test', file({
+    .use(
+      Vinyl.configure({watch: false}),
+      File.configure(),
+    )
+    .bootstrap(File)
+    .db('testdb')
+    .file('test', {
       path: 'test/e2e/testCollection.json',
       serializer: json<any>(),
       dictionary: true,
-    }))
-    .provide(new Vinyl({watch: false}))
-    .bootstrap(Database);
-
-
-  let col = database.collection('test');
+    });
 
   beforeEach(async () => {
     await col.insertMany([

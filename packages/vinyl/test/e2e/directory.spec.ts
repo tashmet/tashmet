@@ -1,5 +1,5 @@
-import Tashmit, {Database} from '@tashmit/tashmit';
-import {directoryContent, json} from '@tashmit/file';
+import Tashmit from '@tashmit/tashmit';
+import File, {json} from '@tashmit/file';
 import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
 import 'mocha';
@@ -21,17 +21,19 @@ function storedFiles(): string[] {
 }
 
 describe('directory', () => {
-  const database = Tashmit
+  const col = Tashmit
     .withConfiguration({operators})
-    .collection('test', directoryContent({
+    .use(
+      Vinyl.configure({watch: false}),
+      File.configure(),
+    )
+    .bootstrap(File)
+    .db('testdb')
+    .directoryContent('test', {
       path: 'test/e2e/testCollection',
       extension: 'json',
       serializer: json(),
-    }))
-    .provide(new Vinyl({watch: false}))
-    .bootstrap(Database);
-
-  let col = database.collection('test');
+    });
 
   beforeEach(async () => {
     await col.insertMany([
