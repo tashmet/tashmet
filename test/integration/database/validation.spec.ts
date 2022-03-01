@@ -3,24 +3,23 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Database} from '../../../packages/tashmit'
+import Tashmit from '../../../packages/tashmit'
+import Memory from '../../../packages/database'
 import operators from '../../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
 describe('validation', () => {
-  let database = Tashmit
+  let db = Tashmit
     .withConfiguration({operators})
-    .collection('sales', {
-      source: [],
-      validator: {
-        item: {$type: 'string'},
-      }
-    })
-    .bootstrap(Database);
-
-
-  let sales = database.collection('sales');
+    .bootstrap(Memory)
+    .db('test');
+  
+  const sales = db.createCollection('sales', {
+    validator: {
+      item: {$type: 'string'}
+    }
+  });
 
   it('should insert a valid document', async () => {
     const doc = await sales.insertOne({item : 'abc', price : 10,  quantity: 2});

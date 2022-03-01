@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Database, LogLevel} from '../../packages/tashmit/dist'
+import Tashmit, {LogLevel} from '../../packages/tashmit/dist'
 import HttpClient from '../../packages/http-client/dist';
 import Caching from '../../packages/caching/dist';
 // import {socket} from '../../packages/socket/dist';
@@ -13,19 +13,15 @@ import fetch from 'isomorphic-fetch';
 chai.use(chaiAsPromised);
 
 describe('rest', () => {
-  const db = Tashmit
+  const col = Tashmit
     .withConfiguration({operators, logLevel: LogLevel.None})
-    .collection('test', HttpClient.collection('http://localhost:8000/api/test'))
-    .provide(
-      new HttpClient({
-        fetch,
-        //emitter: socket(),
-      }),
-      new Caching({}),
+    .use(
+      HttpClient.configure({fetch}),
+      Caching.configure({})
     )
-    .bootstrap(Database);
-
-  const col = db.collection('test');
+    .bootstrap(HttpClient)
+    .db('testdb')
+    .createCollection('test', 'http://localhost:8000/api/test');
 
   beforeEach(async () => {
     await col.insertMany([

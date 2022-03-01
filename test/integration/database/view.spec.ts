@@ -3,16 +3,33 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Database} from '../../../packages/tashmit'
+import Tashmit from '../../../packages/tashmit';
+import Memory from '../../../packages/database';
 import operators from '../../../packages/operators/system';
 
 
 chai.use(chaiAsPromised);
 
 describe('view', () => {
-  let database = Tashmit
+  const db = Tashmit
     .withConfiguration({operators})
-    .collection('sales', [
+    .bootstrap(Memory)
+    .db('testdb');
+
+  const sales = db.collection('sales');
+  const totals = db.createCollection('totals', {
+    viewOf: 'sales',
+    pipeline: [
+      {$group: {
+        _id : '$item',
+        totalSaleAmount: {$sum: {$multiply: ['$price', '$quantity']}}
+      }},
+      {$match: {'totalSaleAmount': {$gte: 100}}}
+    ],
+  });
+
+  before(async () => {
+    await sales.insertMany([
       { _id : 1, item : 'abc', price : 10,  quantity: 2},
       { _id : 2, item : 'jkl', price : 20,  quantity: 1},
       { _id : 3, item : 'xyz', price : 5,   quantity: 10},
@@ -21,22 +38,8 @@ describe('view', () => {
       { _id : 6, item : 'def', price : 7.5, quantity: 5},
       { _id : 7, item : 'def', price : 7.5, quantity: 10},
       { _id : 8, item : 'abc', price : 10,  quantity: 5},
-    ])
-    .collection('totals', {
-      viewOf: 'sales',
-      pipeline: [
-        {$group: {
-          _id : '$item',
-          totalSaleAmount: {$sum: {$multiply: ['$price', '$quantity']}}
-        }},
-        {$match: {'totalSaleAmount': {$gte: 100}}}
-      ],
-    })
-    .bootstrap(Database);
-
-
-  let sales = database.collection('sales');
-  let totals = database.collection('totals');
+    ]);
+  });
 
   afterEach(async () => {
     // totals.removeAllListeners();
@@ -45,8 +48,8 @@ describe('view', () => {
   it('should initially have correct documents', () => {
     return expect(totals.find().toArray())
       .to.eventually.eql([
-        {_id : 'abc', 'totalSaleAmount': 170},
         {_id : 'xyz', 'totalSaleAmount': 150},
+        {_id : 'abc', 'totalSaleAmount': 170},
         {_id : 'def', 'totalSaleAmount': 112.5},
       ]);
   });
