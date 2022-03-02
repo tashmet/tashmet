@@ -37,8 +37,25 @@ export class Collection<TSchema extends Document = any> {
     });
   }
 
+  /**
+   * The name of this collection
+   */
   public get collectionName(): string {
     return this.driver.ns.coll;
+  }
+
+  /**
+   * The name of the database this collection belongs to
+   */
+  public get dbName(): string {
+    return this.driver.ns.db;
+  }
+
+  /**
+   * The namespace of this collection, in the format `${this.dbName}.${this.collectionName}`
+   */
+  public get namespace(): string {
+    return `${this.dbName}.${this.collectionName}`;
   }
 
   public aggregate<T>(pipeline: Document[]): Cursor<T> {
