@@ -267,6 +267,8 @@ export interface MemoryClientConfig {
 export abstract class MemoryClientConfig implements MemoryClientConfig {}
 
 export interface Database {
+  readonly databaseName: string;
+
   /**
    * Get an existing collection by name.
    *
@@ -295,7 +297,7 @@ export abstract class AbstractDatabase<TDriver extends CollectionDriver<any>> im
   protected collMap: {[name: string]: Collection} = {};
   protected driverMap: {[name: string]: TDriver} = {};
 
-  public constructor(public readonly name: string) {}
+  public constructor(public readonly databaseName: string) {}
 
   public collection(name: string): Collection {
     if (name in this.collMap) {

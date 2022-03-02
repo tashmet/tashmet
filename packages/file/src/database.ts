@@ -133,7 +133,7 @@ export class FileSystemDatabase extends AbstractDatabase<MemoryDriver<any>> {
 
   private createBuffer<T>(name: string): MemoryDriver<T> {
     return this.buffers[name] = MemoryDriver.fromConfig<T>({
-      ns: {db: this.name, coll: name},
+      ns: {db: this.databaseName, coll: name},
       collectionResolver: (name: string) => this.buffers[name].documents
     });
   }

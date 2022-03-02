@@ -48,7 +48,7 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
       }
 
       const driver = MemoryDriver.fromConfig<T>({
-        ns: {db: this.name, coll: name},
+        ns: {db: this.databaseName, coll: name},
         collectionResolver: name => this.driverMap[name].documents
       });
       let c: Collection<T>;

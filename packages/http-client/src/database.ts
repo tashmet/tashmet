@@ -23,7 +23,7 @@ export class HttpDatabase extends AbstractDatabase<HttpDriver<any>> {
       ...config,
     };
 
-    const logger = this.logger.inScope(`HttpCollection (${this.name})`)
+    const logger = this.logger.inScope(`HttpCollection (${this.databaseName})`)
 
     if (!querySerializer) {
       throw Error('No query serializer configured');
@@ -38,7 +38,7 @@ export class HttpDatabase extends AbstractDatabase<HttpDriver<any>> {
     }
 
     const driver = new HttpDriver<T>(
-      {db: this.name, coll: name}, new HttpRestLayer(path, loggedFetch), querySerializer
+      {db: this.databaseName, coll: name}, new HttpRestLayer(path, loggedFetch), querySerializer
     );
     let collection: Collection<T> = new Collection<T>(driver, this);
 
