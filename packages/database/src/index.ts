@@ -7,7 +7,7 @@ export {MemoryDatabase};
 export {Collection} from './collection';
 export {MemoryDriver, MemoryCollectionConfig} from './collections/memory';
 export {withMiddleware} from './middleware';
-export {applyQueryOptions, sortingMap, AbstractCursor, Selector} from './cursor';
+export {applyQueryOptions, sortingMap, AbstractCursor} from './cursor';
 export {QueryAggregator} from './aggregation';
 export {filterValidator} from './validator';
 export * from './changeStream';

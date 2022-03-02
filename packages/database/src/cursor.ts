@@ -1,5 +1,3 @@
-import {Query as MingoQuery} from 'mingo/query';
-import {merge} from 'mingo/util';
 import {Cursor, Filter, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
 
 export function applyQueryOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
@@ -74,18 +72,5 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
       return this._batch = (await this.toArray());
     }
     return this._batch;
-  }
-}
-
-export class Selector {
-  public constructor(public value: any = {}) {}
-
-  public filter(value: any): Selector {
-    merge(this.value, value);
-    return this;
-  }
-
-  public test(doc: any): boolean {
-    return new MingoQuery(this.value).test(doc);
   }
 }
