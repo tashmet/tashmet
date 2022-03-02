@@ -59,23 +59,23 @@ export class Resource {
     }
     const n = Object.keys(this.connections).length;
     this.logger.debug(
-      `'${this.collection.name}' emitted change '${change.operationType}' to '${n}' clients`
+      `'${this.collection.collectionName}' emitted change '${change.operationType}' to '${n}' clients`
     );
   }
 
   public onConnection(socket: SocketIO.Socket) {
     this.connections[socket.id] = socket;
-    this.logger.debug(`'${this.collection.name}' added connection: '${socket.id}'`);
+    this.logger.debug(`'${this.collection.collectionName}' added connection: '${socket.id}'`);
 
     socket.on('disconnect', msg => {
       delete this.connections[socket.id];
-      this.logger.debug(`'${this.collection.name}' removed connection: '${socket.id}' (${msg})`);
+      this.logger.debug(`'${this.collection.collectionName}' removed connection: '${socket.id}' (${msg})`);
     });
   }
 
   public toString(): string {
     const access = this.readOnly ? 'read only' : 'read/write';
-    return `resource using collection '${this.collection.name}' (${access})`;
+    return `resource using collection '${this.collection.collectionName}' (${access})`;
   }
 
   @get('/')

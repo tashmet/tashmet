@@ -37,7 +37,7 @@ export class Collection<TSchema extends Document = any> {
     });
   }
 
-  public get name(): string {
+  public get collectionName(): string {
     return this.driver.ns.coll;
   }
 

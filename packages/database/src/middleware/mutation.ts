@@ -33,5 +33,5 @@ export function mutationSideEffect<T>(success: SideEffectFunction<T>, fail?: Sid
 }
 
 export const readOnly = (collection: Collection) => mutation(async () => {
-  throw new Error(`trying to mutate read-only collection: '${collection.name}'`);
+  throw new Error(`trying to mutate read-only collection: '${collection.collectionName}'`);
 });

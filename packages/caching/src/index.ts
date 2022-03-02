@@ -49,7 +49,7 @@ export default class CachingLayerPlugin extends CachingLayer {
       new QueryCache(this.config.ttl),
       new IDCache(this.config.ttl)
     ];
-    const cache = this.database.collection(collection.name)
+    const cache = this.database.collection(collection.collectionName)
 
     for (const evaluator of evaluators) {
       const cs = cache.watch();

@@ -25,7 +25,7 @@ describe('database', () => {
   */
 
   it('should create a collection if it does not exist', () => {
-    expect(db.collection('noSuchCollection').name).to.eql('noSuchCollection')
+    expect(db.collection('noSuchCollection').collectionName).to.eql('noSuchCollection')
   });
 
   it('should fail to create collection with existing name', () => {
