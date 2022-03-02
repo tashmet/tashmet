@@ -276,6 +276,11 @@ export interface Database {
   collection<T = any>(name: string): Collection<T>;
 
   /**
+   * Fetch all collections for the current db.
+   */
+  collections(): Collection[];
+
+  /**
    * Drop a collection from the database, removing it permanently.
    *
    * @param name - Name of collection to drop
@@ -287,20 +292,24 @@ export interface Database {
  *
  */
 export abstract class AbstractDatabase<TDriver extends CollectionDriver<any>> implements Database {
-  protected collections: {[name: string]: Collection} = {};
-  protected drivers: {[name: string]: TDriver} = {};
+  protected collMap: {[name: string]: Collection} = {};
+  protected driverMap: {[name: string]: TDriver} = {};
 
   public constructor(public readonly name: string) {}
 
   public collection(name: string): Collection {
-    if (Object.keys(this.collections).includes(name)) {
-      return this.collections[name];
+    if (name in this.collMap) {
+      return this.collMap[name];
     }
     throw Error(`Collection '${name}' does not exist in database`);
   }
 
+  public collections() {
+    return Object.values(this.collMap);
+  }
+
   public async dropCollection(name: string) {
-    const driver = this.drivers[name];
+    const driver = this.driverMap[name];
 
     if (!driver) {
       return false;
@@ -311,8 +320,8 @@ export abstract class AbstractDatabase<TDriver extends CollectionDriver<any>> im
       operationType: 'drop',
       ns: driver.ns,
     });
-    delete this.collections[name];
-    delete this.drivers[name];
+    delete this.collMap[name];
+    delete this.driverMap[name];
 
     return true;
   }

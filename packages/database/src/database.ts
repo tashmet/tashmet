@@ -33,8 +33,8 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
   }
 
   public collection(name: string): Collection {
-    if (Object.keys(this.collections).includes(name)) {
-      return this.collections[name];
+    if (name in this.collMap) {
+      return this.collMap[name];
     }
     return this.createCollection(name, {});
   }
@@ -43,13 +43,13 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
     name: string, config: CollectionConfig | ViewCollectionConfig): Collection<T>
   {
     try {
-      if (name in this.collections) {
+      if (name in this.collMap) {
         throw new Error(`a collection named '${name}' already exists in database`);
       }
 
       const driver = MemoryDriver.fromConfig<T>({
         ns: {db: this.name, coll: name},
-        collectionResolver: name => this.drivers[name].documents
+        collectionResolver: name => this.driverMap[name].documents
       });
       let c: Collection<T>;
 
@@ -62,8 +62,8 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
           c = withMiddleware<T>(c, [validation(this.validatorFactory.create(validator))]);
         }
       }
-      this.collections[name] = c;
-      this.drivers[name] = driver;
+      this.collMap[name] = c;
+      this.driverMap[name] = driver;
 
       //c.on('change', change => this.emit('change', change));
       //c.on('error', error => this.emit('error', error));
