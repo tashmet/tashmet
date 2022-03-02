@@ -1,6 +1,7 @@
+import {OperatorType, useOperators} from "mingo/core";
+import {intersection} from 'mingo/util';
 import {Logger} from '@tashmit/core';
 import {OperatorConfig} from '@tashmit/operators';
-import {OperatorType, useOperators} from "mingo/core";
 import {MemoryDriver} from './collections/memory';
 import {withMiddleware, validation, readOnly, locked} from './middleware';
 import {
@@ -13,6 +14,7 @@ import {
 import {Collection} from './collection';
 import {ChangeSet} from './changeSet';
 import {ChangeStreamDocument} from './changeStream';
+import { Intersect } from ".";
 
 
 export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
@@ -88,7 +90,7 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
       const newDocs = await viewOf.aggregate<T>(config.pipeline).toArray();
       const oldDocs = await collection.find({}).toArray();
 
-      await collection.bulkWrite(ChangeSet.fromDiff(oldDocs, newDocs).toOperations());
+      await collection.bulkWrite(ChangeSet.fromDiff(oldDocs, newDocs, intersection as Intersect<T>).toOperations());
     }
 
     cs.on('change', async change => {

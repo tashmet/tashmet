@@ -1,8 +1,8 @@
 import ObjectID from 'bson-objectid';
-import {intersection} from 'mingo/util';
-import {Document} from './interfaces';
-import {AnyBulkWriteOperation, ChangeStreamDocument, OptionalId } from '.';
+import {AnyBulkWriteOperation, Document, OptionalId} from './interfaces';
+import {ChangeStreamDocument} from './changeStream';
 
+export type Intersect<T extends Document> = (a: T[], b: T[]) => T[];
 
 export function idSet(collection: any[]) {
   return new Set(collection.map(doc => doc._id));
@@ -29,8 +29,8 @@ export class ChangeSet<T extends Document> {
    * @param b Collection after changes
    * @returns A change-set
    */
-  public static fromDiff<T extends Document>(a: T[], b: T[]): ChangeSet<T> {
-    const unchangedIds = idSet(intersection(a, b));
+  public static fromDiff<T extends Document>(a: T[], b: T[], intersect: Intersect<T>): ChangeSet<T> {
+    const unchangedIds = idSet(intersect(a, b));
 
     return new ChangeSet(
       b.filter(doc => !unchangedIds.has(doc._id)),

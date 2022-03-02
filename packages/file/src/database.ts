@@ -1,6 +1,7 @@
 import * as nodePath from 'path';
+import {intersection} from 'mingo/util';
 import {Logger} from '@tashmit/core';
-import {ChangeSet, Collection, Document, locked, withMiddleware, MemoryDriver, AbstractDatabase} from '@tashmit/database';
+import {ChangeSet, Collection, Document, locked, withMiddleware, MemoryDriver, AbstractDatabase, Intersect} from '@tashmit/database';
 import {BundleDriver, BundleStreamConfig } from './collections/bundle';
 
 import {File, FileAccess, ReadableFile, Pipe, FileConfig, DirectoryContentConfig, DirectoryFilesConfig} from './interfaces';
@@ -49,7 +50,7 @@ export class FileSystemDatabase extends AbstractDatabase<MemoryDriver<any>> {
     const collection = new Collection<T>(driver, this);
 
     const listen = async (input: Pipeline<T>) => {
-      return driver.load(ChangeSet.fromDiff(await buffer.find().toArray(), await input.toArray()));
+      return driver.load(ChangeSet.fromDiff(await buffer.find().toArray(), await input.toArray(), intersection as Intersect<T>));
     }
 
     if (streamConfig.input) {
