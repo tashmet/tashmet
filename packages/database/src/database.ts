@@ -4,18 +4,18 @@ import {OperatorType, useOperators} from "mingo/core";
 import {MemoryDriver} from './collections/memory';
 import {withMiddleware, validation, readOnly, locked} from './middleware';
 import {
+  AbstractDatabase,
   CollectionConfig,
-  Database,
   OptionalId,
   ValidatorFactory,
+  ViewCollectionConfig,
 } from './interfaces';
 import {Collection} from './collection';
-import {ChangeSet, ChangeStreamDocument, ViewCollectionConfig} from '.';
+import {ChangeSet} from './changeSet';
+import {ChangeStreamDocument} from './changeStream';
 
 
-export class MemoryDatabase extends Database {
-  private data: Record<string, MemoryDriver<any>> = {};
-
+export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
   public constructor(
     name: string,
     private logger: Logger,
@@ -49,7 +49,7 @@ export class MemoryDatabase extends Database {
 
       const driver = MemoryDriver.fromConfig<T>({
         ns: {db: this.name, coll: name},
-        collectionResolver: name => this.data[name].documents
+        collectionResolver: name => this.drivers[name].documents
       });
       let c: Collection<T>;
 
@@ -57,13 +57,13 @@ export class MemoryDatabase extends Database {
         c = this.createView(driver, config);
       } else {
         const validator = config.validator;
-        c = new Collection<T>(driver);
+        c = new Collection<T>(driver, this);
         if (validator) {
           c = withMiddleware<T>(c, [validation(this.validatorFactory.create(validator))]);
         }
       }
       this.collections[name] = c;
-      this.data[name] = driver;
+      this.drivers[name] = driver;
 
       //c.on('change', change => this.emit('change', change));
       //c.on('error', error => this.emit('error', error));
@@ -77,7 +77,7 @@ export class MemoryDatabase extends Database {
 
   private createView<T = any>(driver: MemoryDriver<T>, config: ViewCollectionConfig) {
     const viewOf = this.collection(config.viewOf);
-    const collection = new Collection<T>(driver);
+    const collection = new Collection<T>(driver, this);
     const cs = viewOf.watch();
     const populate = async () => collection.insertMany(
       await viewOf.aggregate<OptionalId<T>>(config.pipeline).toArray()

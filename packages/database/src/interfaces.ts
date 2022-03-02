@@ -237,12 +237,6 @@ export interface Middleware<T = any> {
   deleteMany?: MiddlewareHook<DeleteMany<T>>;
 }
 
-export interface MiddlewareContext {
-  collection: Collection;
-  database: Database;
-}
-
-
 /** Configuration for view collection */
 export interface CollectionConfig {
   /**
@@ -272,8 +266,6 @@ export interface MemoryClientConfig {
 
 export abstract class MemoryClientConfig implements MemoryClientConfig {}
 
-export type CollectionChangeAction = 'insert' | 'delete' | 'replace';
-
 export interface Database {
   /**
    * Get an existing collection by name.
@@ -282,13 +274,21 @@ export interface Database {
    * @returns The instance of the collection.
    */
   collection<T = any>(name: string): Collection<T>;
+
+  /**
+   * Drop a collection from the database, removing it permanently.
+   *
+   * @param name - Name of collection to drop
+   */
+  dropCollection(name: string): Promise<boolean>;
 }
 
 /**
  *
  */
-export abstract class Database implements Database {
+export abstract class AbstractDatabase<TDriver extends CollectionDriver<any>> implements Database {
   protected collections: {[name: string]: Collection} = {};
+  protected drivers: {[name: string]: TDriver} = {};
 
   public constructor(public readonly name: string) {}
 
@@ -298,11 +298,24 @@ export abstract class Database implements Database {
     }
     throw Error(`Collection '${name}' does not exist in database`);
   }
-}
 
-export interface CollectionContext {
-  name: string;
-  database: Database;
+  public async dropCollection(name: string) {
+    const driver = this.drivers[name];
+
+    if (!driver) {
+      return false;
+    }
+    await driver.write(ChangeSet.fromDelete(await driver.find({}).toArray()));
+    driver.emit('change', {
+      _id: new ObjectId(),
+      operationType: 'drop',
+      ns: driver.ns,
+    });
+    delete this.collections[name];
+    delete this.drivers[name];
+
+    return true;
+  }
 }
 
 export abstract class Aggregator<T = any> {

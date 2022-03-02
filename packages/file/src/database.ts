@@ -1,6 +1,6 @@
 import * as nodePath from 'path';
 import {Logger} from '@tashmit/core';
-import {ChangeSet, Collection, Database, Document, locked, withMiddleware, MemoryDriver} from '@tashmit/database';
+import {ChangeSet, Collection, Document, locked, withMiddleware, MemoryDriver, AbstractDatabase} from '@tashmit/database';
 import {BundleDriver, BundleStreamConfig } from './collections/bundle';
 
 import {File, FileAccess, ReadableFile, Pipe, FileConfig, DirectoryContentConfig, DirectoryFilesConfig} from './interfaces';
@@ -9,7 +9,7 @@ import * as Pipes from './pipes';
 import {GlobFilesConfig, GlobContentConfig, ShardStream, ShardDriver} from './collections/shard';
 
 
-export class FileSystemDatabase extends Database {
+export class FileSystemDatabase extends AbstractDatabase<MemoryDriver<any>> {
   private buffers: Record<string, MemoryDriver<any>> = {};
 
   public constructor(
@@ -46,7 +46,7 @@ export class FileSystemDatabase extends Database {
 
     const buffer = this.createBuffer<T>(name);
     const driver = new BundleDriver(buffer, streamConfig.output);
-    const collection = new Collection<T>(driver);
+    const collection = new Collection<T>(driver, this);
 
     const listen = async (input: Pipeline<T>) => {
       return driver.load(ChangeSet.fromDiff(await buffer.find().toArray(), await input.toArray()));
@@ -119,7 +119,7 @@ export class FileSystemDatabase extends Database {
     }
 
     const driver = new ShardDriver(this.createBuffer<T>(name), output);
-    const collection = new Collection<T>(driver);
+    const collection = new Collection<T>(driver, this);
     const instance = withMiddleware<T>(collection, [locked([driver.populate(seed)])])
 
     if (input) {

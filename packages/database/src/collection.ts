@@ -3,6 +3,7 @@ import {
   BulkWriteResult,
   CollectionDriver,
   Cursor,
+  Database,
   Document,
   DeleteResult,
   Filter,
@@ -28,6 +29,7 @@ export class Collection<TSchema extends Document = any> {
 
   public constructor(
     private driver: CollectionDriver<TSchema>,
+    private db: Database,
   ) {
     this.writeOpFactory = BulkWriteOperationFactory.fromDriver(driver);
     this.driver.on('change', change => {
@@ -225,6 +227,10 @@ export class Collection<TSchema extends Document = any> {
     });
     this.changeStreams.push(cs);
     return cs;
+  }
+
+  public drop() {
+    return this.db.dropCollection(this.collectionName);
   }
 
   private updateResult({matchedCount, modifiedCount, upsertedCount, upsertedIds}: BulkWriteResult): UpdateResult {

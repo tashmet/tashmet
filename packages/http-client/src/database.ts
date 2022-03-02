@@ -1,11 +1,11 @@
 import {Logger} from '@tashmit/core';
-import {CachingLayer, Collection, withMiddleware, Database} from '@tashmit/database';
+import {CachingLayer, Collection, withMiddleware, AbstractDatabase} from '@tashmit/database';
 import {HttpDriver} from './driver';
 import {HttpRestLayer} from './common';
 import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
 
 
-export class HttpDatabase extends Database {
+export class HttpDatabase extends AbstractDatabase<HttpDriver<any>> {
   public constructor(
     name: string,
     private config: HttpClientConfig,
@@ -40,7 +40,7 @@ export class HttpDatabase extends Database {
     const driver = new HttpDriver<T>(
       {db: this.name, coll: name}, new HttpRestLayer(path, loggedFetch), querySerializer
     );
-    let collection: Collection<T> = new Collection<T>(driver);
+    let collection: Collection<T> = new Collection<T>(driver, this);
 
     if (this.cachingLayer) {
       collection = withMiddleware<T>(collection, [this.cachingLayer.create(collection)]);
