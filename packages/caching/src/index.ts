@@ -2,7 +2,7 @@ import {Container, Provider} from '@tashmit/core';
 export {CachingConfig};
 
 import {provider} from '@tashmit/core';
-import MemoryClient, {
+import {
   CachingLayer,
   Collection,
   Filter,
@@ -12,6 +12,7 @@ import MemoryClient, {
   lockedCursor,
   Database,
 } from '@tashmit/database';
+import MemoryClient from '@tashmit/memory';
 import {CachingConfig} from './interfaces';
 import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';

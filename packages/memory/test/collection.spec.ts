@@ -1,12 +1,12 @@
 import {DefaultLogger} from '@tashmit/core/src/logging/logger';
+import {SortingDirection} from '@tashmit/database';
 import operators from '@tashmit/operators/system';
-import {MemoryDatabase} from '../../src/database';
+import {MemoryDatabase} from '../src/database';
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {SortingDirection} from '../../dist';
-import {SimpleValidatorFactory} from '../../dist/validator';
+import {SimpleValidatorFactory} from '../dist/validator';
 
 chai.use(chaiAsPromised);
 

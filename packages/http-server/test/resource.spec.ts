@@ -1,5 +1,5 @@
 import Tashmit, {Container} from '@tashmit/tashmit';
-import Memory from '@tashmit/database';
+import Memory from '@tashmit/memory';
 import {QueryParser} from '@tashmit/qs-parser';
 import HttpServer from '../src';
 import request from 'supertest-as-promised';

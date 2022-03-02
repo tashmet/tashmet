@@ -1,7 +1,8 @@
 import * as nodePath from 'path';
 import {intersection} from 'mingo/util';
 import {Logger} from '@tashmit/core';
-import {ChangeSet, Collection, Document, locked, withMiddleware, MemoryDriver, AbstractDatabase, Intersect} from '@tashmit/database';
+import {ChangeSet, Collection, Document, locked, withMiddleware, AbstractDatabase, Intersect} from '@tashmit/database';
+import {MemoryDriver} from '@tashmit/memory';
 import {BundleDriver, BundleStreamConfig } from './collections/bundle';
 
 import {File, FileAccess, ReadableFile, Pipe, FileConfig, DirectoryContentConfig, DirectoryFilesConfig} from './interfaces';

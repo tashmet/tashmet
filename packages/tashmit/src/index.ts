@@ -21,17 +21,12 @@ export {
   // Bootstrapping
   createContainer,
 
-  // Factory
-  Factory,
-  AsyncFactory,
-
   // Providers
   ClassProviderAnnotation,
   FactoryProviderAnnotation,
   InjectedProviderAnnotation,
   provider,
   Provider,
-  Plugin,
 
   // Logging
   LogLevel,
@@ -61,17 +56,12 @@ export {
 
 } from '@tashmit/core';
 
-import DatabasePlugin, {
-  DatabaseConfig,
-  CollectionSource,
-  MiddlewareFactory
-} from '@tashmit/database';
+import MemoryClient, {MemoryClientConfig} from '@tashmit/memory';
 import {
   Container,
   createContainer,
   Newable,
   Provider,
-  Plugin,
   Logger,
   LoggerConfig,
   LogLevel,
@@ -81,8 +71,9 @@ import {
 import {BootstrapConfig} from '@tashmit/core/dist/ioc/bootstrap';
 import {OperatorConfig} from '@tashmit/operators';
 
-export interface Configuration extends DatabaseConfig, LoggerConfig, BootstrapConfig {}
+export interface Configuration extends MemoryClientConfig, LoggerConfig, BootstrapConfig {}
 
+export { MemoryClient };
 
 export default class Tashmit {
   public static withConfiguration(config: Partial<Configuration>) {
@@ -94,9 +85,8 @@ export default class Tashmit {
     );
   }
 
-  private providers: (Provider<any> | Newable<any> | Plugin)[] = [];
-  private middleware: MiddlewareFactory[] = [];
-  private collections: Record<string, CollectionSource<any>> = {};
+  private providers: (Provider<any> | Newable<any>)[] = [];
+  private plugins: ((container: Container) => void)[] = [];
 
   public constructor(
     private container: ((logger: Logger) => Container) | undefined = undefined,
@@ -105,20 +95,15 @@ export default class Tashmit {
     private logFormat: LogFormatter | undefined = undefined,
   ) {}
 
-  public provide(...providers: (Provider<any> | Newable<any> | Plugin)[]) {
+  public provide(...providers: (Provider<any> | Newable<any>)[]) {
     this.providers.push(...providers);
     return this;
   }
 
-  public use(...middleware: MiddlewareFactory[]) {
-    this.middleware.push(...middleware);
-    return this;
-  }
-
-  public collection<T = any>(name: string, source: CollectionSource<T>) {
-    this.collections[name] = source;
-    return this;
-  }
+ public use(...plugins: ((container: Container) => void)[]) {
+   this.plugins.push(...plugins);
+   return this;
+ }
 
   public bootstrap<T>(app: ServiceRequest<T>, fn?: (instance: T) => void): T {
     const container = createContainer({
@@ -127,22 +112,14 @@ export default class Tashmit {
       container: this.container,
     });
 
-    this.providers.unshift(
-      new DatabasePlugin({
-        operators: this.operators,
-        use: this.middleware,
-        collections: this.collections,
-      })
-    );
+    MemoryClient.configure({operators: this.operators})(container);
 
     for (const provider of this.providers) {
       container.register(provider);
     }
 
-    for (const provider of this.providers) {
-      if (provider instanceof Plugin) {
-        provider.setup(container);
-      }
+    for (const plugin of this.plugins) {
+      plugin(container);
     }
 
     const instance = container.resolve(app);

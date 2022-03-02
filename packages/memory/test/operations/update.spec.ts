@@ -1,11 +1,10 @@
-import {UpdateWriter} from '../../dist/operations/update';
-import {MemoryDriver} from '../../dist/collections/memory';
+import {UpdateWriter, ChangeSet} from '@tashmit/database';
+import {MemoryDriver} from '../../dist/driver';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import 'mocha';
-import {ChangeSet} from '../../dist';
 
 chai.use(sinonChai);
 

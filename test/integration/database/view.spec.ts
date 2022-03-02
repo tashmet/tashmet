@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
 import Tashmit from '../../../packages/tashmit';
-import Memory from '../../../packages/database';
+import Memory from '../../../packages/memory';
 import operators from '../../../packages/operators/system';
 
 

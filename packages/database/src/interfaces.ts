@@ -1,6 +1,5 @@
 import ObjectId from 'bson-objectid';
 import {EventEmitter} from 'eventemitter3';
-import {OperatorConfig} from '@tashmit/operators';
 import {Collection} from './collection';
 import {ChangeStreamDocument} from './changeStream';
 import {ChangeSet} from './changeSet';
@@ -253,19 +252,6 @@ export interface ViewCollectionConfig {
   pipeline: Document[];
 }
 
-/**
- * Configuration for the database.
- */
-export interface MemoryClientConfig {
-  /**
-   *
-   */
-  operators: OperatorConfig;
-}
-
-
-export abstract class MemoryClientConfig implements MemoryClientConfig {}
-
 export interface Database {
   readonly databaseName: string;
 
@@ -290,44 +276,6 @@ export interface Database {
   dropCollection(name: string): Promise<boolean>;
 }
 
-/**
- *
- */
-export abstract class AbstractDatabase<TDriver extends CollectionDriver<any>> implements Database {
-  protected collMap: {[name: string]: Collection} = {};
-  protected driverMap: {[name: string]: TDriver} = {};
-
-  public constructor(public readonly databaseName: string) {}
-
-  public collection(name: string): Collection {
-    if (name in this.collMap) {
-      return this.collMap[name];
-    }
-    throw Error(`Collection '${name}' does not exist in database`);
-  }
-
-  public collections() {
-    return Object.values(this.collMap);
-  }
-
-  public async dropCollection(name: string) {
-    const driver = this.driverMap[name];
-
-    if (!driver) {
-      return false;
-    }
-    await driver.write(ChangeSet.fromDelete(await driver.find({}).toArray()));
-    driver.emit('change', {
-      _id: new ObjectId(),
-      operationType: 'drop',
-      ns: driver.ns,
-    });
-    delete this.collMap[name];
-    delete this.driverMap[name];
-
-    return true;
-  }
-}
 
 export abstract class Aggregator<T = any> {
   abstract get pipeline(): Document[];

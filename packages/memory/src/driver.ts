@@ -3,6 +3,8 @@ import {Aggregator as MingoAggregator} from 'mingo/aggregator';
 import * as mingoCursor from 'mingo/cursor';
 import ObjectID from 'bson-objectid';
 import {
+  ChangeSet,
+  idSet,
   CollectionDriver,
   Cursor,
   Document,
@@ -11,10 +13,9 @@ import {
   QueryOptions,
   SortingKey,
   SortingDirection,
-} from '../interfaces';
-import {applyQueryOptions, sortingMap} from '../cursor';
-import {idSet} from '../changeSet';
-import {ChangeSet} from '../changeSet';
+  applyQueryOptions,
+  sortingMap,
+} from '@tashmit/database';
 
 export interface MemoryCollectionConfig<T = any> {
   /**

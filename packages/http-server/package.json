@@ -34,6 +34,7 @@
 		"@types/on-headers": "^1.0.0",
 		"@types/socket.io": "^2.1.0",
 		"@types/supertest-as-promised": "^2.0.35",
+		"@tashmit/memory": "^1.0.0",
 		"@tashmit/operators": "^0.1.0",
 		"@tashmit/tashmit": "^1.4.0",
 		"body-parser": "^1.19.0",

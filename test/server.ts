@@ -1,5 +1,5 @@
 import Tashmit, {Container} from '../packages/tashmit/dist'
-import Memory from '../packages/database/dist'
+import Memory from '../packages/memory/dist'
 import HttpServer from '../packages/http-server/dist';
 import operators from '../packages/operators/system';
 
