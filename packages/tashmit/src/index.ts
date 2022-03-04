@@ -56,7 +56,6 @@ export {
 
 } from '@tashmit/core';
 
-import MemoryClient, {MemoryClientConfig} from '@tashmit/memory';
 import {
   Container,
   createContainer,
@@ -69,17 +68,17 @@ import {
   ServiceRequest,
 } from '@tashmit/core';
 import {BootstrapConfig} from '@tashmit/core/dist/ioc/bootstrap';
-import {OperatorConfig} from '@tashmit/operators';
 
-export interface Configuration extends MemoryClientConfig, LoggerConfig, BootstrapConfig {}
+export interface Configuration extends LoggerConfig, BootstrapConfig {}
 
-export { MemoryClient };
+interface Plugin<TConf> {
+  configure(conf: TConf): (container: Container) => void;
+}
 
 export default class Tashmit {
   public static withConfiguration(config: Partial<Configuration>) {
     return new Tashmit(
       config.container,
-      config.operators,
       config.logLevel,
       config.logFormat,
     );
@@ -90,7 +89,6 @@ export default class Tashmit {
 
   public constructor(
     private container: ((logger: Logger) => Container) | undefined = undefined,
-    private operators: OperatorConfig = {},
     private logLevel: LogLevel = LogLevel.None,
     private logFormat: LogFormatter | undefined = undefined,
   ) {}
@@ -100,8 +98,8 @@ export default class Tashmit {
     return this;
   }
 
- public use(...plugins: ((container: Container) => void)[]) {
-   this.plugins.push(...plugins);
+ public use<TConf>(ctr: Plugin<TConf>, conf: TConf) {
+   this.plugins.push(ctr.configure(conf));
    return this;
  }
 
@@ -111,8 +109,6 @@ export default class Tashmit {
       logLevel: this.logLevel,
       container: this.container,
     });
-
-    MemoryClient.configure({operators: this.operators})(container);
 
     for (const provider of this.providers) {
       container.register(provider);

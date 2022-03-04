@@ -10,8 +10,8 @@ import operators from '../../../packages/operators/system';
 chai.use(chaiAsPromised);
 
 describe('validation', () => {
-  let db = Tashmit
-    .withConfiguration({operators})
+  let db = new Tashmit()
+    .use(Memory, {operators})
     .bootstrap(Memory)
     .db('test');
   

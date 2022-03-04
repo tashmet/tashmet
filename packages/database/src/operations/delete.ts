@@ -1,5 +1,5 @@
 import {makeWriteChange, ChangeSet} from '../changeSet';
-import {BulkWriteResult, CollectionDriver, Document, DeleteModel, QueryOptions, Writer} from '../interfaces';
+import {BulkWriteResult, CollectionDriver, Document, DeleteModel, FindOptions, Writer} from '../interfaces';
 
 export class DeleteWriter<TSchema extends Document> extends Writer<TSchema, DeleteModel<TSchema>> {
   public constructor(
@@ -8,7 +8,7 @@ export class DeleteWriter<TSchema extends Document> extends Writer<TSchema, Dele
   ) { super(driver); }
 
   public async execute({filter}: DeleteModel<TSchema>): Promise<Partial<BulkWriteResult>> {
-    const options: QueryOptions = {
+    const options: FindOptions = {
       //projection: {_id: 1},
       limit: this.single ? 1 : undefined,
     };

@@ -1,15 +1,15 @@
-import {Aggregator, Cursor, Document, Filter, QueryOptions} from './interfaces';
+import {Aggregator, Cursor, Document, Filter, FindOptions} from './interfaces';
 import {Collection} from './collection';
 
 export class QueryAggregator<T> extends Aggregator<T> {
   public constructor(
     public filter: Filter<T>,
-    public options: QueryOptions<T>,
+    public options: FindOptions<T>,
   ) { super(); }
 
   public static fromPipeline<T = any>(pipeline: Document[], strict: boolean = false) {
     let filter: Filter<T> = {};
-    let options: QueryOptions<T> = {};
+    let options: FindOptions<T> = {};
 
     const handlers: Record<string, (value: any) => void> = {
       '$match': v => filter = v,

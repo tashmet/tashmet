@@ -38,9 +38,14 @@
 		"mingo": "4.1.4"
 	},
 	"devDependencies": {
+		"@tashmit/tashmit": "^1.4.0",
 		"@types/node": "^13.1.8",
 		"@types/reflect-metadata": "^0.1.0",
 		"tslib": "^2.3.1"
+	},
+	"peerDependencies":
+	{
+		"@tashmit/tashmit": "^1.4.0"
 	},
 	"gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
 }

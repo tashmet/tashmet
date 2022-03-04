@@ -1,4 +1,4 @@
-import {Filter, QueryOptions} from '@tashmit/database';
+import {Filter, FindOptions} from '@tashmit/database';
 
 export abstract class CacheEvaluator {
   private records: Record<string, number> = {};
@@ -13,15 +13,15 @@ export abstract class CacheEvaluator {
     return;
   }
 
-  public optimize(filter: Filter<any>, options?: QueryOptions): void {
+  public optimize(filter: Filter<any>, options?: FindOptions): void {
     return;
   }
 
-  public isCached(filter: Filter<any>, options?: QueryOptions): boolean {
+  public isCached(filter: Filter<any>, options?: FindOptions): boolean {
     return false;
   }
 
-  public success(filter: Filter<any>, options?: QueryOptions): void {
+  public success(filter: Filter<any>, options?: FindOptions): void {
     return;
   }
 
@@ -47,7 +47,7 @@ export abstract class CacheEvaluator {
 }
 
 export function isCached(
-  evaluators: CacheEvaluator[], filter: Filter<any>, options: QueryOptions
+  evaluators: CacheEvaluator[], filter: Filter<any>, options: FindOptions
 ) {
   for (const evaluator of evaluators) {
     evaluator.optimize(filter || {}, options);

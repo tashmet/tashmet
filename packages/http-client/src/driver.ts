@@ -2,7 +2,7 @@ import {
   CollectionDriver,
   Cursor,
   Filter,
-  QueryOptions,
+  FindOptions,
   Document,
   ChangeSet,
 } from '@tashmit/database';
@@ -35,7 +35,7 @@ export class HttpDriver<TSchema extends Document> extends CollectionDriver<TSche
     return this.find(filter).limit(1).next();
   }
 
-  public find(filter: Filter<TSchema>, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
+  public find(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
     return new HttpCollectionCursor<TSchema>(
       this.restLayer, this.querySerializer, filter, options
     );

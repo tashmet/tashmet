@@ -8,16 +8,19 @@ import {
   ChangeSet,
   ChangeStreamDocument,
   Collection,
-  CollectionConfig,
+  CreateCollectionOptions,
   Intersect,
   OptionalId,
   ValidatorFactory,
-  ViewCollectionConfig,
   withMiddleware,
   validation,
   readOnly,
   locked,
 } from '@tashmit/database';
+
+
+type RequireKeys<T extends object, K extends keyof T> =
+  Required<Pick<T, K>> & Omit<T, K>;
 
 
 export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
@@ -41,11 +44,11 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
     if (name in this.collMap) {
       return this.collMap[name];
     }
-    return this.createCollection(name, {});
+    return this.createCollection(name);
   }
 
   public createCollection<T = any>(
-    name: string, config: CollectionConfig | ViewCollectionConfig): Collection<T>
+    name: string, options: CreateCollectionOptions = {}): Collection<T>
   {
     try {
       if (name in this.collMap) {
@@ -54,14 +57,15 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
 
       const driver = MemoryDriver.fromConfig<T>({
         ns: {db: this.databaseName, coll: name},
-        collectionResolver: name => this.driverMap[name].documents
+        collectionResolver: name => this.driverMap[name].documents,
+        collation: options.collation
       });
       let c: Collection<T>;
 
-      if ('viewOf' in config) {
-        c = this.createView(driver, config);
+      if ('viewOf' in options) {
+        c = this.createView(driver, options as RequireKeys<CreateCollectionOptions, 'viewOf'>);
       } else {
-        const validator = config.validator;
+        const validator = options.validator;
         c = new Collection<T>(driver, this);
         if (validator) {
           c = withMiddleware<T>(c, [validation(this.validatorFactory.create(validator))]);
@@ -80,17 +84,18 @@ export class MemoryDatabase extends AbstractDatabase<MemoryDriver<any>> {
     }
   }
 
-  private createView<T = any>(driver: MemoryDriver<T>, config: ViewCollectionConfig) {
+  private createView<T = any>(driver: MemoryDriver<T>, config: RequireKeys<CreateCollectionOptions, 'viewOf'>) {
+    const pipeline = config.pipeline || [];
     const viewOf = this.collection(config.viewOf);
     const collection = new Collection<T>(driver, this);
     const cs = viewOf.watch();
     const populate = async () => collection.insertMany(
-      await viewOf.aggregate<OptionalId<T>>(config.pipeline).toArray()
+      await viewOf.aggregate<OptionalId<T>>(pipeline).toArray()
     );
     const locks: Promise<any>[] = [populate()];
 
     const handleChange = async (change: ChangeStreamDocument<any>) => {
-      const newDocs = await viewOf.aggregate<T>(config.pipeline).toArray();
+      const newDocs = await viewOf.aggregate<T>(pipeline).toArray();
       const oldDocs = await collection.find({}).toArray();
 
       await collection.bulkWrite(ChangeSet.fromDiff(oldDocs, newDocs, intersection as Intersect<T>).toOperations());

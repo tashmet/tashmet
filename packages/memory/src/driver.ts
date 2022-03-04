@@ -5,19 +5,20 @@ import ObjectID from 'bson-objectid';
 import {
   ChangeSet,
   idSet,
+  CollationOptions,
   CollectionDriver,
   Cursor,
   Document,
   Filter,
   OptionalId,
-  QueryOptions,
+  FindOptions,
   SortingKey,
   SortingDirection,
-  applyQueryOptions,
+  applyFindOptions,
   sortingMap,
 } from '@tashmit/database';
 
-export interface MemoryCollectionConfig<T = any> {
+export interface MemoryCreateCollectionOptions<T = any> {
   /**
    * A list of documents this collection should operate on.
    *
@@ -34,10 +35,10 @@ export class MemoryCursor<T> implements Cursor<T> {
   public constructor(
     private collection: any[],
     private filter: Filter<T> = {},
-    options: QueryOptions = {},
+    options: FindOptions = {},
   ) {
-    this.cursor = new MingoQuery(filter).find(collection, options.projection);
-    applyQueryOptions(this, options);
+    this.cursor = new MingoQuery(filter, {collation: options.collation}).find(collection, options.projection);
+    applyFindOptions(this, options);
   }
 
   public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
@@ -82,17 +83,19 @@ export interface MemoryDriverConfig<TSchema extends Document = any> {
   ns: {db: string, coll: string};
   collectionResolver?: CollectionResolver;
   documents?: TSchema[];
+  collation?: CollationOptions;
 }
 
 export class MemoryDriver<TSchema extends Document> extends CollectionDriver<TSchema> {
   public constructor(
     ns: { db: string; coll: string },
     private collectionResolver: CollectionResolver | undefined  = undefined,
-    public documents: TSchema[] = []
+    public documents: TSchema[] = [],
+    private collation: CollationOptions | undefined = undefined,
   ) { super(ns); }
 
-  public static fromConfig<TSchema>({ns, collectionResolver, documents}: MemoryDriverConfig<TSchema>) {
-    return new MemoryDriver(ns, collectionResolver, documents);
+  public static fromConfig<TSchema>({ns, collectionResolver, documents, collation}: MemoryDriverConfig<TSchema>) {
+    return new MemoryDriver(ns, collectionResolver, documents, collation);
   }
 
   public indexOf(document: TSchema) {
@@ -124,8 +127,8 @@ export class MemoryDriver<TSchema extends Document> extends CollectionDriver<TSc
     return new MingoQuery(filter).find(this.documents).next() as any || null;
   }
 
-  public find(filter: Filter<TSchema> = {}, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
-    return new MemoryCursor<TSchema>(this.documents, filter, options);
+  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
+    return new MemoryCursor<TSchema>(this.documents, filter, {collation: this.collation, ...options});
   }
 
   public aggregate<T>(pipeline: Document[]): Cursor<T> {

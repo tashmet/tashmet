@@ -5,6 +5,7 @@ import 'mocha';
 
 import Tashmit, {LogLevel} from '../../packages/tashmit/dist'
 import HttpClient from '../../packages/http-client/dist';
+import MemoryClient from '../../packages/memory/dist';
 import Caching from '../../packages/caching/dist';
 // import {socket} from '../../packages/socket/dist';
 import operators from '../../packages/operators/system';
@@ -14,11 +15,10 @@ chai.use(chaiAsPromised);
 
 describe('rest', () => {
   const col = Tashmit
-    .withConfiguration({operators, logLevel: LogLevel.None})
-    .use(
-      HttpClient.configure({fetch}),
-      Caching.configure({})
-    )
+    .withConfiguration({logLevel: LogLevel.None})
+    .use(HttpClient, {fetch})
+    .use(MemoryClient, {operators})
+    .use(Caching, {})
     .bootstrap(HttpClient)
     .db('testdb')
     .createCollection('test', 'http://localhost:8000/api/test');

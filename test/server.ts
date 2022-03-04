@@ -3,9 +3,9 @@ import Memory from '../packages/memory/dist'
 import HttpServer from '../packages/http-server/dist';
 import operators from '../packages/operators/system';
 
-const container = Tashmit
-  .withConfiguration({operators})
-  .use(HttpServer.configure())
+const container = new Tashmit()
+  .use(Memory, {operators})
+  .use(HttpServer, {})
   .bootstrap(Container);
 
 const collection = container

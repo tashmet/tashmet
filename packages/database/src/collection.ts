@@ -11,7 +11,7 @@ import {
   InsertManyResult,
   InsertOneResult,
   OptionalId,
-  QueryOptions,
+  FindOptions,
   ReplaceOneOptions,
   UpdateFilter,
   UpdateResult,
@@ -70,7 +70,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter The filter which documents are matched against.
    * @returns A cursor.
    */
-  public find(filter: Filter<TSchema> = {}, options: QueryOptions<TSchema> = {}): Cursor<TSchema> {
+  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
     return this.driver.find(filter, options);
   }
 

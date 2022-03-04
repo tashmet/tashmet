@@ -2,7 +2,7 @@ import {
   Document,
   CollectionDriver,
   ChangeSet,
-  QueryOptions,
+  FindOptions,
   Cursor,
   Filter,
 } from '@tashmit/database';
@@ -28,7 +28,7 @@ export abstract class BufferDriver<TSchema> extends CollectionDriver<TSchema> {
 
   protected abstract persist(cs: ChangeSet<TSchema>): Promise<void>;
 
-  public find(filter?: Filter<TSchema>, options?: QueryOptions): Cursor<TSchema> {
+  public find(filter?: Filter<TSchema>, options?: FindOptions): Cursor<TSchema> {
     return this.buffer.find(filter, options);
   }
 

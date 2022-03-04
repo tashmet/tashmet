@@ -178,7 +178,7 @@ export interface Cursor<T> {
 /**
  *
  */
-export interface QueryOptions<T = any> {
+export interface FindOptions<T = any> {
   /**
    * Set to sort the documents coming back from the query. Key-value map, ex. {a: 1, b: -1}
    */
@@ -200,10 +200,13 @@ export interface QueryOptions<T = any> {
    * Object of fields to either include or exclude (one of, not both),
    * {'a':1, 'b': 1} or {'a': 0, 'b': 0}
    */
-  projection?: Projection<T>
+  projection?: Projection<T>;
+
+
+  collation?: CollationOptions;
 }
 
-export interface Query<T = any> extends QueryOptions<T> {
+export interface Query<T = any> extends FindOptions<T> {
   filter?: Filter<T>;
 }
 
@@ -215,7 +218,7 @@ export interface ReplaceOneOptions {
 export type MiddlewareHook<T> = (next: T) => T;
 
 export type Aggregate<T> = (pipeline: Document[]) => Cursor<T>;
-export type Find<T> = (filter?: Filter<T>, options?: QueryOptions) => Cursor<T>;
+export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Cursor<T>;
 export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
 export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
 export type InsertMany<T> = (docs: T[]) => Promise<InsertManyResult>;
@@ -236,20 +239,31 @@ export interface Middleware<T = any> {
   deleteMany?: MiddlewareHook<DeleteMany<T>>;
 }
 
+export interface CollationOptions {
+  readonly locale: string;
+  readonly caseLevel?: boolean;
+  readonly caseFirst?: string;
+  readonly strength?: number;
+  readonly numericOrdering?: boolean;
+  readonly alternate?: string;
+  readonly maxVariable?: string; // unsupported
+  readonly backwards?: boolean; // unsupported
+}
+
 /** Configuration for view collection */
-export interface CollectionConfig {
+export interface CreateCollectionOptions {
   /**
    * Allows users to specify validation rules or expressions for the collection
    */
   validator?: Document;
-}
 
-export interface ViewCollectionConfig {
+  collation?: CollationOptions;
+
   /** The name of the collection to aggregate from */
-  viewOf: string;
+  viewOf?: string;
 
   /** The aggregation pipeline */
-  pipeline: Document[];
+  pipeline?: Document[];
 }
 
 export interface Database {
@@ -558,7 +572,7 @@ export abstract class CollectionDriver<TSchema extends Document>
 
   public abstract findOne(filter: Filter<TSchema>): Promise<TSchema | null>;
 
-  public abstract find(filter?: Filter<TSchema>, options?: QueryOptions<TSchema>): Cursor<TSchema>;
+  public abstract find(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Cursor<TSchema>;
 
   public abstract aggregate<T>(pipeline: Document[]): Cursor<T>;
 }

@@ -1,4 +1,4 @@
-import {QueryOptions} from '@tashmit/database';
+import {FindOptions} from '@tashmit/database';
 import {expect} from 'chai';
 import 'mocha';
 import {QuerySerializer} from '../src';
@@ -7,7 +7,7 @@ describe('QuerySerializer', () => {
   const filter = {
     foo: {$gte: 2, $lte: 10},
   }
-  const options: QueryOptions = {
+  const options: FindOptions = {
     sort: {
       category: 1,
       datePublished: -1,

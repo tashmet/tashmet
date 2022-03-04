@@ -1,7 +1,7 @@
 export {Collection} from './collection';
 export {AbstractDatabase} from './database';
 export {withMiddleware} from './middleware';
-export {applyQueryOptions, sortingMap, AbstractCursor} from './cursor';
+export {applyFindOptions, sortingMap, AbstractCursor} from './cursor';
 export {QueryAggregator} from './aggregation';
 export {BulkWriteOperation, BulkWriteOperationFactory} from './operations/bulk';
 export {DeleteWriter} from './operations/delete';

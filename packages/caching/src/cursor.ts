@@ -1,8 +1,8 @@
 import {
   Collection,
   Cursor,
-  QueryOptions,
-  applyQueryOptions,
+  FindOptions,
+  applyFindOptions,
   AbstractCursor,
   Filter
 } from '@tashmit/database';
@@ -14,7 +14,7 @@ export class CachingCursor extends AbstractCursor<any> {
     private cache: Collection,
     private findInNext: (selector: object) => Cursor<any>,
     filter: Filter<any> = {},
-    options: QueryOptions = {},
+    options: FindOptions = {},
   ) {
     super(filter, options);
   }
@@ -24,7 +24,7 @@ export class CachingCursor extends AbstractCursor<any> {
       ? this.cache.find(this.filter)
       : this.findInNext(this.filter);
 
-    return applyQueryOptions(cursor, this.options).count(applySkipLimit);
+    return applyFindOptions(cursor, this.options).count(applySkipLimit);
   }
 
   public async toArray(): Promise<any[]> {

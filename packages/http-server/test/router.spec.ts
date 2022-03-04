@@ -31,11 +31,8 @@ describe('Router', () => {
   }
 
   const app = new Tashmit()
-    .provide(
-      TestRouter,
-      //new HttpServer().router('/route', TestRouter)
-    )
-    .use(HttpServer.configure())
+    .provide(TestRouter)
+    .use(HttpServer, {})
     .bootstrap(HttpServer);
   app.router('/route', new TestRouter());
 

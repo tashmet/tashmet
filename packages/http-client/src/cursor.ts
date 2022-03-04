@@ -1,4 +1,4 @@
-import {AbstractCursor, Filter, QueryOptions} from '@tashmit/database';
+import {AbstractCursor, Filter, FindOptions} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 import {HttpRestLayer} from './common';
 
@@ -7,7 +7,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
     private restLayer: HttpRestLayer,
     private querySerializer: QuerySerializer,
     selector: object = {},
-    options: QueryOptions = {},
+    options: FindOptions = {},
   ) {
     super(selector, options);
   }
@@ -30,7 +30,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
     return parseInt(totalCount, 10);
   }
 
-  private query(filter?: Filter<T>, options?: QueryOptions, head?: boolean): Promise<Response> {
+  private query(filter?: Filter<T>, options?: FindOptions, head?: boolean): Promise<Response> {
     return this.restLayer.get(this.querySerializer.serialize({filter, ...options}), head);
   }
 }

@@ -5,14 +5,14 @@ import {MemoryDatabase} from './database';
 import {SimpleValidatorFactory} from './validator';
 
 export {MemoryDatabase};
-export {MemoryDriver, MemoryCollectionConfig} from './driver';
+export {MemoryDriver, MemoryCreateCollectionOptions} from './driver';
 export {filterValidator} from './validator';
 export * from './interfaces';
 
 
 @provider({
   key: MemoryClient,
-  inject: [Logger, ValidatorFactory, 'tashmit.MemoryClientConfig']
+  inject: [Logger, ValidatorFactory, MemoryClientConfig]
 })
 export default class MemoryClient extends Client<MemoryDatabase> {
   private static defaultConfig: MemoryClientConfig = {
@@ -22,7 +22,7 @@ export default class MemoryClient extends Client<MemoryDatabase> {
   public static configure(config: Partial<MemoryClientConfig> = {}) {
     return (container: Container) => {
       container.register(SimpleValidatorFactory);
-      container.register(Provider.ofInstance('tashmit.MemoryClientConfig', {
+      container.register(Provider.ofInstance(MemoryClientConfig, {
         ...MemoryClient.defaultConfig,
         ...config
       }));

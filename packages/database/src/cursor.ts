@@ -1,6 +1,6 @@
-import {Cursor, Filter, QueryOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
+import {Cursor, Filter, FindOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
 
-export function applyQueryOptions(cursor: Cursor<any>, options: QueryOptions): Cursor<any> {
+export function applyFindOptions(cursor: Cursor<any>, options: FindOptions): Cursor<any> {
   if (options.sort) {
     cursor.sort(options.sort);
   }
@@ -29,7 +29,7 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
 
   public constructor(
     protected filter: Filter<T>,
-    protected options: QueryOptions = {},
+    protected options: FindOptions = {},
   ) {}
 
   public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
@@ -61,7 +61,7 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
     return (await this.getBatch()).forEach(iterator);
   }
 
-  private extendOptions(options: QueryOptions): Cursor<T> {
+  private extendOptions(options: FindOptions): Cursor<T> {
     Object.assign(this.options, options);
     return this;
   }

@@ -21,12 +21,9 @@ function storedFiles(): string[] {
 }
 
 describe('directory', () => {
-  const col = Tashmit
-    .withConfiguration({operators})
-    .use(
-      Vinyl.configure({watch: false}),
-      File.configure(),
-    )
+  const col = new Tashmit()
+    .use(Vinyl, {watch: false})
+    .use(File, {})
     .bootstrap(File)
     .db('testdb')
     .directoryContent('test', {

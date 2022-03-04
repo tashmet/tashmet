@@ -2,7 +2,7 @@ import {Logger} from '@tashmit/core';
 import {CachingLayer, Collection, withMiddleware, AbstractDatabase} from '@tashmit/database';
 import {HttpDriver} from './driver';
 import {HttpRestLayer} from './common';
-import {Fetch, HttpCollectionConfig, HttpClientConfig} from './interfaces';
+import {Fetch, HttpCreateCollectionOptions, HttpClientConfig} from './interfaces';
 
 
 export class HttpDatabase extends AbstractDatabase<HttpDriver<any>> {
@@ -13,8 +13,8 @@ export class HttpDatabase extends AbstractDatabase<HttpDriver<any>> {
     private cachingLayer: CachingLayer | undefined,
   ) { super(name); }
 
-  public createCollection<T = any>(name: string, configOrPath: HttpCollectionConfig | string): Collection<T> {
-    const config: HttpCollectionConfig = typeof configOrPath === 'string'
+  public createCollection<T = any>(name: string, configOrPath: HttpCreateCollectionOptions | string): Collection<T> {
+    const config: HttpCreateCollectionOptions = typeof configOrPath === 'string'
       ? {path: configOrPath}
       : configOrPath;
 

@@ -1,4 +1,4 @@
-import {Filter, QueryOptions} from '@tashmit/database';
+import {Filter, FindOptions} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -25,8 +25,8 @@ export interface HttpClientConfig {
 
 export abstract class HttpClientConfig implements HttpClientConfig {}
 
-export interface HttpCollectionConfig extends Partial<HttpClientConfig> {
+export interface HttpCreateCollectionOptions extends Partial<HttpClientConfig> {
   path: string;
 }
 
-export type SerializeQuery = (filter?: Filter<any>, options?: QueryOptions) => string;
+export type SerializeQuery = (filter?: Filter<any>, options?: FindOptions) => string;

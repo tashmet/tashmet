@@ -8,20 +8,9 @@ import {expect} from 'chai';
 import operators from '@tashmit/operators/system';
 
 describe.skip('Resource', () => {
-  const container = Tashmit
-    .withConfiguration({
-      operators,
-    })
-    .use(HttpServer.configure({queryParser: QueryParser.flat()}))
+  const container = new Tashmit()
+    .use(HttpServer, {queryParser: QueryParser.flat()})
     .bootstrap(Container);
-    //.collection('test', [{_id: 'doc1'}, {_id: 'doc2'}])
-    /*
-    .provide(
-      new HttpServer({queryParser: QueryParser.flat()})
-        .resource('/readonly', {collection: 'test', readOnly: true})
-        .resource('/readwrite', {collection: 'test', readOnly: false})
-    )
-    */
 
   let app: any;
 
