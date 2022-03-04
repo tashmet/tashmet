@@ -1,45 +1,44 @@
-import Tashmit, {logging, LogLevel} from '@tashmit/tashmit';
-import {caching} from '@tashmit/caching';
-import {yaml, directoryContent} from '@tashmit/file';
+import Tashmit, {Logger, LogLevel, provider} from '@tashmit/tashmit';
+import FileClient, { yaml } from '@tashmit/file';
 import Vinyl from '@tashmit/vinyl';
 import HttpServer, {QueryParser} from '@tashmit/http-server';
 import {terminal} from '@tashmit/terminal';
-import Schema, {validation, ValidationPipeStrategy} from '@tashmit/schema';
-import operators from '@tashmit/operators/system';
+
+@provider({
+  inject: [HttpServer, FileClient, Logger.inScope('Application')],
+})
+export class Application {
+  constructor(
+    private server: HttpServer,
+    private client: FileClient,
+    private logger: Logger
+  ) {}
+
+  async run(port: number) {
+    try {
+      const posts = this.client
+        .db('blog')
+        .directoryContent('posts', {
+          path: 'posts',
+          extension: 'yaml',
+          serializer: yaml({frontMatter: true, contentKey: 'articleBody'}),
+        });
+      this.server
+        .resource('/api/posts', {collection: posts})
+        .listen(port);
+    } catch (err) {
+      this.logger.error(err.message);
+    }
+  }
+}
 
 Tashmit
   .withConfiguration({
     logLevel: LogLevel.Debug,
-    logFormat: terminal(),
-    operators,
+    logFormat: terminal()
   })
-  .collection('schemas', directoryContent({
-    path: 'schemas',
-    extension: 'yaml',
-    serializer: yaml(),
-  }))
-  .collection('posts', {
-    source: directoryContent({
-      path: 'posts',
-      extension: 'yaml',
-      serializer: yaml({
-        frontMatter: true,
-        contentKey: 'articleBody',
-      }),
-    }),
-    use: [
-      logging(),
-      caching(),
-      validation({
-        schema: 'https://example.com/BlogPosting.schema.yaml',
-        strategy: ValidationPipeStrategy.ErrorInFilterOut
-      }),
-    ],
-  })
-  .provide(
-    new Vinyl({watch: false}),
-    new Schema({collection: 'schemas'}),
-    new HttpServer({queryParser: QueryParser.flat()})
-      .resource('/api/posts', {collection: 'posts'})
-  )
-  .bootstrap(HttpServer.http, server => server.listen(8000));
+  .use(HttpServer, {queryParser: QueryParser.flat()})
+  .use(FileClient, {})
+  .use(Vinyl, {watch: false})
+  .provide(Application)
+  .bootstrap(Application, app => app.run(8000));

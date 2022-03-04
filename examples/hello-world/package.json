@@ -20,6 +20,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@tashmit/memory": "^1.0.0",
     "@tashmit/tashmit": "^1.3.0"
   }
 }
