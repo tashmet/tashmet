@@ -26,7 +26,11 @@ export abstract class AbstractContainer extends Container {
     }
     if (ClassProviderAnnotation.existsOnClass(provider)) {
       const config = ClassProviderAnnotation.onClass(provider)[0];
-      return this.register(Provider.ofClass(config));
+      const paramTypes = Reflect.getOwnMetadata('design:paramtypes', provider);
+      return this.register(Provider.ofClass(config.inject.length === 0
+        ? {...config, inject: paramTypes}
+        : config
+      ));
     }
     if (FactoryProviderAnnotation.existsOnClass(provider)) {
       const config = FactoryProviderAnnotation.onClass(provider)[0];
