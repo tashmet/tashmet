@@ -1,17 +1,18 @@
 import {
-  Collection,
   Cursor,
   FindOptions,
   applyFindOptions,
   AbstractCursor,
-  Filter
+  Filter,
+  Store,
+  ChangeSet
 } from '@tashmit/database';
 import {CacheEvaluator, isCached} from './evaluator';
 
 export class CachingCursor extends AbstractCursor<any> {
   public constructor(
     private evaluators: CacheEvaluator[],
-    private cache: Collection,
+    private cache: Store<any>,
     private findInNext: (selector: object) => Cursor<any>,
     filter: Filter<any> = {},
     options: FindOptions = {},
@@ -31,10 +32,10 @@ export class CachingCursor extends AbstractCursor<any> {
     const cacheCursor = this.cache.find(this.filter, this.options);
 
     if (!this.isCached()) {
-      const docs = await this.findInNext(this.filter).toArray();
-      for (const doc of docs) {
-        await this.cache.replaceOne({_id: doc._id}, doc, {upsert: true});
-      }
+      const incoming = await this.findInNext(this.filter).toArray();
+      const outgoing = await this.cache.find(this.filter).toArray();
+      await this.cache.write(new ChangeSet(incoming, outgoing));
+
       for (const evaluator of this.evaluators) {
         evaluator.success(this.filter, this.options);
       }

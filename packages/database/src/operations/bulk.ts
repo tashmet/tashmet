@@ -1,7 +1,7 @@
 import {
   AnyBulkWriteOperation,
   BulkWriteResult,
-  CollectionDriver,
+  Store,
   Document,
   Writer,
 } from '../interfaces';
@@ -13,14 +13,14 @@ import {UpdateWriter} from './update';
 export class BulkWriteOperationFactory<TSchema extends Document> {
   public constructor(private writers: Record<string, Writer<TSchema, any>>) {}
 
-  public static fromDriver<TSchema extends Document>(driver: CollectionDriver<TSchema>) {
+  public static fromStore<TSchema extends Document>(store: Store<TSchema>) {
     return new BulkWriteOperationFactory<TSchema>({
-      insertOne: new InsertOneWriter(driver),
-      replaceOne: new ReplaceOneWriter(driver),
-      updateOne: new UpdateWriter(driver, true),
-      updateMany: new UpdateWriter(driver, false),
-      deleteOne: new DeleteWriter(driver, true),
-      deleteMany: new DeleteWriter(driver, false),
+      insertOne: new InsertOneWriter(store),
+      replaceOne: new ReplaceOneWriter(store),
+      updateOne: new UpdateWriter(store, true),
+      updateMany: new UpdateWriter(store, false),
+      deleteOne: new DeleteWriter(store, true),
+      deleteMany: new DeleteWriter(store, false),
     });
   }
 

@@ -59,14 +59,22 @@ export {
 import {
   Container,
   createContainer,
-  Newable,
-  Provider,
   Logger,
   LoggerConfig,
   LogLevel,
   LogFormatter,
+  Lookup,
+  Newable,
+  provider,
+  Provider,
+  Resolver,
   ServiceRequest,
 } from '@tashmit/core';
+import {
+  Database,
+  DatabaseFactory,
+  DefaultDatabaseFactory,
+} from '@tashmit/database';
 import {BootstrapConfig} from '@tashmit/core/dist/ioc/bootstrap';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}
@@ -75,15 +83,7 @@ interface Plugin<TConf> {
   configure(conf: TConf): (container: Container) => void;
 }
 
-export default class Tashmit {
-  public static withConfiguration(config: Partial<Configuration>) {
-    return new Tashmit(
-      config.container,
-      config.logLevel,
-      config.logFormat,
-    );
-  }
-
+export class TashmitConfigurator {
   private providers: (Provider<any> | Newable<any>)[] = [];
   private plugins: ((container: Container) => void)[] = [];
 
@@ -98,30 +98,55 @@ export default class Tashmit {
     return this;
   }
 
- public use<TConf>(ctr: Plugin<TConf>, conf: TConf) {
-   this.plugins.push(ctr.configure(conf));
-   return this;
- }
+  public use<TConf>(ctr: Plugin<TConf>, conf: TConf) {
+    this.plugins.push(ctr.configure(conf));
+    return this;
+  }
 
-  public bootstrap<T>(app: ServiceRequest<T>, fn?: (instance: T) => void): T {
+  public async connect() {
+    return this.bootstrap(Tashmit);
+  }
+
+  public async bootstrap<T>(app: ServiceRequest<T>): Promise<T> {
     const container = createContainer({
       logFormat: this.logFormat,
       logLevel: this.logLevel,
       container: this.container,
     });
 
-    for (const provider of this.providers) {
-      container.register(provider);
-    }
+    container.register(DefaultDatabaseFactory);
+    container.register(Provider.ofResolver(DatabaseFactory, Lookup.of(DefaultDatabaseFactory)));
+    container.register(Tashmit);
 
     for (const plugin of this.plugins) {
       plugin(container);
     }
 
-    const instance = container.resolve(app);
-    if (fn) {
-      fn(instance)
+    for (const provider of this.providers) {
+      container.register(provider);
     }
-    return instance;
+
+    return container.resolve(app);
+  }
+}
+
+@provider({
+  inject: [DatabaseFactory]
+})
+export default class Tashmit {
+  public constructor(
+    private databaseFactory: DatabaseFactory,
+  ) {}
+
+  public db(name: string): Database {
+    return this.databaseFactory.createDatabase(name);
+  }
+
+  public static configure(config: Partial<Configuration> = {}) {
+    return new TashmitConfigurator(
+      config.container,
+      config.logLevel,
+      config.logFormat,
+    );
   }
 }

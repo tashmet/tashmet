@@ -1,5 +1,4 @@
-import Tashmit, {Container} from '@tashmit/tashmit';
-import Memory from '@tashmit/memory';
+import Tashmit, {provider} from '@tashmit/tashmit';
 import {QueryParser} from '@tashmit/qs-parser';
 import HttpServer from '../src';
 import request from 'supertest-as-promised';
@@ -8,51 +7,59 @@ import {expect} from 'chai';
 import operators from '@tashmit/operators/system';
 
 describe.skip('Resource', () => {
-  const container = new Tashmit()
-    .use(HttpServer, {queryParser: QueryParser.flat()})
-    .bootstrap(Container);
 
-  let app: any;
+  let server: any;
+
+  @provider()
+  class TestResourceApp {
+    public constructor(private tashmit: Tashmit, private server: HttpServer) {}
+
+    public async setup() {
+      const collection = this.tashmit.db('test').collection('test')
+
+      await collection.insertMany([{_id: 'doc1'}, {_id: 'doc2'}]);
+
+      this.server
+        .resource('/readonly', {collection, readOnly: true})
+        .resource('/readonly', {collection, readOnly: false});
+
+      return this.server.http;
+    }
+  }
 
   before(async () => {
-    const collection = container
-      .resolve(Memory)
-      .db('test')
-      .collection('test')
+    const app = await Tashmit
+      .configure()
+      .use(HttpServer, {queryParser: QueryParser.flat()})
+      .bootstrap(TestResourceApp);
 
-    await collection.insertMany([{_id: 'doc1'}, {_id: 'doc2'}]);
-
-    const server = container.resolve(HttpServer);
-    server.resource('/readonly', {collection, readOnly: true});
-    server.resource('/readonly', {collection, readOnly: false});
-
-    app = server.http;
+    server = await app.setup();
   });
 
   describe('get', () => {
     it('should get all documents', () => {
-      return request(app)
+      return request(server)
         .get('/readonly')
         .expect(200)
         .then(res => expect(res.body).to.eql([{_id: 'doc1'}, {_id: 'doc2'}]));
     });
 
     it('should get a single document by id', () => {
-      return request(app)
+      return request(server)
         .get('/readonly/doc1')
         .expect(200)
         .then(res => expect(res.body).to.eql({_id: 'doc1'}));
     });
 
     it('should filter documents', () => {
-      return request(app)
+      return request(server)
         .get('/readonly?_id=doc2')
         .expect(200)
         .then(res => expect(res.body).to.eql([{_id: 'doc2'}]));
     });
 
     it('should return error when document not found', () => {
-      return request(app)
+      return request(server)
         .get('/readonly/doc3')
         .expect(404);
     });
@@ -60,11 +67,11 @@ describe.skip('Resource', () => {
 
   describe('post', () => {
     it('should fail on read only resource', () => {
-      return request(app).post('/readonly').expect(403);
+      return request(server).post('/readonly').expect(403);
     });
 
     it('should create and return document', () => {
-      return request(app)
+      return request(server)
         .post('/readwrite')
         .send({_id: 'doc3'})
         .expect(201)
@@ -72,7 +79,7 @@ describe.skip('Resource', () => {
     });
 
     it('should have added document to collection', () => {
-      return request(app)
+      return request(server)
         .get('/readwrite/doc3')
         .expect(200)
         .then(res => expect(res.body).to.eql({_id: 'doc3'}));
@@ -81,11 +88,11 @@ describe.skip('Resource', () => {
 
   describe('put', () => {
     it('should fail on read only resource', () => {
-      return request(app).put('/readonly/doc1').expect(403);
+      return request(server).put('/readonly/doc1').expect(403);
     });
 
     it('should update and return document', () => {
-      return request(app)
+      return request(server)
         .put('/readwrite/doc3')
         .send({_id: 'doc3', foo: 'bar'})
         .expect(200)
@@ -98,7 +105,7 @@ describe.skip('Resource', () => {
     });
 
     it('should have updated document in collection', () => {
-      return request(app)
+      return request(server)
         .get('/readwrite/doc3')
         .expect(200)
         .then(res => expect(res.body).to.eql({_id: 'doc3', foo: 'bar'}));
@@ -107,24 +114,24 @@ describe.skip('Resource', () => {
 
   describe('delete', () => {
     it('should fail on read only resource', () => {
-      return request(app).delete('/readonly/doc1').expect(403);
+      return request(server).delete('/readonly/doc1').expect(403);
     });
 
     it('should fail when document does not exist ', () => {
-      return request(app)
+      return request(server)
         .delete('/readwrite/doc4')
         .expect(204);
     });
 
     it('should delete and return status', () => {
-      return request(app)
+      return request(server)
         .delete('/readwrite/doc3')
         .expect(200)
         .then(res => expect(res.body).to.eql({acknowledged: true, deletedCount: 1}));
     });
 
     it('should have modified the collection', () => {
-      return request(app)
+      return request(server)
         .get('/readwrite/doc3')
         .expect(404);
     });

@@ -1,8 +1,15 @@
-import {Container, Logger, provider } from '@tashmit/core';
-import {Client, Database} from '@tashmit/database';
+import {Container, provider } from '@tashmit/core';
+import * as nodePath from 'path';
+import {intersection} from 'mingo/util';
+import {Logger} from '@tashmit/core';
+import {ChangeSet, Document, locked, withMiddleware, Intersect, Store, StoreConfig} from '@tashmit/database';
+import MemoryStorageEngine from '@tashmit/memory';
+import {BundleStore, BundleStreamConfig } from './collections/bundle';
 
-import {FileAccess} from './interfaces';
-import {FileSystemDatabase} from './database';
+import {File, FileAccess, ReadableFile, Pipe, FileConfig, DirectoryContentConfig, DirectoryFilesConfig} from './interfaces';
+import {Pipeline} from './pipeline';
+import * as Pipes from './pipes';
+import {GlobFilesConfig, GlobContentConfig, ShardStream, ShardStore} from './collections/shard';
 
 export * from './interfaces';
 export * from './pipeline';
@@ -12,24 +19,134 @@ export * as Pipes from './pipes';
 
 
 @provider({
-  key: FileSystemClient,
+  key: FileSystem,
   inject: [
+    MemoryStorageEngine,
     Logger.inScope('file'),
     FileAccess,
   ]
 })
-export default class FileSystemClient extends Client<Database> {
+export default class FileSystem {
   public static configure() {
     return (container: Container) => {
-      container.register(FileSystemClient);
+      container.register(FileSystem);
     }
   }
 
-  public constructor(private logger: Logger, private fileAccess: FileAccess) {
-    super();
+  public constructor(
+    private memory: MemoryStorageEngine,
+    private logger: Logger,
+    private fileAccess: FileAccess,
+  ) {}
+
+  public file<T extends object = any, TStored extends object = T>(config: FileConfig<T, TStored> & StoreConfig): Store<T> {
+    const {path, serializer, dictionary, afterParse, beforeSerialize} = config;
+
+    const input = (source: Pipeline<ReadableFile>) => source
+      .pipe(Pipes.File.read())
+      .pipe(Pipes.File.parse(serializer))
+      .pipe(Pipes.File.content())
+      .pipe(dictionary ? Pipes.toList<TStored>() : Pipes.identity<TStored>())
+      .pipe(Pipes.disperse())
+      .pipe(afterParse || Pipes.identity<T>())
+
+    const output = (source: Pipeline<T>) => source
+      .pipe(beforeSerialize || Pipes.identity())
+      .pipe(Pipes.collect())
+      .pipe(dictionary ? Pipes.toDict<TStored>() : Pipes.identity<TStored>())
+      .pipe(Pipes.File.create(path))
+      .pipe(Pipes.File.serialize(serializer));
+
+    const watch = this.fileAccess.watch(path);
+
+    const streamConfig = {
+      seed: input(this.fileAccess.read(path)),
+      input: watch ? input(watch) : undefined,
+      output: (source) => this.fileAccess.write(output(source)),
+    } as BundleStreamConfig<T>;
+
+    const buffer = this.memory.createStore<T>(config);
+    const store = new BundleStore(buffer, streamConfig.output);
+
+    const listen = async (input: Pipeline<T>) => {
+      return store.load(ChangeSet.fromDiff(await buffer.find().toArray(), await input.toArray(), intersection as Intersect<T>));
+    }
+
+    if (streamConfig.input) {
+      listen(streamConfig.input);
+    }
+    return withMiddleware<T>(store, [locked([store.populate(streamConfig.seed)])])
   }
 
-  db(name: string): FileSystemDatabase {
-    return new FileSystemDatabase(name, this.logger, this.fileAccess);
+  /**
+   * A collection based on files in a directory on a file-system
+   *
+   * @param config
+   */
+
+  public directoryFiles<T = any, TStored = T>({path, extension, ...config}: DirectoryFilesConfig<T, TStored> & StoreConfig) {
+    return this.shards<File<T>>(
+      config, ShardStream.fromGlobFiles({pattern: extension ? `${path}/*.${extension}` : `${path}/*`}, this.fileAccess))
+  }
+
+  /**
+   * A collection based on content in files in a directory on a file system
+   *
+   * @param config
+   */
+
+  public directoryContent<T extends Document = any, TStored = T>(
+    {path, extension, serializer, resolveId, resolvePath, ...storeConfig}: DirectoryContentConfig<T, TStored> & StoreConfig)
+  {
+    const fileName = (doc: any) => `${doc._id}.${extension}`;
+    const defaultPathResolver = async (doc: any) => nodePath.join(path, fileName(doc));
+    const defaultIdResolver: Pipe<File, string> = async file =>
+      nodePath.basename(file.path).split('.')[0]
+
+    return this.shards<T>(
+      storeConfig,
+      ShardStream.fromGlobContent<T, TStored>({
+        pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
+        serializer,
+        resolveId: resolveId || defaultIdResolver,
+        resolvePath: resolvePath || defaultPathResolver,
+      }, this.fileAccess),
+    );
+  }
+
+  /**
+   * A collection based on files matching a glob pattern on a file system
+   *
+   * @param config
+   */
+  public globFiles<T = any, TStored = T>({pattern, content, ...storeConfig}: GlobFilesConfig<T, TStored> & StoreConfig) {
+    return this.shards<File<T>>(storeConfig, ShardStream.fromGlobFiles({pattern, content}, this.fileAccess));
+  }
+
+  /**
+   * A collection based on content in files matching a glob pattern on a file system
+   *
+   * @param config
+   */
+  public globContent<T extends Document = any, TStored = T>(config: GlobContentConfig<T, TStored> & StoreConfig) {
+    return this.shards<T>(config, ShardStream.fromGlobContent<T, TStored>(config, this.fileAccess));
+  }
+
+  private shards<T extends Document = any>(storeConfig: StoreConfig, {seed, input, inputDelete, output}: ShardStream<T>): Store<T> {
+    const eachDocument = async (source: Pipeline, fn: (doc: any) => Promise<any>) => {
+      for await (const doc of source) {
+        await fn(doc);
+      }
+    }
+
+    const store = new ShardStore(this.memory.createStore<T>(storeConfig), output);
+
+    if (input) {
+      eachDocument(input, doc => store.load(ChangeSet.fromInsert([doc])));
+    }
+    if (inputDelete) {
+      eachDocument(inputDelete, doc => store.load(ChangeSet.fromDelete([doc])));
+    }
+    return withMiddleware<T>(store, [locked([store.populate(seed)])])
   }
 }

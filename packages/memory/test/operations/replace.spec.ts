@@ -1,15 +1,18 @@
+import 'mingo/init/basic';
 import {ReplaceOneWriter, ChangeSet} from '@tashmit/database';
-import {MemoryDriver} from '../../dist/driver';
+import {MemoryStore} from '../../src/store';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import 'mocha';
 
+chai.use(chaiAsPromised)
 chai.use(sinonChai);
 
 const sandbox = sinon.createSandbox();
-const driver = new MemoryDriver<any>({db: 'tashmit', coll: 'test'});
+const store = new MemoryStore<any>({db: 'tashmit', coll: 'test'});
 
 
 describe('ReplaceOneWriter', () => {
@@ -17,12 +20,12 @@ describe('ReplaceOneWriter', () => {
   let writeSpy: sinon.SinonSpy<[cs: ChangeSet<any>], Promise<void>>;
 
   before(() => {
-    writer = new ReplaceOneWriter<any>(driver);
+    writer = new ReplaceOneWriter<any>(store);
   });
 
   beforeEach(() => {
-    writeSpy = sandbox.spy(driver, 'write');
-    driver.documents = [{_id: 1}, {_id: 2}];
+    writeSpy = sandbox.spy(store, 'write');
+    store.documents = [{_id: 1}, {_id: 2}];
   });
 
   afterEach(() => {
@@ -47,7 +50,7 @@ describe('ReplaceOneWriter', () => {
     expect(result.upsertedIds).to.have.length(1);
   });
 
-  it('should write correct change set to driver', async () => {
+  it('should write correct change set to store', async () => {
     await writer.execute({filter: {_id: 1}, replacement: {foo: 'bar'}});
     const cs = writeSpy.getCall(0).args[0];
     expect(cs.incoming).to.eql([{_id: 1, foo: 'bar'}]);
@@ -55,7 +58,7 @@ describe('ReplaceOneWriter', () => {
   });
 
   it('should emit change document on success', (done) => {
-    driver.on('change', ({operationType, fullDocument}) => {
+    store.on('change', ({operationType, fullDocument}) => {
       expect(operationType).to.eql('replace');
       expect(fullDocument).to.eql({_id: 1, foo: 'bar'});
       done();

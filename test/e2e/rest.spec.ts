@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {LogLevel} from '../../packages/tashmit/dist'
+import Tashmit, {Collection, Document, LogLevel, provider, StorageEngine, Store, StoreConfig} from '../../packages/tashmit/dist'
 import HttpClient from '../../packages/http-client/dist';
 import MemoryClient from '../../packages/memory/dist';
 import Caching from '../../packages/caching/dist';
@@ -13,15 +13,37 @@ import fetch from 'isomorphic-fetch';
 
 chai.use(chaiAsPromised);
 
+@provider({
+  key: StorageEngine,
+  inject: [HttpClient]
+})
+class RestClientStorageEngine implements StorageEngine {
+  public constructor(private http: HttpClient) {}
+
+  public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
+    return this.http.createApi<any>({
+      path: `http://localhost:8000/api/${config.ns.coll}`,
+      ...config
+    })
+  }
+}
+
 describe('rest', () => {
-  const col = Tashmit
-    .withConfiguration({logLevel: LogLevel.None})
-    .use(HttpClient, {fetch})
-    .use(MemoryClient, {operators})
-    .use(Caching, {})
-    .bootstrap(HttpClient)
-    .db('testdb')
-    .createCollection('test', 'http://localhost:8000/api/test');
+  let col: Collection
+
+  before(async () => {
+    const tashmit = await Tashmit
+      .configure({logLevel: LogLevel.None})
+      .use(HttpClient, {fetch})
+      .use(MemoryClient, {operators})
+      .use(Caching, {})
+      .provide(RestClientStorageEngine)
+      .connect();
+
+    col = tashmit
+      .db('testdb')
+      .collection('test');
+  });
 
   beforeEach(async () => {
     await col.insertMany([

@@ -6,28 +6,19 @@ import {
   ChangeSet,
   idSet,
   CollationOptions,
-  CollectionDriver,
+  Store,
   Cursor,
   Document,
   Filter,
-  OptionalId,
   FindOptions,
   SortingKey,
   SortingDirection,
   applyFindOptions,
   sortingMap,
+  StoreConfig,
 } from '@tashmit/database';
+import { CollectionResolver } from 'mingo/core';
 
-export interface MemoryCreateCollectionOptions<T = any> {
-  /**
-   * A list of documents this collection should operate on.
-   *
-   * If not provided an empty list will be created.
-   */
-  documents?: OptionalId<T>[] | Promise<OptionalId<T>[]>;
-}
-
-export type CollectionResolver = (name: string) => any[];
 
 export class MemoryCursor<T> implements Cursor<T> {
   private cursor: mingoCursor.Cursor;
@@ -79,23 +70,17 @@ export class MemoryCursor<T> implements Cursor<T> {
   }
 }
 
-export interface MemoryDriverConfig<TSchema extends Document = any> {
-  ns: {db: string, coll: string};
-  collectionResolver?: CollectionResolver;
-  documents?: TSchema[];
-  collation?: CollationOptions;
-}
+export class MemoryStore<TSchema extends Document> extends Store<TSchema> {
+  public documents: TSchema[] = [];
 
-export class MemoryDriver<TSchema extends Document> extends CollectionDriver<TSchema> {
   public constructor(
     ns: { db: string; coll: string },
     private collectionResolver: CollectionResolver | undefined  = undefined,
-    public documents: TSchema[] = [],
     private collation: CollationOptions | undefined = undefined,
   ) { super(ns); }
 
-  public static fromConfig<TSchema>({ns, collectionResolver, documents, collation}: MemoryDriverConfig<TSchema>) {
-    return new MemoryDriver(ns, collectionResolver, documents, collation);
+  public static fromConfig<TSchema>({ns, collectionResolver, collation}: StoreConfig) {
+    return new MemoryStore<TSchema>(ns, collectionResolver, collation);
   }
 
   public indexOf(document: TSchema) {

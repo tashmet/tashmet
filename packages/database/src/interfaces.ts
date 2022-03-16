@@ -1,9 +1,8 @@
 import ObjectId from 'bson-objectid';
 import {EventEmitter} from 'eventemitter3';
 import {Collection} from './collection';
-import {ChangeStreamDocument} from './changeStream';
+import {ChangeStreamDocument, ChangeStreamEvents} from './changeStream';
 import {ChangeSet} from './changeSet';
-import {ChangeStreamEvents} from '.';
 
 export type Document = Record<string, any>;
 
@@ -215,30 +214,6 @@ export interface ReplaceOneOptions {
   upsert?: boolean;
 }
 
-export type MiddlewareHook<T> = (next: T) => T;
-
-export type Aggregate<T> = (pipeline: Document[]) => Cursor<T>;
-export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Cursor<T>;
-export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
-export type InsertOne<T> = (doc: T) => Promise<InsertOneResult>;
-export type InsertMany<T> = (docs: T[]) => Promise<InsertManyResult>;
-export type ReplaceOne<T> = (filter: Filter<T>, doc: T, options?: ReplaceOneOptions)
-  => Promise<UpdateResult>;
-export type DeleteOne<T> = (filter: Filter<T>) => Promise<DeleteResult>;
-export type DeleteMany<T> = (filter: Filter<T>) => Promise<DeleteResult>;
-
-
-export interface Middleware<T = any> {
-  aggregate?: MiddlewareHook<Aggregate<any>>;
-  find?: MiddlewareHook<Find<T>>;
-  findOne?: MiddlewareHook<FindOne<T>>;
-  insertOne?: MiddlewareHook<InsertOne<T>>;
-  insertMany?: MiddlewareHook<InsertMany<T>>;
-  replaceOne?: MiddlewareHook<ReplaceOne<T>>;
-  deleteOne?: MiddlewareHook<DeleteOne<T>>;
-  deleteMany?: MiddlewareHook<DeleteMany<T>>;
-}
-
 export interface CollationOptions {
   readonly locale: string;
   readonly caseLevel?: boolean;
@@ -264,6 +239,8 @@ export interface CreateCollectionOptions {
 
   /** The aggregation pipeline */
   pipeline?: Document[];
+
+  storageEngine?: Document;
 }
 
 export interface Database {
@@ -275,7 +252,9 @@ export interface Database {
    * @param name The name of the collection.
    * @returns The instance of the collection.
    */
-  collection<T = any>(name: string): Collection<T>;
+  collection<TSchema extends Document = any>(name: string): Collection<TSchema>;
+
+  createCollection<TSchema extends Document = any>(name: string, options?: CreateCollectionOptions): Collection<TSchema>;
 
   /**
    * Fetch all collections for the current db.
@@ -290,6 +269,11 @@ export interface Database {
   dropCollection(name: string): Promise<boolean>;
 }
 
+export interface DatabaseFactory {
+  createDatabase(name: string): Database;
+}
+
+export abstract class DatabaseFactory implements DatabaseFactory {}
 
 export abstract class Aggregator<T = any> {
   abstract get pipeline(): Document[];
@@ -306,7 +290,7 @@ export abstract class ValidatorFactory {
 }
 
 export abstract class CachingLayer {
-  public abstract create<T>(collection: Collection<T>): Middleware<T>;
+  public abstract create<T>(store: Store<T>): Middleware<T>;
 }
 
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
@@ -323,7 +307,7 @@ export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user
 export interface InsertOneResult<TSchema = Document> {
   /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
   acknowledged: boolean;
-  /** The identifier that was inserted. If the server generated the identifier, this value will be null as the driver does not have access to that data */
+  /** The identifier that was inserted. If the server generated the identifier, this value will be null as the engine does not have access to that data */
   insertedId: InferIdType<TSchema>;
 }
 export interface InsertManyResult<TSchema = Document> {
@@ -543,7 +527,7 @@ export interface BulkWriteResult {
 }
 
 export abstract class Writer<TSchema, TModel> {
-  public constructor(protected driver: CollectionDriver<TSchema>) {}
+  public constructor(protected store: Store<TSchema>) {}
 
   public abstract execute(
     model: TModel,
@@ -551,11 +535,15 @@ export abstract class Writer<TSchema, TModel> {
   ): Promise<Partial<BulkWriteResult>>;
 }
 
-export abstract class CollectionDriver<TSchema extends Document>
+export type Namespace = {db: string, coll: string};
+
+export abstract class Store<TSchema extends Document>
   extends EventEmitter implements ChangeStreamEvents<TSchema>
 {
+  public readonly documents: TSchema[] = [];
+
   public constructor(
-    public readonly ns: { db: string; coll: string }
+    public readonly ns: Namespace
   ) { super(); }
 
   public on(event: 'change', fn: (change: ChangeStreamDocument<TSchema>) => void): this {
@@ -577,6 +565,52 @@ export abstract class CollectionDriver<TSchema extends Document>
   public abstract aggregate<T>(pipeline: Document[]): Cursor<T>;
 }
 
+export type CollectionResolver = (name: string) => any[];
+
+export interface StoreConfig {
+  ns: Namespace;
+  collation?: CollationOptions;
+  collectionResolver: CollectionResolver;
+  options?: Document;
+}
+
+export abstract class StorageEngine {
+  public abstract createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema>;
+}
+
+export type RequireKeys<T extends object, K extends keyof T> =
+  Required<Pick<T, K>> & Omit<T, K>;
+
+export abstract class ViewFactory {
+  public abstract createView<TSchema extends Document>(
+    config: StoreConfig,
+    viewOf: Store<any>,
+    pipeline: Document[],
+  ): Store<TSchema>;
+}
+
+export abstract class CollectionFactory {
+  public abstract createCollection<TSchema extends Document>(
+    database: Database,
+    options: CreateCollectionOptions
+  ): Collection<TSchema>;
+}
+
 export abstract class Client<TDatabase> {
   public abstract db(name: string): TDatabase;
+}
+
+export type MiddlewareHook<T> = (next: T) => T;
+
+export type Aggregate<T> = (pipeline: Document[]) => Cursor<T>;
+export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Cursor<T>;
+export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
+export type Write<T> = (changeSet: ChangeSet<T>) => Promise<void>;
+
+
+export interface Middleware<T = any> {
+  aggregate?: MiddlewareHook<Aggregate<any>>;
+  find?: MiddlewareHook<Find<T>>;
+  findOne?: MiddlewareHook<FindOne<T>>;
+  write?: MiddlewareHook<Write<T>>;
 }

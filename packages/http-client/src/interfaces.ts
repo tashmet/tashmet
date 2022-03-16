@@ -1,4 +1,4 @@
-import {Filter, FindOptions} from '@tashmit/database';
+import {Filter, FindOptions, Namespace} from '@tashmit/database';
 import {QuerySerializer} from '@tashmit/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -25,7 +25,8 @@ export interface HttpClientConfig {
 
 export abstract class HttpClientConfig implements HttpClientConfig {}
 
-export interface HttpCreateCollectionOptions extends Partial<HttpClientConfig> {
+export interface HttpStoreConfig extends Partial<HttpClientConfig> {
+  ns: Namespace;
   path: string;
 }
 

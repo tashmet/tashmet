@@ -1,7 +1,7 @@
 import {
   AnyBulkWriteOperation,
   BulkWriteResult,
-  CollectionDriver,
+  Store,
   Cursor,
   Database,
   Document,
@@ -28,11 +28,11 @@ export class Collection<TSchema extends Document = any> {
   private writeOpFactory: BulkWriteOperationFactory<TSchema>;
 
   public constructor(
-    private driver: CollectionDriver<TSchema>,
+    private store: Store<TSchema>,
     private db: Database,
   ) {
-    this.writeOpFactory = BulkWriteOperationFactory.fromDriver(driver);
-    this.driver.on('change', change => {
+    this.writeOpFactory = BulkWriteOperationFactory.fromStore(store);
+    this.store.on('change', change => {
       for (const changeStream of this.changeStreams) {
         changeStream.emit('change', change);
       }
@@ -43,14 +43,14 @@ export class Collection<TSchema extends Document = any> {
    * The name of this collection
    */
   public get collectionName(): string {
-    return this.driver.ns.coll;
+    return this.store.ns.coll;
   }
 
   /**
    * The name of the database this collection belongs to
    */
   public get dbName(): string {
-    return this.driver.ns.db;
+    return this.store.ns.db;
   }
 
   /**
@@ -61,7 +61,7 @@ export class Collection<TSchema extends Document = any> {
   }
 
   public aggregate<T>(pipeline: Document[]): Cursor<T> {
-    return this.driver.aggregate(pipeline);
+    return this.store.aggregate(pipeline);
   }
 
   /**
@@ -71,7 +71,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A cursor.
    */
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return this.driver.find(filter, options);
+    return this.store.find(filter, options);
   }
 
   /**
@@ -81,7 +81,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A promise for the first matching document if one was found, null otherwise
    */
   public findOne(filter: Filter<TSchema>): Promise<TSchema | null> {
-    return this.driver.findOne(filter);
+    return this.store.findOne(filter);
   }
 
   /**
@@ -209,7 +209,7 @@ export class Collection<TSchema extends Document = any> {
     key: Key | string,
     filter: Filter<TSchema> = {}
   ): Promise<Array<Flatten<WithId<TSchema>[Key]>>> {
-    return this.driver.aggregate<WithId<any>>([
+    return this.store.aggregate<WithId<any>>([
       {$match: filter},
       {$group: {_id: `$${key}`}}
     ]).toArray().then(docs => docs.map(doc => doc._id));

@@ -1,5 +1,5 @@
-import {CollectionDriver} from '@tashmit/database';
-import {BufferDriver} from './buffer';
+import {Store} from '@tashmit/database';
+import {BufferStore} from './buffer';
 import {Pipeline} from '../pipeline';
 
 export type BundleOutput<T> = (source: Pipeline<T>) => Promise<void>;
@@ -15,9 +15,9 @@ export interface BundleStreamConfig<T> {
   output: BundleOutput<T>;
 }
 
-export class BundleDriver<TSchema> extends BufferDriver<TSchema> {
+export class BundleStore<TSchema> extends BufferStore<TSchema> {
   public constructor(
-    buffer: CollectionDriver<TSchema>,
+    buffer: Store<TSchema>,
     public output: BundleOutput<TSchema>,
   ) {
     super(buffer);

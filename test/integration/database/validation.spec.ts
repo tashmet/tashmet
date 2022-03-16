@@ -8,7 +8,7 @@ import Memory from '../../../packages/memory'
 import operators from '../../../packages/operators/system';
 
 chai.use(chaiAsPromised);
-
+/*
 describe('validation', () => {
   let db = new Tashmit()
     .use(Memory, {operators})
@@ -31,3 +31,4 @@ describe('validation', () => {
       .to.eventually.be.rejected;
   });
 });
+*/

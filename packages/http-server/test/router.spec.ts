@@ -30,11 +30,15 @@ describe('Router', () => {
     }
   }
 
-  const app = new Tashmit()
-    .provide(TestRouter)
-    .use(HttpServer, {})
-    .bootstrap(HttpServer);
-  app.router('/route', new TestRouter());
+  let app: HttpServer;
+
+  before(async () => {
+    app = await Tashmit
+      .configure()
+      .use(HttpServer, {})
+      .bootstrap(HttpServer);
+    app.router('/route', new TestRouter());
+  });
 
   it('should add router by resolver', () => {
     return request(app.http)

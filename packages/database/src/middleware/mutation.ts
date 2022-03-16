@@ -1,18 +1,4 @@
-import {Middleware, MiddlewareHook} from '../interfaces';
-import {Collection} from '../collection';
-
-export type MutationType = 'insert' | 'delete' | 'replace';
-export type MutationHandler = (type: MutationType, next: any, ...args: any[]) => Promise<any>;
-
-export function mutation(handler: MutationHandler): Middleware {
-  return {
-    insertOne: next => (...args) => handler('insert', next, ...args),
-    insertMany: next => (...args) => handler('insert', next, ...args),
-    deleteOne: next => (...args) => handler('delete', next, ...args),
-    deleteMany: next => (...args) => handler('delete', next, ...args),
-    replaceOne: next => (...args) => handler('replace', next, ...args),
-  }
-}
+import {Middleware, MiddlewareHook, Store} from '../interfaces';
 
 export type SideEffectFunction<T> = (result: T, ...args: any[]) => void | Promise<void>;
 
@@ -32,6 +18,8 @@ export function mutationSideEffect<T>(success: SideEffectFunction<T>, fail?: Sid
   }
 }
 
-export const readOnly = (collection: Collection) => mutation(async () => {
-  throw new Error(`trying to mutate read-only collection: '${collection.collectionName}'`);
-});
+export const readOnly = (store: Store<any>) => ({
+  write: () => {
+    throw new Error(`trying to mutate read-only collection: '${store.ns.coll}'`);
+  }
+}) as Middleware;

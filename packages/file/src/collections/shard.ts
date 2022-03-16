@@ -1,7 +1,7 @@
 import {
-  CollectionDriver,
+  Store,
   ChangeSet,
-  Document
+  Document,
 } from '@tashmit/database';
 import {
   File,
@@ -15,12 +15,12 @@ import {
 import * as Pipes from '../pipes';
 import {Pipeline} from '../pipeline';
 import {FileAccess} from '..';
-import {BufferDriver} from './buffer';
+import {BufferStore} from './buffer';
 
 
-export class ShardDriver<TSchema> extends BufferDriver<TSchema> {
+export class ShardStore<TSchema> extends BufferStore<TSchema> {
   public constructor(
-    buffer: CollectionDriver<TSchema>,
+    buffer: Store<TSchema>,
     public output: ShardOutput<TSchema>,
   ) {
     super(buffer);

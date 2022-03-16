@@ -1,6 +1,6 @@
 import {
   Document,
-  CollectionDriver,
+  Store,
   ChangeSet,
   FindOptions,
   Cursor,
@@ -9,11 +9,11 @@ import {
 import {Pipeline} from '../pipeline';
 
 /**
- * An abstract collection driver where all read operations are directed to a given buffer.
+ * An abstract store where all read operations are directed to a given buffer.
  */
-export abstract class BufferDriver<TSchema> extends CollectionDriver<TSchema> {
+export abstract class BufferStore<TSchema> extends Store<TSchema> {
   public constructor(
-    public buffer: CollectionDriver<TSchema>,
+    public buffer: Store<TSchema>,
   ) { super(buffer.ns); }
 
   public async write(cs: ChangeSet<TSchema>) {

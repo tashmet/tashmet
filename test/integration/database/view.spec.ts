@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit from '../../../packages/tashmit';
+import Tashmit, { Collection } from '../../../packages/tashmit';
 import Memory from '../../../packages/memory';
 import operators from '../../../packages/operators/system';
 
@@ -11,22 +11,29 @@ import operators from '../../../packages/operators/system';
 chai.use(chaiAsPromised);
 
 describe('view', () => {
-  const db = new Tashmit()
-    .use(Memory, {operators})
-    .bootstrap(Memory)
-    .db('testdb');
+  let sales: Collection;
+  let totals: Collection;
 
-  const sales = db.collection('sales');
-  const totals = db.createCollection('totals', {
-    viewOf: 'sales',
-    pipeline: [
-      {$group: {
-        _id : '$item',
-        totalSaleAmount: {$sum: {$multiply: ['$price', '$quantity']}}
-      }},
-      {$match: {'totalSaleAmount': {$gte: 100}}}
-    ],
-  });
+  before(async () => {
+    const client = await Tashmit
+      .configure()
+      .use(Memory, {operators})
+      .connect();
+
+    const db = client.db('testdb');
+
+    sales = db.collection('sales');
+    totals = db.createCollection('totals', {
+      viewOf: 'sales',
+      pipeline: [
+        {$group: {
+          _id : '$item',
+          totalSaleAmount: {$sum: {$multiply: ['$price', '$quantity']}}
+        }},
+        {$match: {'totalSaleAmount': {$gte: 100}}}
+      ],
+    });
+  })
 
   before(async () => {
     await sales.insertMany([

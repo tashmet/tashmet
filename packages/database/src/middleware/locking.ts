@@ -27,11 +27,7 @@ export const locked = (locks: Promise<any>[]) => () => {
   }
 
   return {
-    insertOne: handler,
-    insertMany: handler,
-    deleteOne: handler,
-    deleteMany: handler,
-    replaceOne: handler,
+    write: handler,
     findOne: handler,
     find: next => (filter, options) => lockedCursor(next(filter, options), resolveLocks()),
     aggregate: next => pipeline => lockedCursor(next(pipeline), resolveLocks()),

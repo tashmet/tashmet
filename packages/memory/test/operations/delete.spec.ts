@@ -1,16 +1,19 @@
+import 'mingo/init/basic';
 import {DeleteWriter} from '@tashmit/database/dist/operations/delete';
-import {MemoryDriver} from '../../dist/driver';
+import {ChangeSet} from '@tashmit/database';
+import {MemoryStore} from '../../src/store';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import 'mocha';
-import { ChangeSet } from '@tashmit/database';
 
+chai.use(chaiAsPromised)
 chai.use(sinonChai);
 
 const sandbox = sinon.createSandbox();
-const driver = new MemoryDriver<any>({db: 'tashmit', coll: 'test'});
+const store = new MemoryStore<any>({db: 'tashmit', coll: 'test'});
 
 
 describe('DeleteWriter', () => {
@@ -18,12 +21,12 @@ describe('DeleteWriter', () => {
   let writeSpy: sinon.SinonSpy<[cs: ChangeSet<any>], Promise<void>>;
 
   before(() => {
-    writer = new DeleteWriter<any>(driver, false);
+    writer = new DeleteWriter<any>(store, false);
   });
 
   beforeEach(() => {
-    writeSpy = sandbox.spy(driver, 'write');
-    driver.documents = [{_id: 1}, {_id: 2}];
+    writeSpy = sandbox.spy(store, 'write');
+    store.documents = [{_id: 1}, {_id: 2}];
   });
 
   afterEach(() => {
@@ -40,7 +43,7 @@ describe('DeleteWriter', () => {
       .to.eventually.eql({deletedCount: 1});
   });
 
-  it('should write correct change set to driver', async () => {
+  it('should write correct change set to store', async () => {
     await writer.execute({filter: {_id: 1}});
     const cs = writeSpy.getCall(0).args[0];
     expect(cs.incoming).to.eql([]);
@@ -48,7 +51,7 @@ describe('DeleteWriter', () => {
   });
 
   it('should emit change document on success', (done) => {
-    driver.on('change', ({operationType, fullDocument}) => {
+    store.on('change', ({operationType, fullDocument}) => {
       expect(operationType).to.eql('delete');
       expect(fullDocument).to.eql({_id: 1});
       done();

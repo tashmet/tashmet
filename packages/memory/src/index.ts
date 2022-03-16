@@ -1,20 +1,17 @@
-import {Container, Logger, provider, Provider} from '@tashmit/core';
-import {Client, ValidatorFactory} from '@tashmit/database';
+import {Container, Logger, Lookup, provider, Provider} from '@tashmit/core';
+import {Document, StorageEngine, StoreConfig, ViewFactory} from '@tashmit/database';
+import { OperatorType, useOperators } from 'mingo/core';
 import {MemoryClientConfig} from './interfaces';
-import {MemoryDatabase} from './database';
+import {MemoryStore} from './store';
 import {SimpleValidatorFactory} from './validator';
+import { MemoryViewFactory } from './view';
 
-export {MemoryDatabase};
-export {MemoryDriver, MemoryCreateCollectionOptions} from './driver';
 export {filterValidator} from './validator';
 export * from './interfaces';
 
 
-@provider({
-  key: MemoryClient,
-  inject: [Logger, ValidatorFactory, MemoryClientConfig]
-})
-export default class MemoryClient extends Client<MemoryDatabase> {
+@provider()
+export default class MemoryStorageEngine implements StorageEngine {
   private static defaultConfig: MemoryClientConfig = {
     operators: {},
   };
@@ -23,25 +20,30 @@ export default class MemoryClient extends Client<MemoryDatabase> {
     return (container: Container) => {
       container.register(SimpleValidatorFactory);
       container.register(Provider.ofInstance(MemoryClientConfig, {
-        ...MemoryClient.defaultConfig,
+        ...MemoryStorageEngine.defaultConfig,
         ...config
       }));
-      container.register(MemoryClient);
+      container.register(MemoryStorageEngine);
+      container.register(Provider.ofResolver(StorageEngine, Lookup.of(MemoryStorageEngine)));
+      container.register(MemoryViewFactory);
+      container.register(Provider.ofResolver(ViewFactory, Lookup.of(MemoryViewFactory)));
+
+      const {accumulator, expression, pipeline, projection, query} = config.operators || {};
+
+      useOperators(OperatorType.ACCUMULATOR, accumulator || {});
+      useOperators(OperatorType.EXPRESSION, expression || {});
+      useOperators(OperatorType.PIPELINE, pipeline || {});
+      useOperators(OperatorType.PROJECTION, projection || {});
+      useOperators(OperatorType.QUERY, query || {});
     }
   }
 
   public constructor(
     private logger: Logger,
-    private validatorFactory: ValidatorFactory,
     private config: MemoryClientConfig,
-  ) { super(); }
+  ) {}
 
-  public db(name: string) {
-    return new MemoryDatabase(
-      name,
-      this.logger,
-      this.validatorFactory,
-      this.config.operators,
-    );
+  public createStore<TSchema extends Document>(config: StoreConfig) {
+    return MemoryStore.fromConfig<TSchema>(config);
   }
 }

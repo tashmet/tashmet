@@ -1,5 +1,5 @@
 export {Collection} from './collection';
-export {AbstractDatabase} from './database';
+export {DatabaseService, DefaultDatabaseFactory} from './database';
 export {withMiddleware} from './middleware';
 export {applyFindOptions, sortingMap, AbstractCursor} from './cursor';
 export {QueryAggregator} from './aggregation';

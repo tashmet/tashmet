@@ -3,19 +3,24 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit from '../../../packages/tashmit'
+import Tashmit, {Database} from '../../../packages/tashmit'
 import Memory from '../../../packages/memory'
 import operators from '../../../packages/operators/system';
 
 chai.use(chaiAsPromised);
 
 describe('database', () => {
-  const db = new Tashmit()
-    .use(Memory, {operators})
-    .bootstrap(Memory)
-    .db('testdb');
 
-  db.collection('test');
+  let db: Database;
+
+  before(async () => {
+    const tashmit = await Tashmit
+      .configure()
+      .use(Memory, {operators})
+      .connect();
+    db = tashmit.db('testdb');
+    db.collection('test');
+  });
 
     /*
   it('should have registered collection in configuration', async () => {

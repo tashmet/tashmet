@@ -1,5 +1,6 @@
-import Tashmit from '@tashmit/tashmit';
+import Tashmit, { Document, StorageEngine, Store, StoreConfig, provider, Collection } from '@tashmit/tashmit';
 import File, {json} from '@tashmit/file';
+import Memory from '@tashmit/memory';
 import operators from '@tashmit/operators/system';
 import {expect} from 'chai';
 import 'mocha';
@@ -20,17 +21,36 @@ function storedFiles(): string[] {
   return fs.readdirSync('test/e2e/testCollection');
 }
 
-describe('directory', () => {
-  const col = new Tashmit()
-    .use(Vinyl, {watch: false})
-    .use(File, {})
-    .bootstrap(File)
-    .db('testdb')
-    .directoryContent('test', {
-      path: 'test/e2e/testCollection',
+@provider({
+  key: StorageEngine,
+  inject: [File]
+})
+class TestStorageEngine implements StorageEngine {
+  public constructor(private file: File) {}
+
+  public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
+    return this.file.directoryContent({
+      path: `test/${config.ns.db}/${config.ns.coll}`,
       extension: 'json',
       serializer: json(),
+      ...config
     });
+  }
+}
+
+describe('directory', () => {
+  let col: Collection<any>;
+
+  before(async () => {
+    const client = await Tashmit
+      .configure()
+      .use(File, {})
+      .use(Memory, {operators})
+      .use(Vinyl, {watch: false})
+      .provide(TestStorageEngine)
+      .connect();
+    col = client.db('e2e').collection('testCollection');
+  });
 
   beforeEach(async () => {
     await col.insertMany([

@@ -4,39 +4,27 @@ export {CachingConfig};
 import {provider} from '@tashmit/core';
 import {
   CachingLayer,
-  Collection,
-  Filter,
   Middleware,
   QueryAggregator,
   mutationSideEffect,
   lockedCursor,
-  Database,
+  ChangeSet,
+  Store,
 } from '@tashmit/database';
-import MemoryClient from '@tashmit/memory';
 import {CachingConfig} from './interfaces';
 import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
 import {IDCache} from './id';
 import {QueryCache} from './query';
+import MemoryStorageEngine from '@tashmit/memory';
 
 
-@provider({
-  key: CachingLayer,
-  inject: [
-    MemoryClient,
-    CachingConfig,
-  ]
-})
-export default class CachingLayerPlugin extends CachingLayer {
-  private database: Database;
-
+@provider({key: CachingLayer})
+export default class CachingLayerPlugin implements CachingLayer {
   public constructor(
-    client: MemoryClient,
+    private memory: MemoryStorageEngine,
     private config: CachingConfig
-  ) {
-    super();
-    this.database = client.db('__caching__');
-  }
+  ) {}
 
   public static configure(config: CachingConfig) {
     return (container: Container) => {
@@ -45,16 +33,18 @@ export default class CachingLayerPlugin extends CachingLayer {
     }
   }
 
-  public create<T>(collection: Collection<T>): Middleware<T> {
+  public create<T>(store: Store<T>): Middleware<T> {
     const evaluators: CacheEvaluator[] = [
       new QueryCache(this.config.ttl),
       new IDCache(this.config.ttl)
     ];
-    const cache = this.database.collection(collection.collectionName)
+    const cache = this.memory.createStore({
+      ns: {db: `__cache__${store.ns.db}`, coll: store.ns.coll},
+      collectionResolver: () => { throw Error('Lookup not supported in cache') }
+    });
 
     for (const evaluator of evaluators) {
-      const cs = cache.watch();
-      cs.on('change', ({operationType, documentKey, fullDocument}) => {
+      store.on('change', ({operationType, documentKey, fullDocument}) => {
         switch(operationType) {
           case 'delete':
             evaluator.remove(documentKey);
@@ -68,24 +58,12 @@ export default class CachingLayerPlugin extends CachingLayer {
     }
 
     return {
-      insertOne: mutationSideEffect(async (result, doc: any) => {
-        await cache.replaceOne({_id: result.insertedId}, doc);
-      }),
-      insertMany: mutationSideEffect(async (result, docs: any) => {
-        await cache.insertMany(docs)
-      }),
-      deleteOne: mutationSideEffect(async (result, filter: Filter<any>) => {
-        await cache.deleteOne(filter)
-      }),
-      deleteMany: mutationSideEffect(async (result, filter: Filter<any>) => {
-        await cache.deleteMany(filter)
-      }),
-      replaceOne: mutationSideEffect(async (result, filter: Filter<any>, replacement: any) => {
-        await cache.replaceOne(filter, replacement, {upsert: true})
+      write: mutationSideEffect(async (result, cs: ChangeSet<any>) => {
+        await cache.write(cs);
       }),
       aggregate: next => pipeline => {
         const query = QueryAggregator.fromPipeline(pipeline);
-        const cursor = new CachingCursor(evaluators, cache, collection.find.bind(collection), query.filter, query.options);
+        const cursor = new CachingCursor(evaluators, cache, store.find.bind(store), query.filter, query.options);
         return lockedCursor(cache.aggregate(pipeline), cursor.toArray());
       },
       find: next => (filter, options) => {

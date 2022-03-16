@@ -1,5 +1,5 @@
 import {
-  CollectionDriver,
+  Store,
   Cursor,
   Filter,
   FindOptions,
@@ -10,7 +10,7 @@ import {QuerySerializer} from '@tashmit/qs-builder';
 import {HttpCollectionCursor} from './cursor';
 import {HttpRestLayer} from './common';
 
-export class HttpDriver<TSchema extends Document> extends CollectionDriver<TSchema> {
+export class HttpStore<TSchema extends Document> extends Store<TSchema> {
   public constructor(
     ns: { db: string; coll: string },
     public restLayer: HttpRestLayer,
