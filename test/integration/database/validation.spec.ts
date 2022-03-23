@@ -3,22 +3,26 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit from '../../../packages/tashmit'
+import Tashmit, {Collection} from '../../../packages/tashmit'
 import Memory from '../../../packages/memory'
 import operators from '../../../packages/operators/system';
 
 chai.use(chaiAsPromised);
-/*
+
 describe('validation', () => {
-  let db = new Tashmit()
-    .use(Memory, {operators})
-    .bootstrap(Memory)
-    .db('test');
+  let sales: Collection;
+
+  before(async () => {
+    const tashmit = await Tashmit
+      .configure()
+      .use(Memory, {operators})
+      .connect();
   
-  const sales = db.createCollection('sales', {
-    validator: {
-      item: {$type: 'string'}
-    }
+    sales = tashmit.db('test').createCollection('sales', {
+      validator: {
+        item: {$type: 'string'}
+      }
+    });
   });
 
   it('should insert a valid document', async () => {
@@ -31,4 +35,3 @@ describe('validation', () => {
       .to.eventually.be.rejected;
   });
 });
-*/
