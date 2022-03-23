@@ -26,9 +26,9 @@ export class DatabaseService implements Database {
   public constructor(
     public readonly databaseName: string,
     private engine: StorageEngine,
+    private logger: Logger,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
-    private logger: Logger,
   ) {}
 
   public collection(name: string): Collection {
@@ -113,20 +113,20 @@ export class DatabaseService implements Database {
   key: DefaultDatabaseFactory,
   inject: [
     StorageEngine,
+    Logger,
     Optional.of(ValidatorFactory),
     Optional.of(ViewFactory),
-    Logger
   ]
 })
 export class DefaultDatabaseFactory implements DatabaseFactory {
   public constructor(
     private engine: StorageEngine,
+    private logger: Logger,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
-    private logger: Logger
   ) {}
 
   createDatabase(name: string): Database {
-    return new DatabaseService(name, this.engine, this.validatorFactory, this.viewFactory, this.logger);
+    return new DatabaseService(name, this.engine, this.logger, this.validatorFactory, this.viewFactory);
   }
 }
