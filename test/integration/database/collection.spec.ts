@@ -9,7 +9,7 @@ import chaiAsPromised from 'chai-as-promised';
 
 chai.use(chaiAsPromised);
 
-describe('MemoryCollection', () => {
+describe('Collection', () => {
   interface Item {
     category: string;
     type: string;
@@ -23,17 +23,18 @@ describe('MemoryCollection', () => {
 
 
   let col: Collection;
+  let tashmit: Tashmit;
 
   before(async () => {
-    const tashmit = await Tashmit
+    tashmit = await Tashmit
       .configure()
       .use(Memory, {operators})
       .connect();
-
-    col = tashmit.db('testdb').collection('test');
   });
 
   beforeEach(async () => {
+    col = tashmit.db('testdb').collection('test');
+
     await col.insertMany([
       {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 },
       {_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 },
@@ -336,6 +337,25 @@ describe('MemoryCollection', () => {
       expect(cs.next()?.operationType).to.eql('delete');
       expect(cs.hasNext()).to.be.false;
       cs.close();
+    });
+  });
+
+  describe('drop', () => {
+    it('should remove collection from database', async () => {
+      const result = await col.drop();
+
+      expect(result).to.be.true;
+      expect(tashmit.db('testdb').collections()).to.eql([]);
+    });
+
+    it('should emit an event', async () => {
+      const cs = col.watch();
+
+      await col.drop();
+
+      const change = cs.next();
+      expect(change).to.not.be.undefined;
+      expect(change?.operationType).to.eql('drop');
     });
   });
 });
