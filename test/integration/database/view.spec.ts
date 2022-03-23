@@ -35,7 +35,7 @@ describe('view', () => {
     });
   })
 
-  before(async () => {
+  beforeEach(async () => {
     await sales.insertMany([
       { _id : 1, item : 'abc', price : 10,  quantity: 2},
       { _id : 2, item : 'jkl', price : 20,  quantity: 1},
@@ -49,7 +49,7 @@ describe('view', () => {
   });
 
   afterEach(async () => {
-    // totals.removeAllListeners();
+    await sales.deleteMany({});
   });
 
   it('should initially have correct documents', () => {
@@ -92,38 +92,38 @@ describe('view', () => {
     return expect(totals.findOne({_id: 'ghi'}))
       .to.eventually.eql({_id : 'ghi', 'totalSaleAmount': 200});
   });
-  /*
-  it('should emit insert change event', (done) => {
-    totals.on('change', ({action, data}) => {
-      expect(action).to.eql('insert');
-      expect(data).to.eql([{_id: 'mno', totalSaleAmount: 200}]);
-      done();
-    });
 
-    sales.insertOne({item: 'mno', price: 20, quantity: 10});
+  it('should emit insert change event', async () => {
+    const cs = totals.watch();
+
+    await sales.insertOne({item: 'mno', price: 20, quantity: 10});
+
+    const change = cs.next();
+    expect(change).to.not.be.undefined;
+    expect(change?.operationType).to.eql('insert');
+    expect(change?.fullDocument).to.eql({_id: 'mno', totalSaleAmount: 200});
   });
 
-  it('should emit delete change event', (done) => {
-    totals.on('change', ({action, data}) => {
-      expect(action).to.eql('delete');
-      expect(data).to.eql([{_id: 'mno', totalSaleAmount: 200}]);
-      done();
-    });
+  it('should emit delete change event', async () => {
+    const cs = totals.watch();
 
-    sales.deleteOne({item: 'mno'});
+    await sales.deleteOne({_id: 7});
+
+    const change = cs.next();
+    expect(change).to.not.be.undefined;
+    expect(change?.operationType).to.eql('delete');
+    expect(change?.documentKey).to.eql('def');
   });
 
-  it('should emit replace change event', (done) => {
-    totals.on('change', ({action, data}) => {
-      expect(action).to.eql('replace');
-      expect(data).to.eql([
-        { _id: 'xyz', totalSaleAmount: 150 },
-        { _id: 'xyz', totalSaleAmount: 100 }
-      ]);
-      done();
-    });
+  it('should emit replace change event', async () => {
+    const cs = totals.watch();
 
-    sales.deleteOne({_id: 3});
+    await sales.deleteOne({_id: 3});
+
+    const change = cs.next();
+    expect(change).to.not.be.undefined;
+    expect(change?.operationType).to.eql('replace');
+    expect(change?.fullDocument).to.eql({_id: 'xyz', totalSaleAmount: 100});
   });
 
   describe('mutation', () => {
@@ -152,5 +152,4 @@ describe('view', () => {
         .to.eventually.throw();
     });
   });
-  */
 });
