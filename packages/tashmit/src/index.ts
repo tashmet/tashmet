@@ -67,7 +67,6 @@ import {
   Newable,
   provider,
   Provider,
-  Resolver,
   ServiceRequest,
 } from '@tashmit/core';
 import {
@@ -107,7 +106,7 @@ export class TashmitConfigurator {
     return this.bootstrap(Tashmit);
   }
 
-  public async bootstrap<T>(app: ServiceRequest<T>): Promise<T> {
+  public async bootstrap<T>(app: Newable<T>): Promise<T> {
     const container = createContainer({
       logFormat: this.logFormat,
       logLevel: this.logLevel,
@@ -124,6 +123,10 @@ export class TashmitConfigurator {
 
     for (const provider of this.providers) {
       container.register(provider);
+    }
+
+    if (!container.isRegistered(app)) {
+      container.register(app);
     }
 
     return container.resolve(app);

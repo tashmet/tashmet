@@ -51,6 +51,5 @@ Tashmit
   .use(Vinyl, {watch: false})
   .use(HttpServer, {queryParser: QueryParser.flat()})
   .provide(ServerBlogStorageEngine)
-  .provide(ServerBlogApp)
   .bootstrap(ServerBlogApp)
   .then(app => app.run(8000));
