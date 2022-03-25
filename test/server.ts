@@ -24,6 +24,5 @@ Tashmit
   .configure()
   .use(Memory, {operators})
   .use(HttpServer, {})
-  .provide(ServerApp)
   .bootstrap(ServerApp)
   .then(app => app.run(8000));
