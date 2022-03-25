@@ -6,9 +6,9 @@ import * as fs from 'fs';
 import minimatch from 'minimatch';
 export * from './interfaces';
 
-import {Container, Optional, provider, Provider} from '@tashmit/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
-import {Stream} from '@tashmit/stream';
+import {Container, Optional, provider, Provider} from '@tashmet/core';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmet/file';
+import {Stream} from '@tashmet/stream';
 import * as Pipes from './pipes';
 import {FileSystemConfig} from './interfaces';
 

@@ -1,4 +1,4 @@
-import {OperatorConfig} from '@tashmit/operators';
+import {OperatorConfig} from '@tashmet/operators';
 
 /**
  * Configuration for the database.

@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @tashmit/terminal
+npm install @tashmet/terminal
 ```

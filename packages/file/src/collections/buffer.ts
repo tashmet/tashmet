@@ -5,7 +5,7 @@ import {
   FindOptions,
   Cursor,
   Filter,
-} from '@tashmit/database';
+} from '@tashmet/database';
 import {Pipeline} from '../pipeline';
 
 /**

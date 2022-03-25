@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @tashmit/socket
+npm install @tashmet/socket
 ```

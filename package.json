@@ -1,8 +1,8 @@
 {
-  "name": "tashmit",
+  "name": "tashmet",
   "version": "1.1.0",
   "private": true,
-  "description": "Tashmit is an isomorphic publishing platform",
+  "description": "Tashmet is an isomorphic publishing platform",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna run build",

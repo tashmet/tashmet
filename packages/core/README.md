@@ -1,9 +1,9 @@
 # Installation
 
 ```
-npm install @tashmit/core
+npm install @tashmet/core
 ```
 
 # Documentation
 
-See [https://tashmit.gitbook.io/tashmit/documentation/core](https://tashmit.gitbook.io/tashmit/documentation/core)
+See [https://tashmet.gitbook.io/tashmet/documentation/core](https://tashmet.gitbook.io/tashmet/documentation/core)

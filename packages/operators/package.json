@@ -1,16 +1,16 @@
 {
-	"name": "@tashmit/operators",
+	"name": "@tashmet/operators",
 	"version": "0.1.0",
 	"description": "operator presets",
 	"keywords": [
-		"tashmit",
+		"tashmet",
 		"operators"
 	],
 	"author": "",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/tashmit/tashmit"
+		"url": "https://github.com/tashmet/tashmet"
 	},
 	"publishConfig": {
 		"access": "public"

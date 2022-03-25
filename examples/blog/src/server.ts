@@ -1,9 +1,9 @@
-import Tashmit, {LogLevel, provider, StorageEngine, Store, StoreConfig} from '@tashmit/tashmit';
-import Memory from '@tashmit/memory';
-import FileSystem, { yaml } from '@tashmit/file';
-import Vinyl from '@tashmit/vinyl';
-import HttpServer, {QueryParser} from '@tashmit/http-server';
-import {terminal} from '@tashmit/terminal';
+import Tashmet, {LogLevel, provider, StorageEngine, Store, StoreConfig} from '@tashmet/tashmet';
+import Memory from '@tashmet/memory';
+import FileSystem, { yaml } from '@tashmet/file';
+import Vinyl from '@tashmet/vinyl';
+import HttpServer, {QueryParser} from '@tashmet/http-server';
+import {terminal} from '@tashmet/terminal';
 
 @provider({key: StorageEngine})
 class ServerBlogStorageEngine implements StorageEngine {
@@ -18,7 +18,7 @@ class ServerBlogStorageEngine implements StorageEngine {
         : {};
 
       return this.fs.directoryContent({
-        path: `/home/bander10/Documents/tashmit/examples/${config.ns.db}/${config.ns.coll}`,
+        path: `/home/bander10/Documents/tashmet/examples/${config.ns.db}/${config.ns.coll}`,
         extension: 'yaml',
         serializer: yaml(yamlConfig),
         ...config
@@ -30,10 +30,10 @@ class ServerBlogStorageEngine implements StorageEngine {
 
 @provider()
 class ServerBlogApp {
-  public constructor(private server: HttpServer, private tashmit: Tashmit) {}
+  public constructor(private server: HttpServer, private tashmet: Tashmet) {}
 
   public run(port: number) {
-    const db = this.tashmit.db('blog');
+    const db = this.tashmet.db('blog');
     const posts = db.createCollection('posts', {storageEngine: {contentKey: 'articleBody'}});
     this.server
       .resource('/api/posts', {collection: posts})
@@ -41,7 +41,7 @@ class ServerBlogApp {
   }
 }
 
-Tashmit
+Tashmet
   .configure({
     logLevel: LogLevel.Debug,
     logFormat: terminal(),

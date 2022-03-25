@@ -1,7 +1,7 @@
 {
-  "name": "@tashmit/file",
+  "name": "@tashmet/file",
   "version": "2.0.0",
-  "description": "Tashmit file system persistence",
+  "description": "Tashmet file system persistence",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",
@@ -13,7 +13,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tashmit/tashmit"
+    "url": "https://github.com/tashmet/tashmet"
   },
   "publishConfig": {
     "access": "public"
@@ -31,14 +31,14 @@
     "@types/js-yaml": "^3.12.1",
     "@types/lodash": "^4.14.149",
     "@types/minimatch": "^3.0.3",
-    "@tashmit/core": "^1.0.2",
-    "@tashmit/database": "^1.3.1",
-    "@tashmit/memory": "^1.0.0",
-    "@tashmit/tashmit": "^1.4.0",
+    "@tashmet/core": "^1.0.2",
+    "@tashmet/database": "^1.3.1",
+    "@tashmet/memory": "^1.0.0",
+    "@tashmet/tashmet": "^1.4.0",
     "dedent": "^0.7.0",
     "mock-fs": "^4.10.4"
   },
   "peerDependencies": {
-    "@tashmit/tashmit": "^1.1.2"
+    "@tashmet/tashmet": "^1.1.2"
   }
 }

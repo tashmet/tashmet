@@ -6,14 +6,14 @@ can access the data.
 
 ## Documentation
 For a more in-depth explanation, refer to the documentation found here
-[https://tashmit.gitbook.io/tashmit/getting-started/examples/blog](https://tashmit.gitbook.io/tashmit/getting-started/examples/blog)
+[https://tashmet.gitbook.io/tashmet/getting-started/examples/blog](https://tashmet.gitbook.io/tashmet/getting-started/examples/blog)
 
 ## Instructions
 
 After cloning this repo, do the following:
 
 ```text
-cd tashmit/examples/blog
+cd tashmet/examples/blog
 npm install
 npm build
 ```

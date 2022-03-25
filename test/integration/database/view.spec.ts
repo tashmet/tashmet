@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, { Collection } from '../../../packages/tashmit';
+import Tashmet, { Collection } from '../../../packages/tashmet';
 import Memory from '../../../packages/memory';
 import operators from '../../../packages/operators/system';
 
@@ -15,7 +15,7 @@ describe('view', () => {
   let totals: Collection;
 
   before(async () => {
-    const client = await Tashmit
+    const client = await Tashmet
       .configure()
       .use(Memory, {operators})
       .connect();

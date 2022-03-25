@@ -1,7 +1,7 @@
 {
-  "name": "@tashmit/ipfs",
+  "name": "@tashmet/ipfs",
   "version": "0.2.0",
-  "description": "Tashmit IPFS integration",
+  "description": "Tashmet IPFS integration",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",
@@ -13,23 +13,23 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tashmit/tashmit"
+    "url": "https://github.com/tashmet/tashmet"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@tashmit/file": "^2.0.0",
+    "@tashmet/file": "^2.0.0",
     "ipfs-http-client": "^49.0.2",
     "minimatch": "^3.0.4"
   },
   "devDependencies": {
     "@types/minimatch": "^3.0.3",
     "@types/reflect-metadata": "^0.1.0",
-    "@tashmit/core": "^1.0.2",
+    "@tashmet/core": "^1.0.2",
     "tslib": "^2.3.1"
   },
   "peerDependencies": {
-    "@tashmit/tashmit": "^1.3.0"
+    "@tashmet/tashmet": "^1.3.0"
   }
 }

@@ -1,9 +1,9 @@
 # Installation
 
 ```
-npm install @tashmit/http-client
+npm install @tashmet/http-client
 ```
 
 # Documentation
 
-See [https://tashmit.gitbook.io](https://tashmit.gitbook.io)
+See [https://tashmet.gitbook.io](https://tashmet.gitbook.io)

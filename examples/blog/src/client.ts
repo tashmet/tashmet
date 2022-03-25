@@ -1,9 +1,9 @@
-import Tashmit, {LogLevel, provider, StorageEngine, StoreConfig} from '@tashmit/tashmit';
-import Memory from '@tashmit/memory';
-import Caching from '@tashmit/caching';
-import HttpClient, {QuerySerializer} from '@tashmit/http-client';
-import operators from '@tashmit/operators/basic';
-import {terminal} from '@tashmit/terminal';
+import Tashmet, {LogLevel, provider, StorageEngine, StoreConfig} from '@tashmet/tashmet';
+import Memory from '@tashmet/memory';
+import Caching from '@tashmet/caching';
+import HttpClient, {QuerySerializer} from '@tashmet/http-client';
+import operators from '@tashmet/operators/basic';
+import {terminal} from '@tashmet/terminal';
 import isomorphicFetch from 'isomorphic-fetch';
 
 @provider({key: StorageEngine})
@@ -18,7 +18,7 @@ class ClientBlogStorageEngine implements StorageEngine {
   }
 }
 
-Tashmit
+Tashmet
   .configure({
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
@@ -31,8 +31,8 @@ Tashmit
   .use(Caching, {})
   .provide(ClientBlogStorageEngine)
   .connect()
-  .then(async tashmit => {
-    const db = tashmit.db('blog');
+  .then(async tashmet => {
+    const db = tashmet.db('blog');
     const posts = db.collection('posts');
     let doc = await posts.findOne({_id: 'helloworld'});
     doc = await posts.findOne({_id: 'helloworld'});

@@ -6,7 +6,7 @@ import {
   Filter,
   Store,
   ChangeSet
-} from '@tashmit/database';
+} from '@tashmet/database';
 import {CacheEvaluator, isCached} from './evaluator';
 
 export class CachingCursor extends AbstractCursor<any> {

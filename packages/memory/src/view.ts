@@ -1,5 +1,5 @@
 import {intersection} from 'mingo/util';
-import {provider} from '@tashmit/core';
+import {provider} from '@tashmet/core';
 import {MemoryStore} from './store';
 import {
   ChangeSet,
@@ -12,7 +12,7 @@ import {
   Store,
   StoreConfig,
   ViewFactory,
-} from '@tashmit/database';
+} from '@tashmet/database';
 
 
 @provider()

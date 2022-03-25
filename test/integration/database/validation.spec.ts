@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Collection} from '../../../packages/tashmit'
+import Tashmet, {Collection} from '../../../packages/tashmet'
 import Memory from '../../../packages/memory'
 import operators from '../../../packages/operators/system';
 
@@ -13,12 +13,12 @@ describe('validation', () => {
   let sales: Collection;
 
   before(async () => {
-    const tashmit = await Tashmit
+    const tashmet = await Tashmet
       .configure()
       .use(Memory, {operators})
       .connect();
-  
-    sales = tashmit.db('test').createCollection('sales', {
+
+    sales = tashmet.db('test').createCollection('sales', {
       validator: {
         item: {$type: 'string'}
       }

@@ -1,7 +1,7 @@
 {
-	"name": "@tashmit/stream",
+	"name": "@tashmet/stream",
 	"version": "0.2.0",
-	"description": "Tashmit node stream tools",
+	"description": "Tashmet node stream tools",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
   "scripts": {
@@ -13,7 +13,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/tashmit/tashmit"
+		"url": "https://github.com/tashmet/tashmet"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -23,9 +23,9 @@
 		"tslib": "^2.3.1"
 	},
 	"peerDependencies": {
-		"@tashmit/tashmit": "^1.4.0"
+		"@tashmet/tashmet": "^1.4.0"
 	},
 	"dependencies": {
-		"@tashmit/file": "^2.0.0"
+		"@tashmet/file": "^2.0.0"
 	}
 }

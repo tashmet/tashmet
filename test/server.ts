@@ -1,16 +1,16 @@
-import Tashmit, {provider} from '../packages/tashmit/dist'
+import Tashmet, {provider} from '../packages/tashmet/dist'
 import Memory from '../packages/memory/dist'
 import HttpServer from '../packages/http-server/dist';
 import operators from '../packages/operators/system';
 
 @provider({
-  inject: [Tashmit, HttpServer]
+  inject: [Tashmet, HttpServer]
 })
 class ServerApp {
-  public constructor(private tashmit: Tashmit, private server: HttpServer) {}
+  public constructor(private tashmet: Tashmet, private server: HttpServer) {}
 
   public run(port: number) {
-    const collection = this.tashmit
+    const collection = this.tashmet
       .db('serverdb')
       .collection('test');
 
@@ -20,7 +20,7 @@ class ServerApp {
   }
 }
 
-Tashmit
+Tashmet
   .configure()
   .use(Memory, {operators})
   .use(HttpServer, {})

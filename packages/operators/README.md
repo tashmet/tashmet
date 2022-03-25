@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @tashmit/operators
+npm install @tashmet/operators
 ```

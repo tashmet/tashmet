@@ -6,12 +6,12 @@ description: Reading and writing content stored on disk
 
 ## Introduction
 
-File is a set of tools for reading and writing Tashmit content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown.
+File is a set of tools for reading and writing Tashmet content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown.
 
 ### Installation
 
 ```text
-$ npm install @tashmit/file
+$ npm install @tashmet/file
 ```
 
 ### Usage
@@ -21,7 +21,7 @@ The package exports a component that should be imported as a dependency in your 
 ```typescript
 @component({
   dependencies: [
-    import('@tashmit/file')
+    import('@tashmet/file')
   ],
   providers: [
     Provider.ofInstance<FileSystemConfig>('file.FileSystemConfig', {

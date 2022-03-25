@@ -7,6 +7,6 @@ description: Database package
 ## Installation
 
 ```text
-npm install @tashmit/database
+npm install @tashmet/database
 ```
 

@@ -1,12 +1,12 @@
-# Tashmit Query String Builder
+# Tashmet Query String Builder
 
 Builds an HTTP query string from a MongoDB query
 
 ## Documentation
-See [https://tashmit.gitbook.io](https://tashmit.gitbook.io)
+See [https://tashmet.gitbook.io](https://tashmet.gitbook.io)
 
 ## Installation
 
 ```text
-npm install @tashmit/qs-builder
+npm install @tashmet/qs-builder
 ```

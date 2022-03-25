@@ -1,4 +1,5 @@
-import {Collection, DatabaseEventEmitter} from '@tashmit/database';
+/*
+import {Collection, DatabaseEventEmitter} from '@tashmet/database';
 import {EventEmitter} from 'eventemitter3';
 
 const io = require('socket.io-client');
@@ -19,3 +20,4 @@ export class SocketEventEmitter extends EventEmitter implements DatabaseEventEmi
 
 export const socket = () =>
   (collection: Collection, path: string) => new SocketEventEmitter(path, collection);
+*/

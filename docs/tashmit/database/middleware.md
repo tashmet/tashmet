@@ -6,7 +6,7 @@ description: Collection middleware
 
 ## Built-in middleware
 
-Tashmit comes with built in middleware for the most common use cases like caching, logging and validation. We will explore each of these and how they can be used together below.
+Tashmet comes with built in middleware for the most common use cases like caching, logging and validation. We will explore each of these and how they can be used together below.
 
 ### Logging
 
@@ -17,7 +17,7 @@ Logging is useful, especially server-side, to see what operations are performed 
 Simply import the logging middleware from the main package and apply it to your collection. If you have other middleware for the same collection you probably want to put logging at the top of the stack \(first in the list\) to catch the result of operations occurring below.
 
 ```typescript
-import {logging} from '@tashmit/tashmit';
+import {logging} from '@tashmet/tashmet';
 ...
 const collection = database.createCollection('test', {
   source: memory(),
@@ -32,13 +32,13 @@ Caching allows us to store documents from a collection in memory so that they do
 #### Installation
 
 ```text
-npm install @tashmit/caching
+npm install @tashmet/caching
 ```
 
 #### Usage
 
 ```typescript
-import {caching} from '@tashmit/caching';
+import {caching} from '@tashmet/caching';
 ...
 const collection = database.createCollection('test', {
   source: http({path: '/api/test'}),
@@ -53,7 +53,7 @@ Schema validation of documents in collections is provided through the schema pac
 #### Installation
 
 ```text
-npm install @tashmit/schema
+npm install @tashmet/schema
 ```
 
 #### Usage
@@ -61,10 +61,10 @@ npm install @tashmit/schema
 Schemas need to be added to their own collection. They are then referenced by the schema $id in the validation middleware. By default the validator expects to find schemas in a collection named **schemas**
 
 ```typescript
-import {validation, ValidationPipeStrategy} from '@tashmit/caching';
+import {validation, ValidationPipeStrategy} from '@tashmet/caching';
 
 // Example database config
-const databaseConfig: DatabaseConfig = {
+const databaseConfig: MemoryClientConfig = {
   collections: {
     'schemas': memory({documents: schemas}),
     'products': {

@@ -1,5 +1,5 @@
-import {File, Pipe} from '@tashmit/file';
-import {Stream} from '@tashmit/stream';
+import {File, Pipe} from '@tashmet/file';
+import {Stream} from '@tashmet/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
 

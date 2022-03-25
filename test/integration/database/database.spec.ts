@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Database} from '../../../packages/tashmit'
+import Tashmet, {Database} from '../../../packages/tashmet'
 import Memory from '../../../packages/memory'
 import operators from '../../../packages/operators/system';
 
@@ -14,11 +14,11 @@ describe('database', () => {
   let db: Database;
 
   before(async () => {
-    const tashmit = await Tashmit
+    const tashmet = await Tashmet
       .configure()
       .use(Memory, {operators})
       .connect();
-    db = tashmit.db('testdb');
+    db = tashmet.db('testdb');
     db.collection('test');
   });
 

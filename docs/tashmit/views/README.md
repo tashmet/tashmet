@@ -9,6 +9,6 @@ This package provides tools for tracking subsets of documents, or aggregated res
 ## Installation
 
 ```text
-npm install @tashmit/view
+npm install @tashmet/view
 ```
 

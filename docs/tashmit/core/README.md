@@ -7,7 +7,7 @@ description: Core package
 ## Installation
 
 ```text
-npm install @tashmit/core
+npm install @tashmet/core
 ```
 
 

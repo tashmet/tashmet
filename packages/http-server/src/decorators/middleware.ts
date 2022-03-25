@@ -1,4 +1,4 @@
-import {Annotation} from '@tashmit/core';
+import {Annotation} from '@tashmet/core';
 import {Route, RouteMap} from '../interfaces';
 import {makeRoutes} from '../routing';
 

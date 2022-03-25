@@ -1,4 +1,4 @@
-import {Logger} from '@tashmit/core';
+import {Logger} from '@tashmet/core';
 import {Middleware} from '../interfaces';
 //import {mutationSideEffect} from './mutation';
 

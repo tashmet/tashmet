@@ -27,10 +27,10 @@ export function createContainer(config: BootstrapConfig): Container {
     : new BasicContainer(logger);
 
   container.register(Provider.ofInstance(Container, container));
-  container.register(Provider.ofInstance('tashmit.LoggerConfig', loggerConfig));
+  container.register(Provider.ofInstance('tashmet.LoggerConfig', loggerConfig));
   container.register(Provider.ofFactory({
     key: Logger,
-    inject: ['tashmit.LoggerConfig'],
+    inject: ['tashmet.LoggerConfig'],
     create: (config: LoggerConfig) => DefaultLogger.fromConfig(config)
   }));
 

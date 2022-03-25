@@ -13,7 +13,7 @@ import {
 import {Collection} from './collection';
 import {ChangeSet} from './changeSet';
 import {validation, withMiddleware} from './middleware';
-import {Logger, provider, Optional} from '@tashmit/core';
+import {Logger, provider, Optional} from '@tashmet/core';
 
 
 /**

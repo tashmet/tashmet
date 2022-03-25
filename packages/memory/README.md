@@ -1,9 +1,9 @@
 # Installation
 
 ```
-npm install @tashmit/memory
+npm install @tashmet/memory
 ```
 
 # Documentation
 
-See [https://tashmit.gitbook.io/tashmit/documentation/memory](https://tashmit.gitbook.io/tashmit/documentation/memory)
+See [https://tashmet.gitbook.io/tashmet/documentation/memory](https://tashmet.gitbook.io/tashmet/documentation/memory)

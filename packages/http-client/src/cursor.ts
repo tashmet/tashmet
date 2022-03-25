@@ -1,5 +1,5 @@
-import {AbstractCursor, Filter, FindOptions} from '@tashmit/database';
-import {QuerySerializer} from '@tashmit/qs-builder';
+import {AbstractCursor, Filter, FindOptions} from '@tashmet/database';
+import {QuerySerializer} from '@tashmet/qs-builder';
 import {HttpRestLayer} from './common';
 
 export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {

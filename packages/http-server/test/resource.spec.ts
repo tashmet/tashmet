@@ -1,10 +1,10 @@
-import Tashmit, {provider} from '@tashmit/tashmit';
-import {QueryParser} from '@tashmit/qs-parser';
+import Tashmet, {provider} from '@tashmet/tashmet';
+import {QueryParser} from '@tashmet/qs-parser';
 import HttpServer from '../src';
 import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
-import operators from '@tashmit/operators/system';
+import operators from '@tashmet/operators/system';
 
 describe.skip('Resource', () => {
 
@@ -12,10 +12,10 @@ describe.skip('Resource', () => {
 
   @provider()
   class TestResourceApp {
-    public constructor(private tashmit: Tashmit, private server: HttpServer) {}
+    public constructor(private tashmet: Tashmet, private server: HttpServer) {}
 
     public async setup() {
-      const collection = this.tashmit.db('test').collection('test')
+      const collection = this.tashmet.db('test').collection('test')
 
       await collection.insertMany([{_id: 'doc1'}, {_id: 'doc2'}]);
 
@@ -28,7 +28,7 @@ describe.skip('Resource', () => {
   }
 
   before(async () => {
-    const app = await Tashmit
+    const app = await Tashmet
       .configure()
       .use(HttpServer, {queryParser: QueryParser.flat()})
       .bootstrap(TestResourceApp);

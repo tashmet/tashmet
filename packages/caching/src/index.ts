@@ -1,7 +1,7 @@
-import {Container, Provider} from '@tashmit/core';
+import {Container, Provider} from '@tashmet/core';
 export {CachingConfig};
 
-import {provider} from '@tashmit/core';
+import {provider} from '@tashmet/core';
 import {
   CachingLayer,
   Middleware,
@@ -10,13 +10,13 @@ import {
   lockedCursor,
   ChangeSet,
   Store,
-} from '@tashmit/database';
+} from '@tashmet/database';
 import {CachingConfig} from './interfaces';
 import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
 import {IDCache} from './id';
 import {QueryCache} from './query';
-import MemoryStorageEngine from '@tashmit/memory';
+import MemoryStorageEngine from '@tashmet/memory';
 
 
 @provider({key: CachingLayer})

@@ -1,5 +1,5 @@
-import {Filter, FindOptions, Namespace} from '@tashmit/database';
-import {QuerySerializer} from '@tashmit/qs-builder';
+import {Filter, FindOptions, Namespace} from '@tashmet/database';
+import {QuerySerializer} from '@tashmet/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 

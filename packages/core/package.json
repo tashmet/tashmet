@@ -1,5 +1,5 @@
 {
-  "name": "@tashmit/core",
+  "name": "@tashmet/core",
   "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
@@ -10,14 +10,14 @@
     "test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
   },
   "keywords": [
-    "tashmit",
+    "tashmet",
     "core"
   ],
   "author": "",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tashmit/tashmit"
+    "url": "https://github.com/tashmet/tashmet"
   },
   "publishConfig": {
     "access": "public"

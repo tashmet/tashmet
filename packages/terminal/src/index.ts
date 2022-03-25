@@ -1,4 +1,4 @@
-import {ScopeLogFormatter, LogLevel} from '@tashmit/core';
+import {ScopeLogFormatter, LogLevel} from '@tashmet/core';
 import chalk from 'chalk';
 
 export class ColoredScopeFormatter extends ScopeLogFormatter {

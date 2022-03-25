@@ -1,5 +1,5 @@
 /*
-import {bootstrap, component, provider, Provider} from '../../../packages/tashmit';
+import {bootstrap, component, provider, Provider} from '../../../packages/tashmet';
 import {expect} from 'chai';
 import 'mocha';
 

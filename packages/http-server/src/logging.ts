@@ -1,7 +1,7 @@
 /*
 import * as express from 'express';
 import onHeaders from 'on-headers';
-import {Factory, Logger} from '@tashmit/core';
+import {Factory, Logger} from '@tashmet/core';
 import {RequestHandlerFactory} from './interfaces';
 
 export function requestLogger(): RequestHandlerFactory {

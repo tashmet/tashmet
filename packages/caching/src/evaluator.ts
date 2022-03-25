@@ -1,4 +1,4 @@
-import {Filter, FindOptions} from '@tashmit/database';
+import {Filter, FindOptions} from '@tashmet/database';
 
 export abstract class CacheEvaluator {
   private records: Record<string, number> = {};

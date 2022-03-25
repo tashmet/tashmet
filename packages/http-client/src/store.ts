@@ -5,8 +5,8 @@ import {
   FindOptions,
   Document,
   ChangeSet,
-} from '@tashmit/database';
-import {QuerySerializer} from '@tashmit/qs-builder';
+} from '@tashmet/database';
+import {QuerySerializer} from '@tashmet/qs-builder';
 import {HttpCollectionCursor} from './cursor';
 import {HttpRestLayer} from './common';
 

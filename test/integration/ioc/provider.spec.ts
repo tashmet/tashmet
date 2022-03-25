@@ -1,4 +1,4 @@
-import {BasicContainer, provider, Provider} from '../../../packages/tashmit';
+import {BasicContainer, provider, Provider} from '../../../packages/tashmet';
 import {expect} from 'chai';
 import 'mocha';
 

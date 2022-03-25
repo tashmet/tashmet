@@ -1,5 +1,5 @@
-import {Lookup} from '@tashmit/core';
-import {QueryParser} from '@tashmit/qs-parser';
+import {Lookup} from '@tashmet/core';
+import {QueryParser} from '@tashmet/qs-parser';
 import {RequestHandler} from 'express';
 import * as express from 'express';
 import http from 'http';

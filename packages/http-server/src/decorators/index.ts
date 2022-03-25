@@ -1,5 +1,5 @@
 import {RequestHandler} from 'express';
-import {classDecorator, methodDecorator} from '@tashmit/core';
+import {classDecorator, methodDecorator} from '@tashmet/core';
 import {RouteMap, RouteMethod, Middleware} from '../interfaces';
 import {RouterMethodAnnotation} from './method';
 import {MiddlewareAnnotation} from './middleware';

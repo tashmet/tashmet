@@ -1,12 +1,12 @@
-import {Container, Logger, Optional, provider, Provider} from '@tashmit/core';
-import {CachingLayer, Store, withMiddleware} from '@tashmit/database';
-import {QuerySerializer} from '@tashmit/qs-builder';
+import {Container, Logger, Optional, provider, Provider} from '@tashmet/core';
+import {CachingLayer, Store, withMiddleware} from '@tashmet/database';
+import {QuerySerializer} from '@tashmet/qs-builder';
 import {HttpRestLayer} from './common';
 import {HttpClientConfig, HttpStoreConfig, Fetch} from './interfaces';
 import {HttpStore} from './store';
 
 export * from './interfaces';
-export {QuerySerializer} from '@tashmit/qs-builder';
+export {QuerySerializer} from '@tashmet/qs-builder';
 
 @provider({
   key: Http,

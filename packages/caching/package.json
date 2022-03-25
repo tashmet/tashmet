@@ -1,5 +1,5 @@
 {
-  "name": "@tashmit/caching",
+  "name": "@tashmet/caching",
   "version": "1.2.3",
   "description": "",
   "main": "dist/index.js",
@@ -10,14 +10,14 @@
     "test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
   },
   "keywords": [
-    "tashmit",
+    "tashmet",
     "caching"
   ],
   "author": "",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tashmit/tashmit"
+    "url": "https://github.com/tashmet/tashmet"
   },
   "publishConfig": {
     "access": "public"
@@ -29,9 +29,9 @@
     "README.md"
   ],
   "dependencies": {
-    "@tashmit/core": "^1.0.2",
-    "@tashmit/database": "^1.3.1",
-    "@tashmit/memory": "^1.0.0"
+    "@tashmet/core": "^1.0.2",
+    "@tashmet/database": "^1.3.1",
+    "@tashmet/memory": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^13.1.8",

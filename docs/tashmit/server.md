@@ -6,12 +6,12 @@ description: Serving content and making it accessible online
 
 ## Description <a id="description"></a>
 
-Server is an HTTP server for publishing Tashmit content. It allows us to define RESTful resources that interact with the database.
+Server is an HTTP server for publishing Tashmet content. It allows us to define RESTful resources that interact with the database.
 
 ## Installation <a id="installation"></a>
 
 ```text
-$ npm install @tashmit/server
+$ npm install @tashmet/server
 ```
 
 ## Usage <a id="usage"></a>
@@ -21,7 +21,7 @@ The package exports a component that should be imported as a dependency in your 
 ```typescript
 @component({
   dependencies: [
-    import('@tashmit/server')
+    import('@tashmet/server')
   ],
   providers: [
     Server.configuration({

@@ -1,5 +1,5 @@
 # Installation
 
 ```
-npm install @tashmit/caching
+npm install @tashmet/caching
 ```

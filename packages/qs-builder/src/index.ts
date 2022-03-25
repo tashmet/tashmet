@@ -1,4 +1,4 @@
-import {Query, SortingDirection} from "@tashmit/database";
+import {Query, SortingDirection} from "@tashmet/database";
 import {
   DelimitedProjectionConfig,
   DelimitedSortConfig,

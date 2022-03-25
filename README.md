@@ -1,12 +1,12 @@
-# Tashmit
+# Tashmet
 
-This is the Tashmit mono-repo, containing code, tests and documentation for
-the Tashmit publishing framework. To get started head over to the
-[user documentation](https://tashmit.gitbook.io/).
+This is the Tashmet mono-repo, containing code, tests and documentation for
+the Tashmet publishing framework. To get started head over to the
+[user documentation](https://tashmet.gitbook.io/).
 
 ## Introduction
 
-Tashmit is a lightweight open-source database abstraction written in
+Tashmet is a lightweight open-source database abstraction written in
 typescript with the purpose of making it easy to access data from various
 sources in a uniform way.
 
@@ -19,12 +19,12 @@ currently supported sources.
 
 ### MongoDB
 
-Natually the popular database is supported as a backend. The Tashmit
+Natually the popular database is supported as a backend. The Tashmet
 collection interface is basically a subset of the MongoDB collection.
 
 ### REST
 
-Why not interface with a RESTful API like it was MongoDB database? Tashmit
+Why not interface with a RESTful API like it was MongoDB database? Tashmet
 in a way makes it possible to leverage the power of MongoDB in a client-side
 application.
 
@@ -32,7 +32,7 @@ application.
 
 An in-memory collection allows us to store documents in a volatile way which
 is useful for things like caching. To support the MongoDB query language in
-this setting, Tashmit internally uses [mingo](https://github.com/kofrasa/mingo).
+this setting, Tashmet internally uses [mingo](https://github.com/kofrasa/mingo).
 
 ### Files on a file system
 

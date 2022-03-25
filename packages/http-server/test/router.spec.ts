@@ -1,4 +1,4 @@
-import Tashmit from '@tashmit/tashmit';
+import Tashmet from '@tashmet/tashmet';
 import HttpServer from '../src';
 import {get, post, method} from '../src/decorators';
 import express from 'express';
@@ -33,7 +33,7 @@ describe('Router', () => {
   let app: HttpServer;
 
   before(async () => {
-    app = await Tashmit
+    app = await Tashmet
       .configure()
       .use(HttpServer, {})
       .bootstrap(HttpServer);

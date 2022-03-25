@@ -1,9 +1,9 @@
-import {Container, provider } from '@tashmit/core';
+import {Container, provider } from '@tashmet/core';
 import * as nodePath from 'path';
 import {intersection} from 'mingo/util';
-import {Logger} from '@tashmit/core';
-import {ChangeSet, Document, locked, withMiddleware, Intersect, Store, StoreConfig} from '@tashmit/database';
-import MemoryStorageEngine from '@tashmit/memory';
+import {Logger} from '@tashmet/core';
+import {ChangeSet, Document, locked, withMiddleware, Intersect, Store, StoreConfig} from '@tashmet/database';
+import MemoryStorageEngine from '@tashmet/memory';
 import {BundleStore, BundleStreamConfig } from './collections/bundle';
 
 import {File, FileAccess, ReadableFile, Pipe, FileConfig, DirectoryContentConfig, DirectoryFilesConfig} from './interfaces';

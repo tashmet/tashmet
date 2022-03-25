@@ -1,7 +1,7 @@
-import Tashmit, { Document, StorageEngine, Store, StoreConfig, provider, Collection } from '@tashmit/tashmit';
-import File, {json} from '@tashmit/file';
-import Memory from '@tashmit/memory';
-import operators from '@tashmit/operators/system';
+import Tashmet, { Document, StorageEngine, Store, StoreConfig, provider, Collection } from '@tashmet/tashmet';
+import File, {json} from '@tashmet/file';
+import Memory from '@tashmet/memory';
+import operators from '@tashmet/operators/system';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
@@ -42,7 +42,7 @@ describe('directory', () => {
   let col: Collection<any>;
 
   before(async () => {
-    const client = await Tashmit
+    const client = await Tashmet
       .configure()
       .use(File, {})
       .use(Memory, {operators})

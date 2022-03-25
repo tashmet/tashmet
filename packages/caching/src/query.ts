@@ -1,4 +1,4 @@
-import {Filter, FindOptions} from '@tashmit/database';
+import {Filter, FindOptions} from '@tashmet/database';
 import {CacheEvaluator} from './evaluator';
 import {hashCode} from 'mingo/util';
 

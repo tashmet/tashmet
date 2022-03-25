@@ -1,7 +1,7 @@
 const createClient = require('ipfs-http-client')
 
-import {Container, Provider} from '@tashmit/core';
-import {FileAccess, File, ReadableFile, Pipeline} from '@tashmit/file';
+import {Container, Provider} from '@tashmet/core';
+import {FileAccess, File, ReadableFile, Pipeline} from '@tashmet/file';
 import path from 'path';
 import minimatch from 'minimatch';
 

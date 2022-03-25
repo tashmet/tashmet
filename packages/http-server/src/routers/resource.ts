@@ -1,6 +1,6 @@
-import {Logger} from '@tashmit/core';
-import {Collection, ChangeStreamDocument, Query} from '@tashmit/database';
-import {QueryParser} from '@tashmit/qs-parser';
+import {Logger} from '@tashmet/core';
+import {Collection, ChangeStreamDocument, Query} from '@tashmet/database';
+import {QueryParser} from '@tashmet/qs-parser';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
 import * as url from 'url';

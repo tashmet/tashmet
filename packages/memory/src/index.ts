@@ -1,5 +1,5 @@
-import {Container, Logger, Lookup, provider, Provider} from '@tashmit/core';
-import {Document, StorageEngine, StoreConfig, ViewFactory} from '@tashmit/database';
+import {Container, Logger, Lookup, provider, Provider} from '@tashmet/core';
+import {Document, StorageEngine, StoreConfig, ViewFactory} from '@tashmet/database';
 import { OperatorType, useOperators } from 'mingo/core';
 import {MemoryClientConfig} from './interfaces';
 import {MemoryStore} from './store';

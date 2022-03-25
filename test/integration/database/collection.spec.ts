@@ -1,4 +1,4 @@
-import Tashmit from '../../../packages/tashmit';
+import Tashmet from '../../../packages/tashmet';
 import Memory from '../../../packages/memory';
 import {Collection, SortingDirection} from '../../../packages/database';
 import operators from '../../../packages/operators/system';
@@ -23,17 +23,17 @@ describe('Collection', () => {
 
 
   let col: Collection;
-  let tashmit: Tashmit;
+  let tashmet: Tashmet;
 
   before(async () => {
-    tashmit = await Tashmit
+    tashmet = await Tashmet
       .configure()
       .use(Memory, {operators})
       .connect();
   });
 
   beforeEach(async () => {
-    col = tashmit.db('testdb').collection('test');
+    col = tashmet.db('testdb').collection('test');
 
     await col.insertMany([
       {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 },
@@ -345,7 +345,7 @@ describe('Collection', () => {
       const result = await col.drop();
 
       expect(result).to.be.true;
-      expect(tashmit.db('testdb').collections()).to.eql([]);
+      expect(tashmet.db('testdb').collections()).to.eql([]);
     });
 
     it('should emit an event', async () => {

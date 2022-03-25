@@ -1,4 +1,4 @@
-export * from '@tashmit/database';
+export * from '@tashmet/database';
 export {
   // IoC
   ServiceIdentifier,
@@ -54,7 +54,7 @@ export {
   // Annotation
   Annotation,
 
-} from '@tashmit/core';
+} from '@tashmet/core';
 
 import {
   Container,
@@ -68,13 +68,13 @@ import {
   provider,
   Provider,
   ServiceRequest,
-} from '@tashmit/core';
+} from '@tashmet/core';
 import {
   Database,
   DatabaseFactory,
   DefaultDatabaseFactory,
-} from '@tashmit/database';
-import {BootstrapConfig} from '@tashmit/core/dist/ioc/bootstrap';
+} from '@tashmet/database';
+import {BootstrapConfig} from '@tashmet/core/dist/ioc/bootstrap';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}
 
@@ -82,7 +82,7 @@ interface Plugin<TConf> {
   configure(conf: TConf): (container: Container) => void;
 }
 
-export class TashmitConfigurator {
+export class TashmetConfigurator {
   private providers: (Provider<any> | Newable<any>)[] = [];
   private plugins: ((container: Container) => void)[] = [];
 
@@ -103,7 +103,7 @@ export class TashmitConfigurator {
   }
 
   public async connect() {
-    return this.bootstrap(Tashmit);
+    return this.bootstrap(Tashmet);
   }
 
   public async bootstrap<T>(app: Newable<T>): Promise<T> {
@@ -115,7 +115,7 @@ export class TashmitConfigurator {
 
     container.register(DefaultDatabaseFactory);
     container.register(Provider.ofResolver(DatabaseFactory, Lookup.of(DefaultDatabaseFactory)));
-    container.register(Tashmit);
+    container.register(Tashmet);
 
     for (const plugin of this.plugins) {
       plugin(container);
@@ -136,7 +136,7 @@ export class TashmitConfigurator {
 @provider({
   inject: [DatabaseFactory]
 })
-export default class Tashmit {
+export default class Tashmet {
   public constructor(
     private databaseFactory: DatabaseFactory,
   ) {}
@@ -146,7 +146,7 @@ export default class Tashmit {
   }
 
   public static configure(config: Partial<Configuration> = {}) {
-    return new TashmitConfigurator(
+    return new TashmetConfigurator(
       config.container,
       config.logLevel,
       config.logFormat,

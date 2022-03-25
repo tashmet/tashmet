@@ -1,6 +1,6 @@
 import 'mingo/init/basic';
-import {DeleteWriter} from '@tashmit/database/dist/operations/delete';
-import {ChangeSet} from '@tashmit/database';
+import {DeleteWriter} from '@tashmet/database/dist/operations/delete';
+import {ChangeSet} from '@tashmet/database';
 import {MemoryStore} from '../../src/store';
 import {expect} from 'chai';
 import * as chai from 'chai';
@@ -13,7 +13,7 @@ chai.use(chaiAsPromised)
 chai.use(sinonChai);
 
 const sandbox = sinon.createSandbox();
-const store = new MemoryStore<any>({db: 'tashmit', coll: 'test'});
+const store = new MemoryStore<any>({db: 'tashmet', coll: 'test'});
 
 
 describe('DeleteWriter', () => {

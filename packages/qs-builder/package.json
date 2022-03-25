@@ -1,5 +1,5 @@
 {
-	"name": "@tashmit/qs-builder",
+	"name": "@tashmet/qs-builder",
 	"version": "0.1.0",
 	"description": "MongoDB query to HTTP query string",
 	"main": "dist/index.js",
@@ -13,14 +13,14 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/tashmit/tashmit"
+		"url": "https://github.com/tashmet/tashmet"
 	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmit/core": "^1.0.2",
-		"@tashmit/database": "^1.3.1",
+		"@tashmet/core": "^1.0.2",
+		"@tashmet/database": "^1.3.1",
     	"qs-stringify": "^1.2.1"
 	},
 	"devDependencies": {

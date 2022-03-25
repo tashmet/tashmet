@@ -1,12 +1,12 @@
-# Tashmit Query String Parser
+# Tashmet Query String Parser
 
 Parses an HTTP query string to a MongoDB query
 
 ## Documentation
-See [https://tashmit.gitbook.io/server](https://tashmit.gitbook.io)
+See [https://tashmet.gitbook.io/server](https://tashmet.gitbook.io)
 
 ## Installation
 
 ```text
-npm install @tashmit/qs-parser
+npm install @tashmet/qs-parser
 ```

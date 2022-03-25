@@ -1,12 +1,12 @@
-import Tashmit from '@tashmit/tashmit';
-import Memory from '@tashmit/memory';
+import Tashmet from '@tashmet/tashmet';
+import Memory from '@tashmet/memory';
 
-Tashmit
+Tashmet
   .configure()
   .use(Memory, {})
   .connect()
-  .then(async tashmit => {
-    const db = tashmit.db('hello-world');
+  .then(async tashmet => {
+    const db = tashmet.db('hello-world');
     const doc = await db.collection('posts').insertOne({title: 'Hello World!'});
     console.log(doc);
   });

@@ -1,9 +1,9 @@
 # Installation
 
 ```
-npm install @tashmit/database
+npm install @tashmet/database
 ```
 
 # Documentation
 
-See [https://tashmit.gitbook.io/tashmit/documentation/database](https://tashmit.gitbook.io/tashmit/documentation/database)
+See [https://tashmet.gitbook.io/tashmet/documentation/database](https://tashmet.gitbook.io/tashmet/documentation/database)

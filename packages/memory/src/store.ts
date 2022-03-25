@@ -16,7 +16,7 @@ import {
   applyFindOptions,
   sortingMap,
   StoreConfig,
-} from '@tashmit/database';
+} from '@tashmet/database';
 import { CollectionResolver } from 'mingo/core';
 
 

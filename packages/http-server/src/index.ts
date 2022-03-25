@@ -1,11 +1,11 @@
-import {Container, Logger, provider, Provider} from '@tashmit/core';
+import {Container, Logger, provider, Provider} from '@tashmet/core';
 import http from 'http';
 import {AddressInfo} from 'net';
 import SocketIO from 'socket.io';
 import express from 'express';
 import {ServerConfig, Middleware, resolvers, Route, controllerName} from './interfaces';
 import {SocketGateway} from './gateway';
-import {QueryParser} from '@tashmit/qs-parser';
+import {QueryParser} from '@tashmet/qs-parser';
 import {makeRoutes, mountRoutes} from './routing';
 import {Resource, ResourceConfig} from './routers/resource';
 import {RouterAnnotation} from './decorators/middleware';
@@ -14,7 +14,7 @@ export * from './decorators';
 export * from './interfaces';
 export * from './routers/resource';
 //export * from './logging';
-export {QueryParser} from '@tashmit/qs-parser';
+export {QueryParser} from '@tashmet/qs-parser';
 
 @provider({
   key: HttpServer,

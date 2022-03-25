@@ -3,7 +3,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmit, {Collection, Document, LogLevel, provider, StorageEngine, Store, StoreConfig} from '../../packages/tashmit/dist'
+import Tashmet, {Collection, Document, LogLevel, provider, StorageEngine, Store, StoreConfig} from '../../packages/tashmet/dist'
 import HttpClient from '../../packages/http-client/dist';
 import MemoryClient from '../../packages/memory/dist';
 import Caching from '../../packages/caching/dist';
@@ -32,7 +32,7 @@ describe('rest', () => {
   let col: Collection
 
   before(async () => {
-    const tashmit = await Tashmit
+    const tashmet = await Tashmet
       .configure({logLevel: LogLevel.None})
       .use(HttpClient, {fetch})
       .use(MemoryClient, {operators})
@@ -40,7 +40,7 @@ describe('rest', () => {
       .provide(RestClientStorageEngine)
       .connect();
 
-    col = tashmit
+    col = tashmet
       .db('testdb')
       .collection('test');
   });
