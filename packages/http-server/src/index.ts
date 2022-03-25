@@ -9,6 +9,7 @@ import {QueryParser} from '@tashmet/qs-parser';
 import {makeRoutes, mountRoutes} from './routing';
 import {Resource, ResourceConfig} from './routers/resource';
 import {RouterAnnotation} from './decorators/middleware';
+import { HashCode } from '@tashmet/database';
 
 export * from './decorators';
 export * from './interfaces';
@@ -23,7 +24,8 @@ export {QueryParser} from '@tashmet/qs-parser';
     HttpServer.http,
     HttpServer.express,
     Logger.inScope('server'),
-    SocketGateway
+    SocketGateway,
+    HashCode,
   ]
 })
 export default class HttpServer {
@@ -42,6 +44,7 @@ export default class HttpServer {
     public readonly express: express.Application,
     private logger: Logger,
     private gateway: SocketGateway,
+    private hashCode: HashCode,
   ) {};
 
   public router(path: string, controller: any) {
@@ -67,19 +70,11 @@ export default class HttpServer {
       this.logger.inScope('Resource'),
       readOnly,
       queryParser || this.config.queryParser,
+      this.hashCode,
     ));
   }
 
   public use(path: string, middleware: Middleware) {
-    /*
-    const toArray = (value: any | any[]) => Array.isArray(value) ? value : [value];
-    let mwList = [middleware];
-
-    if (path in this.config.middleware) {
-      mwList = toArray(this.config.middleware[path]).concat(mwList)
-    }
-    */
-    //mountRoutes(this.express, ...makeRoutes(this.config.middleware));
     mountRoutes(this.express, ...makeRoutes({[path]: middleware}));
     return this;
   }

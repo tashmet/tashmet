@@ -1,4 +1,5 @@
 import Tashmet, {provider} from '@tashmet/tashmet';
+import Memory from '@tashmet/memory';
 import {QueryParser} from '@tashmet/qs-parser';
 import HttpServer from '../src';
 import request from 'supertest-as-promised';
@@ -30,6 +31,7 @@ describe.skip('Resource', () => {
   before(async () => {
     const app = await Tashmet
       .configure()
+      .use(Memory, {operators})
       .use(HttpServer, {queryParser: QueryParser.flat()})
       .bootstrap(TestResourceApp);
 

@@ -1,6 +1,7 @@
 import {Container, Logger, Lookup, provider, Provider} from '@tashmet/core';
-import {Document, StorageEngine, StoreConfig, ViewFactory} from '@tashmet/database';
-import { OperatorType, useOperators } from 'mingo/core';
+import {Document, StorageEngine, StoreConfig, ViewFactory, HashCode} from '@tashmet/database';
+import {OperatorType, useOperators} from 'mingo/core';
+import {hashCode} from 'mingo/util';
 import {MemoryClientConfig} from './interfaces';
 import {MemoryStore} from './store';
 import {SimpleValidatorFactory} from './validator';
@@ -27,6 +28,7 @@ export default class MemoryStorageEngine implements StorageEngine {
       container.register(Provider.ofResolver(StorageEngine, Lookup.of(MemoryStorageEngine)));
       container.register(MemoryViewFactory);
       container.register(Provider.ofResolver(ViewFactory, Lookup.of(MemoryViewFactory)));
+      container.register(Provider.ofInstance(HashCode, hashCode));
 
       const {accumulator, expression, pipeline, projection, query} = config.operators || {};
 

@@ -1,9 +1,10 @@
 import {QueryCache} from '../src/query';
+import {hashCode} from 'mingo/util';
 import {expect} from 'chai';
 import 'mocha';
 
 describe('QueryCache', () => {
-  const queryCache = new QueryCache();
+  const queryCache = new QueryCache(undefined, hashCode);
 
   it('should initially not have a given query cached', () => {
     expect(queryCache.isCached({})).to.eql(false);

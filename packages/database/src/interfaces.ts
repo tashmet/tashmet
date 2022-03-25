@@ -614,3 +614,7 @@ export interface Middleware<T = any> {
   findOne?: MiddlewareHook<FindOne<T>>;
   write?: MiddlewareHook<Write<T>>;
 }
+
+export const HashCode = Symbol('HashCode');
+
+export type HashCode = (value: any) => string | null;

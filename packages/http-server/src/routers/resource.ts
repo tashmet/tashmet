@@ -1,14 +1,13 @@
 import {Logger} from '@tashmet/core';
-import {Collection, ChangeStreamDocument, Query} from '@tashmet/database';
+import {Collection, ChangeStreamDocument, Query, HashCode} from '@tashmet/database';
 import {QueryParser} from '@tashmet/qs-parser';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';
 import * as url from 'url';
 import {serializeError} from 'serialize-error';
-import {hashCode} from 'mingo/util';
 import {get, post, put, del} from '../decorators';
 
-function cacheOrEval<T>(records: Record<string, T>, value: any, fn: (value: any) => T) {
+function cacheOrEval<T>(records: Record<string, T>, hashCode: HashCode, value: any, fn: (value: any) => T) {
   const hash = hashCode(value);
   let result: T;
   if (hash) {
@@ -49,6 +48,7 @@ export class Resource {
     protected logger: Logger,
     protected readOnly = false,
     protected queryParser: QueryParser,
+    protected hashCode: HashCode,
   ) {
     collection.watch().on('change', change => this.onChange(change));
   }
@@ -81,7 +81,7 @@ export class Resource {
   @get('/')
   public async getAll(req: express.Request, res: express.Response) {
     return this.formResponse(res, 200, false, async () => {
-      const {filter, ...options} = cacheOrEval<Query>(this.queryCache, req.url, () => {
+      const {filter, ...options} = cacheOrEval<Query>(this.queryCache, this.hashCode, req.url, () => {
         return this.queryParser.parse(url.parse(req.url).query || '')
       });
       const count = await this.collection.find(filter).count(false);

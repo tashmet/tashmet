@@ -10,6 +10,7 @@ import {
   lockedCursor,
   ChangeSet,
   Store,
+  HashCode,
 } from '@tashmet/database';
 import {CachingConfig} from './interfaces';
 import {CachingCursor} from './cursor';
@@ -19,11 +20,15 @@ import {QueryCache} from './query';
 import MemoryStorageEngine from '@tashmet/memory';
 
 
-@provider({key: CachingLayer})
+@provider({
+  key: CachingLayer,
+  inject: [MemoryStorageEngine, CachingConfig, HashCode]
+})
 export default class CachingLayerPlugin implements CachingLayer {
   public constructor(
     private memory: MemoryStorageEngine,
-    private config: CachingConfig
+    private config: CachingConfig,
+    private hashCode: HashCode,
   ) {}
 
   public static configure(config: CachingConfig) {
@@ -35,7 +40,7 @@ export default class CachingLayerPlugin implements CachingLayer {
 
   public create<T>(store: Store<T>): Middleware<T> {
     const evaluators: CacheEvaluator[] = [
-      new QueryCache(this.config.ttl),
+      new QueryCache(this.config.ttl, this.hashCode),
       new IDCache(this.config.ttl)
     ];
     const cache = this.memory.createStore({

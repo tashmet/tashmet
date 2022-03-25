@@ -1,8 +1,11 @@
-import {Filter, FindOptions} from '@tashmet/database';
+import {Filter, FindOptions, HashCode} from '@tashmet/database';
 import {CacheEvaluator} from './evaluator';
-import {hashCode} from 'mingo/util';
 
 export class QueryCache extends CacheEvaluator {
+  public constructor(ttl: number | undefined, private hashCode: HashCode) {
+    super(ttl);
+  }
+
   public isCached(filter?: Filter<any>, options?: FindOptions): boolean {
     return this.isValid(this.hash(filter, options));
   }
@@ -15,6 +18,6 @@ export class QueryCache extends CacheEvaluator {
   }
 
   protected hash(filter?: Filter<any>, options?: FindOptions): string | null {
-    return hashCode({filter, ...options})
+    return this.hashCode({filter, ...options})
   }
 }
