@@ -1,14 +1,26 @@
 import {Container, Logger, Lookup, provider, Provider} from '@tashmet/core';
-import {Document, StorageEngine, StoreConfig, ViewFactory, HashCode} from '@tashmet/database';
+import {Document, StorageEngine, StoreConfig, ViewFactory, HashCode, Comparator, ChangeSet, idSet} from '@tashmet/database';
 import {OperatorType, useOperators} from 'mingo/core';
-import {hashCode} from 'mingo/util';
+import {hashCode, intersection} from 'mingo/util';
 import {MemoryClientConfig} from './interfaces';
 import {MemoryStore} from './store';
 import {SimpleValidatorFactory} from './validator';
-import { MemoryViewFactory } from './view';
+import {MemoryViewFactory} from './view';
 
 export {filterValidator} from './validator';
 export * from './interfaces';
+
+@provider({key: Comparator})
+export class MemoryComparator implements Comparator {
+  public difference<TSchema extends Document>(a: TSchema[], b: TSchema[]): ChangeSet<TSchema> {
+    const unchangedIds = idSet(intersection(a, b));
+
+    return new ChangeSet(
+      b.filter(doc => !unchangedIds.has(doc._id)),
+      a.filter(doc => !unchangedIds.has(doc._id)),
+    );
+  }
+}
 
 
 @provider()
@@ -29,6 +41,7 @@ export default class MemoryStorageEngine implements StorageEngine {
       container.register(MemoryViewFactory);
       container.register(Provider.ofResolver(ViewFactory, Lookup.of(MemoryViewFactory)));
       container.register(Provider.ofInstance(HashCode, hashCode));
+      container.register(MemoryComparator);
 
       const {accumulator, expression, pipeline, projection, query} = config.operators || {};
 

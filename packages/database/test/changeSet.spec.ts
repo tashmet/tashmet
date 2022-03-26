@@ -31,10 +31,6 @@ describe('ChangeSet', () => {
     });
   });
 
-  describe('fromDiff', () => {
-    // TODO: add tests
-  });
-
   describe('insertions', () => {
     it('should contain only incoming documents that does not also exist in outgoing', () => {
       const cs = new ChangeSet([{_id: 1}, {_id: 2}], [{_id: 2}]);

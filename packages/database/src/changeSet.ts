@@ -2,8 +2,6 @@ import ObjectID from 'bson-objectid';
 import {AnyBulkWriteOperation, Document, OptionalId} from './interfaces';
 import {ChangeStreamDocument} from './changeStream';
 
-export type Intersect<T extends Document> = (a: T[], b: T[]) => T[];
-
 export function idSet(collection: any[]) {
   return new Set(collection.map(doc => doc._id));
 }
@@ -22,21 +20,6 @@ export class ChangeSet<T extends Document> {
     public readonly outgoing: T[] = [],
   ) {}
 
-  /**
-   * Generate a change-set by comparing two collections
-   *
-   * @param a Collection before changes
-   * @param b Collection after changes
-   * @returns A change-set
-   */
-  public static fromDiff<T extends Document>(a: T[], b: T[], intersect: Intersect<T>): ChangeSet<T> {
-    const unchangedIds = idSet(intersect(a, b));
-
-    return new ChangeSet(
-      b.filter(doc => !unchangedIds.has(doc._id)),
-      a.filter(doc => !unchangedIds.has(doc._id)),
-    );
-  }
 
   public static fromInsert<T extends Document>(docs: T[]): ChangeSet<T> {
     return new ChangeSet(docs, []);

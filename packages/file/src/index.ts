@@ -1,8 +1,7 @@
 import {Container, provider } from '@tashmet/core';
 import * as nodePath from 'path';
-import {intersection} from 'mingo/util';
 import {Logger} from '@tashmet/core';
-import {ChangeSet, Document, locked, withMiddleware, Intersect, Store, StoreConfig} from '@tashmet/database';
+import {ChangeSet, Document, locked, withMiddleware, Store, StoreConfig, Comparator} from '@tashmet/database';
 import MemoryStorageEngine from '@tashmet/memory';
 import {BundleStore, BundleStreamConfig } from './collections/bundle';
 
@@ -24,6 +23,7 @@ export * as Pipes from './pipes';
     MemoryStorageEngine,
     Logger.inScope('file'),
     FileAccess,
+    Comparator,
   ]
 })
 export default class FileSystem {
@@ -37,6 +37,7 @@ export default class FileSystem {
     private memory: MemoryStorageEngine,
     private logger: Logger,
     private fileAccess: FileAccess,
+    private comparator: Comparator,
   ) {}
 
   public file<T extends object = any, TStored extends object = T>(config: FileConfig<T, TStored> & StoreConfig): Store<T> {
@@ -69,7 +70,7 @@ export default class FileSystem {
     const store = new BundleStore(buffer, streamConfig.output);
 
     const listen = async (input: Pipeline<T>) => {
-      return store.load(ChangeSet.fromDiff(await buffer.find().toArray(), await input.toArray(), intersection as Intersect<T>));
+      return store.load(this.comparator.difference(await buffer.find().toArray(), await input.toArray()));
     }
 
     if (streamConfig.input) {

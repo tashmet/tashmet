@@ -1,22 +1,25 @@
-import {intersection} from 'mingo/util';
 import {provider} from '@tashmet/core';
 import {MemoryStore} from './store';
 import {
   ChangeSet,
   ChangeStreamDocument,
   Document,
-  Intersect,
   withMiddleware,
   readOnly,
   locked,
   Store,
   StoreConfig,
   ViewFactory,
+  Comparator,
 } from '@tashmet/database';
 
 
 @provider()
 export class MemoryViewFactory extends ViewFactory {
+  public constructor(private comparator: Comparator) {
+    super();
+  }
+
   public createView<TSchema extends Document = any>(config: StoreConfig, viewOf: Store<any>, pipeline: Document[] = []) {
     const store = MemoryStore.fromConfig<TSchema>(config);
     const populate = async () => store.write(
@@ -28,7 +31,7 @@ export class MemoryViewFactory extends ViewFactory {
       const newDocs = await viewOf.aggregate<TSchema>(pipeline).toArray();
       const oldDocs = await store.find({}).toArray();
 
-      const cs = ChangeSet.fromDiff(oldDocs, newDocs, intersection as Intersect<TSchema>);
+      const cs = this.comparator.difference(oldDocs, newDocs);
       await store.write(cs);
       for (const change of cs.toChanges(config.ns)) {
         store.emit('change', change);
