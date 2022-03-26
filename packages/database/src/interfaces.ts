@@ -177,7 +177,7 @@ export interface Cursor<T> {
 /**
  *
  */
-export interface FindOptions<T = any> {
+export interface FindOptions<TSchema = any> {
   /**
    * Set to sort the documents coming back from the query. Key-value map, ex. {a: 1, b: -1}
    */
@@ -199,9 +199,9 @@ export interface FindOptions<T = any> {
    * Object of fields to either include or exclude (one of, not both),
    * {'a':1, 'b': 1} or {'a': 0, 'b': 0}
    */
-  projection?: Projection<T>;
+  projection?: Projection<TSchema>;
 
-
+  /** Specify collation */
   collation?: CollationOptions;
 }
 
@@ -558,7 +558,7 @@ export abstract class Store<TSchema extends Document>
 
   public abstract write(changeSet: ChangeSet<TSchema>): Promise<void>;
 
-  public abstract findOne(filter: Filter<TSchema>): Promise<TSchema | null>;
+  public abstract findOne(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<TSchema | null>;
 
   public abstract find(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Cursor<TSchema>;
 
@@ -604,7 +604,7 @@ export type MiddlewareHook<T> = (next: T) => T;
 
 export type Aggregate<T> = (pipeline: Document[]) => Cursor<T>;
 export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Cursor<T>;
-export type FindOne<T> = (filter: Filter<T>) => Promise<T | null>;
+export type FindOne<T> = (filter: Filter<T>, options?: FindOptions) => Promise<T | null>;
 export type Write<T> = (changeSet: ChangeSet<T>) => Promise<void>;
 
 

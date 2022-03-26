@@ -108,17 +108,21 @@ export class MemoryStore<TSchema extends Document> extends Store<TSchema> {
     }
   }
 
-  public async findOne(filter: Filter<TSchema>): Promise<TSchema | null> {
-    return new MingoQuery(filter).find(this.documents).next() as any || null;
+  public async findOne(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Promise<TSchema | null> {
+     return this.createCursor(filter, options).next();
   }
 
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return new MemoryCursor<TSchema>(this.documents, filter, {collation: this.collation, ...options});
+    return this.createCursor(filter, options);
   }
 
   public aggregate<T>(pipeline: Document[]): Cursor<T> {
     return new MemoryCursor<T>(
       new MingoAggregator(pipeline, {collectionResolver: this.collectionResolver}).run(this.documents) as T[]
     );
+  }
+
+  public createCursor(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
+    return new MemoryCursor<TSchema>(this.documents, filter, {collation: this.collation, ...options});
   }
 }

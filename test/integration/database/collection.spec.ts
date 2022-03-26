@@ -232,6 +232,18 @@ describe('Collection', () => {
       const doc = await col.findOne({_id: 1});
       expect(doc).to.haveOwnProperty('amount').equals(10);
     });
+    it('should handle query operators', async () => {
+      const doc = await col.findOne({_id: {$in: [1, 2, 7]}});
+      expect(doc._id).to.eql(1);
+    });
+    it('should do sorting with key', async () => {
+      const doc = await col.findOne({}, {sort: {amount: 1}});
+      expect(doc.item.type).to.eql('chiffon');
+    });
+    it('should do projection', async () => {
+      const doc = await col.findOne({_id: 1}, {projection: {_id: 0, amount: 1}});
+      expect(doc).to.eql({amount: 10});
+    });
   });
 
   describe('find', () => {
