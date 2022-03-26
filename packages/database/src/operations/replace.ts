@@ -2,14 +2,14 @@ import {makeWriteChange, ChangeSet} from '../changeSet';
 import {BulkWriteResult, Document, ReplaceOneModel, Writer} from '../interfaces';
 
 export class ReplaceOneWriter<TSchema extends Document> extends Writer<TSchema, ReplaceOneModel<TSchema>> {
-  public async execute({filter, replacement, upsert}: ReplaceOneModel<TSchema>) {
+  public async execute({filter, replacement, upsert, collation}: ReplaceOneModel<TSchema>) {
     let result: Partial<BulkWriteResult> = {
-      matchedCount: await this.store.find(filter).count(),
+      matchedCount: await this.store.find(filter, {collation}).count(),
       modifiedCount: 0,
     };
 
     if (result.matchedCount && result.matchedCount > 0) {
-      const old = await this.store.find(filter).limit(1).next();
+      const old = await this.store.find(filter, {collation}).limit(1).next();
       if (old) {
         if (!('_id' in replacement)) {
           Object.assign(replacement, {_id: old._id});

@@ -7,10 +7,11 @@ export class DeleteWriter<TSchema extends Document> extends Writer<TSchema, Dele
     private single: boolean,
   ) { super(store); }
 
-  public async execute({filter}: DeleteModel<TSchema>): Promise<Partial<BulkWriteResult>> {
+  public async execute({filter, collation}: DeleteModel<TSchema>): Promise<Partial<BulkWriteResult>> {
     const options: FindOptions = {
       //projection: {_id: 1},
       limit: this.single ? 1 : undefined,
+      collation,
     };
     const matched = await this.store.find(filter, options).toArray();
     if (matched.length !== 0) {

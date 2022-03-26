@@ -7,8 +7,8 @@ export class UpdateWriter<TSchema extends Document> extends Writer<TSchema, Upda
     private single: boolean,
   ) { super(store); }
 
-  public async execute({filter, update}: UpdateModel<TSchema>) {
-    const input = await this.store.find(filter, this.single ? {limit: 1} : {}).toArray();
+  public async execute({filter, update, collation}: UpdateModel<TSchema>) {
+    const input = await this.store.find(filter, this.single ? {limit: 1, collation} : {collation}).toArray();
     let result: Partial<BulkWriteResult> = {
       matchedCount: input.length,
       modifiedCount: input.length, // TODO: Not necessarily true

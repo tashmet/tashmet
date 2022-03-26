@@ -473,7 +473,7 @@ export interface DeleteModel<TSchema extends Document = Document> {
   /** The filter to limit the deleted documents. */
   filter: Filter<TSchema>;
   /** Specifies a collation. */
-  //collation?: CollationOptions;
+  collation?: CollationOptions;
   /** The index to use. If specified, then the query system will only consider plans using the hinted index. */
   //hint?: Hint;
 }
@@ -484,7 +484,7 @@ export interface ReplaceOneModel<TSchema extends Document = Document> {
   /** The document with which to replace the matched document. */
   replacement: TSchema;
   /** Specifies a collation. */
-  //collation?: CollationOptions;
+  collation?: CollationOptions;
   /** The index to use. If specified, then the query system will only consider plans using the hinted index. */
   //hint?: Hint;
   /** When true, creates a new document if no document matches the query. */
@@ -499,7 +499,7 @@ export interface UpdateModel<TSchema extends Document = Document> {
   /** A set of filters specifying to which array elements an update should apply. */
   //arrayFilters?: Document[];
   /** Specifies a collation. */
-  //collation?: CollationOptions;
+  collation?: CollationOptions;
   /** The index to use. If specified, then the query system will only consider plans using the hinted index. */
   //hint?: Hint;
   /** When true, creates a new document if no document matches the query. */
