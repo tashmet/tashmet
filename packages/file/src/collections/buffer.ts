@@ -32,10 +32,6 @@ export abstract class BufferStore<TSchema> extends Store<TSchema> {
     return this.buffer.find(filter, options);
   }
 
-  public findOne(filter: Filter<TSchema>): Promise<TSchema | null> {
-    return this.buffer.findOne(filter);
-  }
-
   public aggregate<T>(pipeline: Document[]): Cursor<T> {
     return this.buffer.aggregate(pipeline);
   }

@@ -558,8 +558,6 @@ export abstract class Store<TSchema extends Document>
 
   public abstract write(changeSet: ChangeSet<TSchema>): Promise<void>;
 
-  public abstract findOne(filter: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<TSchema | null>;
-
   public abstract find(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Cursor<TSchema>;
 
   public abstract aggregate<T>(pipeline: Document[]): Cursor<T>;
@@ -604,14 +602,12 @@ export type MiddlewareHook<T> = (next: T) => T;
 
 export type Aggregate<T> = (pipeline: Document[]) => Cursor<T>;
 export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Cursor<T>;
-export type FindOne<T> = (filter: Filter<T>, options?: FindOptions) => Promise<T | null>;
 export type Write<T> = (changeSet: ChangeSet<T>) => Promise<void>;
 
 
 export interface Middleware<T = any> {
   aggregate?: MiddlewareHook<Aggregate<any>>;
   find?: MiddlewareHook<Find<T>>;
-  findOne?: MiddlewareHook<FindOne<T>>;
   write?: MiddlewareHook<Write<T>>;
 }
 

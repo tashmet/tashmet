@@ -9,7 +9,7 @@ export class ReplaceOneWriter<TSchema extends Document> extends Writer<TSchema, 
     };
 
     if (result.matchedCount && result.matchedCount > 0) {
-      const old = await this.store.findOne(filter);
+      const old = await this.store.find(filter).limit(1).next();
       if (old) {
         if (!('_id' in replacement)) {
           Object.assign(replacement, {_id: old._id});

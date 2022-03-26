@@ -81,7 +81,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A promise for the first matching document if one was found, null otherwise
    */
   public findOne(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Promise<TSchema | null> {
-    return this.store.findOne(filter, options);
+    return this.store.find(filter, options).limit(1).next();
   }
 
   /**

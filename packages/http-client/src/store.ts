@@ -32,10 +32,6 @@ export class HttpStore<TSchema extends Document> extends Store<TSchema> {
     }
   }
 
-  public async findOne(filter: Filter<TSchema>): Promise<TSchema | null> {
-    return this.find(filter).limit(1).next();
-  }
-
   public find(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
     return new HttpCollectionCursor<TSchema>(
       this.restLayer, this.querySerializer, filter, options
