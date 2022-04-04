@@ -2,7 +2,6 @@ export {Collection} from './collection';
 export {DatabaseService, DefaultDatabaseFactory} from './database';
 export {withMiddleware} from './middleware';
 export {applyFindOptions, sortingMap, AbstractCursor} from './cursor';
-export {QueryAggregator} from './aggregation';
 export {BulkWriteOperation, BulkWriteOperationFactory} from './operations/bulk';
 export {DeleteWriter} from './operations/delete';
 export {InsertOneWriter} from './operations/insert';

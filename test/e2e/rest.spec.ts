@@ -13,12 +13,9 @@ import fetch from 'isomorphic-fetch';
 
 chai.use(chaiAsPromised);
 
-@provider({
-  key: StorageEngine,
-  inject: [HttpClient]
-})
-class RestClientStorageEngine implements StorageEngine {
-  public constructor(private http: HttpClient) {}
+@provider({key: StorageEngine})
+class RestClientStorageEngine extends StorageEngine {
+  public constructor(private http: HttpClient) {super();}
 
   public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
     return this.http.createApi<any>({

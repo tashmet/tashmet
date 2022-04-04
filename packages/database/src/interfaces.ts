@@ -174,10 +174,17 @@ export interface Cursor<T> {
   count(applySkipLimit?: boolean): Promise<number>;
 }
 
+export interface CommandOperationOptions {
+  /** Specify collation */
+  collation?: CollationOptions;
+}
+
+export interface AggregateOptions extends CommandOperationOptions {}
+
 /**
  *
  */
-export interface FindOptions<TSchema = any> {
+export interface FindOptions<TSchema = any> extends CommandOperationOptions {
   /**
    * Set to sort the documents coming back from the query. Key-value map, ex. {a: 1, b: -1}
    */
@@ -200,9 +207,6 @@ export interface FindOptions<TSchema = any> {
    * {'a':1, 'b': 1} or {'a': 0, 'b': 0}
    */
   projection?: Projection<TSchema>;
-
-  /** Specify collation */
-  collation?: CollationOptions;
 }
 
 export interface Query<T = any> extends FindOptions<T> {
@@ -275,13 +279,11 @@ export interface DatabaseFactory {
 
 export abstract class DatabaseFactory implements DatabaseFactory {}
 
-export abstract class Aggregator<T = any> {
-  abstract get pipeline(): Document[];
-
-  public execute(collection: Collection): Cursor<T> {
-    return collection.aggregate<T>(this.pipeline);
-  }
+export interface Aggregator {
+  execute<T = any>(ns: Namespace, pipeline: Document[], options?: AggregateOptions): Cursor<T>;
 }
+
+export abstract class Aggregator implements Aggregator {}
 
 export type Validator<T> = (doc: T) => Promise<T>;
 
@@ -559,8 +561,6 @@ export abstract class Store<TSchema extends Document>
   public abstract write(changeSet: ChangeSet<TSchema>): Promise<void>;
 
   public abstract find(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Cursor<TSchema>;
-
-  public abstract aggregate<T>(pipeline: Document[]): Cursor<T>;
 }
 
 export type CollectionResolver = (name: string) => any[];
@@ -568,12 +568,38 @@ export type CollectionResolver = (name: string) => any[];
 export interface StoreConfig {
   ns: Namespace;
   collation?: CollationOptions;
-  collectionResolver: CollectionResolver;
   options?: Document;
 }
 
 export abstract class StorageEngine {
+  private stores: Record<string, Store<any>> = {};
+
   public abstract createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema>;
+
+  public register(store: Store<any>): Store<any> {
+    return this.stores[`${store.ns.db}.${store.ns.coll}`] = store;
+  }
+
+  public get<TSchema extends Document = Document>({db, coll}: Namespace): Store<TSchema> {
+    const key = `${db}.${coll}`;
+
+    if (key in this.stores) {
+      return this.stores[key];
+    } else {
+      throw new Error(`Store with namespace '${key}' does not exist in the storage engine`);
+    }
+  }
+
+  public drop({db, coll}: Namespace): boolean {
+    const key = `${db}.${coll}`;
+
+    if (key in this.stores) {
+      delete this.stores[key];
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 
 export type RequireKeys<T extends object, K extends keyof T> =
@@ -582,7 +608,7 @@ export type RequireKeys<T extends object, K extends keyof T> =
 export abstract class ViewFactory {
   public abstract createView<TSchema extends Document>(
     config: StoreConfig,
-    viewOf: Store<any>,
+    viewOf: Collection<any>,
     pipeline: Document[],
   ): Store<TSchema>;
 }

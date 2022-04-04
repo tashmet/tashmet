@@ -1,4 +1,3 @@
-import { StoreConfig } from "@tashmet/database";
 import {Pipeline} from "./pipeline";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>

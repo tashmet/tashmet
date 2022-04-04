@@ -6,8 +6,8 @@ import HttpServer, {QueryParser} from '@tashmet/http-server';
 import {terminal} from '@tashmet/terminal';
 
 @provider({key: StorageEngine})
-class ServerBlogStorageEngine implements StorageEngine {
-  public constructor(private fs: FileSystem, private memory: Memory) {}
+class ServerBlogStorageEngine extends StorageEngine {
+  public constructor(private fs: FileSystem, private memory: Memory) { super(); }
 
   public createStore(config: StoreConfig): Store<any> {
     const options = config.options || {}

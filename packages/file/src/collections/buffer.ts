@@ -1,5 +1,4 @@
 import {
-  Document,
   Store,
   ChangeSet,
   FindOptions,
@@ -30,10 +29,6 @@ export abstract class BufferStore<TSchema> extends Store<TSchema> {
 
   public find(filter?: Filter<TSchema>, options?: FindOptions): Cursor<TSchema> {
     return this.buffer.find(filter, options);
-  }
-
-  public aggregate<T>(pipeline: Document[]): Cursor<T> {
-    return this.buffer.aggregate(pipeline);
   }
 
   public async populate(seed: Pipeline<TSchema> | undefined) {

@@ -7,8 +7,8 @@ import {terminal} from '@tashmet/terminal';
 import isomorphicFetch from 'isomorphic-fetch';
 
 @provider({key: StorageEngine})
-class ClientBlogStorageEngine implements StorageEngine {
-  public constructor(private http: HttpClient, private memory: Memory) {}
+class ClientBlogStorageEngine extends StorageEngine {
+  public constructor(private http: HttpClient, private memory: Memory) { super(); }
 
   public createStore<TSchema>(config: StoreConfig) {
     if (config.ns.db === 'blog') {

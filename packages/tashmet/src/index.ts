@@ -67,7 +67,6 @@ import {
   Newable,
   provider,
   Provider,
-  ServiceRequest,
 } from '@tashmet/core';
 import {
   Database,

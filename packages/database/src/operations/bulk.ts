@@ -1,4 +1,5 @@
 import {
+  Aggregator,
   AnyBulkWriteOperation,
   BulkWriteResult,
   Store,
@@ -13,12 +14,12 @@ import {UpdateWriter} from './update';
 export class BulkWriteOperationFactory<TSchema extends Document> {
   public constructor(private writers: Record<string, Writer<TSchema, any>>) {}
 
-  public static fromStore<TSchema extends Document>(store: Store<TSchema>) {
+  public static fromStore<TSchema extends Document>(store: Store<TSchema>, aggregator?: Aggregator) {
     return new BulkWriteOperationFactory<TSchema>({
       insertOne: new InsertOneWriter(store),
       replaceOne: new ReplaceOneWriter(store),
-      updateOne: new UpdateWriter(store, true),
-      updateMany: new UpdateWriter(store, false),
+      updateOne: new UpdateWriter(store, true, aggregator),
+      updateMany: new UpdateWriter(store, false, aggregator),
       deleteOne: new DeleteWriter(store, true),
       deleteMany: new DeleteWriter(store, false),
     });

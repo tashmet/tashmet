@@ -1,3 +1,4 @@
+/*
 import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
@@ -67,3 +68,4 @@ describe('QueryAggregator', () => {
     });
   });
 });
+*/

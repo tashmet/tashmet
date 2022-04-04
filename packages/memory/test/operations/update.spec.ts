@@ -1,6 +1,7 @@
 import 'mingo/init/system';
-import {UpdateWriter, ChangeSet} from '@tashmet/database';
+import {UpdateWriter, ChangeSet, Namespace, StorageEngine, Document, Store, StoreConfig} from '@tashmet/database';
 import {MemoryStore} from '../../src/store';
+import {MemoryAggregator, PrefetchAggregationStrategy} from '../../src/aggregator';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -14,13 +15,23 @@ chai.use(sinonChai);
 const sandbox = sinon.createSandbox();
 const store = new MemoryStore<any>({db: 'tashmet', coll: 'test'});
 
+class MockStorageEngine extends StorageEngine {
+  public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
+    return store;
+  }
+
+  get(ns: Namespace) {
+    return store;
+  }
+}
+
 
 describe('UpdateWriter', () => {
   let writer: UpdateWriter<any>;
   let writeSpy: sinon.SinonSpy<[cs: ChangeSet<any>], Promise<void>>;
 
   before(() => {
-    writer = new UpdateWriter<any>(store, false);
+    writer = new UpdateWriter<any>(store, false, new MemoryAggregator(() => new MockStorageEngine(), new PrefetchAggregationStrategy()));
   });
 
   beforeEach(() => {

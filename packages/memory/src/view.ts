@@ -3,11 +3,11 @@ import {MemoryStore} from './store';
 import {
   ChangeSet,
   ChangeStreamDocument,
+  Collection,
   Document,
   withMiddleware,
   readOnly,
   locked,
-  Store,
   StoreConfig,
   ViewFactory,
   Comparator,
@@ -20,7 +20,7 @@ export class MemoryViewFactory extends ViewFactory {
     super();
   }
 
-  public createView<TSchema extends Document = any>(config: StoreConfig, viewOf: Store<any>, pipeline: Document[] = []) {
+  public createView<TSchema extends Document = any>(config: StoreConfig, viewOf: Collection<any>, pipeline: Document[] = []) {
     const store = MemoryStore.fromConfig<TSchema>(config);
     const populate = async () => store.write(
       ChangeSet.fromInsert(await viewOf.aggregate<TSchema>(pipeline).toArray())
@@ -38,7 +38,9 @@ export class MemoryViewFactory extends ViewFactory {
       }
     }
 
-    viewOf.on('change', async change => {
+    const changeStream = viewOf.watch();
+
+    changeStream.on('change', async change => {
       locks.push(handleChange(change));
     });
     return withMiddleware<TSchema>(store, [readOnly(store), locked(locks)]);

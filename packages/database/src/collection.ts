@@ -1,4 +1,6 @@
 import {
+  Aggregator,
+  AggregateOptions,
   AnyBulkWriteOperation,
   BulkWriteResult,
   Store,
@@ -30,8 +32,9 @@ export class Collection<TSchema extends Document = any> {
   public constructor(
     private store: Store<TSchema>,
     private db: Database,
+    private aggregator: Aggregator | undefined = undefined,
   ) {
-    this.writeOpFactory = BulkWriteOperationFactory.fromStore(store);
+    this.writeOpFactory = BulkWriteOperationFactory.fromStore(store, aggregator);
     this.store.on('change', change => {
       for (const changeStream of this.changeStreams) {
         changeStream.emit('change', change);
@@ -60,8 +63,12 @@ export class Collection<TSchema extends Document = any> {
     return `${this.dbName}.${this.collectionName}`;
   }
 
-  public aggregate<T>(pipeline: Document[]): Cursor<T> {
-    return this.store.aggregate(pipeline);
+  public aggregate<T>(pipeline: Document[], options: AggregateOptions = {}): Cursor<T> {
+    if (this.aggregator) {
+      return this.aggregator.execute({db: this.dbName, coll: this.collectionName}, pipeline, options);
+    } else {
+      throw new Error('No Aggregator registered with container');
+    }
   }
 
   /**
@@ -209,7 +216,7 @@ export class Collection<TSchema extends Document = any> {
     key: Key | string,
     filter: Filter<TSchema> = {}
   ): Promise<Array<Flatten<WithId<TSchema>[Key]>>> {
-    return this.store.aggregate<WithId<any>>([
+    return this.aggregate<WithId<any>>([
       {$match: filter},
       {$group: {_id: `$${key}`}}
     ]).toArray().then(docs => docs.map(doc => doc._id));

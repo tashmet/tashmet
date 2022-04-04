@@ -1,5 +1,6 @@
 import ObjectId from 'bson-objectid';
 import {
+  Aggregator,
   CreateCollectionOptions,
   Database,
   DatabaseFactory,
@@ -21,7 +22,6 @@ import {Logger, provider, Optional} from '@tashmet/core';
  */
 export class DatabaseService implements Database {
   protected collMap: {[name: string]: Collection} = {};
-  protected storeMap: {[name: string]: Store<any>} = {};
 
   public constructor(
     public readonly databaseName: string,
@@ -29,6 +29,7 @@ export class DatabaseService implements Database {
     private logger: Logger,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
+    private aggregator: Aggregator | undefined,
   ) {}
 
   public collection(name: string): Collection {
@@ -53,7 +54,6 @@ export class DatabaseService implements Database {
       let store: Store<T>;
       const storeConfig: StoreConfig = {
         ns: {db: this.databaseName, coll: name},
-        collectionResolver: name => this.storeMap[name].documents,
         collation: options.collation,
         options: options.storageEngine,
       }
@@ -62,7 +62,7 @@ export class DatabaseService implements Database {
 
       if (viewOf && pipeline) {
         if (this.viewFactory) {
-          store = this.viewFactory.createView(storeConfig, this.storeMap[viewOf], pipeline);
+          store = this.viewFactory.createView(storeConfig, this.collMap[viewOf], pipeline);
         } else {
           throw new Error('Failed to create view, no ViewFactory was registered')
         }
@@ -78,9 +78,9 @@ export class DatabaseService implements Database {
           }
         }
       }
-      const c = new Collection<T>(store, this);
+      const c = new Collection<T>(store, this, this.aggregator);
       this.collMap[name] = c;
-      this.storeMap[name] = store;
+      this.engine.register(store);
 
       this.logger.inScope('createCollection').info(c.toString());
       return c;
@@ -91,7 +91,8 @@ export class DatabaseService implements Database {
   }
 
   public async dropCollection(name: string) {
-    const store = this.storeMap[name];
+    const ns = {db: this.databaseName, coll: name};
+    const store = this.engine.get(ns);
 
     if (!store) {
       return false;
@@ -103,7 +104,7 @@ export class DatabaseService implements Database {
       ns: store.ns,
     });
     delete this.collMap[name];
-    delete this.storeMap[name];
+    this.engine.drop(ns);
 
     return true;
   }
@@ -116,6 +117,7 @@ export class DatabaseService implements Database {
     Logger,
     Optional.of(ValidatorFactory),
     Optional.of(ViewFactory),
+    Optional.of(Aggregator),
   ]
 })
 export class DefaultDatabaseFactory implements DatabaseFactory {
@@ -124,9 +126,10 @@ export class DefaultDatabaseFactory implements DatabaseFactory {
     private logger: Logger,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
+    private aggregator: Aggregator | undefined,
   ) {}
 
   createDatabase(name: string): Database {
-    return new DatabaseService(name, this.engine, this.logger, this.validatorFactory, this.viewFactory);
+    return new DatabaseService(name, this.engine, this.logger, this.validatorFactory, this.viewFactory, this.aggregator);
   }
 }

@@ -2,6 +2,7 @@ import {Container, Logger, Lookup, provider, Provider} from '@tashmet/core';
 import {Document, StorageEngine, StoreConfig, ViewFactory, HashCode, Comparator, ChangeSet, idSet} from '@tashmet/database';
 import {OperatorType, useOperators} from 'mingo/core';
 import {hashCode, intersection} from 'mingo/util';
+import {MemoryAggregator, PrefetchAggregationStrategy} from './aggregator';
 import {MemoryClientConfig} from './interfaces';
 import {MemoryStore} from './store';
 import {SimpleValidatorFactory} from './validator';
@@ -22,9 +23,8 @@ export class MemoryComparator implements Comparator {
   }
 }
 
-
 @provider()
-export default class MemoryStorageEngine implements StorageEngine {
+export default class MemoryStorageEngine extends StorageEngine {
   private static defaultConfig: MemoryClientConfig = {
     operators: {},
   };
@@ -42,6 +42,8 @@ export default class MemoryStorageEngine implements StorageEngine {
       container.register(Provider.ofResolver(ViewFactory, Lookup.of(MemoryViewFactory)));
       container.register(Provider.ofInstance(HashCode, hashCode));
       container.register(MemoryComparator);
+      container.register(MemoryAggregator);
+      container.register(PrefetchAggregationStrategy);
 
       const {accumulator, expression, pipeline, projection, query} = config.operators || {};
 
@@ -56,7 +58,7 @@ export default class MemoryStorageEngine implements StorageEngine {
   public constructor(
     private logger: Logger,
     private config: MemoryClientConfig,
-  ) {}
+  ) { super(); }
 
   public createStore<TSchema extends Document>(config: StoreConfig) {
     return MemoryStore.fromConfig<TSchema>(config);

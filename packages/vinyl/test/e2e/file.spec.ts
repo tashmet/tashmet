@@ -25,8 +25,8 @@ function storedKeys() {
   key: StorageEngine,
   inject: [File]
 })
-class TestStorageEngine implements StorageEngine {
-  public constructor(private file: File) {}
+class TestStorageEngine extends StorageEngine {
+  public constructor(private file: File) {super();}
 
   public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
     return this.file.file({
@@ -44,20 +44,10 @@ describe('file', () => {
   before(async () => {
     const client = await Tashmet
       .configure()
-      .use(Vinyl, {watch: false})
       .use(Memory, {operators})
+      .use(Vinyl, {watch: false})
       .use(File, {})
       .provide(TestStorageEngine)
-      /*
-      .provide(StorageEngine.from((resolve, config) => {
-        return resolve(File).file({
-          path: `test/${config.ns.db}/${config.ns.coll}.json`,
-          serializer: json(),
-          dictionary: true,
-          ...config
-        });
-      }))
-      */
       .connect();
     col = client.db('e2e').collection('testCollection');
   });

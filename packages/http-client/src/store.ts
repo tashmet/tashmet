@@ -5,7 +5,6 @@ import {
   FindOptions,
   Document,
   ChangeSet,
-  QueryAggregator,
 } from '@tashmet/database';
 import {QuerySerializer} from '@tashmet/qs-builder';
 import {HttpCollectionCursor} from './cursor';
@@ -39,10 +38,6 @@ export class HttpStore<TSchema extends Document> extends Store<TSchema> {
   }
 
   public aggregate<T>(pipeline: Document[]): Cursor<T> {
-    try {
-      return QueryAggregator.fromPipeline<T>(pipeline, true).execute(this) as any;
-    } catch (error) {
-      throw error;
-    }
+    throw new Error('Not implemented');
   }
 }

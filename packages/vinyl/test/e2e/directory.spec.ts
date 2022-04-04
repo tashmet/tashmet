@@ -25,8 +25,8 @@ function storedFiles(): string[] {
   key: StorageEngine,
   inject: [File]
 })
-class TestStorageEngine implements StorageEngine {
-  public constructor(private file: File) {}
+class TestStorageEngine extends StorageEngine {
+  public constructor(private file: File) {super();}
 
   public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
     return this.file.directoryContent({
@@ -44,8 +44,8 @@ describe('directory', () => {
   before(async () => {
     const client = await Tashmet
       .configure()
-      .use(File, {})
       .use(Memory, {operators})
+      .use(File, {})
       .use(Vinyl, {watch: false})
       .provide(TestStorageEngine)
       .connect();

@@ -3,11 +3,10 @@ export {CachingConfig};
 
 import {provider} from '@tashmet/core';
 import {
+  Aggregator,
   CachingLayer,
   Middleware,
-  QueryAggregator,
   mutationSideEffect,
-  lockedCursor,
   ChangeSet,
   Store,
   HashCode,
@@ -22,7 +21,7 @@ import MemoryStorageEngine from '@tashmet/memory';
 
 @provider({
   key: CachingLayer,
-  inject: [MemoryStorageEngine, CachingConfig, HashCode]
+  inject: [MemoryStorageEngine, CachingConfig, HashCode, Aggregator]
 })
 export default class CachingLayerPlugin implements CachingLayer {
   public constructor(
@@ -45,7 +44,6 @@ export default class CachingLayerPlugin implements CachingLayer {
     ];
     const cache = this.memory.createStore({
       ns: {db: `__cache__${store.ns.db}`, coll: store.ns.coll},
-      collectionResolver: () => { throw Error('Lookup not supported in cache') }
     });
 
     for (const evaluator of evaluators) {
@@ -66,11 +64,6 @@ export default class CachingLayerPlugin implements CachingLayer {
       write: mutationSideEffect(async (result, cs: ChangeSet<any>) => {
         await cache.write(cs);
       }),
-      aggregate: next => pipeline => {
-        const query = QueryAggregator.fromPipeline(pipeline);
-        const cursor = new CachingCursor(evaluators, cache, store.find.bind(store), query.filter, query.options);
-        return lockedCursor(cache.aggregate(pipeline), cursor.toArray());
-      },
       find: next => (filter, options) => {
         return new CachingCursor(evaluators, cache, next, filter, options);
       },
