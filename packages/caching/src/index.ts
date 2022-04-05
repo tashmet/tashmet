@@ -5,6 +5,7 @@ import {provider} from '@tashmet/core';
 import {
   Aggregator,
   CachingLayer,
+  MemoryStorageEngine,
   Middleware,
   mutationSideEffect,
   ChangeSet,
@@ -16,16 +17,15 @@ import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
 import {IDCache} from './id';
 import {QueryCache} from './query';
-import MingoStorageEngine from '@tashmet/mingo';
 
 
 @provider({
   key: CachingLayer,
-  inject: [MingoStorageEngine, CachingConfig, HashCode, Aggregator]
+  inject: [MemoryStorageEngine, CachingConfig, HashCode, Aggregator]
 })
 export default class CachingLayerPlugin implements CachingLayer {
   public constructor(
-    private memory: MingoStorageEngine,
+    private memory: MemoryStorageEngine,
     private config: CachingConfig,
     private hashCode: HashCode,
   ) {}

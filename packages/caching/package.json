@@ -29,7 +29,6 @@
     "README.md"
   ],
   "dependencies": {
-    "@tashmet/mingo": "^1.0.0",
     "@tashmet/tashmet": "^1.4.0"
   },
   "devDependencies": {
