@@ -10,6 +10,7 @@ import {
   sortingMap,
   AbstractCursor,
 } from '@tashmet/tashmet';
+import { MingoConfig } from './interfaces';
 
 
 export class MingoCursor<T> extends AbstractCursor<T> implements Cursor<T> {
@@ -18,7 +19,7 @@ export class MingoCursor<T> extends AbstractCursor<T> implements Cursor<T> {
   public constructor(
     private collection: any[],
     filter: Filter<T> = {},
-    options: FindOptions = {},
+    options: FindOptions & MingoConfig = {},
   ) {
     super(filter, options);
     this.setData(collection);
@@ -26,7 +27,7 @@ export class MingoCursor<T> extends AbstractCursor<T> implements Cursor<T> {
 
   public setData(data: Document[]) {
     this.collection = data;
-    this.cursor = new MingoQuery(this.filter, {collation: this.options.collation})
+    this.cursor = new MingoQuery(this.filter, this.options)
       .find(this.collection, this.options.projection);
     applyFindOptions(this, this.options);
   }

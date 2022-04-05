@@ -39,7 +39,8 @@ export class MingoComparator implements Comparator {
 @provider()
 export default class MingoStorageEngine extends StorageEngine {
   private static defaultConfig: MingoConfig = {
-    operators: {},
+    useStrictMode: true,
+    scriptEnabled: true,
   };
 
   public static configure(config: Partial<MingoConfig> = {}) {
@@ -67,6 +68,6 @@ export default class MingoStorageEngine extends StorageEngine {
   ) { super(); }
 
   public createStore<TSchema extends Document>(config: StoreConfig) {
-    return MingoStore.fromConfig<TSchema>(config);
+    return MingoStore.fromConfig<TSchema>({...this.config, ...config});
   }
 }

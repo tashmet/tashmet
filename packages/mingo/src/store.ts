@@ -1,4 +1,5 @@
 import ObjectID from 'bson-objectid';
+import {Options as MingoInternalOptions, initOptions} from 'mingo/core';
 import {
   ChangeSet,
   idSet,
@@ -10,19 +11,24 @@ import {
   FindOptions,
   StoreConfig,
 } from '@tashmet/tashmet';
+import { MingoConfig } from './interfaces';
 import { MingoCursor } from './cursor';
 
 
 export class MingoStore<TSchema extends Document> extends Store<TSchema> {
   public documents: TSchema[] = [];
+  private options: MingoInternalOptions;
 
   public constructor(
     ns: { db: string; coll: string },
-    private collation: CollationOptions | undefined = undefined,
-  ) { super(ns); }
+    options: MingoConfig & {collation?: CollationOptions} = {},
+  ) {
+    super(ns);
+    this.options = initOptions(options);
+  }
 
-  public static fromConfig<TSchema>({ns, collation}: StoreConfig) {
-    return new MingoStore<TSchema>(ns, collation);
+  public static fromConfig<TSchema>({ns, ...options}: StoreConfig & MingoConfig) {
+    return new MingoStore<TSchema>(ns, options);
   }
 
   public indexOf(document: TSchema) {
@@ -51,6 +57,6 @@ export class MingoStore<TSchema extends Document> extends Store<TSchema> {
   }
 
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return new MingoCursor<TSchema>(this.documents, filter, {collation: this.collation, ...options});
+    return new MingoCursor<TSchema>(this.documents, filter, {...this.options, ...options});
   }
 }
