@@ -1,4 +1,4 @@
-import {MemoryStore} from './store';
+import {MingoStore} from './store';
 import {
   ChangeSet,
   ChangeStreamDocument,
@@ -15,13 +15,13 @@ import {
 
 
 @provider()
-export class MemoryViewFactory extends ViewFactory {
+export class MingoViewFactory extends ViewFactory {
   public constructor(private comparator: Comparator) {
     super();
   }
 
   public createView<TSchema extends Document = any>(config: StoreConfig, viewOf: Collection<any>, pipeline: Document[] = []) {
-    const store = MemoryStore.fromConfig<TSchema>(config);
+    const store = MingoStore.fromConfig<TSchema>(config);
     const populate = async () => store.write(
       ChangeSet.fromInsert(await viewOf.aggregate<TSchema>(pipeline).toArray())
     );

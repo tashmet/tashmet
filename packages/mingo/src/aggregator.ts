@@ -1,4 +1,4 @@
-import {Aggregator as MingoAggregator} from 'mingo/aggregator';
+import {Aggregator as MingoInternalAggregator} from 'mingo/aggregator';
 import {
   Aggregator,
   Cursor,
@@ -12,8 +12,8 @@ import {
   FindOptions,
   provider
 } from '@tashmet/tashmet';
-import { MemoryCursor } from './cursor';
-import { MemoryStore } from './store';
+import { MingoCursor } from './cursor';
+import { MingoStore } from './store';
 
 export interface PrefetchAggregation {
   filter: Filter<any>;
@@ -70,7 +70,7 @@ export class PrefetchAggregationStrategy {
   key: Aggregator,
   inject: [Lazy.of(StorageEngine), PrefetchAggregationStrategy]
 })
-export class MemoryAggregator implements Aggregator {
+export class MingoAggregator implements Aggregator {
   public constructor(
     private getEngine: () => StorageEngine,
     private prefetchStrategy: PrefetchAggregationStrategy
@@ -84,14 +84,14 @@ export class MemoryAggregator implements Aggregator {
 
     const store = this.getEngine().get(ns);
 
-    if (store instanceof MemoryStore) {
-      const aggregator = new MingoAggregator(pipeline, mingoOptions);
-      return new MemoryCursor<T>(aggregator.run(store.documents) as T[]);
+    if (store instanceof MingoStore) {
+      const aggregator = new MingoInternalAggregator(pipeline, mingoOptions);
+      return new MingoCursor<T>(aggregator.run(store.documents) as T[]);
     } else {
-      const cursor = new MemoryCursor<T>([]);
+      const cursor = new MingoCursor<T>([]);
       const aggregate = async () => {
         const s = this.prefetchStrategy.create(pipeline);
-        const aggregator = new MingoAggregator(s.pipeline, mingoOptions);
+        const aggregator = new MingoInternalAggregator(s.pipeline, mingoOptions);
         cursor.setData(aggregator.run(await store.find(s.filter, s.options).toArray()) as any[]);
       }
       return lockedCursor(cursor, aggregate());
@@ -100,7 +100,7 @@ export class MemoryAggregator implements Aggregator {
 
   private lookupData(ns: Namespace): Document[] {
     const store = this.getEngine().get(ns);
-    if (store instanceof MemoryStore) {
+    if (store instanceof MingoStore) {
       return store.documents;
     }
     throw new Error(`Unable to access data buffer for '${ns.db}.${ns.coll}'`);

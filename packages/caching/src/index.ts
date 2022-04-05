@@ -16,16 +16,16 @@ import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
 import {IDCache} from './id';
 import {QueryCache} from './query';
-import MemoryStorageEngine from '@tashmet/memory';
+import MingoStorageEngine from '@tashmet/mingo';
 
 
 @provider({
   key: CachingLayer,
-  inject: [MemoryStorageEngine, CachingConfig, HashCode, Aggregator]
+  inject: [MingoStorageEngine, CachingConfig, HashCode, Aggregator]
 })
 export default class CachingLayerPlugin implements CachingLayer {
   public constructor(
-    private memory: MemoryStorageEngine,
+    private memory: MingoStorageEngine,
     private config: CachingConfig,
     private hashCode: HashCode,
   ) {}

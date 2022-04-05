@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
 import Tashmet, {Collection} from '../../../packages/tashmet'
-import Memory from '../../../packages/memory'
+import Mingo from '../../../packages/mingo'
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
@@ -15,7 +15,7 @@ describe('validation', () => {
   before(async () => {
     const tashmet = await Tashmet
       .configure()
-      .use(Memory, {})
+      .use(Mingo, {})
       .connect();
 
     sales = tashmet.db('test').createCollection('sales', {

@@ -5,7 +5,7 @@ import 'mocha';
 
 import Tashmet, {Collection, Document, LogLevel, provider, StorageEngine, Store, StoreConfig} from '../../packages/tashmet/dist'
 import HttpClient from '../../packages/http-client/dist';
-import Memory from '../../packages/memory/dist';
+import Mingo from '../../packages/mingo/dist';
 import Caching from '../../packages/caching/dist';
 // import {socket} from '../../packages/socket/dist';
 import 'mingo/init/system';
@@ -31,7 +31,7 @@ describe('rest', () => {
   before(async () => {
     const tashmet = await Tashmet
       .configure({logLevel: LogLevel.None})
-      .use(Memory, {})
+      .use(Mingo, {})
       .use(HttpClient, {fetch})
       .use(Caching, {})
       .provide(RestClientStorageEngine)

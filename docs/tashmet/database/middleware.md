@@ -64,7 +64,7 @@ Schemas need to be added to their own collection. They are then referenced by th
 import {validation, ValidationPipeStrategy} from '@tashmet/caching';
 
 // Example database config
-const databaseConfig: MemoryClientConfig = {
+const databaseConfig: MingoConfig = {
   collections: {
     'schemas': memory({documents: schemas}),
     'products': {

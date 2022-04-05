@@ -1,5 +1,5 @@
 import Tashmet, {LogLevel, provider, StorageEngine, Store, StoreConfig} from '@tashmet/tashmet';
-import Memory from '@tashmet/memory';
+import Mingo from '@tashmet/mingo';
 import FileSystem, { yaml } from '@tashmet/file';
 import Vinyl from '@tashmet/vinyl';
 import HttpServer, {QueryParser} from '@tashmet/http-server';
@@ -7,7 +7,7 @@ import {terminal} from '@tashmet/terminal';
 
 @provider({key: StorageEngine})
 class ServerBlogStorageEngine extends StorageEngine {
-  public constructor(private fs: FileSystem, private memory: Memory) { super(); }
+  public constructor(private fs: FileSystem, private mingo: Mingo) { super(); }
 
   public createStore(config: StoreConfig): Store<any> {
     const options = config.options || {}
@@ -24,7 +24,7 @@ class ServerBlogStorageEngine extends StorageEngine {
         ...config
       });
     }
-    return this.memory.createStore(config);
+    return this.mingo.createStore(config);
   }
 }
 
@@ -46,7 +46,7 @@ Tashmet
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
   })
-  .use(Memory, {})
+  .use(Mingo, {})
   .use(FileSystem, {})
   .use(Vinyl, {watch: false})
   .use(HttpServer, {queryParser: QueryParser.flat()})

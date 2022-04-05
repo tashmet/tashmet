@@ -10,10 +10,10 @@ import {
   FindOptions,
   StoreConfig,
 } from '@tashmet/tashmet';
-import { MemoryCursor } from './cursor';
+import { MingoCursor } from './cursor';
 
 
-export class MemoryStore<TSchema extends Document> extends Store<TSchema> {
+export class MingoStore<TSchema extends Document> extends Store<TSchema> {
   public documents: TSchema[] = [];
 
   public constructor(
@@ -22,7 +22,7 @@ export class MemoryStore<TSchema extends Document> extends Store<TSchema> {
   ) { super(ns); }
 
   public static fromConfig<TSchema>({ns, collation}: StoreConfig) {
-    return new MemoryStore<TSchema>(ns, collation);
+    return new MingoStore<TSchema>(ns, collation);
   }
 
   public indexOf(document: TSchema) {
@@ -51,6 +51,6 @@ export class MemoryStore<TSchema extends Document> extends Store<TSchema> {
   }
 
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return new MemoryCursor<TSchema>(this.documents, filter, {collation: this.collation, ...options});
+    return new MingoCursor<TSchema>(this.documents, filter, {collation: this.collation, ...options});
   }
 }

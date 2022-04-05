@@ -1,5 +1,5 @@
 import Tashmet from '@tashmet/tashmet';
-import Memory from '@tashmet/memory';
+import Mingo from '@tashmet/mingo';
 import HttpServer from '../src';
 import {get, post, method} from '../src/decorators';
 import express from 'express';
@@ -36,7 +36,7 @@ describe('Router', () => {
   before(async () => {
     app = await Tashmet
       .configure()
-      .use(Memory, {})
+      .use(Mingo, {})
       .use(HttpServer, {})
       .bootstrap(HttpServer);
     app.router('/route', new TestRouter());

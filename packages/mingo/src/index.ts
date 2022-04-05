@@ -14,17 +14,17 @@ import {
   ViewFactory,
 } from '@tashmet/tashmet';
 import {hashCode, intersection} from 'mingo/util';
-import {MemoryAggregator, PrefetchAggregationStrategy} from './aggregator';
-import {MemoryClientConfig} from './interfaces';
-import {MemoryStore} from './store';
+import {MingoAggregator, PrefetchAggregationStrategy} from './aggregator';
+import {MingoConfig} from './interfaces';
+import {MingoStore} from './store';
 import {SimpleValidatorFactory} from './validator';
-import {MemoryViewFactory} from './view';
+import {MingoViewFactory} from './view';
 
 export {filterValidator} from './validator';
 export * from './interfaces';
 
 @provider({key: Comparator})
-export class MemoryComparator implements Comparator {
+export class MingoComparator implements Comparator {
   public difference<TSchema extends Document>(a: TSchema[], b: TSchema[]): ChangeSet<TSchema> {
     const unchangedIds = idSet(intersection([a, b]));
 
@@ -36,35 +36,35 @@ export class MemoryComparator implements Comparator {
 }
 
 @provider()
-export default class MemoryStorageEngine extends StorageEngine {
-  private static defaultConfig: MemoryClientConfig = {
+export default class MingoStorageEngine extends StorageEngine {
+  private static defaultConfig: MingoConfig = {
     operators: {},
   };
 
-  public static configure(config: Partial<MemoryClientConfig> = {}) {
+  public static configure(config: Partial<MingoConfig> = {}) {
     return (container: Container) => {
       container.register(SimpleValidatorFactory);
-      container.register(Provider.ofInstance(MemoryClientConfig, {
-        ...MemoryStorageEngine.defaultConfig,
+      container.register(Provider.ofInstance(MingoConfig, {
+        ...MingoStorageEngine.defaultConfig,
         ...config
       }));
-      container.register(MemoryStorageEngine);
-      container.register(Provider.ofResolver(StorageEngine, Lookup.of(MemoryStorageEngine)));
-      container.register(MemoryViewFactory);
-      container.register(Provider.ofResolver(ViewFactory, Lookup.of(MemoryViewFactory)));
+      container.register(MingoStorageEngine);
+      container.register(Provider.ofResolver(StorageEngine, Lookup.of(MingoStorageEngine)));
+      container.register(MingoViewFactory);
+      container.register(Provider.ofResolver(ViewFactory, Lookup.of(MingoViewFactory)));
       container.register(Provider.ofInstance(HashCode, hashCode));
-      container.register(MemoryComparator);
-      container.register(MemoryAggregator);
+      container.register(MingoComparator);
+      container.register(MingoAggregator);
       container.register(PrefetchAggregationStrategy);
     }
   }
 
   public constructor(
     private logger: Logger,
-    private config: MemoryClientConfig,
+    private config: MingoConfig,
   ) { super(); }
 
   public createStore<TSchema extends Document>(config: StoreConfig) {
-    return MemoryStore.fromConfig<TSchema>(config);
+    return MingoStore.fromConfig<TSchema>(config);
   }
 }

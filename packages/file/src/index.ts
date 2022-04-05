@@ -11,7 +11,7 @@ import {
   StoreConfig,
   withMiddleware,
 } from '@tashmet/tashmet';
-import MemoryStorageEngine from '@tashmet/memory';
+import MingoStorageEngine from '@tashmet/mingo';
 import {BundleStore, BundleStreamConfig } from './collections/bundle';
 
 import {File, FileAccess, ReadableFile, Pipe, FileConfig, DirectoryContentConfig, DirectoryFilesConfig} from './interfaces';
@@ -29,7 +29,7 @@ export * as Pipes from './pipes';
 @provider({
   key: FileSystem,
   inject: [
-    MemoryStorageEngine,
+    MingoStorageEngine,
     Logger.inScope('file'),
     FileAccess,
     Comparator,
@@ -43,7 +43,7 @@ export default class FileSystem {
   }
 
   public constructor(
-    private memory: MemoryStorageEngine,
+    private memory: MingoStorageEngine,
     private logger: Logger,
     private fileAccess: FileAccess,
     private comparator: Comparator,

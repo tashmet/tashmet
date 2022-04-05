@@ -1,6 +1,6 @@
 import 'mingo/init/basic';
 import {InsertOneWriter, ChangeSet} from '@tashmet/tashmet';
-import {MemoryStore} from '../../src/store';
+import {MingoStore} from '../../src/store';
 import {expect} from 'chai';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -12,7 +12,7 @@ chai.use(chaiAsPromised)
 chai.use(sinonChai);
 
 const sandbox = sinon.createSandbox();
-const store = new MemoryStore<any>({db: 'tashmet', coll: 'test'});
+const store = new MingoStore<any>({db: 'tashmet', coll: 'test'});
 
 
 describe('InsertOneWriter', () => {

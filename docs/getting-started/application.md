@@ -14,11 +14,11 @@ In the following example we will set up the client to use an in-memory database,
 
 ```typescript
 import Tashmet from '@tashmet/tashmet';
-import Memory from '@tashmet/memory';
+import Mingo from '@tashmet/mingo';
 
 Tashmet
   .configure()
-  .use(Memory, {})
+  .use(Mingo, {})
   .connect()
   .then(async tashmet => {
     const db = tashmet.db('hello-world');
@@ -28,4 +28,4 @@ Tashmet
 
 ```
 
-The application is set up to use the Memory plugin which supplies a default storage engine in memory.
+The application is set up to use the Mingo plugin which supplies a default storage engine in memory.

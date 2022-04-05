@@ -1,5 +1,5 @@
 import Tashmet, {provider} from '../packages/tashmet/dist'
-import Memory from '../packages/memory/dist'
+import Mingo from '../packages/mingo/dist'
 import HttpServer from '../packages/http-server/dist';
 import 'mingo/init/system';
 
@@ -22,7 +22,7 @@ class ServerApp {
 
 Tashmet
   .configure()
-  .use(Memory, {})
+  .use(Mingo, {})
   .use(HttpServer, {})
   .bootstrap(ServerApp)
   .then(app => app.run(8000));

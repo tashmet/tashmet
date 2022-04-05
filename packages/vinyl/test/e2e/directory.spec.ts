@@ -1,6 +1,6 @@
 import Tashmet, { Document, StorageEngine, Store, StoreConfig, provider, Collection } from '@tashmet/tashmet';
 import File, {json} from '@tashmet/file';
-import Memory from '@tashmet/memory';
+import Mingo from '@tashmet/mingo';
 import 'mingo/init/system';
 import {expect} from 'chai';
 import 'mocha';
@@ -44,7 +44,7 @@ describe('directory', () => {
   before(async () => {
     const client = await Tashmet
       .configure()
-      .use(Memory, {})
+      .use(Mingo, {})
       .use(File, {})
       .use(Vinyl, {watch: false})
       .provide(TestStorageEngine)

@@ -1,9 +1,9 @@
 import Tashmet from '@tashmet/tashmet';
-import Memory from '@tashmet/memory';
+import Mingo from '@tashmet/mingo';
 
 Tashmet
   .configure()
-  .use(Memory, {})
+  .use(Mingo, {})
   .connect()
   .then(async tashmet => {
     const db = tashmet.db('hello-world');

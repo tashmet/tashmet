@@ -29,7 +29,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@tashmet/memory": "^1.0.0",
+    "@tashmet/mingo": "^1.0.0",
     "@tashmet/tashmet": "^1.4.0"
   },
   "devDependencies": {

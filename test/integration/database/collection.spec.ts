@@ -1,5 +1,5 @@
 import Tashmet, {Collection, SortingDirection} from '../../../packages/tashmet';
-import Memory from '../../../packages/memory';
+import Mingo from '../../../packages/mingo';
 import 'mingo/init/system';
 import {expect} from 'chai';
 import 'mocha';
@@ -27,7 +27,7 @@ describe('Collection', () => {
   before(async () => {
     tashmet = await Tashmet
       .configure()
-      .use(Memory, {})
+      .use(Mingo, {})
       .connect();
   });
 

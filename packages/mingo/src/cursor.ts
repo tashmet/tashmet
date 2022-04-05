@@ -12,7 +12,7 @@ import {
 } from '@tashmet/tashmet';
 
 
-export class MemoryCursor<T> extends AbstractCursor<T> implements Cursor<T> {
+export class MingoCursor<T> extends AbstractCursor<T> implements Cursor<T> {
   private cursor: mingoCursor.Cursor;
 
   public constructor(

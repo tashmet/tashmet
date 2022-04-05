@@ -32,7 +32,7 @@
     "@types/js-yaml": "^3.12.1",
     "@types/lodash": "^4.14.149",
     "@types/minimatch": "^3.0.3",
-    "@tashmet/memory": "^1.0.0",
+    "@tashmet/mingo": "^1.0.0",
     "dedent": "^0.7.0",
     "mock-fs": "^4.10.4"
   }
