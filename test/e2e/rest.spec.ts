@@ -8,7 +8,7 @@ import HttpClient from '../../packages/http-client/dist';
 import Memory from '../../packages/memory/dist';
 import Caching from '../../packages/caching/dist';
 // import {socket} from '../../packages/socket/dist';
-import operators from '../../packages/operators/system';
+import 'mingo/init/system';
 import fetch from 'isomorphic-fetch';
 
 chai.use(chaiAsPromised);
@@ -31,7 +31,7 @@ describe('rest', () => {
   before(async () => {
     const tashmet = await Tashmet
       .configure({logLevel: LogLevel.None})
-      .use(Memory, {operators})
+      .use(Memory, {})
       .use(HttpClient, {fetch})
       .use(Caching, {})
       .provide(RestClientStorageEngine)

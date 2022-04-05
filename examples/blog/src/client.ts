@@ -2,7 +2,6 @@ import Tashmet, {LogLevel, provider, StorageEngine, StoreConfig} from '@tashmet/
 import Memory from '@tashmet/memory';
 import Caching from '@tashmet/caching';
 import HttpClient, {QuerySerializer} from '@tashmet/http-client';
-import operators from '@tashmet/operators/basic';
 import {terminal} from '@tashmet/terminal';
 import isomorphicFetch from 'isomorphic-fetch';
 
@@ -23,7 +22,7 @@ Tashmet
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
   })
-  .use(Memory, {operators})
+  .use(Memory, {})
   .use(HttpClient, {
     querySerializer: QuerySerializer.flat(),
     fetch: isomorphicFetch,

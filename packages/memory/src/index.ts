@@ -1,6 +1,5 @@
 import {Container, Logger, Lookup, provider, Provider} from '@tashmet/core';
 import {Document, StorageEngine, StoreConfig, ViewFactory, HashCode, Comparator, ChangeSet, idSet} from '@tashmet/database';
-import {OperatorType, useOperators} from 'mingo/core';
 import {hashCode, intersection} from 'mingo/util';
 import {MemoryAggregator, PrefetchAggregationStrategy} from './aggregator';
 import {MemoryClientConfig} from './interfaces';
@@ -14,7 +13,7 @@ export * from './interfaces';
 @provider({key: Comparator})
 export class MemoryComparator implements Comparator {
   public difference<TSchema extends Document>(a: TSchema[], b: TSchema[]): ChangeSet<TSchema> {
-    const unchangedIds = idSet(intersection(a, b));
+    const unchangedIds = idSet(intersection([a, b]));
 
     return new ChangeSet(
       b.filter(doc => !unchangedIds.has(doc._id)),
@@ -44,14 +43,6 @@ export default class MemoryStorageEngine extends StorageEngine {
       container.register(MemoryComparator);
       container.register(MemoryAggregator);
       container.register(PrefetchAggregationStrategy);
-
-      const {accumulator, expression, pipeline, projection, query} = config.operators || {};
-
-      useOperators(OperatorType.ACCUMULATOR, accumulator || {});
-      useOperators(OperatorType.EXPRESSION, expression || {});
-      useOperators(OperatorType.PIPELINE, pipeline || {});
-      useOperators(OperatorType.PROJECTION, projection || {});
-      useOperators(OperatorType.QUERY, query || {});
     }
   }
 

@@ -5,7 +5,7 @@ import HttpServer from '../src';
 import request from 'supertest-as-promised';
 import 'mocha';
 import {expect} from 'chai';
-import operators from '@tashmet/operators/system';
+import 'mingo/init/system';
 
 describe.skip('Resource', () => {
 
@@ -31,7 +31,7 @@ describe.skip('Resource', () => {
   before(async () => {
     const app = await Tashmet
       .configure()
-      .use(Memory, {operators})
+      .use(Memory, {})
       .use(HttpServer, {queryParser: QueryParser.flat()})
       .bootstrap(TestResourceApp);
 

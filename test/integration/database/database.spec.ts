@@ -5,7 +5,7 @@ import 'mocha';
 
 import Tashmet, {Database} from '../../../packages/tashmet'
 import Memory from '../../../packages/memory'
-import operators from '../../../packages/operators/system';
+import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
 
@@ -16,7 +16,7 @@ describe('database', () => {
   before(async () => {
     const tashmet = await Tashmet
       .configure()
-      .use(Memory, {operators})
+      .use(Memory, {})
       .connect();
     db = tashmet.db('testdb');
     db.collection('test');
