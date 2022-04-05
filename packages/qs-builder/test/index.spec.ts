@@ -1,4 +1,4 @@
-import {FindOptions} from '@tashmet/database';
+import {FindOptions} from '@tashmet/tashmet';
 import {expect} from 'chai';
 import 'mocha';
 import {QuerySerializer} from '../src';

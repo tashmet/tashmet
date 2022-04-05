@@ -1,4 +1,4 @@
-import {Filter, FindOptions, HashCode} from '@tashmet/database';
+import {Filter, FindOptions, HashCode} from '@tashmet/tashmet';
 import {CacheEvaluator} from './evaluator';
 
 export class QueryCache extends CacheEvaluator {

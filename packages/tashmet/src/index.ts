@@ -1,4 +1,3 @@
-export * from '@tashmet/database';
 export {
   // IoC
   ServiceIdentifier,
@@ -56,6 +55,19 @@ export {
 
 } from '@tashmet/core';
 
+export {Collection} from './collection';
+export {DatabaseService, DefaultDatabaseFactory} from './database';
+export {applyFindOptions, sortingMap, AbstractCursor} from './cursor';
+export {BulkWriteOperation, BulkWriteOperationFactory} from './operations/bulk';
+export {DeleteWriter} from './operations/delete';
+export {InsertOneWriter} from './operations/insert';
+export {ReplaceOneWriter} from './operations/replace';
+export {UpdateWriter} from './operations/update';
+export * from './changeStream';
+export * from './interfaces';
+export * from './middleware';
+export * from './changeSet';
+
 import {
   Container,
   createContainer,
@@ -68,12 +80,9 @@ import {
   provider,
   Provider,
 } from '@tashmet/core';
-import {
-  Database,
-  DatabaseFactory,
-  DefaultDatabaseFactory,
-} from '@tashmet/database';
 import {BootstrapConfig} from '@tashmet/core/dist/ioc/bootstrap';
+import {Database, DatabaseFactory} from './interfaces';
+import {DefaultDatabaseFactory} from './database';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}
 

@@ -1,5 +1,5 @@
 import 'mingo/init/basic';
-import {ReplaceOneWriter, ChangeSet} from '@tashmet/database';
+import {ReplaceOneWriter, ChangeSet} from '@tashmet/tashmet';
 import {MemoryStore} from '../../src/store';
 import {expect} from 'chai';
 import * as chai from 'chai';

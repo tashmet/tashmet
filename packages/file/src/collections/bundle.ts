@@ -1,4 +1,4 @@
-import {Store} from '@tashmet/database';
+import {Store} from '@tashmet/tashmet';
 import {BufferStore} from './buffer';
 import {Pipeline} from '../pipeline';
 

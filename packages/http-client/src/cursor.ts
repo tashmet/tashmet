@@ -1,4 +1,4 @@
-import {AbstractCursor, Filter, FindOptions} from '@tashmet/database';
+import {AbstractCursor, Filter, FindOptions} from '@tashmet/tashmet';
 import {QuerySerializer} from '@tashmet/qs-builder';
 import {HttpRestLayer} from './common';
 

@@ -1,4 +1,4 @@
-import {Cursor} from '@tashmet/database';
+import {Cursor} from '@tashmet/tashmet';
 import toArray from '@async-generators/to-array';
 import {Pipe} from './interfaces';
 import {ParallelTransform, Transform} from './transform';

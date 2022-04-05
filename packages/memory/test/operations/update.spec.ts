@@ -1,5 +1,5 @@
 import 'mingo/init/system';
-import {UpdateWriter, ChangeSet, Namespace, StorageEngine, Document, Store, StoreConfig} from '@tashmet/database';
+import {UpdateWriter, ChangeSet, Namespace, StorageEngine, Document, Store, StoreConfig} from '@tashmet/tashmet';
 import {MemoryStore} from '../../src/store';
 import {MemoryAggregator, PrefetchAggregationStrategy} from '../../src/aggregator';
 import {expect} from 'chai';

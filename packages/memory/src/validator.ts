@@ -1,5 +1,4 @@
-import {provider} from '@tashmet/core';
-import {Document, Validator, ValidatorFactory} from '@tashmet/database';
+import {Document, Validator, ValidatorFactory, provider} from '@tashmet/tashmet';
 import {Query} from 'mingo';
 
 export function filterValidator<T>(rules: Document): Validator<T> {

@@ -1,18 +1,18 @@
 import {Aggregator as MingoAggregator} from 'mingo/aggregator';
-import { Lazy } from '@tashmet/core';
 import {
   Aggregator,
   Cursor,
   Document,
   AggregateOptions,
+  Lazy,
   Namespace,
   StorageEngine,
   lockedCursor,
   Filter,
   FindOptions,
-} from '@tashmet/database';
+  provider
+} from '@tashmet/tashmet';
 import { MemoryCursor } from './cursor';
-import { provider } from '@tashmet/core';
 import { MemoryStore } from './store';
 
 export interface PrefetchAggregation {

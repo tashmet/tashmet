@@ -1,5 +1,18 @@
-import {Container, Logger, Lookup, provider, Provider} from '@tashmet/core';
-import {Document, StorageEngine, StoreConfig, ViewFactory, HashCode, Comparator, ChangeSet, idSet} from '@tashmet/database';
+import {
+  Document,
+  ChangeSet,
+  Comparator,
+  Container,
+  idSet,
+  HashCode,
+  Logger,
+  Lookup,
+  provider,
+  Provider,
+  StorageEngine,
+  StoreConfig,
+  ViewFactory,
+} from '@tashmet/tashmet';
 import {hashCode, intersection} from 'mingo/util';
 import {MemoryAggregator, PrefetchAggregationStrategy} from './aggregator';
 import {MemoryClientConfig} from './interfaces';

@@ -1,6 +1,5 @@
-import Tashmet from '../../../packages/tashmet';
+import Tashmet, {Collection, SortingDirection} from '../../../packages/tashmet';
 import Memory from '../../../packages/memory';
-import {Collection, SortingDirection} from '../../../packages/database';
 import 'mingo/init/system';
 import {expect} from 'chai';
 import 'mocha';

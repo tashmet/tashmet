@@ -2,7 +2,7 @@ import {
   Store,
   ChangeSet,
   Document,
-} from '@tashmet/database';
+} from '@tashmet/tashmet';
 import {
   File,
   FileContentConfig,

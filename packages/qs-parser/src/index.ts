@@ -1,4 +1,4 @@
-import {Filter, Projection, Query, SortingMap} from '@tashmet/database';
+import {Filter, Projection, Query, SortingMap} from '@tashmet/tashmet';
 import {parse as parseQs} from 'qs';
 import {merge} from 'mingo/util';
 import {

@@ -1,17 +1,17 @@
-import {provider} from '@tashmet/core';
 import {MemoryStore} from './store';
 import {
   ChangeSet,
   ChangeStreamDocument,
   Collection,
+  Comparator,
   Document,
-  withMiddleware,
-  readOnly,
   locked,
+  provider,
+  readOnly,
   StoreConfig,
   ViewFactory,
-  Comparator,
-} from '@tashmet/database';
+  withMiddleware,
+} from '@tashmet/tashmet';
 
 
 @provider()

@@ -9,7 +9,7 @@ import {QueryParser} from '@tashmet/qs-parser';
 import {makeRoutes, mountRoutes} from './routing';
 import {Resource, ResourceConfig} from './routers/resource';
 import {RouterAnnotation} from './decorators/middleware';
-import { HashCode } from '@tashmet/database';
+import { HashCode } from '@tashmet/tashmet';
 
 export * from './decorators';
 export * from './interfaces';

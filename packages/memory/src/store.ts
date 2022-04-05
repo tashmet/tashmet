@@ -9,7 +9,7 @@ import {
   Filter,
   FindOptions,
   StoreConfig,
-} from '@tashmet/database';
+} from '@tashmet/tashmet';
 import { MemoryCursor } from './cursor';
 
 

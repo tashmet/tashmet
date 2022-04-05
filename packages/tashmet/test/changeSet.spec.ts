@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {ChangeSet} from '../dist';
+import {ChangeSet} from '../src/changeSet';
 
 chai.use(chaiAsPromised);
 

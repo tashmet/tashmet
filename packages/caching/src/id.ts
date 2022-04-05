@@ -1,4 +1,4 @@
-import {Filter} from '@tashmet/database';
+import {Filter} from '@tashmet/tashmet';
 import {CacheEvaluator} from './evaluator';
 
 export class IDCache extends CacheEvaluator {

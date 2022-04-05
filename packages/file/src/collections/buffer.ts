@@ -4,7 +4,7 @@ import {
   FindOptions,
   Cursor,
   Filter,
-} from '@tashmet/database';
+} from '@tashmet/tashmet';
 import {Pipeline} from '../pipeline';
 
 /**

@@ -1,6 +1,6 @@
 import 'mingo/init/basic';
-import {DeleteWriter} from '@tashmet/database/dist/operations/delete';
-import {ChangeSet} from '@tashmet/database';
+import {DeleteWriter} from '@tashmet/tashmet';
+import {ChangeSet} from '@tashmet/tashmet';
 import {MemoryStore} from '../../src/store';
 import {expect} from 'chai';
 import * as chai from 'chai';

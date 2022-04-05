@@ -9,7 +9,7 @@ import {
   applyFindOptions,
   sortingMap,
   AbstractCursor,
-} from '@tashmet/database';
+} from '@tashmet/tashmet';
 
 
 export class MemoryCursor<T> extends AbstractCursor<T> implements Cursor<T> {

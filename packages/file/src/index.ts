@@ -1,7 +1,16 @@
-import {Container, provider } from '@tashmet/core';
 import * as nodePath from 'path';
-import {Logger} from '@tashmet/core';
-import {ChangeSet, Document, locked, withMiddleware, Store, StoreConfig, Comparator} from '@tashmet/database';
+import {
+  Comparator,
+  Container,
+  ChangeSet,
+  Document,
+  locked,
+  Logger,
+  provider,
+  Store,
+  StoreConfig,
+  withMiddleware,
+} from '@tashmet/tashmet';
 import MemoryStorageEngine from '@tashmet/memory';
 import {BundleStore, BundleStreamConfig } from './collections/bundle';
 

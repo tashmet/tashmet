@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@async-generators/to-array": "^0.1.0",
+    "@tashmet/tashmet": "^1.4.0",
     "eventemitter3": "^3.0.0",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
@@ -31,14 +32,8 @@
     "@types/js-yaml": "^3.12.1",
     "@types/lodash": "^4.14.149",
     "@types/minimatch": "^3.0.3",
-    "@tashmet/core": "^1.0.2",
-    "@tashmet/database": "^1.3.1",
     "@tashmet/memory": "^1.0.0",
-    "@tashmet/tashmet": "^1.4.0",
     "dedent": "^0.7.0",
     "mock-fs": "^4.10.4"
-  },
-  "peerDependencies": {
-    "@tashmet/tashmet": "^1.1.2"
   }
 }

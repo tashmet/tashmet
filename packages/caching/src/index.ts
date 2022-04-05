@@ -10,7 +10,7 @@ import {
   ChangeSet,
   Store,
   HashCode,
-} from '@tashmet/database';
+} from '@tashmet/tashmet';
 import {CachingConfig} from './interfaces';
 import {CachingCursor} from './cursor';
 import {CacheEvaluator} from './evaluator';
