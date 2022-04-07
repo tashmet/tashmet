@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import 'mocha';
-import {QueryStringWriter, lhsBrackets, lhsColon, rhsColon} from '../src';
+import {QueryStringWriter, OperatorFormat, Param, lhsBrackets, lhsColon, rhsColon} from '../src';
 
 describe('flatFilter', () => {
   it('should serialize using LHSBrackets', async () => {
@@ -65,6 +65,15 @@ describe('flatFilter', () => {
     }
     expect(new QueryStringWriter({filter}).flatFilter({format: lhsColon}))
       .to.eql('category=foo,bar');
+  });
+
+  it('should handle custom format', async () => {
+    const filter = {
+      category: {$gt: 2, $lt: 10}
+    }
+    const format: OperatorFormat = (k, v, op) => new Param(k, `${op}${v}`);
+    expect(new QueryStringWriter({filter}).flatFilter({format}))
+      .to.eql('category=gt2&category=lt10');
   });
 });
 
