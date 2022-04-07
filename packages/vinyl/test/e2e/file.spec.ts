@@ -1,5 +1,5 @@
 import Tashmet, {Document, provider, StorageEngine, StoreConfig, Store, Collection} from '@tashmet/tashmet';
-import File, {json} from '@tashmet/file';
+import Nabu, {json} from '@tashmet/nabu';
 import Mingo from '@tashmet/mingo';
 import 'mingo/init/system';
 import {expect} from 'chai';
@@ -23,13 +23,12 @@ function storedKeys() {
 
 @provider({
   key: StorageEngine,
-  inject: [File]
 })
 class TestStorageEngine extends StorageEngine {
-  public constructor(private file: File) {super();}
+  public constructor(private nabu: Nabu) {super();}
 
   public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
-    return this.file.file({
+    return this.nabu.file({
       path: `test/${config.ns.db}/${config.ns.coll}.json`,
       serializer: json(),
       dictionary: true,
@@ -46,7 +45,7 @@ describe('file', () => {
       .configure()
       .use(Mingo, {})
       .use(Vinyl, {watch: false})
-      .use(File, {})
+      .use(Nabu, {})
       .provide(TestStorageEngine)
       .connect();
     col = client.db('e2e').collection('testCollection');

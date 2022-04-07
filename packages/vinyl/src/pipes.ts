@@ -1,4 +1,4 @@
-import {File, Pipe} from '@tashmet/file';
+import {File, Pipe} from '@tashmet/nabu';
 import {Stream} from '@tashmet/stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';

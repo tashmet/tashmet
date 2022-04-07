@@ -26,19 +26,11 @@ export * from './gates';
 export * as Pipes from './pipes';
 
 
-@provider({
-  key: FileSystem,
-  inject: [
-    MingoStorageEngine,
-    Logger.inScope('file'),
-    FileAccess,
-    Comparator,
-  ]
-})
-export default class FileSystem {
+@provider()
+export default class Nabu {
   public static configure() {
     return (container: Container) => {
-      container.register(FileSystem);
+      container.register(Nabu);
     }
   }
 

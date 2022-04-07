@@ -54,7 +54,7 @@ import {
   bootstrap, component, logging, LogLevel, Database
 } from '@tashmet/tashmet';
 import {caching} from '@tashmet/caching';
-import {yaml, directoryContent} from '@tashmet/file';
+import {yaml, directoryContent} from '@tashmet/nabu';
 import {resource, Server} from '@tashmet/server';
 import {terminal} from '@tashmet/terminal';
 import {validation, ValidationPipeStrategy} from '@tashmet/schema';
@@ -62,7 +62,7 @@ import {vinylfs} from '@tashmet/vinyl';
 
 @component({
   dependencies: [
-    import('@tashmet/file'),
+    import('@tashmet/nabu'),
     import('@tashmet/server'),
     import('@tashmet/schema'),
     import('@tashmet/vinyl'),

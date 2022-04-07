@@ -26,6 +26,6 @@
 		"@tashmet/tashmet": "^1.4.0"
 	},
 	"dependencies": {
-		"@tashmet/file": "^2.0.0"
+		"@tashmet/nabu": "^2.0.0"
 	}
 }

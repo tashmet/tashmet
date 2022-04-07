@@ -11,7 +11,7 @@ File is a set of tools for reading and writing Tashmet content on disk. It allow
 ### Installation
 
 ```text
-$ npm install @tashmet/file
+$ npm install @tashmet/nabu
 ```
 
 ### Usage
@@ -21,7 +21,7 @@ The package exports a component that should be imported as a dependency in your 
 ```typescript
 @component({
   dependencies: [
-    import('@tashmet/file')
+    import('@tashmet/nabu')
   ],
   providers: [
     Provider.ofInstance<FileSystemConfig>('file.FileSystemConfig', {

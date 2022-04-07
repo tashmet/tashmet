@@ -19,7 +19,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@tashmet/file": "^2.0.0",
+    "@tashmet/nabu": "^2.0.0",
     "ipfs-http-client": "^49.0.2",
     "minimatch": "^3.0.4"
   },

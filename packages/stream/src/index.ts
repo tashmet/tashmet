@@ -1,5 +1,5 @@
 import * as stream from 'stream';
-import {Pipeline, PipelineSink} from '@tashmet/file';
+import {Pipeline, PipelineSink} from '@tashmet/nabu';
 
 type Readable = stream.Readable | NodeJS.ReadStream | NodeJS.ReadWriteStream;
 type Writable = stream.Writable | NodeJS.WriteStream | NodeJS.ReadWriteStream;
