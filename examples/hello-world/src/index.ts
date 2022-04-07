@@ -7,6 +7,9 @@ Tashmet
   .connect()
   .then(async tashmet => {
     const db = tashmet.db('hello-world');
-    const doc = await db.collection('posts').insertOne({title: 'Hello World!'});
+    const posts = db.collection('posts');
+    await posts.insertOne({title: 'Hello World!'});
+    const doc = await posts.find().next();
+
     console.log(doc);
   });
