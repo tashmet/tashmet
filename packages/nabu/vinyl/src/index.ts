@@ -8,7 +8,7 @@ export * from './interfaces';
 
 import {Container, Optional, provider, Provider} from '@tashmet/core';
 import {FileAccess, File, ReadableFile, Pipeline} from '@tashmet/nabu';
-import {Stream} from '@tashmet/stream';
+import {Stream} from '@tashmet/nabu-stream';
 import * as Pipes from './pipes';
 import {FileSystemConfig} from './interfaces';
 

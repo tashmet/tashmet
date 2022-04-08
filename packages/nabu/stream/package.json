@@ -1,7 +1,7 @@
 {
-	"name": "@tashmet/stream",
+	"name": "@tashmet/nabu-stream",
 	"version": "0.2.0",
-	"description": "Tashmet node stream tools",
+	"description": "Nabu node stream tools",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
   "scripts": {

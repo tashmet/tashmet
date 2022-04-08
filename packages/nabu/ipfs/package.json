@@ -1,7 +1,7 @@
 {
-  "name": "@tashmet/ipfs",
+  "name": "@tashmet/nabu-ipfs",
   "version": "0.2.0",
-  "description": "Tashmet IPFS integration",
+  "description": "Nabu IPFS integration",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",

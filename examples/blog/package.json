@@ -30,7 +30,7 @@
     "@tashmet/qs-builder": "^0.1.0",
     "@tashmet/qs-parser": "^0.1.0",
     "@tashmet/terminal": "^1.0.2",
-    "@tashmet/vinyl": "^0.2.0",
+    "@tashmet/nabu-vinyl": "^0.2.0",
     "@tashmet/tashmet": "^1.4.0",
     "isomorphic-fetch": "^3.0.0"
   }

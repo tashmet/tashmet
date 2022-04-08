@@ -1,7 +1,7 @@
 import Tashmet, {LogLevel, provider, StorageEngine, Store, StoreConfig} from '@tashmet/tashmet';
 import Mingo from '@tashmet/mingo';
 import Nabu, { yaml } from '@tashmet/nabu';
-import Vinyl from '@tashmet/vinyl';
+import Vinyl from '@tashmet/nabu/vinyl';
 import HttpServer, {QueryParser} from '@tashmet/http-server';
 import {terminal} from '@tashmet/terminal';
 
@@ -18,7 +18,7 @@ class ServerBlogStorageEngine extends StorageEngine {
         : {};
 
       return this.nabu.directoryContent({
-        path: `/home/bander10/Documents/tashmet/examples/${config.ns.db}/${config.ns.coll}`,
+        path: `./examples/${config.ns.db}/${config.ns.coll}`,
         extension: 'yaml',
         serializer: yaml(yamlConfig),
         ...config

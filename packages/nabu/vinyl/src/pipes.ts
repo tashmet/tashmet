@@ -1,5 +1,5 @@
 import {File, Pipe} from '@tashmet/nabu';
-import {Stream} from '@tashmet/stream';
+import {Stream} from '@tashmet/nabu-stream';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
 
