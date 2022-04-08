@@ -8,7 +8,7 @@
 
 ## Concepts
 
-* [Basic usage](concepts/basic-usage.md)
+* [Collections](concepts/collections.md)
 * [Storage engines](concepts/storage-engines.md)
 * [Dependency injection](concepts/ioc.md)
 * [Reflection](concepts/reflection.md)
