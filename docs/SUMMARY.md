@@ -10,12 +10,7 @@
 
 * [Basic usage](concepts/basic-usage.md)
 * [Storage engines](concepts/storage-engines.md)
-* [Dependency injection](concepts/ioc/README.md)
-  * [Container](concepts/ioc/container.md)
-  * [Components](concepts/ioc/components.md)
-  * [Providers](concepts/ioc/providers.md)
-  * [Resolvers](concepts/ioc/resolvers.md)
-  * [Factories](concepts/ioc/factories.md)
+* [Dependency injection](concepts/ioc.md)
 * [Reflection](concepts/reflection.md)
 * [Server](concepts/server.md)
 * [Legacy](concepts/examples/README.md)

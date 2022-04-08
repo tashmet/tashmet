@@ -25,7 +25,7 @@ Setting up an application is easy, so let's get started!
 
 ### Architecture
 
-Tashmet is built to be modular and allows you to only import what you need and thus enables you to keep a very small footprint when used in a browser. The main package consists mostly of MongoDB interfaces and a minimal [dependency injection](concepts/ioc/) framework to allow for easy integration with various plugins such as [storage engines](./#storage-engines).&#x20;
+Tashmet is built to be modular and allows you to only import what you need and thus enables you to keep a very small footprint when used in a browser. The main package consists mostly of MongoDB interfaces and a minimal [dependency injection](concepts/ioc.md) framework to allow for easy integration with various plugins such as [storage engines](./#storage-engines).&#x20;
 
 ### Usage
 
@@ -37,7 +37,7 @@ Once the database client has been configured, as in the [hello world](getting-st
 
 ### Storage engines
 
-#### Memory
+#### Mingo (In-memory)
 
 The memory storage engine is built on top of [mingo](https://github.com/kofrasa/mingo) which has support for most of the query and aggregation operators in MongoDB.
 
@@ -45,7 +45,7 @@ The memory storage engine is built on top of [mingo](https://github.com/kofrasa/
 [mingo.md](storage-engines/mingo.md)
 {% endcontent-ref %}
 
-#### HTTP
+#### HTTP (REST APIs)
 
 A storage engine can also be set up to act on an HTTP endpoint. This provides a level of abstraction that, in combination with the memory storage, can also add a layer of caching.
 
@@ -53,7 +53,7 @@ A storage engine can also be set up to act on an HTTP endpoint. This provides a 
 [http](storage-engines/http/)
 {% endcontent-ref %}
 
-#### File system
+#### Nabu (File system)
 
 A storage engine that reads from and writes to the file system. Collections can be stored in a single file or spread out by document. Built in file formats includes JSON and YAML. Nabu also uses an in-memory storage engine (Mingo) as a buffer, giving it the same capabilities as using plain Mingo.
 
