@@ -63,7 +63,7 @@ export class Collection<TSchema extends Document = any> {
     return `${this.dbName}.${this.collectionName}`;
   }
 
-  public aggregate<T>(pipeline: Document[], options: AggregateOptions = {}): Cursor<T> {
+  public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): Cursor<T> {
     if (this.aggregator) {
       return this.aggregator.execute({db: this.dbName, coll: this.collectionName}, pipeline, options);
     } else {
