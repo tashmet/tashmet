@@ -31,8 +31,8 @@ Tashmet is built to be modular and allows you to only import what you need and t
 
 Once the database client has been configured, as in the [hello world](getting-started/hello-world.md) example, we can create collections, add documents, run queries or aggregations. As Tashmet tries to mimic MongoDB as closely as possible you can usually refer to the [MongoDB Node.js usage examples](https://www.mongodb.com/docs/drivers/node/current/usage-examples/) for more details on how to interact with the database. This documentation also covers some basic usage examples.
 
-{% content-ref url="concepts/collections.md" %}
-[collections.md](concepts/collections.md)
+{% content-ref url="concepts/operations.md" %}
+[operations.md](concepts/operations.md)
 {% endcontent-ref %}
 
 ### Storage engines

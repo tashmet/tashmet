@@ -8,7 +8,8 @@
 
 ## Concepts
 
-* [Collections](concepts/collections.md)
+* [Operations](concepts/operations.md)
+* [Aggregation](concepts/aggregation.md)
 * [Storage engines](concepts/storage-engines.md)
 * [Dependency injection](concepts/ioc.md)
 * [Reflection](concepts/reflection.md)
