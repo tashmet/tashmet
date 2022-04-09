@@ -12,7 +12,7 @@ export class HttpCollectionCursor<T = any> extends AbstractCursor<T> {
     super(selector, options);
   }
 
-  public async toArray(): Promise<T[]> {
+  public async fetchAll(): Promise<T[]> {
     const resp = await this.query(this.filter, this.options);
     if (!resp.ok) {
       throw new Error('failed to contact server');

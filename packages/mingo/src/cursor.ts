@@ -1,21 +1,14 @@
 import {Query as MingoQuery} from 'mingo/query';
-import * as mingoCursor from 'mingo/cursor';
 import {
   Cursor,
   Filter,
   FindOptions,
-  SortingKey,
-  SortingDirection,
-  applyFindOptions,
-  sortingMap,
   AbstractCursor,
 } from '@tashmet/tashmet';
 import { MingoConfig } from './interfaces';
 
 
 export class MingoCursor<T> extends AbstractCursor<T> implements Cursor<T> {
-  private cursor: mingoCursor.Cursor;
-
   public constructor(
     private collection: any[],
     filter: Filter<T> = {},
@@ -27,45 +20,17 @@ export class MingoCursor<T> extends AbstractCursor<T> implements Cursor<T> {
 
   public setData(data: Document[]) {
     this.collection = data;
-    this.cursor = new MingoQuery(this.filter, this.options)
+  }
+
+  public async fetchAll(): Promise<T[]> {
+    const cursor = new MingoQuery(this.filter, this.options)
       .find(this.collection, this.options.projection);
-    applyFindOptions(this, this.options);
-  }
+    const {skip, limit, sort} = this.options;
 
-  public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
-    this.cursor.sort(sortingMap(key, direction));
-    return super.sort(key, direction);
-  }
+    if (sort) cursor.sort(sort);
+    if (skip !== undefined) cursor.skip(skip);
+    if (limit !== undefined) cursor.limit(limit);
 
-  public skip(count: number): Cursor<T> {
-    this.cursor.skip(count);
-    return super.skip(count);
-  }
-
-  public limit(count: number): Cursor<T> {
-    this.cursor.limit(count);
-    return super.limit(count);
-  }
-
-  public async next(): Promise<T | null> {
-    return this.cursor.next() as any || null;
-  }
-
-  public async hasNext(): Promise<boolean> {
-    return this.cursor.hasNext();
-  }
-
-  public async forEach(iterator: (doc: T) => void): Promise<void> {
-    return this.cursor.forEach(iterator);
-  }
-
-  public async toArray(): Promise<T[]> {
-    return this.cursor.all() as any;
-  }
-
-  public async count(applySkipLimit = true): Promise<number> {
-    return applySkipLimit
-      ? this.cursor.count()
-      : new MingoQuery(this.filter).find(this.collection).count();
+    return cursor.all() as T[];
   }
 }

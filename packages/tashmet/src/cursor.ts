@@ -24,7 +24,7 @@ export function sortingMap(key: SortingKey, direction?: SortingDirection): Sorti
 }
 
 export abstract class AbstractCursor<T> implements Cursor<T> {
-  protected _batch: T[] = [];
+  protected buffer: T[] = [];
   protected index = -1;
 
   public constructor(
@@ -44,21 +44,28 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
     return this.extendOptions({limit: count});
   }
 
-  public abstract toArray(): Promise<T[]>;
+  public toArray(): Promise<T[]> {
+    return this.fetchAll();
+  }
 
-  public abstract count(applySkipLimit?: boolean): Promise<number>;
+  public async count(applySkipLimit?: boolean): Promise<number> {
+    await this.fetchBatch();
+    return this.buffer.length;
+  }
 
   public async next(): Promise<T | null> {
-    const batch = await this.getBatch();
-    return batch.length > this.index ? batch[this.index++] : null;
+    await this.fetchBatch();
+    return this.buffer.length > this.index ? this.buffer[this.index++] : null;
   }
 
   public async hasNext(): Promise<boolean> {
-    return (await this.getBatch()).length > this.index;
+    await this.fetchBatch();
+    return this.buffer.length > this.index;
   }
 
   public async forEach(iterator: (doc: T) => void): Promise<void> {
-    return (await this.getBatch()).forEach(iterator);
+    await this.fetchBatch();
+    return this.buffer.forEach(iterator);
   }
 
   private extendOptions(options: FindOptions): Cursor<T> {
@@ -66,11 +73,13 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
     return this;
   }
 
-  protected async getBatch(): Promise<T[]> {
+  protected async fetchBatch(): Promise<T[]> {
     if (this.index === -1) {
       this.index = 0;
-      return this._batch = (await this.toArray());
+      return this.buffer = (await this.fetchAll());
     }
-    return this._batch;
+    return this.buffer;
   }
+
+  protected abstract fetchAll(): Promise<T[]>;
 }

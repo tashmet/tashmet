@@ -28,8 +28,11 @@ export class CachingCursor extends AbstractCursor<any> {
     return applyFindOptions(cursor, this.options).count(applySkipLimit);
   }
 
-  public async toArray(): Promise<any[]> {
-    const cacheCursor = this.cache.find(this.filter, this.options);
+  public async fetchAll(): Promise<any[]> {
+    const cacheCursor = this.cache.find(
+      JSON.parse(JSON.stringify(this.filter)),
+      JSON.parse(JSON.stringify(this.options))
+    );
 
     if (!this.isCached()) {
       const incoming = await this.findInNext(this.filter).toArray();
