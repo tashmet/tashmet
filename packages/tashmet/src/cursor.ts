@@ -32,6 +32,15 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
     protected options: FindOptions = {},
   ) {}
 
+  [Symbol.asyncIterator](): AsyncIterator<T, void> {
+    return {
+      next: () =>
+        this.next().then(value =>
+          value != null ? { value, done: false } : { value: undefined, done: true }
+        )
+    };
+  }
+
   public sort(key: SortingKey, direction?: SortingDirection): Cursor<T> {
     return this.extendOptions({sort: sortingMap(key, direction)});
   }

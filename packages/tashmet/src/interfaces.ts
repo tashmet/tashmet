@@ -135,6 +135,8 @@ export type Projection<T> = {
   Partial<Record<string, 0 | 1 | boolean>>;
 
 export interface Cursor<T> {
+  [Symbol.asyncIterator](): AsyncIterator<T, void>;
+
   /**
    * Sets the sort order of the cursor query.
    *
