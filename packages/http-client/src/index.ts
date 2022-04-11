@@ -1,5 +1,13 @@
-import {Container, Logger, Optional, provider, Provider} from '@tashmet/core';
-import {CachingLayer, Store, withMiddleware} from '@tashmet/tashmet';
+import {
+  CachingLayer,
+  Container,
+  Logger,
+  Optional,
+  provider,
+  Provider,
+  Store,
+  withMiddleware
+} from '@tashmet/tashmet';
 import {QuerySerializer} from '@tashmet/qs-builder';
 import {HttpRestLayer} from './common';
 import {HttpClientConfig, HttpStoreConfig, Fetch} from './interfaces';

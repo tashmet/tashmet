@@ -1,4 +1,4 @@
-import {provider, Logger} from '@tashmet/core';
+import {provider, Logger} from '@tashmet/tashmet';
 import * as SocketIO from 'socket.io';
 import {controllerName} from './interfaces';
 

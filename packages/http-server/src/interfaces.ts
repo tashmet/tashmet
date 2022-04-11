@@ -1,4 +1,4 @@
-import {Lookup} from '@tashmet/core';
+import {Lookup} from '@tashmet/tashmet';
 import {QueryParser} from '@tashmet/qs-parser';
 import {RequestHandler} from 'express';
 import * as express from 'express';

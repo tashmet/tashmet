@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import minimatch from 'minimatch';
 export * from './interfaces';
 
-import {Container, Optional, provider, Provider} from '@tashmet/core';
+import {Container, Optional, provider, Provider} from '@tashmet/tashmet';
 import {FileAccess, File, ReadableFile, Pipeline} from '@tashmet/nabu';
 import {Stream} from '@tashmet/nabu-stream';
 import * as Pipes from './pipes';

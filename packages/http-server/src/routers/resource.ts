@@ -1,5 +1,4 @@
-import {Logger} from '@tashmet/core';
-import {Collection, ChangeStreamDocument, Query, HashCode} from '@tashmet/tashmet';
+import {Collection, ChangeStreamDocument, Logger, Query, HashCode} from '@tashmet/tashmet';
 import {QueryParser} from '@tashmet/qs-parser';
 import * as express from 'express';
 import * as SocketIO from 'socket.io';

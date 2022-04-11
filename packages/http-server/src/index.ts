@@ -1,4 +1,4 @@
-import {Container, Logger, provider, Provider} from '@tashmet/core';
+import {Container, HashCode, Logger, provider, Provider} from '@tashmet/tashmet';
 import http from 'http';
 import {AddressInfo} from 'net';
 import SocketIO from 'socket.io';
@@ -9,7 +9,6 @@ import {QueryParser} from '@tashmet/qs-parser';
 import {makeRoutes, mountRoutes} from './routing';
 import {Resource, ResourceConfig} from './routers/resource';
 import {RouterAnnotation} from './decorators/middleware';
-import { HashCode } from '@tashmet/tashmet';
 
 export * from './decorators';
 export * from './interfaces';

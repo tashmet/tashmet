@@ -1,7 +1,7 @@
-import {Container, Provider} from '@tashmet/core';
+import {Container, Provider} from '@tashmet/tashmet';
 export {CachingConfig};
 
-import {provider} from '@tashmet/core';
+import {provider} from '@tashmet/tashmet';
 import {
   Aggregator,
   CachingLayer,
