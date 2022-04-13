@@ -97,7 +97,7 @@ export class DatabaseService implements Database {
     if (!store) {
       return false;
     }
-    await store.write(ChangeSet.fromDelete(await store.find({}).toArray()));
+    // await store.write(ChangeSet.fromDelete(await store.find({}).toArray()));
     store.emit('change', {
       _id: new ObjectId(),
       operationType: 'drop',

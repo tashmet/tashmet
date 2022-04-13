@@ -21,6 +21,7 @@ import {
 } from "./interfaces";
 import {ChangeStream} from "./changeStream";
 import {BulkWriteOperationFactory} from "./operations/bulk";
+import { AbstractCursor, FindCursor } from "./cursor";
 
 /**
  * A collection of documents.
@@ -78,7 +79,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A cursor.
    */
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return this.store.find(filter, options);
+    return new FindCursor<TSchema>(this.store, filter, options);
   }
 
   /**
@@ -88,7 +89,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A promise for the first matching document if one was found, null otherwise
    */
   public findOne(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Promise<TSchema | null> {
-    return this.store.find(filter, options).limit(1).next();
+    return this.find(filter, options).limit(1).next();
   }
 
   /**

@@ -71,7 +71,8 @@ export default class Nabu {
     const store = new BundleStore(buffer, streamConfig.output);
 
     const listen = async (input: Pipeline<T>) => {
-      return store.load(this.comparator.difference(await buffer.find().toArray(), await input.toArray()));
+      const findResult = await buffer.find();
+      return store.load(this.comparator.difference(findResult.cursor.firstBatch, await input.toArray()));
     }
 
     if (streamConfig.input) {

@@ -1,5 +1,8 @@
 import ObjectID from 'bson-objectid';
+import * as Mingo from 'mingo';
 import {Options as MingoInternalOptions, initOptions} from 'mingo/core';
+import {Cursor as MingoInternalCursor} from 'mingo/cursor';
+import {Query as MingoInternalQuery} from 'mingo/query';
 import {
   ChangeSet,
   idSet,
@@ -18,6 +21,7 @@ import { MingoCursor } from './cursor';
 export class MingoStore<TSchema extends Document> extends Store<TSchema> {
   public documents: TSchema[] = [];
   private options: MingoInternalOptions;
+  private cursors: Record<string, MingoInternalCursor> = {}
 
   public constructor(
     ns: { db: string; coll: string },
@@ -56,7 +60,44 @@ export class MingoStore<TSchema extends Document> extends Store<TSchema> {
     }
   }
 
-  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return new MingoCursor<TSchema>(this.documents, filter, {...this.options, ...options});
+  public async count(filter: Filter<TSchema> = {}, {sort, skip, limit, projection}: FindOptions<TSchema> = {}): Promise<Document> {
+    const cursor = this.makeCursor(filter, {sort, skip, limit, projection});
+    return {n: cursor.count(), ok: 1};
+  }
+
+  public async find(filter: Filter<TSchema> = {}, {sort, skip, limit, projection, batchSize}: FindOptions<TSchema> = {}): Promise<Document> {
+    const cursor = this.makeCursor(filter, {sort, skip, limit, projection});
+
+    let firstBatch: TSchema[] = [];
+    if (batchSize) {
+      while(cursor.hasNext() && firstBatch.length < batchSize) {
+        firstBatch.push(cursor.next() as TSchema);
+      }
+    } else {
+      firstBatch = cursor.all() as TSchema[];
+    }
+
+    const id = new ObjectID().toHexString();
+    this.cursors[id] = cursor;
+
+    return {
+      cursor: {
+        firstBatch,
+        id,
+        ns: this.ns,
+      },
+      ok: 1,
+    }
+  }
+
+  private makeCursor(filter: Filter<TSchema> = {}, {sort, skip, limit, projection}: FindOptions<TSchema> = {}): MingoInternalCursor {
+    const cursor = new Mingo.Query(filter, this.options)
+      .find(this.documents, projection);
+
+    if (sort) cursor.sort(sort);
+    if (skip !== undefined) cursor.skip(skip);
+    if (limit !== undefined) cursor.limit(limit);
+
+    return cursor;
   }
 }

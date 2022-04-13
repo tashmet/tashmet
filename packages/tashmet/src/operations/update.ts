@@ -15,7 +15,8 @@ export class UpdateWriter<TSchema extends Document> extends Writer<TSchema, Upda
       throw new Error('No Aggregator registered with the container');
     }
 
-    const input = await this.store.find(filter, this.single ? {limit: 1, collation} : {collation}).toArray();
+    const findResult = await this.store.find(filter, this.single ? {limit: 1, collation} : {collation});
+    const input = findResult.cursor.firstBatch;
     let result: Partial<BulkWriteResult> = {
       matchedCount: input.length,
       modifiedCount: input.length, // TODO: Not necessarily true

@@ -13,7 +13,8 @@ export class DeleteWriter<TSchema extends Document> extends Writer<TSchema, Dele
       limit: this.single ? 1 : undefined,
       collation,
     };
-    const matched = await this.store.find(filter, options).toArray();
+    const findResult = await this.store.find(filter, options);
+    const matched = findResult.cursor.firstBatch;
     if (matched.length !== 0) {
       await this.store.write(ChangeSet.fromDelete(matched));
 

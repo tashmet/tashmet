@@ -26,6 +26,9 @@ export const locked = (locks: Promise<any>[]) => () => {
       await resolveLocks();
       return next(cs);
     },
-    find: next => (filter, options) => lockedCursor(next(filter, options), resolveLocks()),
+    find: next => async (filter, options) => {
+      await resolveLocks();
+      return next(filter, options);
+    }
   } as Middleware;
 }

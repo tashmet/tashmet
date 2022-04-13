@@ -1,8 +1,8 @@
 import {
   Store,
   ChangeSet,
+  Document,
   FindOptions,
-  Cursor,
   Filter,
 } from '@tashmet/tashmet';
 import {Pipeline} from '../pipeline';
@@ -27,8 +27,12 @@ export abstract class BufferStore<TSchema> extends Store<TSchema> {
 
   protected abstract persist(cs: ChangeSet<TSchema>): Promise<void>;
 
-  public find(filter?: Filter<TSchema>, options?: FindOptions): Cursor<TSchema> {
+  public find(filter?: Filter<TSchema>, options?: FindOptions): Promise<Document> {
     return this.buffer.find(filter, options);
+  }
+
+  public count(filter?: Filter<TSchema>, options?: FindOptions): Promise<Document> {
+    return this.buffer.count(filter, options);
   }
 
   public async populate(seed: Pipeline<TSchema> | undefined) {

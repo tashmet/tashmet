@@ -1,13 +1,11 @@
 import {
   Store,
-  Cursor,
   Filter,
   FindOptions,
   Document,
   ChangeSet,
 } from '@tashmet/tashmet';
 import {QuerySerializer} from '@tashmet/qs-builder';
-import {HttpCollectionCursor} from './cursor';
 import {HttpRestLayer} from './common';
 
 export class HttpStore<TSchema extends Document> extends Store<TSchema> {
@@ -31,13 +29,29 @@ export class HttpStore<TSchema extends Document> extends Store<TSchema> {
     }
   }
 
-  public find(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return new HttpCollectionCursor<TSchema>(
-      this.restLayer, this.querySerializer, filter, options
-    );
+  public async find(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Promise<Document> {
+    const resp = await this.query(filter, options);
+    if (!resp.ok) {
+      throw new Error('failed to contact server');
+    }
+    return {
+      cursor: {
+        firstBatch: await resp.json(),
+        ns: this.ns,
+      }
+    }
   }
 
-  public aggregate<T>(pipeline: Document[]): Cursor<T> {
-    throw new Error('Not implemented');
+  public async count(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Promise<Document> {
+    const resp = await this.query(filter, options, true);
+    const totalCount = resp.headers.get('x-total-count');
+    if (!totalCount) {
+      throw new Error('failed to get "x-total-count" header');
+    }
+    return {n: parseInt(totalCount, 10), ok: 1};
+  }
+
+  private query(filter?: Filter<TSchema>, options?: FindOptions, head?: boolean): Promise<Response> {
+    return this.restLayer.get(this.querySerializer.serialize({filter, ...options}), head);
   }
 }

@@ -92,7 +92,8 @@ export class MingoAggregator implements Aggregator {
       const aggregate = async () => {
         const s = this.prefetchStrategy.create(pipeline);
         const aggregator = new MingoInternalAggregator(s.pipeline, mingoOptions);
-        cursor.setData(aggregator.run(await store.find(s.filter, s.options).toArray()) as any[]);
+        const findResult = await store.find(s.filter, s.options);
+        cursor.setData(aggregator.run(findResult.cursor.firstBatch) as any[]);
       }
       return lockedCursor(cursor, aggregate());
     }

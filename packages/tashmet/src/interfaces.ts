@@ -209,6 +209,8 @@ export interface FindOptions<TSchema = any> extends CommandOperationOptions {
    * {'a':1, 'b': 1} or {'a': 0, 'b': 0}
    */
   projection?: Projection<TSchema>;
+
+  batchSize?: number;
 }
 
 export interface Query<T = any> extends FindOptions<T> {
@@ -562,7 +564,9 @@ export abstract class Store<TSchema extends Document>
 
   public abstract write(changeSet: ChangeSet<TSchema>): Promise<void>;
 
-  public abstract find(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Cursor<TSchema>;
+  public abstract count(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<Document>;
+
+  public abstract find(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<Document>;
 }
 
 export type CollectionResolver = (name: string) => any[];
@@ -627,12 +631,13 @@ export abstract class CollectionFactory {
 
 export type MiddlewareHook<T> = (next: T) => T;
 
-export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Cursor<T>;
+export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Promise<Document>;
 export type Write<T> = (changeSet: ChangeSet<T>) => Promise<void>;
 
 
 export interface Middleware<T = any> {
   find?: MiddlewareHook<Find<T>>;
+  count?: MiddlewareHook<Find<T>>;
   write?: MiddlewareHook<Write<T>>;
 }
 

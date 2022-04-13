@@ -1,4 +1,4 @@
-import {Cursor, Filter, FindOptions, SortingDirection, SortingKey, SortingMap} from './interfaces';
+import {Cursor, Document, Filter, FindOptions, SortingDirection, SortingKey, SortingMap, Store} from './interfaces';
 
 export function applyFindOptions(cursor: Cursor<any>, options: FindOptions): Cursor<any> {
   if (options.sort) {
@@ -91,4 +91,19 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
   }
 
   protected abstract fetchAll(): Promise<T[]>;
+}
+
+export class FindCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
+  public constructor(
+    protected store: Store<TSchema>,
+    filter: Filter<TSchema>,
+    options: FindOptions = {},
+  ) {
+    super(filter, options);
+  }
+
+  protected async fetchAll(): Promise<TSchema[]> {
+    const findResult = await this.store.find(this.filter, this.options);
+    return findResult.cursor.firstBatch;
+  }
 }
