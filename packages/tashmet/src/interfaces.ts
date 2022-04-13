@@ -625,19 +625,13 @@ export abstract class CollectionFactory {
   ): Collection<TSchema>;
 }
 
-export abstract class Client<TDatabase> {
-  public abstract db(name: string): TDatabase;
-}
-
 export type MiddlewareHook<T> = (next: T) => T;
 
-export type Aggregate<T> = (pipeline: Document[]) => Cursor<T>;
 export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Cursor<T>;
 export type Write<T> = (changeSet: ChangeSet<T>) => Promise<void>;
 
 
 export interface Middleware<T = any> {
-  aggregate?: MiddlewareHook<Aggregate<any>>;
   find?: MiddlewareHook<Find<T>>;
   write?: MiddlewareHook<Write<T>>;
 }

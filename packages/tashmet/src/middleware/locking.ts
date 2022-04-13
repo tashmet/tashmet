@@ -21,15 +21,11 @@ export const locked = (locks: Promise<any>[]) => () => {
     locks.splice(0, locks.length);
   }
 
-  const handler = (next: (...args: any[]) => Promise<any>) => async (...args: any[]) => {
-    await resolveLocks();
-    return next(...args);
-  }
-
   return {
-    write: handler,
-    findOne: handler,
+    write: next => async cs => {
+      await resolveLocks();
+      return next(cs);
+    },
     find: next => (filter, options) => lockedCursor(next(filter, options), resolveLocks()),
-    aggregate: next => pipeline => lockedCursor(next(pipeline), resolveLocks()),
   } as Middleware;
 }
