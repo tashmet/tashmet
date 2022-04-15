@@ -3,7 +3,7 @@ import {BulkWriteResult, Document, ReplaceOneModel, Writer} from '../interfaces'
 
 export class ReplaceOneWriter<TSchema extends Document> extends Writer<TSchema, ReplaceOneModel<TSchema>> {
   public async execute({filter, replacement, upsert, collation}: ReplaceOneModel<TSchema>) {
-    const countResult = await this.store.count(filter, {collation});
+    const countResult = await this.store.command({count: this.store.ns.coll, query: filter, collation});
 
     let result: Partial<BulkWriteResult> = {
       matchedCount: countResult.n,
@@ -11,7 +11,7 @@ export class ReplaceOneWriter<TSchema extends Document> extends Writer<TSchema, 
     };
 
     if (result.matchedCount && result.matchedCount > 0) {
-      const findResult = await this.store.find(filter, {collation, limit: 1});
+      const findResult = await this.store.command({find: this.store.ns.coll, filter, collation, limit: 1});
       const old = findResult.cursor.firstBatch[0];
 
       if (old) {

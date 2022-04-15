@@ -1,27 +1,25 @@
 import ObjectID from 'bson-objectid';
 import * as Mingo from 'mingo';
 import {Options as MingoInternalOptions, initOptions} from 'mingo/core';
-import {Cursor as MingoInternalCursor} from 'mingo/cursor';
-import {Query as MingoInternalQuery} from 'mingo/query';
+import {Aggregator as MingoInternalAggregator} from 'mingo/aggregator';
+import {Iterator} from 'mingo/lazy';
 import {
   ChangeSet,
   idSet,
   CollationOptions,
   Store,
-  Cursor,
   Document,
   Filter,
   FindOptions,
   StoreConfig,
 } from '@tashmet/tashmet';
 import { MingoConfig } from './interfaces';
-import { MingoCursor } from './cursor';
 
 
 export class MingoStore<TSchema extends Document> extends Store<TSchema> {
   public documents: TSchema[] = [];
   private options: MingoInternalOptions;
-  private cursors: Record<string, MingoInternalCursor> = {}
+  private cursors: Record<string, Iterator> = {}
 
   public constructor(
     ns: { db: string; coll: string },
@@ -60,29 +58,49 @@ export class MingoStore<TSchema extends Document> extends Store<TSchema> {
     }
   }
 
-  public async count(filter: Filter<TSchema> = {}, {sort, skip, limit, projection}: FindOptions<TSchema> = {}): Promise<Document> {
-    const cursor = this.makeCursor(filter, {sort, skip, limit, projection});
+  public async count({query, sort, skip, limit}: Document): Promise<Document> {
+    const cursor = this.makeCursor(query, {sort, skip, limit});
     return {n: cursor.count(), ok: 1};
   }
 
-  public async find(filter: Filter<TSchema> = {}, {sort, skip, limit, projection, batchSize}: FindOptions<TSchema> = {}): Promise<Document> {
-    const cursor = this.makeCursor(filter, {sort, skip, limit, projection});
+  public async find({filter ,sort, skip, limit, projection}: Document): Promise<Document> {
+    return this.addCursor(new Iterator(this.makeCursor(filter, {sort, skip, limit, projection}).all()));
+  }
 
-    let firstBatch: TSchema[] = [];
-    if (batchSize) {
-      while(cursor.hasNext() && firstBatch.length < batchSize) {
-        firstBatch.push(cursor.next() as TSchema);
-      }
-    } else {
-      firstBatch = cursor.all() as TSchema[];
-    }
+  public async aggregate({pipeline, batchSize}: Document): Promise<Document> {
+    const aggregator = new MingoInternalAggregator(pipeline, this.options);
+    return this.addCursor(aggregator.stream(this.documents), batchSize)
+  }
 
-    const id = new ObjectID().toHexString();
-    this.cursors[id] = cursor;
-
+  public async getMore({getMore, batchSize}: Document): Promise<Document> {
+    const cursor = this.cursors[getMore];
+    if (!cursor) throw new Error('Invalid cursor');
     return {
       cursor: {
-        firstBatch,
+        nextBatch: this.getBatch(cursor, batchSize),
+        id: getMore,
+        ns: this.ns,
+      },
+      ok: 1,
+    }
+  }
+
+  private getBatch(cursor: Iterator, batchSize: number | undefined = undefined): TSchema[] {
+    let batch: TSchema[] = [];
+    let result = cursor.next();
+    while (!result.done && !batchSize || (batchSize && batch.length < batchSize)) {
+      batch.push(result.value as TSchema);
+      result = cursor.next();
+    }
+    return batch;
+  }
+
+  private async addCursor(it: Iterator, batchSize: number | undefined = undefined): Promise<Document> {
+    const id = new ObjectID().toHexString();
+    this.cursors[id] = it;
+    return {
+      cursor: {
+        firstBatch: this.getBatch(it, batchSize),
         id,
         ns: this.ns,
       },
@@ -90,9 +108,9 @@ export class MingoStore<TSchema extends Document> extends Store<TSchema> {
     }
   }
 
-  private makeCursor(filter: Filter<TSchema> = {}, {sort, skip, limit, projection}: FindOptions<TSchema> = {}): MingoInternalCursor {
+  private makeCursor(filter: Filter<TSchema> = {}, {sort, skip, limit, projection}: FindOptions<TSchema> = {}) {
     const cursor = new Mingo.Query(filter, this.options)
-      .find(this.documents, projection);
+      .find(this.documents, projection)
 
     if (sort) cursor.sort(sort);
     if (skip !== undefined) cursor.skip(skip);

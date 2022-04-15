@@ -1,4 +1,4 @@
-import {Cursor, Document, Filter, FindOptions, SortingDirection, SortingKey, SortingMap, Store} from './interfaces';
+import {AggregateOptions, Cursor, Document, Filter, FindOptions, SortingDirection, SortingKey, SortingMap, Store} from './interfaces';
 
 export function applyFindOptions(cursor: Cursor<any>, options: FindOptions): Cursor<any> {
   if (options.sort) {
@@ -103,7 +103,26 @@ export class FindCursor<TSchema extends Document = Document> extends AbstractCur
   }
 
   protected async fetchAll(): Promise<TSchema[]> {
-    const findResult = await this.store.find(this.filter, this.options);
+    const findResult = await this.store.command({find: this.store.ns.coll, filter: this.filter, ...this.options});
+    return findResult.cursor.firstBatch;
+  }
+}
+
+export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
+  public constructor(
+    protected store: Store<any>,
+    private pipeline: Document[],
+    options: AggregateOptions = {},
+  ) {
+    super({}, options);
+  }
+
+  protected async fetchAll(): Promise<TSchema[]> {
+    const findResult = await this.store.command({
+      aggregate: this.store.ns.coll,
+      pipeline: this.pipeline,
+      ...this.options
+    });
     return findResult.cursor.firstBatch;
   }
 }

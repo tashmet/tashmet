@@ -3,7 +3,6 @@ export {CachingConfig};
 
 import {provider} from '@tashmet/tashmet';
 import {
-  Aggregator,
   CachingLayer,
   MemoryStorageEngine,
   Middleware,
@@ -20,7 +19,7 @@ import {QueryCache} from './query';
 
 @provider({
   key: CachingLayer,
-  inject: [MemoryStorageEngine, CachingConfig, HashCode, Aggregator]
+  inject: [MemoryStorageEngine, CachingConfig, HashCode]
 })
 export default class CachingLayerPlugin implements CachingLayer {
   public constructor(
@@ -63,12 +62,12 @@ export default class CachingLayerPlugin implements CachingLayer {
       write: mutationSideEffect(async (result, cs: ChangeSet<any>) => {
         await cache.write(cs);
       }),
-      count: next => (filter, options) => {
+      count: next => ({filter, options}) => {
         return evaluators.some(e => e.isCached(filter || {}, options || {}))
-          ? cache.count(filter)
-          : next(filter);
+          ? cache.command({count: store.ns.coll, filter, ...options})
+          : next({filter, options});
       },
-      find: next => async (filter, options) => {
+      find: next => async ({filter, options}) => {
         filter = filter || {};
         options = options || {};
 
@@ -77,14 +76,14 @@ export default class CachingLayerPlugin implements CachingLayer {
 
         if (!isCached(evaluators, filter, options)) {
           const incoming = await next(filter);
-          const outgoing = await cache.find(filter);
+          const outgoing = await cache.command({find: store.ns.coll, filter});
           await cache.write(new ChangeSet(incoming.cursor.firstBatch, outgoing.cursor.firstBatch));
 
           for (const evaluator of evaluators) {
             evaluator.success(filter, options);
           }
         }
-        return cache.find(orgFilter, orgOptions);
+        return cache.command({find: store.ns.coll, filter: orgFilter, options: orgOptions});
       },
     } as Middleware;
   }

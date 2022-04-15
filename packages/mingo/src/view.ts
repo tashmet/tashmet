@@ -29,7 +29,7 @@ export class MingoViewFactory extends ViewFactory {
 
     const handleChange = async (change: ChangeStreamDocument<any>) => {
       const newDocs = await viewOf.aggregate<TSchema>(pipeline).toArray();
-      const {cursor: {firstBatch: oldDocs}} = await store.find({});
+      const {cursor: {firstBatch: oldDocs}} = await store.command({find: store.ns.coll, filter: {}});
 
       const cs = this.comparator.difference(oldDocs, newDocs);
       await store.write(cs);

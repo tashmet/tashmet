@@ -1,3 +1,4 @@
+/*
 import 'mingo/init/system';
 import {UpdateWriter, ChangeSet, Namespace, StorageEngine, Document, Store, StoreConfig} from '@tashmet/tashmet';
 import {MingoStore} from '../../src/store';
@@ -69,3 +70,4 @@ describe('UpdateWriter', () => {
     writer.execute({filter: {_id: 1}, update: {$set: {foo: 'bar'}}});
   });
 });
+*/

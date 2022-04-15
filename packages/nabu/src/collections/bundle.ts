@@ -24,7 +24,7 @@ export class BundleStore<TSchema> extends BufferStore<TSchema> {
   }
 
   public async persist() {
-    const findResult = await this.buffer.find();
+    const findResult = await this.buffer.command({find: this.buffer.ns.coll, filter: {}});
     return this.output(Pipeline.fromMany(findResult.cursor.firstBatch as TSchema[]));
   }
 }

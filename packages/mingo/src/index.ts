@@ -15,7 +15,7 @@ import {
   MemoryStorageEngine,
 } from '@tashmet/tashmet';
 import {hashCode, intersection} from 'mingo/util';
-import {MingoAggregator, PrefetchAggregationStrategy} from './aggregator';
+import {/*MingoAggregator,*/ PrefetchAggregationStrategy} from './aggregator';
 import {MingoConfig} from './interfaces';
 import {MingoStore} from './store';
 import {SimpleValidatorFactory} from './validator';
@@ -57,7 +57,7 @@ export default class MingoStorageEngine extends StorageEngine {
       container.register(Provider.ofResolver(ViewFactory, Lookup.of(MingoViewFactory)));
       container.register(Provider.ofInstance(HashCode, hashCode));
       container.register(MingoComparator);
-      container.register(MingoAggregator);
+      // container.register(MingoAggregator);
       container.register(PrefetchAggregationStrategy);
     }
   }

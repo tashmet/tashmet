@@ -12,7 +12,6 @@ import {
   FindOptions,
   provider
 } from '@tashmet/tashmet';
-import { MingoCursor } from './cursor';
 import { MingoStore } from './store';
 
 export interface PrefetchAggregation {
@@ -66,6 +65,7 @@ export class PrefetchAggregationStrategy {
 }
 
 
+/*
 @provider({
   key: Aggregator,
   inject: [Lazy.of(StorageEngine), PrefetchAggregationStrategy]
@@ -86,9 +86,11 @@ export class MingoAggregator implements Aggregator {
 
     if (store instanceof MingoStore) {
       const aggregator = new MingoInternalAggregator(pipeline, mingoOptions);
+      const it = aggregator.stream(store.documents);
+      it.
       return new MingoCursor<T>(aggregator.run(store.documents) as T[]);
     } else {
-      const cursor = new MingoCursor<T>([]);
+      //const cursor = new MingoCursor<T>([]);
       const aggregate = async () => {
         const s = this.prefetchStrategy.create(pipeline);
         const aggregator = new MingoInternalAggregator(s.pipeline, mingoOptions);
@@ -107,3 +109,4 @@ export class MingoAggregator implements Aggregator {
     throw new Error(`Unable to access data buffer for '${ns.db}.${ns.coll}'`);
   }
 }
+*/

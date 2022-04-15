@@ -27,12 +27,8 @@ export abstract class BufferStore<TSchema> extends Store<TSchema> {
 
   protected abstract persist(cs: ChangeSet<TSchema>): Promise<void>;
 
-  public find(filter?: Filter<TSchema>, options?: FindOptions): Promise<Document> {
-    return this.buffer.find(filter, options);
-  }
-
-  public count(filter?: Filter<TSchema>, options?: FindOptions): Promise<Document> {
-    return this.buffer.count(filter, options);
+  public command(command: Document): Promise<Document> {
+    return this.buffer.command(command);
   }
 
   public async populate(seed: Pipeline<TSchema> | undefined) {

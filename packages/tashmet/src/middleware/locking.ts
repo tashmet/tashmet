@@ -26,9 +26,9 @@ export const locked = (locks: Promise<any>[]) => () => {
       await resolveLocks();
       return next(cs);
     },
-    find: next => async (filter, options) => {
+    command: next => async (command: Document) => {
       await resolveLocks();
-      return next(filter, options);
+      return next(command);
     }
   } as Middleware;
 }

@@ -21,7 +21,7 @@ import {
 } from "./interfaces";
 import {ChangeStream} from "./changeStream";
 import {BulkWriteOperationFactory} from "./operations/bulk";
-import { AbstractCursor, FindCursor } from "./cursor";
+import {AggregationCursor, FindCursor} from "./cursor";
 
 /**
  * A collection of documents.
@@ -33,9 +33,9 @@ export class Collection<TSchema extends Document = any> {
   public constructor(
     private store: Store<TSchema>,
     private db: Database,
-    private aggregator: Aggregator | undefined = undefined,
+    // private aggregator: Aggregator | undefined = undefined,
   ) {
-    this.writeOpFactory = BulkWriteOperationFactory.fromStore(store, aggregator);
+    this.writeOpFactory = BulkWriteOperationFactory.fromStore(store);
     this.store.on('change', change => {
       for (const changeStream of this.changeStreams) {
         changeStream.emit('change', change);
@@ -65,11 +65,15 @@ export class Collection<TSchema extends Document = any> {
   }
 
   public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): Cursor<T> {
+    return new AggregationCursor<T>(this.store, pipeline, options);
+    /*
     if (this.aggregator) {
       return this.aggregator.execute({db: this.dbName, coll: this.collectionName}, pipeline, options);
     } else {
       throw new Error('No Aggregator registered with container');
     }
+    */
+
   }
 
   /**

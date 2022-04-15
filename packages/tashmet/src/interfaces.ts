@@ -564,9 +564,20 @@ export abstract class Store<TSchema extends Document>
 
   public abstract write(changeSet: ChangeSet<TSchema>): Promise<void>;
 
-  public abstract count(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<Document>;
+  protected count(command: Document): Promise<Document> { throw new Error(`Unsupported command: 'count'`); }
+  protected find(command: Document): Promise<Document> { throw new Error(`Unsupported command: 'find'`); }
+  protected aggregate(command: Document): Promise<Document> { throw new Error(`Unsupported command: 'aggregate'`); }
 
-  public abstract find(filter?: Filter<TSchema>, options?: FindOptions<TSchema>): Promise<Document>;
+  public command(command: Document): Promise<Document> {
+    if (command.hasOwnProperty('find')) {
+      return this.find(command);
+    } else if (command.hasOwnProperty('count')) {
+      return this.count(command);
+    } else if (command.hasOwnProperty('aggregate')) {
+      return this.aggregate(command);
+    }
+    throw new Error(`Unsupported command: '${JSON.stringify(command)}'`);
+  }
 }
 
 export type CollectionResolver = (name: string) => any[];
@@ -631,13 +642,14 @@ export abstract class CollectionFactory {
 
 export type MiddlewareHook<T> = (next: T) => T;
 
-export type Find<T> = (filter?: Filter<T>, options?: FindOptions) => Promise<Document>;
+export type Command<T> = (command: Document) => Promise<Document>;
 export type Write<T> = (changeSet: ChangeSet<T>) => Promise<void>;
 
 
 export interface Middleware<T = any> {
-  find?: MiddlewareHook<Find<T>>;
-  count?: MiddlewareHook<Find<T>>;
+  command?: MiddlewareHook<Command<T>>;
+  find?: MiddlewareHook<Command<T>>;
+  count?: MiddlewareHook<Command<T>>;
   write?: MiddlewareHook<Write<T>>;
 }
 

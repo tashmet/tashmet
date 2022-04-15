@@ -29,7 +29,7 @@ export class DatabaseService implements Database {
     private logger: Logger,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
-    private aggregator: Aggregator | undefined,
+    //private aggregator: Aggregator | undefined,
   ) {}
 
   public collection(name: string): Collection {
@@ -78,7 +78,7 @@ export class DatabaseService implements Database {
           }
         }
       }
-      const c = new Collection<T>(store, this, this.aggregator);
+      const c = new Collection<T>(store, this);
       this.collMap[name] = c;
       this.engine.register(store);
 
@@ -117,7 +117,7 @@ export class DatabaseService implements Database {
     Logger,
     Optional.of(ValidatorFactory),
     Optional.of(ViewFactory),
-    Optional.of(Aggregator),
+    //Optional.of(Aggregator),
   ]
 })
 export class DefaultDatabaseFactory implements DatabaseFactory {
@@ -126,10 +126,10 @@ export class DefaultDatabaseFactory implements DatabaseFactory {
     private logger: Logger,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
-    private aggregator: Aggregator | undefined,
+    //private aggregator: Aggregator | undefined,
   ) {}
 
   createDatabase(name: string): Database {
-    return new DatabaseService(name, this.engine, this.logger, this.validatorFactory, this.viewFactory, this.aggregator);
+    return new DatabaseService(name, this.engine, this.logger, this.validatorFactory, this.viewFactory, /*this.aggregator*/);
   }
 }
