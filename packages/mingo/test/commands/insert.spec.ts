@@ -1,16 +1,8 @@
-import 'mingo/init/basic';
-import {InsertCommandHandler} from '../../src/commands/insert';
-//import {MingoStore} from '../../src/store';
 import {expect} from 'chai';
-import * as chai from 'chai';
-import * as sinon from 'sinon';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
 import 'mocha';
-import { MingoDatabaseStore } from '../../src/command';
+import {MingoDatabaseStore} from '../../src/command';
+import {InsertCommandHandler} from '../../src/commands/insert';
 
-chai.use(chaiAsPromised)
-chai.use(sinonChai);
 
 let store: MingoDatabaseStore;
 

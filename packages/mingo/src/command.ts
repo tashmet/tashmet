@@ -19,6 +19,6 @@ export class MingoDatabaseStore {
   }
 }
 
-export class MingoCommandHander {
+export class MingoCommandHandler {
   public constructor(protected store: MingoDatabaseStore, protected options: MingoOptions) {}
 }

@@ -2,9 +2,9 @@ import ObjectID from 'bson-objectid';
 import { Query } from 'mingo';
 import { Iterator } from 'mingo/lazy';
 import { Document } from '@tashmet/tashmet';
-import { MingoCommandHander } from '../command';
+import { MingoCommandHandler } from '../command';
 
-export abstract class CursorCommandHandler extends MingoCommandHander {
+export abstract class CursorCommandHandler extends MingoCommandHandler {
   protected makeCursor(collName: string, {filter, sort, skip, limit, projection, collation}: Document) {
     const cursor = new Query(filter, {...this.options, collation})
       .find(this.store.collections[collName], projection);

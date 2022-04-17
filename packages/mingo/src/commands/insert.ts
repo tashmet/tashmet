@@ -1,8 +1,8 @@
 import ObjectID from 'bson-objectid';
 import {Document} from '@tashmet/tashmet';
-import {MingoCommandHander} from '../command';
+import {MingoCommandHandler} from '../command';
 
-export class InsertCommandHandler extends MingoCommandHander {
+export class InsertCommandHandler extends MingoCommandHandler {
   public execute({insert: coll, documents, ordered}: Document) {
     let writeErrors: any[] = [];
     let n=0;
