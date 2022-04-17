@@ -10,9 +10,9 @@ import {
   provider,
   Provider,
   StorageEngine,
+  MemoryStorageEngine,
   StoreConfig,
   ViewFactory,
-  MemoryStorageEngine,
 } from '@tashmet/tashmet';
 import {hashCode, intersection} from 'mingo/util';
 import {/*MingoAggregator,*/ PrefetchAggregationStrategy} from './aggregator';

@@ -1,20 +1,25 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MingoDatabaseStore } from '../../src/command';
+import { MemoryStorageEngine, MingoCursorRegistry } from '../../src/storageEngine';
 import { FindCommandHandler } from '../../src/commands/find';
 import { GetMoreCommandHandler } from '../../src/commands/getMore';
 
 
-let store: MingoDatabaseStore;
+let store = new MemoryStorageEngine('testdb');
+let cursors = new MingoCursorRegistry();
+let find: FindCommandHandler;
+let getMore: GetMoreCommandHandler;
 
 describe('FindCommandHandler', () => {
-  describe('without query', () => {
-    before(() => {
-      store = new MingoDatabaseStore('testdb', {'test': []});
-    });
+  before(async () => {
+    await store.create('test');
+    find = new FindCommandHandler(cursors, store);
+    getMore = new GetMoreCommandHandler(cursors, store);
+  });
 
-    it('should return empty batch on empty collection', () => {
-      const {cursor, ok} = new FindCommandHandler(store, {}).execute({
+  describe('without query', () => {
+    it('should return empty batch on empty collection', async () => {
+      const {cursor, ok} = await find.execute({
         find: 'test',
       });
       expect(ok).to.eql(1);
@@ -22,9 +27,9 @@ describe('FindCommandHandler', () => {
       expect(cursor.ns).to.eql({db: 'testdb', coll: 'test'});
     });
 
-    it('should return correct result on non-empty collection', () => { 
-      store.collections['test'].push({title: 'foo'});
-      const {cursor, ok} = new FindCommandHandler(store, {}).execute({
+    it('should return correct result on non-empty collection', async () => { 
+      await store.insert('test', {title: 'foo'});
+      const {cursor, ok} = await find.execute({
         find: 'test',
       });
       expect(ok).to.eql(1);
@@ -34,24 +39,24 @@ describe('FindCommandHandler', () => {
   });
 
   describe('with query', () => {
-    before(() => {
-      store = new MingoDatabaseStore('testdb', {'test': [
-        {_id: 1, title: 'foo', author: 'bar'},
-        {_id: 2, title: 'foo', author: 'baz'},
-        {_id: 3, title: 'bar', author: 'foo'},
-      ]});
+    before(async () => {
+      await store.drop('test');
+      await store.create('test');
+      await store.insert('test', {_id: 1, title: 'foo', author: 'bar'});
+      await store.insert('test', {_id: 2, title: 'foo', author: 'baz'});
+      await store.insert('test', {_id: 3, title: 'bar', author: 'foo'});
     });
 
-    it('should return empty batch when no document matches query', () => {
-      const {cursor} = new FindCommandHandler(store, {}).execute({
+    it('should return empty batch when no document matches query', async () => {
+      const {cursor} = await find.execute({
         find: 'test',
         filter: {title: 'baz'}
       });
       expect(cursor.firstBatch).to.eql([]);
     });
 
-    it('should return correct batch when documents match query', () => {
-      const {cursor} = new FindCommandHandler(store, {}).execute({
+    it('should return correct batch when documents match query', async () => {
+      const {cursor} = await find.execute({
         find: 'test',
         filter: {title: 'foo'}
       });
@@ -61,8 +66,8 @@ describe('FindCommandHandler', () => {
       ]);
     });
 
-    it('should handle skip', () => {
-      const {cursor} = new FindCommandHandler(store, {}).execute({
+    it('should handle skip', async () => {
+      const {cursor} = await find.execute({
         find: 'test',
         filter: {title: 'foo'},
         skip: 1,
@@ -72,8 +77,8 @@ describe('FindCommandHandler', () => {
       ]);
     });
 
-    it('should handle limit', () => {
-      const {cursor} = new FindCommandHandler(store, {}).execute({
+    it('should handle limit', async () => {
+      const {cursor} = await find.execute({
         find: 'test',
         filter: {title: 'foo'},
         limit: 1
@@ -88,15 +93,15 @@ describe('FindCommandHandler', () => {
     let cursorId: undefined;
 
     before(() => {
-      store = new MingoDatabaseStore('testdb', {'test': [
+      store = new MemoryStorageEngine('testdb', {'test': [
         {_id: 1, title: 'foo', author: 'bar'},
         {_id: 2, title: 'foo', author: 'baz'},
         {_id: 3, title: 'bar', author: 'foo'},
       ]});
     });
 
-    it('should get initial batch', () => {
-      const {cursor} = new FindCommandHandler(store, {}).execute({
+    it('should get initial batch', async () => {
+      const {cursor} = await find.execute({
         find: 'test',
         filter: {title: 'foo'},
         batchSize: 1,
@@ -107,8 +112,8 @@ describe('FindCommandHandler', () => {
       ]);
     });
 
-    it('should get more', () => {
-      const {cursor} = new GetMoreCommandHandler(store, {}).execute({
+    it('should get more', async () => {
+      const {cursor} = await getMore.execute({
         getMore: cursorId,
         collection: 'test',
         batchSize: 1,

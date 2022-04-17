@@ -1,9 +1,9 @@
 import ObjectID from 'bson-objectid';
-import {Document} from '@tashmet/tashmet';
-import {MingoCommandHandler} from '../command';
+import { Document } from '../interfaces';
+import { MingoCommandHandler } from '../command';
 
 export class InsertCommandHandler extends MingoCommandHandler {
-  public execute({insert: coll, documents, ordered}: Document) {
+  public async execute({insert: coll, documents, ordered}: Document) {
     let writeErrors: any[] = [];
     let n=0;
 
@@ -12,12 +12,12 @@ export class InsertCommandHandler extends MingoCommandHandler {
 
       if (!documents[i].hasOwnProperty('_id')) {
         documents[i]._id = new ObjectID().toHexString();
-      } else if (this.store.indexOf(coll, documents[i]) >= 0) {
+      } else if (this.store.documents(coll).findIndex(o => o._id === documents[i]._id) >= 0) {
         error = {index: i, errMsg: 'Duplicate key error'};
       }
 
       if (error === undefined) {
-        this.store.collections[coll].push(documents[i]);
+        this.store.insert(coll, documents[i]);
         n++;
       } else {
         writeErrors.push(error);
