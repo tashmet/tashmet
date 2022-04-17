@@ -38,6 +38,8 @@ export interface StorageEngine {
 
   delete(collection: string, id: string): Promise<void>;
 
+  replace(collection: string, id: string, document: Document): Promise<void>;
+
   flush(): Promise<void>;
 }
 

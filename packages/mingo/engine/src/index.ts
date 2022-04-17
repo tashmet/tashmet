@@ -8,6 +8,7 @@ import { InsertCommandHandler } from './commands/insert';
 import { DatabaseEngine, MingoConfig, StorageEngine } from './interfaces';
 import { CreateCommandHandler } from './commands/create';
 import { DropCommandHandler } from './commands/drop';
+import { UpdateCommandHandler } from './commands/update';
 
 export class MingoDatabaseEngine extends DatabaseEngine {
   public static inMemory(databaseName: string, config: Partial<MingoConfig> = {}) {
@@ -20,6 +21,7 @@ export class MingoDatabaseEngine extends DatabaseEngine {
       'find': new FindCommandHandler(cursors, store, options),
       'insert': new InsertCommandHandler(store, options),
       'delete': new DeleteCommandHandler(store, options),
+      'update': new UpdateCommandHandler(store, options),
       'count': new CountCommandHandler(cursors, store, options),
       'aggregate': new AggregateCommandHandler(cursors, store, options),
       'distinct': new DistinctCommandHandler(store, options),

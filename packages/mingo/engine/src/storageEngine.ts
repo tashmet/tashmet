@@ -28,6 +28,11 @@ export class MemoryStorageEngine implements StorageEngine {
     this.collections[collection] = this.collections[collection].filter(o => o._id !== id);
   }
 
+  public async replace(collection: string, id: string, document: Document): Promise<void> {
+    const index = this.documents(collection).findIndex(o => o._id === id);
+    this.collections[collection].splice(index, 1, document);
+  }
+
   public async flush(): Promise<void> {
   }
 
