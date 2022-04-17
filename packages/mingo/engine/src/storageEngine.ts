@@ -33,9 +33,7 @@ export class MemoryStorageEngine implements StorageEngine {
     this.collections[collection].splice(index, 1, document);
   }
 
-  public async flush(): Promise<void> {
-  }
-
+  public async flush(): Promise<void> {}
 }
 
 export class MingoCursorRegistry {
