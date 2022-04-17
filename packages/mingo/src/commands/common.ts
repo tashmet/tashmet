@@ -32,9 +32,15 @@ export abstract class CursorCommandHandler extends MingoCommandHandler {
   protected getBatch(it: Iterator, batchSize: number | undefined = undefined): Document[] {
     let batch: Document[] = [];
     let result = it.next();
-    while (!result.done && !batchSize || (batchSize && batch.length < batchSize)) {
+
+    while (!result.done) {
       batch.push(result.value as Document);
-      result = it.next();
+
+      if (!batchSize || (batchSize && batch.length < batchSize)) {
+        result = it.next();
+      } else {
+        break;
+      }
     }
     return batch;
   }

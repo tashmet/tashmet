@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import { MingoDatabaseStore } from '../../src/command';
 import { FindCommandHandler } from '../../src/commands/find';
+import { GetMoreCommandHandler } from '../../src/commands/getMore';
 
 
 let store: MingoDatabaseStore;
@@ -60,17 +61,6 @@ describe('FindCommandHandler', () => {
       ]);
     });
 
-    it('should handle custom batch size', () => {
-      const {cursor} = new FindCommandHandler(store, {}).execute({
-        find: 'test',
-        filter: {title: 'foo'},
-        batchSize: 1,
-      });
-      expect(cursor.firstBatch).to.eql([
-        {_id: 1, title: 'foo', author: 'bar'},
-      ]);
-    });
-
     it('should handle skip', () => {
       const {cursor} = new FindCommandHandler(store, {}).execute({
         find: 'test',
@@ -90,6 +80,41 @@ describe('FindCommandHandler', () => {
       });
       expect(cursor.firstBatch).to.eql([
         {_id: 1, title: 'foo', author: 'bar'},
+      ]);
+    });
+  });
+
+  describe('custom batch size', () => {
+    let cursorId: undefined;
+
+    before(() => {
+      store = new MingoDatabaseStore('testdb', {'test': [
+        {_id: 1, title: 'foo', author: 'bar'},
+        {_id: 2, title: 'foo', author: 'baz'},
+        {_id: 3, title: 'bar', author: 'foo'},
+      ]});
+    });
+
+    it('should get initial batch', () => {
+      const {cursor} = new FindCommandHandler(store, {}).execute({
+        find: 'test',
+        filter: {title: 'foo'},
+        batchSize: 1,
+      });
+      cursorId = cursor.id;
+      expect(cursor.firstBatch).to.eql([
+        {_id: 1, title: 'foo', author: 'bar'},
+      ]);
+    });
+
+    it('should get more', () => {
+      const {cursor} = new GetMoreCommandHandler(store, {}).execute({
+        getMore: cursorId,
+        collection: 'test',
+        batchSize: 1,
+      });
+      expect(cursor.nextBatch).to.eql([
+        {_id: 2, title: 'foo', author: 'baz'},
       ]);
     });
   });
