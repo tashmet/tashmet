@@ -9,6 +9,7 @@ import { DatabaseEngine, MingoConfig, StorageEngine } from './interfaces';
 import { CreateCommandHandler } from './commands/create';
 import { DropCommandHandler } from './commands/drop';
 import { UpdateCommandHandler } from './commands/update';
+import { GetMoreCommandHandler } from './commands/getMore';
 
 export class MingoDatabaseEngine extends DatabaseEngine {
   public static inMemory(databaseName: string, config: Partial<MingoConfig> = {}) {
@@ -16,9 +17,14 @@ export class MingoDatabaseEngine extends DatabaseEngine {
     return new MingoDatabaseEngine(new MemoryStorageEngine(databaseName), cursors, config);
   }
 
-  public constructor(store: StorageEngine, cursors: MingoCursorRegistry, options: MingoConfig) {
+  public constructor(
+    store: StorageEngine,
+    cursors: MingoCursorRegistry = new MingoCursorRegistry(),
+    options: MingoConfig = {}
+  ) {
     super({
       'find': new FindCommandHandler(cursors, store, options),
+      'getMore': new GetMoreCommandHandler(cursors, store, options),
       'insert': new InsertCommandHandler(store, options),
       'delete': new DeleteCommandHandler(store, options),
       'update': new UpdateCommandHandler(store, options),

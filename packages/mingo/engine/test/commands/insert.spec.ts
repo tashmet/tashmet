@@ -1,13 +1,13 @@
 import {expect} from 'chai';
 import 'mocha';
-import {MemoryStorageEngine} from '../../src/storageEngine';
-import {InsertCommandHandler} from '../../src/commands/insert';
+import { MingoDatabaseEngine } from '../../src';
+import { MemoryStorageEngine } from '../../src/storageEngine';
 
 
 let store = new MemoryStorageEngine('testdb');
-let insert = new InsertCommandHandler(store);
+let engine = new MingoDatabaseEngine(store);
 
-describe('InsertCommandHandler', () => {
+describe('insert', () => {
   describe('successful insert', () => {
     before(async () => {
       await store.create('test');
@@ -18,7 +18,7 @@ describe('InsertCommandHandler', () => {
     });
 
     it('should return correct result on success', async () => {
-      const result = await insert.execute({
+      const result = await engine.command({
         insert: 'test',
         documents: [{title: 'foo'}, {title: 'bar'}]
       });
@@ -43,7 +43,7 @@ describe('InsertCommandHandler', () => {
     });
 
     it('should insert remaining documents after initial fail when not ordered', async () => {
-      const result = await insert.execute({
+      const result = await engine.command({
         insert: 'test',
         documents: [{_id: 1, title: 'foo'}, {_id: 2, title: 'bar'}],
       });
@@ -51,7 +51,7 @@ describe('InsertCommandHandler', () => {
     });
 
     it('should not insert remaining documents after initial fail when ordered', async () => {
-      const result = await insert.execute({
+      const result = await engine.command({
         insert: 'test',
         documents: [{_id: 1, title: 'foo'}, {_id: 2, title: 'bar'}],
         ordered: true,

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MemoryStorageEngine, MingoCursorRegistry } from '../../src/storageEngine';
+import { MemoryStorageEngine } from '../../src/storageEngine';
 import { MingoDatabaseEngine } from '../../src';
 
 
@@ -10,10 +10,9 @@ let store = new MemoryStorageEngine('testdb', {'test': [
   { _id: 3, category: "pie", type: "boston cream", qty: 20 },
   { _id: 4, category: "pie", type: "blueberry", qty: 15 }
 ]});
-let cursors = new MingoCursorRegistry();
-let engine = new MingoDatabaseEngine(store, cursors, {});
+let engine = new MingoDatabaseEngine(store);
 
-describe('CountCommandHandler', () => {
+describe('count', () => {
   describe('without query', () => {
     it('should return total document count', async () => {
       const result = await engine.command({
