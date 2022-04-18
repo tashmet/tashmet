@@ -35,6 +35,22 @@ describe('update', () => {
     expect(result).to.eql({ok: 1, n: 0, nModified: 0, upserted: []});
   });
 
+  it('should upsert when specified', async () => {
+    const result = await engine.command({
+      update: 'test',
+      updates: [
+        {q: {_id: 5}, u: {_id: 5, category: 'candy', type: 'chocolate'}, upsert: true}
+      ]
+    });
+    expect(result).to.eql({
+      ok: 1,
+      n: 1,
+      nModified: 0,
+      upserted: [
+        { index: 0, _id: 5 }
+    ]});
+  });
+
   it('should update multiple documents', async () => {
     const result = await engine.command({
       update: 'test',

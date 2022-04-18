@@ -1,3 +1,4 @@
+import { CollationOptions } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
 import { MingoCommandHandler } from '../command';
 import { Document } from '../interfaces';
@@ -8,16 +9,30 @@ export class UpdateCommandHandler extends MingoCommandHandler {
     let n = 0;
     let upserted: Document[] = [];
 
+    const aggregate = (pipeline: Document[], collation?: CollationOptions): Document[] => {
+      return new Aggregator(pipeline, {...this.options, collation})
+        .run(this.store.documents(collName)) as Document[];
+    }
+
     for (const {q, u, upsert, multi, collation} of updates) {
-      const pipeline = Array.isArray(u) ? u : Object.entries(u).reduce((acc, [k, v]) => {
-        return acc.concat([{[k]: v}]);
-      }, [] as Document[]);
+      let pipeline: Document[] = [];
+
+      if (Array.isArray(u)) {
+        pipeline = u;
+      } else if (Object.keys(u)[0].charAt(0) === '$') {
+        pipeline = Object.entries(u).reduce<Document[]>((acc, [k, v]) => acc.concat([{[k]: v}]), []);
+      } else {
+        pipeline = [{$set: u}];
+      }
 
       if (multi !== true) {
         pipeline.unshift({$limit: 1});
       }
-      const output = new Aggregator([{$match: q || {}}, ...pipeline], {...this.options, collation})
-        .run(this.store.documents(collName)) as Document[];
+      let output = aggregate([{$match: q || {}}, ...pipeline], collation);
+
+      if (output.length === 0 && upsert) {
+        output = aggregate(pipeline, collation);
+      }
 
       for (const doc of output) {
         if (this.store.documents(collName).findIndex(o => o._id === doc._id) === -1) {
