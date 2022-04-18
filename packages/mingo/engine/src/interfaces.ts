@@ -33,6 +33,8 @@ export interface StorageEngine {
   drop(collection: string): Promise<void>;
 
   documents(collection: string): Document[];
+  
+  index(collection: string, id: string): number | undefined;
 
   insert(collection: string, document: Document): Promise<void>;
 

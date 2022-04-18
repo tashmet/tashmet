@@ -35,7 +35,7 @@ export class UpdateCommandHandler extends MingoCommandHandler {
       }
 
       for (const doc of output) {
-        if (this.store.documents(collName).findIndex(o => o._id === doc._id) === -1) {
+        if (this.store.index(collName, doc._id) === undefined) {
           if (upsert) {
             await this.store.insert(collName, doc);
             upserted.push({index: upserted.length, _id: doc._id});

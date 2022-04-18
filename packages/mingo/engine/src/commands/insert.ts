@@ -12,7 +12,7 @@ export class InsertCommandHandler extends MingoCommandHandler {
 
       if (!documents[i].hasOwnProperty('_id')) {
         documents[i]._id = new ObjectID().toHexString();
-      } else if (this.store.documents(coll).findIndex(o => o._id === documents[i]._id) >= 0) {
+      } else if (this.store.index(coll, documents[i]._id) !== undefined) {
         error = {index: i, errMsg: 'Duplicate key error'};
       }
 
