@@ -1,10 +1,22 @@
 import ObjectID from 'bson-objectid';
-import { Query } from 'mingo';
 import { Iterator } from 'mingo/lazy';
 import { Options as MingoOptions } from 'mingo/core';
 import { Document, StorageEngine } from '../interfaces';
 import { MingoCommandHandler } from '../command';
 import { MingoCursorRegistry } from '../storageEngine';
+
+
+export const makeQueryPipeline = ({filter, sort, skip, limit, projection}: Document) => {
+  const operators: Document[] = [];
+
+  if (filter) operators.push({$match: filter});
+  if (sort) operators.push({$sort: sort});
+  if (skip) operators.push({$skip: skip});
+  if (limit) operators.push({$limit: limit});
+  if (projection) operators.push({$project: projection});
+
+  return operators;
+}
 
 export abstract class CursorCommandHandler extends MingoCommandHandler {
   public constructor(
@@ -12,17 +24,6 @@ export abstract class CursorCommandHandler extends MingoCommandHandler {
     store: StorageEngine,
     options: MingoOptions = {}
   ) { super(store, options); }
-
-  protected makeCursor(collName: string, {filter, sort, skip, limit, projection, collation}: Document) {
-    const cursor = new Query(filter, {...this.options, collation})
-      .find(this.store.documents(collName), projection);
-
-    if (sort) cursor.sort(sort);
-    if (skip !== undefined) cursor.skip(skip);
-    if (limit !== undefined) cursor.limit(limit);
-
-    return cursor;
-  }
 
   protected addCursor(collName: string, it: Iterator, batchSize: number | undefined = undefined): Document {
     const id = new ObjectID().toHexString();
