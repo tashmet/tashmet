@@ -25,6 +25,13 @@ export * from './transform';
 export * from './gates';
 export * as Pipes from './pipes';
 
+import {useOperators, OperatorType} from 'mingo/core';
+import {Aggregator} from 'mingo/aggregator';
+import {$jsonParse, $jsonDump} from './operators/json';
+import {$yamlParse, $yamlDump} from './operators/yaml';
+
+useOperators(OperatorType.PIPELINE, { $jsonParse, $jsonDump, $yamlParse, $yamlDump });
+
 
 @provider()
 export default class Nabu {
@@ -40,6 +47,14 @@ export default class Nabu {
     private fileAccess: FileAccess,
     private comparator: Comparator,
   ) {}
+
+  public async aggregate<T extends Document = Document>(path: string, pipeline: Document[]) {
+    return new Aggregator(pipeline).run(await this.fileAccess.read(path).toArray()) as T[];
+  }
+
+  public async write(documents: Document[]) {
+    return this.fileAccess.write(Pipeline.fromMany(documents as any));
+  }
 
   public file<T extends object = any, TStored extends object = T>(config: FileConfig<T, TStored> & StoreConfig): Store<T> {
     const {path, serializer, dictionary, afterParse, beforeSerialize} = config;

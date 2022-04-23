@@ -157,3 +157,17 @@ export type DirectoryContentConfig<T = any, TStored = T> =
   DirectoryConfig<T> & FileContentConfig<T, TStored> & ExtractedFileContentConfig<T>;
 
   export type ShardOutput<T> = (source: Pipeline<T>, deletion: boolean) => Promise<void>;
+
+
+export type Encoding =
+  'utf-8' |
+  'ascii' |
+  'utf8' |
+  'utf16le' |
+  'ucs2' |
+  'ucs-2' |
+  'base64' |
+  'latin1' |
+  'binary' |
+  'hex' |
+  undefined;
