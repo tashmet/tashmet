@@ -4,7 +4,7 @@ import { RawObject } from "mingo/types";
 import { setValue, removeValue, resolve } from "mingo/util";
 
 import jsYaml = require('js-yaml');
-import { Encoding } from "../interfaces";
+import { Encoding, Transform } from "../interfaces";
 const yamlFront = require('yaml-front-matter');
 
 /**
@@ -181,4 +181,11 @@ export function $yamlDump(
 
     return newObj;
   });
+}
+
+export const yaml = (encoding: Encoding = 'utf8') => {
+  return {
+    input: [{$yamlParse: {key: 'content', encoding}}],
+    output: [{$yamlDump: {key: 'content', encoding}}],
+  } as Transform;
 }
