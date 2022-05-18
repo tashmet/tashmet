@@ -81,7 +81,7 @@ describe('find', () => {
   });
 
   describe('custom batch size', () => {
-    let cursorId: undefined;
+    let cursorId: number | undefined;
 
     it('should get initial batch', async () => {
       const {cursor} = await engine.command({

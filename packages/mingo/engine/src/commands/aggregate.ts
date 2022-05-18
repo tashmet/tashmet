@@ -1,12 +1,15 @@
-import { Aggregator } from 'mingo';
-import { Document } from '../interfaces';
-import { CursorCommandHandler } from './common';
+import { DatabaseCommandHandler, Document } from '../interfaces';
 
-export class AggregateCommandHandler extends CursorCommandHandler {
-  public async execute({aggregate: collName, pipeline, cursor, collation}: Document) {
-    const it = new Aggregator(pipeline, {...this.options, collation})
-      .stream(this.store.documents(collName));
-
-    return this.addCursor(collName, it, cursor ? cursor.batchSize : undefined);
+export const $aggregate: DatabaseCommandHandler 
+  = async (engine, {aggregate: coll, pipeline, cursor, collation}: Document) =>
+{
+  const c = engine.openCursor(coll, pipeline, collation);
+  return {
+    cursor: {
+      firstBatch: await c.getBatch(cursor ? cursor.batchSize: undefined) ,
+      id: c.id,
+      ns: {db: engine.store.databaseName, coll},
+    },
+    ok: 1,
   }
 }

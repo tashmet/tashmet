@@ -1,31 +1,26 @@
-import * as Mingo from 'mingo';
-import { Document } from '../interfaces';
-import { MingoCommandHandler } from '../command';
+import { Document, DatabaseCommandHandler } from '../interfaces';
+import { makeQueryPipeline } from './common';
 
-export class DeleteCommandHandler extends MingoCommandHandler {
-  public async execute({delete: collName, deletes}: Document) {
-    let n=0;
-    const coll = this.store.documents(collName);
 
-    for (const {q, limit, collation} of deletes) {
-      const cursor = new Mingo.Query(q, {...this.options, collation}).find(coll);
-      const size = coll.length;
-    
-      if (typeof limit === 'number') {
-        cursor.limit(limit);
+export const $delete: DatabaseCommandHandler 
+  = async (engine, {delete: collName, deletes}: Document) =>
+{
+  let n = 0;
+
+  for (const {q, limit, collation} of deletes) {
+    const pipeline = makeQueryPipeline({q, limit});
+    const cursor = engine.openCursor(collName, pipeline, collation);
+
+    const matched = await cursor.toArray();
+
+    if (matched.length > 0) {
+      for (const doc of matched) {
+        engine.store.delete(collName, doc._id);
       }
-
-      const matched = cursor.all() as Document[];
-
-      if (matched.length > 0) {
-        for (const doc of matched) {
-          this.store.delete(collName, doc._id);
-        }
-      }
-
-      n += size - matched.length;
     }
 
-    return {n, ok: 1};
+    n += matched.length;
   }
+
+  return {n, ok: 1};
 }

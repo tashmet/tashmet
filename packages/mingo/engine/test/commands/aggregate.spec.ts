@@ -29,7 +29,7 @@ describe('aggregate', () => {
   });
 
   describe('custom batch size', () => {
-    let cursorId: undefined;
+    let cursorId: number | undefined;
 
     it('should handle custom batch size', async () => {
       const {cursor} = await engine.command({

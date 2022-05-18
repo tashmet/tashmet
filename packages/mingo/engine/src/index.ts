@@ -1,38 +1,36 @@
-import { MemoryStorageEngine, MingoCursorRegistry } from './storageEngine';
-import { AggregateCommandHandler } from './commands/aggregate';
-import { CountCommandHandler } from './commands/count';
-import { DeleteCommandHandler } from './commands/delete';
-import { DistinctCommandHandler } from './commands/distinct';
-import { FindCommandHandler } from './commands/find';
-import { InsertCommandHandler } from './commands/insert';
-import { DatabaseEngine, MingoConfig, StorageEngine } from './interfaces';
-import { CreateCommandHandler } from './commands/create';
-import { DropCommandHandler } from './commands/drop';
-import { UpdateCommandHandler } from './commands/update';
-import { GetMoreCommandHandler } from './commands/getMore';
+import { MemoryStorageEngine } from './storageEngine';
+import { $aggregate } from './commands/aggregate';
+import { $count } from './commands/count';
+import { $create } from './commands/create';
+import { $delete } from './commands/delete';
+import { $distinct } from './commands/distinct';
+import { $drop } from './commands/drop';
+import { $find } from './commands/find';
+import { $getMore } from './commands/getMore';
+import { $insert } from './commands/insert';
+import { $update } from './commands/update';
+import { AbstractAggregator, AggregatorFactory, DatabaseEngine, Document, MingoConfig, StorageEngine } from './interfaces';
+import { BufferAggregator } from './aggregator';
+
+export class MingoAggregatorFactory implements AggregatorFactory {
+  public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
+    return new BufferAggregator(pipeline, options);
+  }
+}
 
 export class MingoDatabaseEngine extends DatabaseEngine {
   public static inMemory(databaseName: string, config: Partial<MingoConfig> = {}) {
-    const cursors = new MingoCursorRegistry();
-    return new MingoDatabaseEngine(new MemoryStorageEngine(databaseName), cursors, config);
+    const aggFact = new MingoAggregatorFactory();
+    return new MingoDatabaseEngine(new MemoryStorageEngine(databaseName), aggFact, config);
   }
 
   public constructor(
     store: StorageEngine,
-    cursors: MingoCursorRegistry = new MingoCursorRegistry(),
+    aggFact: AggregatorFactory = new MingoAggregatorFactory(),
     options: MingoConfig = {}
   ) {
-    super({
-      'find': new FindCommandHandler(cursors, store, options),
-      'getMore': new GetMoreCommandHandler(cursors, store, options),
-      'insert': new InsertCommandHandler(store, options),
-      'delete': new DeleteCommandHandler(store, options),
-      'update': new UpdateCommandHandler(store, options),
-      'count': new CountCommandHandler(cursors, store, options),
-      'aggregate': new AggregateCommandHandler(cursors, store, options),
-      'distinct': new DistinctCommandHandler(store, options),
-      'create': new CreateCommandHandler(store, options),
-      'drop': new DropCommandHandler(store, options),
+    super(store, aggFact, {
+      $aggregate, $count, $create, $delete, $distinct, $drop, $find, $getMore, $insert, $update,
     });
   }
 }

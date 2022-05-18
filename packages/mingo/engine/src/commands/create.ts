@@ -1,14 +1,8 @@
-import { Document } from '../interfaces';
-import { MingoCommandHandler } from '../command';
+import { Document, DatabaseCommandHandler } from '../interfaces';
 
-export class CreateCommandHandler extends MingoCommandHandler {
-  public async execute({create: coll, viewOn, pipeline}: Document) {
-    await this.store.create(coll);
-
-    if (typeof viewOn === 'string') {
-      // TODO: Implement view creation
-    }
-
-    return {ok: 1};
-  }
+export const $create: DatabaseCommandHandler
+  = async (engine, {create: coll, viewOn, pipeline}: Document) =>
+{
+  await engine.store.create(coll);
+  return {ok: 1};
 }

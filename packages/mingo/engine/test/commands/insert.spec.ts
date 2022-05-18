@@ -25,10 +25,11 @@ describe('insert', () => {
       expect(result).to.eql({n: 2, ok: 1});
     });
 
-    it('should have inserted the documents into the store', () => {
-      expect(store.documents('test').length).to.eql(2);
-      expect(store.documents('test')[0].title).to.eql('foo');
-      expect(store.documents('test')[1].title).to.eql('bar');
+    it('should have inserted the documents into the store', async () => {
+      const it = store.collection('test');
+      expect((await it.next()).value.title).to.eql('foo');
+      expect((await it.next()).value.title).to.eql('bar');
+      expect((await it.next()).done).to.eql(true);
     });
   });
 

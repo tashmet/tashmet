@@ -6,13 +6,16 @@ export class MemoryStorageEngine implements StorageEngine {
 
   public constructor(
     public readonly databaseName: string,
-    private collections: {[coll: string]: Document[]} = {},
+    private collections: {[coll: string]: Document[] | {viewOn: string, pipeline: Document[]}} = {},
     public cursors: Record<string, Iterator> = {},
   ) {
-    for (const collection in collections) {
-      this.indexes[collection] = {};
-      for (let i = 0; i < collections[collection].length; i++) {
-        this.indexes[collection][collections[collection][i]._id] = i;
+    for (const collName in collections) {
+      const coll = collections[collName];
+      if (Array.isArray(coll)) {
+        this.indexes[collName] = {};
+        for (let i = 0; i < coll.length; i++) {
+          this.indexes[collName][coll[i]._id] = i;
+        }
       }
     }
   }
@@ -27,8 +30,16 @@ export class MemoryStorageEngine implements StorageEngine {
     delete this.indexes[collection];
   }
 
-  public documents(collection: string): Document[] {
-    return this.collections[collection];
+  public async *collection(collection: string): AsyncGenerator<Document> {
+    const coll = this.collections[collection];
+    if (Array.isArray(coll)) {
+      for (const doc of coll) {
+        yield doc;
+      }
+    } else {
+      // TODO: Views
+      throw Error('Not implemented');
+    }
   }
 
   public index(collection: string, id: string): number | undefined {
@@ -36,14 +47,19 @@ export class MemoryStorageEngine implements StorageEngine {
   }
 
   public async insert(collection: string, document: Document): Promise<void> {
-    this.collections[collection].push(document);
-    this.indexes[collection][document._id] = this.collections[collection].length - 1;
+    const coll = this.collections[collection];
+    if (Array.isArray(coll)) {
+      coll.push(document);
+      this.indexes[collection][document._id] = coll.length - 1;
+    }
   }
 
   public async delete(collection: string, id: string): Promise<void> {
     const index = this.indexes[collection][id];
-    if (index !== undefined) {
-      this.collections[collection].splice(index, 1);
+    const coll = this.collections[collection];
+
+    if (index !== undefined && Array.isArray(coll)) {
+      coll.splice(index, 1);
       delete this.indexes[collection][id];
       for (const key in this.indexes[collection]) {
         if (this.indexes[collection][key] > index) {
@@ -55,26 +71,12 @@ export class MemoryStorageEngine implements StorageEngine {
 
   public async replace(collection: string, id: string, document: Document): Promise<void> {
     const index = this.indexes[collection][id];
-    if (index !== undefined) {
-      this.collections[collection].splice(index, 1, document);
+    const coll = this.collections[collection];
+
+    if (index !== undefined && Array.isArray(coll)) {
+      coll.splice(index, 1, document);
     }
   }
 
   public async flush(): Promise<void> {}
-}
-
-export class MingoCursorRegistry {
-  private cursors: Record<string, Iterator> = {};
-
-  public get(id: string): Iterator {
-    return this.cursors[id];
-  }
-
-  public set(id: string, cursor: Iterator) {
-    this.cursors[id] = cursor;
-  }
-
-  public close(id: string) {
-    delete this.cursors[id];
-  }
 }

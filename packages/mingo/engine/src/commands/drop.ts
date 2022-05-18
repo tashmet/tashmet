@@ -1,9 +1,8 @@
-import { Document } from '../interfaces';
-import { MingoCommandHandler } from '../command';
+import { Document, DatabaseCommandHandler } from '../interfaces';
 
-export class DropCommandHandler extends MingoCommandHandler {
-  public async execute({drop: coll}: Document) {
-    await this.store.drop(coll);
-    return {ok: 1};
-  }
+export const $drop: DatabaseCommandHandler
+  = async (engine, {create: coll}: Document) =>
+{
+  await engine.store.drop(coll);
+  return {ok: 1};
 }

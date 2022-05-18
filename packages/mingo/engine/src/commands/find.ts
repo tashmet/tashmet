@@ -1,13 +1,13 @@
-import { Document } from '../interfaces';
-import { CursorCommandHandler, makeQueryPipeline } from './common';
-import { Aggregator } from 'mingo';
+import { DatabaseCommandHandler, Document } from '../interfaces';
+import { makeQueryPipeline } from './common';
 
-export class FindCommandHandler extends CursorCommandHandler {
-  public async execute({find: collName, filter, sort, projection, skip, limit, collation, batchSize}: Document) {
-    const operators = makeQueryPipeline({filter, sort, skip, limit, projection});
-    const it = new Aggregator(operators , {...this.options, collation})
-      .stream(this.store.documents(collName));
-
-    return this.addCursor(collName, it, batchSize);
-  }
+export const $find: DatabaseCommandHandler 
+  = async (engine, {find: coll, filter, sort, projection, skip, limit, collation, batchSize}: Document) =>
+{
+  return engine.command({
+    aggregate: coll,
+    pipeline: makeQueryPipeline({filter, sort, skip, limit, projection}),
+    cursor: {batchSize},
+    collation
+  });
 }

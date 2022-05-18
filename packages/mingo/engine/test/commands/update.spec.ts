@@ -1,8 +1,8 @@
 import 'mingo/init/system';
 import { expect } from 'chai';
 import 'mocha';
-import { MemoryStorageEngine, MingoCursorRegistry } from '../../src/storageEngine';
-import { MingoDatabaseEngine } from '../../src';
+import { MemoryStorageEngine } from '../../src/storageEngine';
+import { MingoAggregatorFactory, MingoDatabaseEngine } from '../../src';
 
 
 let store = new MemoryStorageEngine('testdb', {'test': [
@@ -11,8 +11,7 @@ let store = new MemoryStorageEngine('testdb', {'test': [
   { _id: 3, category: "pie", type: "boston cream", qty: 20 },
   { _id: 4, category: "pie", type: "blueberry", qty: 15 }
 ]});
-let cursors = new MingoCursorRegistry();
-let engine = new MingoDatabaseEngine(store, cursors, {});
+let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory());
 
 describe('update', () => {
   it('should update a single document', async () => {
@@ -24,7 +23,8 @@ describe('update', () => {
   });
 
   it('should have updated the document in the store', async () => {
-    expect(store.documents('test')[0]).to.eql({_id: 1, category: "cake", type: "chocolate", qty: 20});
+      const it = store.collection('test');
+      expect((await it.next()).value).to.eql({_id: 1, category: "cake", type: "chocolate", qty: 20});
   });
 
   it('should fail to update when no document matches query', async () => {
