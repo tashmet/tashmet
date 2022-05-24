@@ -1,27 +1,22 @@
 import {
-  Aggregator,
   AnyBulkWriteOperation,
   BulkWriteResult,
   Store,
   Document,
   Writer,
 } from '../interfaces';
-import {DeleteWriter} from './delete';
-import {InsertOneWriter} from './insert';
-import {ReplaceOneWriter} from './replace';
-import {UpdateWriter} from './update';
 
 export class BulkWriteOperationFactory<TSchema extends Document> {
   public constructor(private writers: Record<string, Writer<TSchema, any>>) {}
 
   public static fromStore<TSchema extends Document>(store: Store<TSchema>) {
     return new BulkWriteOperationFactory<TSchema>({
-      insertOne: new InsertOneWriter(store),
-      replaceOne: new ReplaceOneWriter(store),
-      updateOne: new UpdateWriter(store, true),
-      updateMany: new UpdateWriter(store, false),
-      deleteOne: new DeleteWriter(store, true),
-      deleteMany: new DeleteWriter(store, false),
+      //insertOne: new InsertOneWriter(store),
+      //replaceOne: new ReplaceOneWriter(store),
+      //updateOne: new UpdateWriter(store, true),
+      //updateMany: new UpdateWriter(store, false),
+      //deleteOne: new DeleteWriter(store, true),
+      //deleteMany: new DeleteWriter(store, false),
     });
   }
 

@@ -1,41 +1,183 @@
-import {makeWriteChange, ChangeSet} from '../changeSet';
-import {BulkWriteResult, Document, Store, UpdateModel, Writer} from '../interfaces';
+import ObjectId from 'bson-objectid';
+import { Collection } from '../collection';
+import { CollationOptions, Dispatcher, Document } from '../interfaces';
+import { CommandOperation, CommandOperationOptions } from './command';
 
-export class UpdateWriter<TSchema extends Document> extends Writer<TSchema, UpdateModel<TSchema>> {
-  public constructor(
-    store: Store<TSchema>,
-    private single: boolean,
-  ) { super(store); }
 
-  public async execute({filter, update, collation}: UpdateModel<TSchema>) {
-    const findResult = await this.store.command({
-      find: this.store.ns.coll, filter, limit: this.single ? 1 : undefined, collation
-    });
-    const input = findResult.cursor.firstBatch;
-    let result: Partial<BulkWriteResult> = {
-      matchedCount: input.length,
-      modifiedCount: input.length, // TODO: Not necessarily true
-    }
-    const pipeline = Object.entries(update).reduce((acc, [k, v]) => {
-      return acc.concat([{[k]: v}]);
-    }, [] as Document[]);
+/** @public */
+export interface UpdateOptions extends CommandOperationOptions {
+  /** A set of filters specifying to which array elements an update should apply */
+  arrayFilters?: Document[];
+  /** If true, allows the write to opt-out of document level validation */
+  bypassDocumentValidation?: boolean;
+  /** Specifies a collation */
+  collation?: CollationOptions;
+  /** Specify that the update query should only consider plans using the hinted index */
+  hint?: string | Document;
+  /** When true, creates a new document if no document matches the query */
+  upsert?: boolean;
+  /** Map of parameter names and values that can be accessed using $$var (requires MongoDB 5.0). */
+  let?: Document;
+}
 
-    if (this.single) {
-      pipeline.unshift({$limit: 1});
-    }
+/** @public */
+export interface UpdateResult {
+  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
+  acknowledged: boolean;
+  /** The number of documents that matched the filter */
+  matchedCount: number;
+  /** The number of documents that were modified */
+  modifiedCount: number;
+  /** The number of documents that were upserted */
+  upsertedCount: number;
+  /** The identifier of the inserted document if an upsert took place */
+  upsertedId: ObjectId;
+}
 
-    const aggResult = await this.store.command({aggregate: this.store.ns.coll, pipeline: [
-      {$match: filter},
-      ...pipeline,
-    ]});
-    const output = aggResult.cursor.firstBatch;
+/** @public */
+export interface UpdateStatement {
+  /** The query that matches documents to update. */
+  q: Document;
+  /** The modifications to apply. */
+  u: Document | Document[];
+  /**  If true, perform an insert if no documents match the query. */
+  upsert?: boolean;
+  /** If true, updates all documents that meet the query criteria. */
+  multi?: boolean;
+  /** Specifies the collation to use for the operation. */
+  collation?: CollationOptions;
+  /** An array of filter documents that determines which array elements to modify for an update operation on an array field. */
+  arrayFilters?: Document[];
+  /** A document or string that specifies the index to use to support the query predicate. */
+  //hint?: Hint;
+}
 
-    await this.store.write(new ChangeSet(output, input));
-
-    for (const doc of output) {
-      this.store.emit('change', makeWriteChange('update', doc, this.store.ns));
-    }
-
-    return result;
+/** @internal */
+export class UpdateOperation extends CommandOperation<Document> {
+  constructor(
+    collection: Collection,
+    public statements: UpdateStatement[],
+    public options: UpdateOptions & { ordered?: boolean }
+  ) {
+    super(collection, options);
   }
+
+  async execute(
+    dispatcher: Dispatcher,
+  ): Promise<UpdateResult> {
+    const options = this.options ?? {};
+    const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
+    const command: Document = {
+      update: this.collection.collectionName,
+      updates: this.statements,
+      ordered
+    };
+
+    if (typeof options.bypassDocumentValidation === 'boolean') {
+      command.bypassDocumentValidation = options.bypassDocumentValidation;
+    }
+
+    if (options.let) {
+      command.let = options.let;
+    }
+
+    const res = await super.executeCommand(dispatcher, command);
+    return {
+      acknowledged: true,
+      modifiedCount: res.nModified != null ? res.nModified : res.n,
+      upsertedId:
+        Array.isArray(res.upserted) && res.upserted.length > 0 ? res.upserted[0]._id : null,
+      upsertedCount: Array.isArray(res.upserted) && res.upserted.length ? res.upserted.length : 0,
+      matchedCount: Array.isArray(res.upserted) && res.upserted.length > 0 ? 0 : res.n
+    };
+  }
+}
+
+/** @internal */
+export class UpdateOneOperation extends UpdateOperation {
+  constructor(collection: Collection, filter: Document, update: Document, options: UpdateOptions) {
+    super(
+      collection,
+      [makeUpdateStatement(filter, update, { ...options, multi: false })],
+      options
+    );
+  }
+}
+
+/** @internal */
+export class UpdateManyOperation extends UpdateOperation {
+  constructor(collection: Collection, filter: Document, update: Document, options: UpdateOptions) {
+    super(
+      collection,
+      [makeUpdateStatement(filter, update, { ...options, multi: true })],
+      options
+    );
+  }
+}
+
+/** @public */
+export interface ReplaceOptions extends CommandOperationOptions {
+  /** If true, allows the write to opt-out of document level validation */
+  bypassDocumentValidation?: boolean;
+  /** Specifies a collation */
+  collation?: CollationOptions;
+  /** Specify that the update query should only consider plans using the hinted index */
+  hint?: string | Document;
+  /** When true, creates a new document if no document matches the query */
+  upsert?: boolean;
+  /** Map of parameter names and values that can be accessed using $$var (requires MongoDB 5.0). */
+  let?: Document;
+}
+
+/** @internal */
+export class ReplaceOneOperation extends UpdateOperation {
+  constructor(
+    collection: Collection,
+    filter: Document,
+    replacement: Document,
+    options: ReplaceOptions
+  ) {
+    super(
+      collection,
+      [makeUpdateStatement(filter, replacement, { ...options, multi: false })],
+      options
+    );
+  }
+}
+
+export function makeUpdateStatement(
+  filter: Document,
+  update: Document,
+  options: UpdateOptions & { multi?: boolean }
+): UpdateStatement {
+  if (filter == null || typeof filter !== 'object') {
+    throw new Error('Selector must be a valid JavaScript object');
+  }
+
+  if (update == null || typeof update !== 'object') {
+    throw new Error('Document must be a valid JavaScript object');
+  }
+
+  const op: UpdateStatement = { q: filter, u: update };
+  if (typeof options.upsert === 'boolean') {
+    op.upsert = options.upsert;
+  }
+
+  if (options.multi) {
+    op.multi = options.multi;
+  }
+
+  if (options.hint) {
+    //op.hint = options.hint;
+  }
+
+  if (options.arrayFilters) {
+    op.arrayFilters = options.arrayFilters;
+  }
+
+  if (options.collation) {
+    op.collation = options.collation;
+  }
+
+  return op;
 }
