@@ -57,16 +57,13 @@ export {
 
 export {Collection} from './collection';
 export {DatabaseService, DefaultDatabaseFactory} from './database';
-export {applyFindOptions, sortingMap, AbstractCursor} from './cursor';
+export {applyFindOptions, sortingMap, AbstractCursor} from './cursor/abstractCursor';
 export {BulkWriteOperation, BulkWriteOperationFactory} from './operations/bulk';
-export {DeleteWriter} from './operations/delete';
-export {InsertOneWriter} from './operations/insert';
-export {ReplaceOneWriter} from './operations/replace';
-export {UpdateWriter} from './operations/update';
 export * from './changeStream';
 export * from './interfaces';
 export * from './middleware';
 export * from './changeSet';
+export { AggregateOptions } from './operations/aggregate';
 
 import {
   Container,
@@ -81,8 +78,9 @@ import {
   Provider,
 } from '@tashmet/core';
 import {BootstrapConfig} from '@tashmet/core/dist/ioc/bootstrap';
-import {Database, DatabaseFactory} from './interfaces';
+import {Database, DatabaseFactory, Dispatcher} from './interfaces';
 import {DefaultDatabaseFactory} from './database';
+import { DefaultDispatcher } from './dispatcher';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}
 
@@ -121,6 +119,8 @@ export class TashmetConfigurator {
       container: this.container,
     });
 
+    container.register(DefaultDispatcher);
+    container.register(Provider.ofResolver(Dispatcher, Lookup.of(DefaultDispatcher)));
     container.register(DefaultDatabaseFactory);
     container.register(Provider.ofResolver(DatabaseFactory, Lookup.of(DefaultDatabaseFactory)));
     container.register(Tashmet);

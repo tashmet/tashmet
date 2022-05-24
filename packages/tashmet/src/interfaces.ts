@@ -1,8 +1,9 @@
 import ObjectId from 'bson-objectid';
-import {EventEmitter} from 'eventemitter3';
-import {Collection} from './collection';
-import {ChangeStreamDocument, ChangeStreamEvents} from './changeStream';
-import {ChangeSet} from './changeSet';
+import { EventEmitter } from 'eventemitter3';
+import { Collection } from './collection';
+import { ChangeStreamDocument, ChangeStreamEvents } from './changeStream';
+import { ChangeSet } from './changeSet';
+import { CommandOperationOptions } from './operations/command';
 
 export type Document = Record<string, any>;
 
@@ -176,13 +177,6 @@ export interface Cursor<T> {
   count(applySkipLimit?: boolean): Promise<number>;
 }
 
-export interface CommandOperationOptions {
-  /** Specify collation */
-  collation?: CollationOptions;
-}
-
-export interface AggregateOptions extends CommandOperationOptions {}
-
 /**
  *
  */
@@ -243,7 +237,7 @@ export interface CreateCollectionOptions {
   collation?: CollationOptions;
 
   /** The name of the collection to aggregate from */
-  viewOf?: string;
+  viewOn?: string;
 
   /** The aggregation pipeline */
   pipeline?: Document[];
@@ -283,11 +277,13 @@ export interface DatabaseFactory {
 
 export abstract class DatabaseFactory implements DatabaseFactory {}
 
+/*
 export interface Aggregator {
   execute<T = any>(ns: Namespace, pipeline: Document[], options?: AggregateOptions): Cursor<T>;
 }
+*/
 
-export abstract class Aggregator implements Aggregator {}
+//export abstract class Aggregator implements Aggregator {}
 
 export type Validator<T> = (doc: T) => Promise<T>;
 
@@ -310,40 +306,6 @@ export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user
     : IdType
   : ObjectId; // user has not defined _id on schema
 
-export interface InsertOneResult<TSchema = Document> {
-  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
-  acknowledged: boolean;
-  /** The identifier that was inserted. If the server generated the identifier, this value will be null as the engine does not have access to that data */
-  insertedId: InferIdType<TSchema>;
-}
-export interface InsertManyResult<TSchema = Document> {
-  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
-  acknowledged: boolean;
-  /** The number of inserted documents for this operations */
-  insertedCount: number;
-  /** Map of the index of the inserted document to the id of the inserted document */
-  insertedIds: { [key: number]: InferIdType<TSchema> };
-}
-
-export interface DeleteResult {
-  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined. */
-  acknowledged: boolean;
-  /** The number of documents that were deleted */
-  deletedCount: number;
-}
-
-export interface UpdateResult {
-  /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
-  acknowledged: boolean;
-  /** The number of documents that matched the filter */
-  matchedCount: number;
-  /** The number of documents that were modified */
-  modifiedCount: number;
-  /** The number of documents that were upserted */
-  upsertedCount: number;
-  /** The identifier of the inserted document if an upsert took place */
-  upsertedId?: ObjectId
-}
 
 export type EnhancedOmit<TRecordOrUnion, KeyUnion> = string extends keyof TRecordOrUnion
   ? TRecordOrUnion // TRecordOrUnion has indexed type e.g. { _id: string; [k: string]: any; } or it is "any"
@@ -669,3 +631,15 @@ export interface Comparator {
 }
 
 export abstract class Comparator implements Comparator {}
+
+export abstract class Dispatcher extends EventEmitter {
+  public abstract dispatch(namespace: Namespace, command: Document): Promise<Document>;
+}
+
+export abstract class DatabaseEngineFactory {
+  public abstract createDatabaseEngine(dbName: string): DatabaseEngine;
+}
+
+export abstract class DatabaseEngine extends EventEmitter {
+  public abstract command(command: Document): Promise<Document>;
+}

@@ -1,60 +1,53 @@
 import {
-  Aggregator,
-  AggregateOptions,
   AnyBulkWriteOperation,
   BulkWriteResult,
-  Store,
   Cursor,
   Database,
   Document,
-  DeleteResult,
   Filter,
   Flatten,
-  InsertManyResult,
-  InsertOneResult,
   OptionalId,
   FindOptions,
   ReplaceOneOptions,
   UpdateFilter,
-  UpdateResult,
-  WithId
+  WithId,
+  Dispatcher,
 } from "./interfaces";
-import {ChangeStream} from "./changeStream";
-import {BulkWriteOperationFactory} from "./operations/bulk";
-import {AggregationCursor, FindCursor} from "./cursor";
+import { ChangeStream } from "./changeStream";
+import { AggregationCursor } from "./cursor/aggregationCursor";
+import { FindCursor } from "./cursor/findCursor";
+import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert";
+import { DistinctOperation } from "./operations/distinct";
+import { DeleteManyOperation, DeleteOneOperation, DeleteResult } from "./operations/delete";
+import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateResult } from "./operations/update";
+import { CommandOperation } from "./operations/command";
+import { AggregateOptions } from "./operations/aggregate";
 
 /**
  * A collection of documents.
  */
 export class Collection<TSchema extends Document = any> {
   private changeStreams: ChangeStream[] = [];
-  private writeOpFactory: BulkWriteOperationFactory<TSchema>;
 
   public constructor(
-    private store: Store<TSchema>,
+    public readonly collectionName: string,
+    private dispatcher: Dispatcher,
     private db: Database,
-    // private aggregator: Aggregator | undefined = undefined,
   ) {
-    this.writeOpFactory = BulkWriteOperationFactory.fromStore(store);
-    this.store.on('change', change => {
-      for (const changeStream of this.changeStreams) {
-        changeStream.emit('change', change);
+    this.dispatcher.on('change', change => {
+      if (change.ns.db === this.dbName && change.ns.coll === this.collectionName) {
+        for (const changeStream of this.changeStreams) {
+          changeStream.emit('change', change);
+        }
       }
     });
-  }
-
-  /**
-   * The name of this collection
-   */
-  public get collectionName(): string {
-    return this.store.ns.coll;
   }
 
   /**
    * The name of the database this collection belongs to
    */
   public get dbName(): string {
-    return this.store.ns.db;
+    return this.db.databaseName;
   }
 
   /**
@@ -65,15 +58,7 @@ export class Collection<TSchema extends Document = any> {
   }
 
   public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): Cursor<T> {
-    return new AggregationCursor<T>(this.store, pipeline, options);
-    /*
-    if (this.aggregator) {
-      return this.aggregator.execute({db: this.dbName, coll: this.collectionName}, pipeline, options);
-    } else {
-      throw new Error('No Aggregator registered with container');
-    }
-    */
-
+    return new AggregationCursor<T>({db: this.dbName, coll: this.collectionName}, this.dispatcher, pipeline, options);
   }
 
   /**
@@ -83,7 +68,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A cursor.
    */
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return new FindCursor<TSchema>(this.store, filter, options);
+    return new FindCursor<TSchema>({db: this.dbName, coll: this.collectionName}, this.dispatcher, filter, options);
   }
 
   /**
@@ -105,8 +90,7 @@ export class Collection<TSchema extends Document = any> {
    * @throws Error if a document with the same ID already exists
    */
   public async insertOne(document: OptionalId<TSchema>): Promise<InsertOneResult> {
-    const {insertedIds} = await this.bulkWrite([{insertOne: {document}}]);
-    return {acknowledged: true, insertedId: insertedIds[0]};
+    return this.executeOperation(new InsertOneOperation(this, document, {}));
   }
 
   /**
@@ -119,10 +103,7 @@ export class Collection<TSchema extends Document = any> {
    * @throws Error if a document with the same ID already exists
    */
   public async insertMany(documents: OptionalId<TSchema>[]): Promise<InsertManyResult> {
-    const {insertedCount, insertedIds} = await this.bulkWrite(
-      documents.map(document => ({insertOne: {document}}))
-    );
-    return {acknowledged: true, insertedCount, insertedIds}
+    return this.executeOperation(new InsertManyOperation(this, documents, {}));
   }
 
   /**
@@ -131,8 +112,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter The Filter used to select the document to remove
    */
   public async deleteOne(filter: Filter<TSchema>): Promise<DeleteResult> {
-    const {deletedCount} = await this.bulkWrite([{deleteOne: {filter}}]);
-    return {acknowledged: true, deletedCount}
+    return this.executeOperation(new DeleteOneOperation(this, filter, {}));
   }
 
   /**
@@ -141,8 +121,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter The Filter used to select the documents to remove
    */
   public async deleteMany(filter: Filter<TSchema>): Promise<DeleteResult> {
-    const {deletedCount} = await this.bulkWrite([{deleteMany: {filter}}]);
-    return {acknowledged: true, deletedCount}
+    return this.executeOperation(new DeleteManyOperation(this, filter, {}));
   }
 
   /**
@@ -155,9 +134,7 @@ export class Collection<TSchema extends Document = any> {
   public async replaceOne(
     filter: Filter<TSchema>, replacement: TSchema, options?: ReplaceOneOptions
   ): Promise<UpdateResult> {
-    return this.updateResult(await this.bulkWrite([
-      {replaceOne: {filter, replacement, upsert: options?.upsert}}
-    ]));
+    return this.executeOperation(new ReplaceOneOperation(this, filter, replacement, options || {}));
   }
 
   /**
@@ -167,9 +144,7 @@ export class Collection<TSchema extends Document = any> {
    * @param update - The update operations to be applied to the document
    */
   public async updateOne(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
-    return this.updateResult(await this.bulkWrite([
-      {updateOne: {filter, update}}
-    ]));
+    return this.executeOperation(new UpdateOneOperation(this, filter, update, {}));
   }
 
   /**
@@ -179,9 +154,7 @@ export class Collection<TSchema extends Document = any> {
    * @param update - The update operations to be applied to the documents
    */
   public async updateMany(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
-    return this.updateResult(await this.bulkWrite([
-      {updateMany: {filter, update}}
-    ]));
+    return this.executeOperation(new UpdateManyOperation(this, filter, update, {}));
   }
 
   /**
@@ -208,7 +181,8 @@ export class Collection<TSchema extends Document = any> {
    * @param operations - Bulk operations to perform
    */
   public async bulkWrite(operations: AnyBulkWriteOperation<TSchema>[]): Promise<BulkWriteResult> {
-    return this.writeOpFactory.createOperation(operations).execute();
+    throw Error('Not implemented');
+    //return this.writeOpFactory.createOperation(operations).execute();
   }
 
   /**
@@ -218,13 +192,10 @@ export class Collection<TSchema extends Document = any> {
    * @param filter - The filter for filtering the set of documents to which we apply the distinct filter.
    */
   public async distinct<Key extends keyof WithId<TSchema>>(
-    key: Key | string,
+    key: /*Key | */string,
     filter: Filter<TSchema> = {}
   ): Promise<Array<Flatten<WithId<TSchema>[Key]>>> {
-    return this.aggregate<WithId<any>>([
-      {$match: filter},
-      {$group: {_id: `$${key}`}}
-    ]).toArray().then(docs => docs.map(doc => doc._id));
+    return this.executeOperation(new DistinctOperation(this, key, filter));
   }
 
   /**
@@ -245,7 +216,7 @@ export class Collection<TSchema extends Document = any> {
     return this.db.dropCollection(this.collectionName);
   }
 
-  private updateResult({matchedCount, modifiedCount, upsertedCount, upsertedIds}: BulkWriteResult): UpdateResult {
-    return {acknowledged: true, matchedCount, modifiedCount, upsertedCount, upsertedId: upsertedIds[0]};
+  private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
+    return operation.execute(this.dispatcher) as Promise<T>;
   }
 }

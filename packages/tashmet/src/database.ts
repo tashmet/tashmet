@@ -1,18 +1,16 @@
-import ObjectId from 'bson-objectid';
 import {
-  Aggregator,
   CreateCollectionOptions,
   Database,
   DatabaseFactory,
+  Dispatcher,
   Document,
-  StorageEngine,
+  Namespace,
   Store,
   StoreConfig,
   ValidatorFactory,
   ViewFactory,
 } from './interfaces';
 import {Collection} from './collection';
-import {ChangeSet} from './changeSet';
 import {validation, withMiddleware} from './middleware';
 import {Logger, provider, Optional} from '@tashmet/core';
 
@@ -25,11 +23,10 @@ export class DatabaseService implements Database {
 
   public constructor(
     public readonly databaseName: string,
-    private engine: StorageEngine,
     private logger: Logger,
+    private dispatcher: Dispatcher,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
-    //private aggregator: Aggregator | undefined,
   ) {}
 
   public collection(name: string): Collection {
@@ -50,6 +47,9 @@ export class DatabaseService implements Database {
       if (name in this.collMap) {
         throw new Error(`a collection named '${name}' already exists in database`);
       }
+      const ns: Namespace = {db: this.databaseName, coll: name};
+
+      this.dispatcher.dispatch(ns, {create: name, ...options});
 
       let store: Store<T>;
       const storeConfig: StoreConfig = {
@@ -58,8 +58,8 @@ export class DatabaseService implements Database {
         options: options.storageEngine,
       }
 
-      const {viewOf, pipeline} = options;
-
+      //const {viewOf, pipeline} = options;
+/*
       if (viewOf && pipeline) {
         if (this.viewFactory) {
           store = this.viewFactory.createView(storeConfig, this.collMap[viewOf], pipeline);
@@ -68,8 +68,7 @@ export class DatabaseService implements Database {
         }
       } else {
         const validator = options.validator;
-        store = this.engine.createStore<T>(storeConfig);
-
+        //store = this.engine.createStore<T>(storeConfig);
         if (validator) {
           if (this.validatorFactory) {
             store = withMiddleware<T>(store, [validation(this.validatorFactory.create(validator))]);
@@ -78,9 +77,10 @@ export class DatabaseService implements Database {
           }
         }
       }
-      const c = new Collection<T>(store, this);
+      */
+      const c = new Collection<T>(name, this.dispatcher, this);
       this.collMap[name] = c;
-      this.engine.register(store);
+      //this.engine.register(store);
 
       this.logger.inScope('createCollection').info(c.toString());
       return c;
@@ -91,13 +91,17 @@ export class DatabaseService implements Database {
   }
 
   public async dropCollection(name: string) {
-    const ns = {db: this.databaseName, coll: name};
+    //const ns = {db: this.databaseName, coll: name};
+    /*
     const store = this.engine.get(ns);
 
     if (!store) {
       return false;
     }
     // await store.write(ChangeSet.fromDelete(await store.find({}).toArray()));
+    */
+    await this.dispatcher.dispatch({db: this.databaseName, coll: name}, {drop: name});
+    /*
     store.emit('change', {
       _id: new ObjectId(),
       operationType: 'drop',
@@ -105,6 +109,7 @@ export class DatabaseService implements Database {
     });
     delete this.collMap[name];
     this.engine.drop(ns);
+    */
 
     return true;
   }
@@ -113,23 +118,21 @@ export class DatabaseService implements Database {
 @provider({
   key: DefaultDatabaseFactory,
   inject: [
-    StorageEngine,
     Logger,
+    Dispatcher,
     Optional.of(ValidatorFactory),
     Optional.of(ViewFactory),
-    //Optional.of(Aggregator),
   ]
 })
 export class DefaultDatabaseFactory implements DatabaseFactory {
   public constructor(
-    private engine: StorageEngine,
     private logger: Logger,
+    private dispatcher: Dispatcher,
     private validatorFactory: ValidatorFactory | undefined,
     private viewFactory: ViewFactory | undefined,
-    //private aggregator: Aggregator | undefined,
   ) {}
 
   createDatabase(name: string): Database {
-    return new DatabaseService(name, this.engine, this.logger, this.validatorFactory, this.viewFactory, /*this.aggregator*/);
+    return new DatabaseService(name, this.logger, this.dispatcher, this.validatorFactory, this.viewFactory);
   }
 }
