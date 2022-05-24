@@ -1,4 +1,5 @@
-import {AggregateOptions, Cursor, Document, Filter, FindOptions, SortingDirection, SortingKey, SortingMap, Store} from './interfaces';
+import { Cursor, Dispatcher, Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap } from '../interfaces';
+import { AggregateOptions } from '../operations/aggregate';
 
 export function applyFindOptions(cursor: Cursor<any>, options: FindOptions): Cursor<any> {
   if (options.sort) {
@@ -95,7 +96,8 @@ export abstract class AbstractCursor<T> implements Cursor<T> {
 
 export class FindCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    protected store: Store<TSchema>,
+    protected ns: Namespace,
+    protected dispatcher: Dispatcher,
     filter: Filter<TSchema>,
     options: FindOptions = {},
   ) {
@@ -103,14 +105,15 @@ export class FindCursor<TSchema extends Document = Document> extends AbstractCur
   }
 
   protected async fetchAll(): Promise<TSchema[]> {
-    const findResult = await this.store.command({find: this.store.ns.coll, filter: this.filter, ...this.options});
+    const findResult = await this.dispatcher.dispatch(this.ns, {find: this.ns.coll, filter: this.filter, ...this.options});
     return findResult.cursor.firstBatch;
   }
 }
 
 export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    protected store: Store<any>,
+    protected ns: Namespace,
+    protected dispatcher: Dispatcher,
     private pipeline: Document[],
     options: AggregateOptions = {},
   ) {
@@ -118,8 +121,8 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
   }
 
   protected async fetchAll(): Promise<TSchema[]> {
-    const findResult = await this.store.command({
-      aggregate: this.store.ns.coll,
+    const findResult = await this.dispatcher.dispatch(this.ns, {
+      aggregate: this.ns.coll,
       pipeline: this.pipeline,
       ...this.options
     });
