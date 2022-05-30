@@ -1,3 +1,5 @@
+import ObjectId from 'bson-objectid';
+import { EventEmitter } from "eventemitter3";
 import { CollationOptions } from "@tashmet/tashmet";
 
 export type Document = Record<string, any>;
@@ -46,8 +48,6 @@ export interface StorageEngine {
   delete(collection: string, id: string): Promise<void>;
 
   replace(collection: string, id: string, document: Document): Promise<void>;
-
-  flush(): Promise<void>;
 }
 
 export interface AggregatorFactory {
@@ -68,16 +68,23 @@ export abstract class AbstractAggregator<T extends Document = Document> {
   }
 }
 
-export class DatabaseEngine {
+export interface View {
+  viewOn: string;
+  pipeline: Document[];
+}
+
+export class DatabaseEngine extends EventEmitter {
   private commandNames = new Set<string>();
   private cursorCounter = 0;
   private cursors: Record<number, EngineCursor> = {};
+  private views: Record<string, View> = {};
 
   public constructor(
     public readonly store: StorageEngine,
     public readonly aggFact: AggregatorFactory,
     private commands: Record<string, DatabaseCommandHandler> = {}
   ) {
+    super();
     this.commandNames = new Set(Object.keys(commands));
   }
 
@@ -90,7 +97,7 @@ export class DatabaseEngine {
   }
 
   public openCursor(collName: string, pipeline: Document[], collation?: CollationOptions) {
-    let coll = this.store.collection(collName);
+    let coll = this.read(collName);
     const it = this.aggFact
       .createAggregator(pipeline, {collation})
       .stream<Document>(coll);
@@ -105,6 +112,24 @@ export class DatabaseEngine {
 
   public getCursor(id: number) {
     return this.cursors[id];
+  }
+
+  public createView(name: string, view: View) {
+    this.views[name] = view;
+  }
+
+  public isView(collection: string) {
+    return !!this.views[collection];
+  }
+
+  public read(collection: string): AsyncIterable<Document> {
+    const view = this.views[collection];
+
+    if (view) {
+      return this.aggFact
+        .createAggregator(view.pipeline, {}).stream(this.read(view.viewOn));
+    }
+    return this.store.collection(collection);
   }
 }
 
@@ -146,3 +171,15 @@ export class EngineCursor {
     return this.engine.closeCursor(this.id);
   }
 }
+
+export const makeWriteChange = (
+  operationType: 'insert' | 'update' | 'replace' | 'delete',
+  fullDocument: Document,
+  ns: {db: string, coll: string
+}) => ({
+  _id: new ObjectId(),
+  operationType,
+  ns,
+  documentKey: fullDocument._id,
+  fullDocument,
+});

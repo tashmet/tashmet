@@ -13,20 +13,23 @@ import { AbstractAggregator, AggregatorFactory, DatabaseEngine, Document, MingoC
 import { BufferAggregator } from './aggregator';
 
 export class MingoAggregatorFactory implements AggregatorFactory {
+  public constructor(private collectionResolver: (collection: string) => Document[]) {}
+
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    return new BufferAggregator(pipeline, options);
+    return new BufferAggregator(pipeline, {collectionResolver: this.collectionResolver, ...options});
   }
 }
 
 export class MingoDatabaseEngine extends DatabaseEngine {
   public static inMemory(databaseName: string, config: Partial<MingoConfig> = {}) {
-    const aggFact = new MingoAggregatorFactory();
-    return new MingoDatabaseEngine(new MemoryStorageEngine(databaseName), aggFact, config);
+    const storage = new MemoryStorageEngine(databaseName); 
+    const aggFact = new MingoAggregatorFactory(coll => storage.resolve(coll));
+    return new MingoDatabaseEngine(storage, aggFact, config);
   }
 
   public constructor(
     store: StorageEngine,
-    aggFact: AggregatorFactory = new MingoAggregatorFactory(),
+    aggFact: AggregatorFactory,
     options: MingoConfig = {}
   ) {
     super(store, aggFact, {

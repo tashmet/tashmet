@@ -1,5 +1,5 @@
 import ObjectID from 'bson-objectid';
-import { Document, DatabaseCommandHandler } from '../interfaces';
+import { Document, DatabaseCommandHandler, makeWriteChange } from '../interfaces';
 
 export const $insert: DatabaseCommandHandler = async (engine, {insert: coll, documents, ordered}: Document) => {
   let writeErrors: any[] = [];
@@ -16,6 +16,7 @@ export const $insert: DatabaseCommandHandler = async (engine, {insert: coll, doc
 
     if (error === undefined) {
       engine.store.insert(coll, documents[i]);
+      engine.emit('change', makeWriteChange('insert', documents[i], {db: engine.store.databaseName, coll}));
       n++;
     } else {
       writeErrors.push(error);

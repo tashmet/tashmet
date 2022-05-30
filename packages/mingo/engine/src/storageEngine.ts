@@ -1,4 +1,3 @@
-import { Iterator } from 'mingo/lazy';
 import { Document, StorageEngine } from './interfaces';
 
 export class MemoryStorageEngine implements StorageEngine {
@@ -6,8 +5,7 @@ export class MemoryStorageEngine implements StorageEngine {
 
   public constructor(
     public readonly databaseName: string,
-    private collections: {[coll: string]: Document[] | {viewOn: string, pipeline: Document[]}} = {},
-    public cursors: Record<string, Iterator> = {},
+    private collections: {[coll: string]: Document[]} = {},
   ) {
     for (const collName in collections) {
       const coll = collections[collName];
@@ -38,7 +36,7 @@ export class MemoryStorageEngine implements StorageEngine {
       }
     } else {
       // TODO: Views
-      throw Error('Not implemented');
+      throw Error(`Collection ${collection} does not exist`);
     }
   }
 
@@ -78,5 +76,7 @@ export class MemoryStorageEngine implements StorageEngine {
     }
   }
 
-  public async flush(): Promise<void> {}
+  public resolve(collection: string): Document[] {
+    return this.collections[collection];
+  }
 }

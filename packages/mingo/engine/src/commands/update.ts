@@ -1,5 +1,5 @@
-import { CollationSpec } from 'mingo/core';
-import { Document, DatabaseCommandHandler } from '../interfaces';
+import { CollationSpec, OperatorType } from 'mingo/core';
+import { Document, DatabaseCommandHandler, makeWriteChange } from '../interfaces';
 
 export const $update: DatabaseCommandHandler = async (engine, {update: collName, updates, ordered}: Document) => {
     let nModified = 0;
@@ -10,6 +10,7 @@ export const $update: DatabaseCommandHandler = async (engine, {update: collName,
     const aggregate = (pipeline: Document[], collation?: CollationSpec): Promise<Document[]> => {
       return engine.aggFact.createAggregator(pipeline, {collation}).run(coll);
     }
+    let operation: 'update' | 'replace' = 'update';
 
     for (const {q, u, upsert, multi, collation} of updates) {
       let pipeline: Document[] = [];
@@ -20,6 +21,7 @@ export const $update: DatabaseCommandHandler = async (engine, {update: collName,
         pipeline = Object.entries(u).reduce<Document[]>((acc, [k, v]) => acc.concat([{[k]: v}]), []);
       } else {
         pipeline = [{$set: u}];
+        operation = 'replace';
       }
 
       if (multi !== true) {
@@ -36,12 +38,13 @@ export const $update: DatabaseCommandHandler = async (engine, {update: collName,
       for (const doc of output) {
         if (engine.store.index(collName, doc._id) === undefined) {
           if (upsert) {
-            await engine.store.insert(collName, doc);
+            await engine.command({insert: collName, documents: [doc]});
             upserted.push({index: upserted.length, _id: doc._id});
             n++;
           }
         } else {
           await engine.store.replace(collName, doc._id, doc);
+          engine.emit('change', makeWriteChange(operation, doc, {db: engine.store.databaseName, coll: collName}));
           n++;
           nModified++;
         }

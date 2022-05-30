@@ -11,7 +11,7 @@ let store = new MemoryStorageEngine('testdb', {'test': [
   { _id: 3, category: "pie", type: "boston cream", qty: 20 },
   { _id: 4, category: "pie", type: "blueberry", qty: 15 }
 ]});
-let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory());
+let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory(coll => store.resolve(coll)));
 
 describe('update', () => {
   it('should update a single document', async () => {
