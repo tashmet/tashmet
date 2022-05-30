@@ -3,7 +3,7 @@ import {Document, Middleware, Store} from '../interfaces';
 //export {logging} from './logging';
 export * from './mutation';
 export * from './validation';
-export * from './locking';
+// export * from './locking';
 
 const middlewareMethods = new Set<string | symbol | number>([
   'write',

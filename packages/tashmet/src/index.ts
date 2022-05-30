@@ -57,7 +57,7 @@ export {
 
 export {Collection} from './collection';
 export {DatabaseService, DefaultDatabaseFactory} from './database';
-export {applyFindOptions, sortingMap, AbstractCursor} from './cursor/abstractCursor';
+export {sortingMap, AbstractCursor} from './cursor/abstractCursor';
 export {BulkWriteOperation, BulkWriteOperationFactory} from './operations/bulk';
 export * from './changeStream';
 export * from './interfaces';

@@ -1,7 +1,6 @@
 import {
   AnyBulkWriteOperation,
   BulkWriteResult,
-  Cursor,
   Database,
   Document,
   Filter,
@@ -22,6 +21,7 @@ import { DeleteManyOperation, DeleteOneOperation, DeleteResult } from "./operati
 import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateResult } from "./operations/update";
 import { CommandOperation } from "./operations/command";
 import { AggregateOptions } from "./operations/aggregate";
+import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments";
 
 /**
  * A collection of documents.
@@ -57,8 +57,12 @@ export class Collection<TSchema extends Document = any> {
     return `${this.dbName}.${this.collectionName}`;
   }
 
-  public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): Cursor<T> {
-    return new AggregationCursor<T>({db: this.dbName, coll: this.collectionName}, this.dispatcher, pipeline, options);
+  public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): AggregationCursor<T> {
+    return new AggregationCursor<T>(this, this.dispatcher, pipeline, options);
+  }
+
+  public countDocuments(filter: Filter<TSchema> = {}, options: CountDocumentsOptions = {}): Promise<number> {
+    return this.executeOperation(new CountDocumentsOperation(this, filter, options));
   }
 
   /**
@@ -67,8 +71,8 @@ export class Collection<TSchema extends Document = any> {
    * @param filter The filter which documents are matched against.
    * @returns A cursor.
    */
-  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Cursor<TSchema> {
-    return new FindCursor<TSchema>({db: this.dbName, coll: this.collectionName}, this.dispatcher, filter, options);
+  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): FindCursor<TSchema> {
+    return new FindCursor<TSchema>(this, this.dispatcher, filter, options);
   }
 
   /**

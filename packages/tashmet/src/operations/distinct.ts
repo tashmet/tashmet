@@ -35,6 +35,6 @@ export class DistinctOperation extends CommandOperation<any[]> {
     };
 
     const {values} = await this.executeCommand(dispatcher, cmd);
-    return values;
+    return values as unknown as any[];
   }
 }

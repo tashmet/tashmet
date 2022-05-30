@@ -1,3 +1,4 @@
+/*
 import {Cursor, Middleware} from '../interfaces';
 
 export function lockedCursor<T = any>(cursor: Cursor<T>, lock: Promise<any>): Cursor<T> {
@@ -32,3 +33,4 @@ export const locked = (locks: Promise<any>[]) => () => {
     }
   } as Middleware;
 }
+*/

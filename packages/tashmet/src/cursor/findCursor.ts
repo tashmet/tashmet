@@ -1,18 +1,22 @@
-import { Dispatcher, Document, Filter, FindOptions, Namespace } from '../interfaces';
+import { Collection } from '../collection';
+import { Dispatcher, Document, Filter, FindOptions } from '../interfaces';
 import { AbstractCursor } from './abstractCursor';
 
 export class FindCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    protected ns: Namespace,
-    protected dispatcher: Dispatcher,
-    filter: Filter<TSchema>,
+    collection: Collection,
+    dispatcher: Dispatcher,
+    private filter: Filter<TSchema>,
     options: FindOptions = {},
   ) {
-    super(filter, options);
+    super(collection, dispatcher, options);
   }
 
-  protected async fetchAll(): Promise<TSchema[]> {
-    const findResult = await this.dispatcher.dispatch(this.ns, {find: this.ns.coll, filter: this.filter, ...this.options});
-    return findResult.cursor.firstBatch;
+  protected async initialize(): Promise<Document> {
+    return this.dispatcher.dispatch(this.namespace, {
+      find: this.namespace.coll,
+      filter: this.filter,
+      ...this.options
+    });
   }
 }

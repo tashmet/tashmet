@@ -60,7 +60,7 @@ export class AggregateOperation<T = Document> extends CommandOperation<T> {
     this.pipeline.push(stage);
   }
 
-  execute(dispatcher: Dispatcher): Promise<Document> {
+  execute(dispatcher: Dispatcher): Promise<T> {
     const options: AggregateOptions = this.options;
     const command: Document = { aggregate: this.target, pipeline: this.pipeline };
 

@@ -1,23 +1,23 @@
-import { Dispatcher, Document, Namespace } from '../interfaces';
+import { Collection } from '../collection';
+import { Dispatcher, Document } from '../interfaces';
 import { AggregateOptions } from '../operations/aggregate';
 import { AbstractCursor } from './abstractCursor';
 
 export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    protected ns: Namespace,
-    protected dispatcher: Dispatcher,
+    collection: Collection,
+    dispatcher: Dispatcher,
     private pipeline: Document[],
     options: AggregateOptions = {},
   ) {
-    super({}, options);
+    super(collection, dispatcher, options);
   }
 
-  protected async fetchAll(): Promise<TSchema[]> {
-    const findResult = await this.dispatcher.dispatch(this.ns, {
-      aggregate: this.ns.coll,
+  protected async initialize(): Promise<Document> {
+    return this.dispatcher.dispatch(this.namespace, {
+      aggregate: this.namespace.coll,
       pipeline: this.pipeline,
       ...this.options
     });
-    return findResult.cursor.firstBatch;
   }
 }

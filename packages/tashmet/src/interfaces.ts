@@ -135,48 +135,6 @@ export type Projection<T> = {
 } &
   Partial<Record<string, 0 | 1 | boolean>>;
 
-export interface Cursor<T> {
-  [Symbol.asyncIterator](): AsyncIterator<T, void>;
-
-  /**
-   * Sets the sort order of the cursor query.
-   *
-   * If the key is either a string or list of strings the direction will be given by the second
-   * argument or default to ascending order.
-   *
-   * If the key is given as a key-value map the sorting direction for each of the keys will be
-   * determined by its value and the direction argument can be omitted.
-   */
-  sort(key: SortingKey, direction?: SortingDirection): Cursor<T>;
-
-  /** Set the skip for the cursor. */
-  skip(count: number): Cursor<T>;
-
-  /** Set the limit for the cursor. */
-  limit(count: number): Cursor<T>;
-
-  /** Returns an array of documents. */
-  toArray(): Promise<T[]>;
-
-  /**
-   * Get the next available document from the cursor, returns null if no more documents are available
-   */
-  next(): Promise<T | null>;
-
-  /** Check if there is any document still available in the cursor */
-  hasNext(): Promise<boolean>;
-
-  /** Iterates over all the documents for this cursor using the iterator, callback pattern */
-  forEach(iterator: (doc: T) => void): Promise<void>;
-
-  /**
-   * Get the count of documents for this cursor
-   *
-   * @param applySkipLimit Should the count command apply limit and skip settings on the cursor.
-   */
-  count(applySkipLimit?: boolean): Promise<number>;
-}
-
 /**
  *
  */

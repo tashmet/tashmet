@@ -28,9 +28,9 @@ export interface CommandOperationOptions {
 export abstract class CommandOperation<T> {
   constructor(public collection: Collection, public options: CommandOperationOptions = {}) {}
 
-  abstract execute(dispatcher: Dispatcher): Promise<Document>;
+  abstract execute(dispatcher: Dispatcher): Promise<any>;
 
-  async executeCommand(dispatcher: Dispatcher, cmd: Document): Promise<Document> {
+  async executeCommand(dispatcher: Dispatcher, cmd: Document): Promise<any> {
     return dispatcher.dispatch({db: this.collection.dbName, coll: this.collection.collectionName}, cmd);
   }
 }
