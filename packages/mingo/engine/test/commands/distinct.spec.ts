@@ -2,7 +2,7 @@ import 'mingo/init/system';
 import { expect } from 'chai';
 import 'mocha';
 import { MemoryStorageEngine } from '../../src/storageEngine';
-import { MingoDatabaseEngine } from '../../src';
+import { MingoDatabaseEngine, MingoAggregatorFactory } from '../../src';
 
 
 let store = new MemoryStorageEngine('testdb', {'inventory': [
@@ -11,7 +11,7 @@ let store = new MemoryStorageEngine('testdb', {'inventory': [
   { _id: 3, dept: "B", item: { sku: "222", color: "blue" }, sizes: "S" },
   { _id: 4, dept: "A", item: { sku: "333", color: "black" }, sizes: [ "S" ] },
 ]});
-let engine = new MingoDatabaseEngine(store);
+let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory(coll => store.resolve(coll)));
 
 describe('distinct', () => {
   it('should return distinct values for a field', async () => {

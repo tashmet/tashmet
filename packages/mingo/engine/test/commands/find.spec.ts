@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { MemoryStorageEngine } from '../../src/storageEngine';
-import { MingoDatabaseEngine } from '../../src';
+import { MingoDatabaseEngine, MingoAggregatorFactory } from '../../src';
 
 
 let store = new MemoryStorageEngine('testdb', {'test': [
@@ -10,7 +10,7 @@ let store = new MemoryStorageEngine('testdb', {'test': [
   { _id: 3, category: "pie", type: "boston cream", qty: 20 },
   { _id: 4, category: "pie", type: "blueberry", qty: 15 }
 ]});
-let engine = new MingoDatabaseEngine(store);
+let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory(coll => store.resolve(coll)));
 
 describe('find', () => {
   describe('without query', () => {

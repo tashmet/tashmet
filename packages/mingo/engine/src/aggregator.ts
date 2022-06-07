@@ -1,7 +1,6 @@
-import { Document } from "@tashmet/tashmet";
 import { Aggregator } from "mingo";
 import { Options as MingoOptions } from 'mingo/core';
-import { AbstractAggregator } from "./interfaces";
+import { AbstractAggregator, Document } from "./interfaces";
 
 
 export class BufferAggregator extends AbstractAggregator<Document> {

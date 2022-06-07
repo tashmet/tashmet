@@ -40,8 +40,8 @@ export class MemoryStorageEngine implements StorageEngine {
     }
   }
 
-  public index(collection: string, id: string): number | undefined {
-    return this.indexes[collection][id];
+  public exists(collection: string, id: string): boolean {
+    return this.indexes[collection][id] !== undefined;
   }
 
   public async insert(collection: string, document: Document): Promise<void> {

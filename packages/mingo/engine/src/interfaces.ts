@@ -1,6 +1,16 @@
 import ObjectId from 'bson-objectid';
 import { EventEmitter } from "eventemitter3";
-import { CollationOptions } from "@tashmet/tashmet";
+
+export interface CollationOptions {
+  readonly locale: string;
+  readonly caseLevel?: boolean;
+  readonly caseFirst?: string;
+  readonly strength?: number;
+  readonly numericOrdering?: boolean;
+  readonly alternate?: string;
+  readonly maxVariable?: string; // unsupported
+  readonly backwards?: boolean; // unsupported
+}
 
 export type Document = Record<string, any>;
 
@@ -24,12 +34,6 @@ export interface MingoConfig {
 
 export abstract class MingoConfig implements MingoConfig {}
 
-
-/*
-export abstract class DatabaseCommandHandler {
-  public abstract execute(command: Document): Promise<Document>;
-}
-*/
 export type DatabaseCommandHandler = (engine: DatabaseEngine, command: Document) => Promise<Document>;
 
 export interface StorageEngine {
@@ -41,7 +45,7 @@ export interface StorageEngine {
 
   collection(collection: string): AsyncIterable<Document>;
   
-  index(collection: string, id: string): number | undefined;
+  exists(collection: string, id: string): boolean;
 
   insert(collection: string, document: Document): Promise<void>;
 

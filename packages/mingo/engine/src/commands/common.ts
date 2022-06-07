@@ -1,6 +1,5 @@
 import { Document } from '../interfaces';
 
-
 export const makeQueryPipeline = ({filter, sort, skip, limit, projection}: Document) => {
   const operators: Document[] = [];
 

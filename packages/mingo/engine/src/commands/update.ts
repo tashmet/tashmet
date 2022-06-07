@@ -36,7 +36,7 @@ export const $update: DatabaseCommandHandler = async (engine, {update: collName,
       }
 
       for (const doc of output) {
-        if (engine.store.index(collName, doc._id) === undefined) {
+        if (!engine.store.exists(collName, doc._id)) {
           if (upsert) {
             await engine.command({insert: collName, documents: [doc]});
             upserted.push({index: upserted.length, _id: doc._id});

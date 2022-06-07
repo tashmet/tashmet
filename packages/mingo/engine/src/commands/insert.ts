@@ -10,7 +10,7 @@ export const $insert: DatabaseCommandHandler = async (engine, {insert: coll, doc
 
     if (!documents[i].hasOwnProperty('_id')) {
       documents[i]._id = new ObjectID().toHexString();
-    } else if (engine.store.index(coll, documents[i]._id) !== undefined) {
+    } else if (engine.store.exists(coll, documents[i]._id)) {
       error = {index: i, errMsg: 'Duplicate key error'};
     }
 

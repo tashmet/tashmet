@@ -1,11 +1,11 @@
 import {expect} from 'chai';
 import 'mocha';
-import { MingoDatabaseEngine } from '../../src';
+import { MingoDatabaseEngine, MingoAggregatorFactory } from '../../src';
 import { MemoryStorageEngine } from '../../src/storageEngine';
 
 
 let store = new MemoryStorageEngine('testdb');
-let engine = new MingoDatabaseEngine(store);
+let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory(coll => store.resolve(coll)));
 
 describe('insert', () => {
   describe('successful insert', () => {
