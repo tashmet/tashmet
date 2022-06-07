@@ -1,5 +1,4 @@
-import { Collection } from '../collection';
-import { Dispatcher, Document, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap } from '../interfaces';
+import { Dispatcher, Document, Namespace } from '../interfaces';
 import { GetMoreOperation } from '../operations/getMore';
 
 /** @public */
@@ -18,31 +17,6 @@ export interface AbstractCursorOptions {
   tailable?: boolean;
   awaitData?: boolean;
   noCursorTimeout?: boolean;
-}
-
-/*
-export function applyFindOptions(cursor: Cursor<any>, options: FindOptions): Cursor<any> {
-  if (options.sort) {
-    cursor.sort(options.sort);
-  }
-  if (options.skip) {
-    cursor.skip(options.skip);
-  }
-  if (options.limit) {
-    cursor.limit(options.limit);
-  }
-  return cursor;
-}
-*/
-
-export function sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {
-  if (typeof key === 'string') {
-    return {[key]: direction || 1};
-  }
-  if (Array.isArray(key)) {
-    return key.reduce((o, k) => Object.assign(o, {[k]: direction || 1}), {});
-  }
-  return key;
 }
 
 export abstract class AbstractCursor<TSchema> {
@@ -65,29 +39,6 @@ export abstract class AbstractCursor<TSchema> {
           value != null ? { value, done: false } : { value: undefined, done: true }
         )
     };
-  }
-
-  /**
-   * Sets the sort order of the cursor query.
-   *
-   * If the key is either a string or list of strings the direction will be given by the second
-   * argument or default to ascending order.
-   *
-   * If the key is given as a key-value map the sorting direction for each of the keys will be
-   * determined by its value and the direction argument can be omitted.
-   */
-  public sort(key: SortingKey, direction?: SortingDirection): this {
-    return this.extendOptions({sort: sortingMap(key, direction)});
-  }
-
-  /** Set the skip for the cursor. */
-  public skip(count: number): this {
-    return this.extendOptions({skip: count});
-  }
-
-  /** Set the limit for the cursor. */
-  public limit(count: number): this {
-    return this.extendOptions({limit: count});
   }
 
   /** Returns an array of documents. */
@@ -180,11 +131,6 @@ export abstract class AbstractCursor<TSchema> {
     };
 
     await fetchDocs();
-  }
-
-  private extendOptions(options: FindOptions): this {
-    Object.assign(this.options, options);
-    return this;
   }
 
   protected async getMore(batchSize: number): Promise<Document> {
