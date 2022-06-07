@@ -9,7 +9,7 @@ import {
 import { Collection } from './collection';
 import { Logger, provider } from '@tashmet/core';
 import { CommandOperation } from './operations/command';
-import { DropCollectionOperation } from './operations/drop';
+import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop';
 
 
 export class DatabaseService implements Database {
@@ -56,6 +56,10 @@ export class DatabaseService implements Database {
 
   public async dropCollection(name: string): Promise<boolean> {
     return this.executeOperation(new DropCollectionOperation({db: this.databaseName, coll: name}, {}));
+  }
+
+  public async dropDatabase(): Promise<boolean> {
+    return this.executeOperation(new DropDatabaseOperation({db: this.databaseName, coll: ''}, {})); 
   }
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
