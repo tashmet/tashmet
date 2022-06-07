@@ -1,15 +1,14 @@
-import { Collection } from '../collection';
-import { Dispatcher, Document, Filter, FindOptions } from '../interfaces';
+import { Dispatcher, Document, Filter, FindOptions, Namespace } from '../interfaces';
 import { AbstractCursor } from './abstractCursor';
 
 export class FindCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    collection: Collection,
+    namespace: Namespace,
     dispatcher: Dispatcher,
     private filter: Filter<TSchema>,
     options: FindOptions = {},
   ) {
-    super(collection, dispatcher, options);
+    super(namespace, dispatcher, options);
   }
 
   protected async initialize(): Promise<Document> {

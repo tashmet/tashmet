@@ -1,5 +1,4 @@
-import { Collection } from "../collection";
-import { Dispatcher, Document } from "../interfaces";
+import { Dispatcher, Document, Namespace } from "../interfaces";
 import { AggregateOperation, AggregateOptions } from "./aggregate";
 
 /** @public */
@@ -12,7 +11,7 @@ export interface CountDocumentsOptions extends AggregateOptions {
 
 /** @internal */
 export class CountDocumentsOperation extends AggregateOperation<number> {
-  constructor(collection: Collection, query: Document, options: CountDocumentsOptions) {
+  constructor(ns: Namespace, query: Document, options: CountDocumentsOptions) {
     const pipeline = [];
     pipeline.push({ $match: query });
 
@@ -26,7 +25,7 @@ export class CountDocumentsOperation extends AggregateOperation<number> {
 
     pipeline.push({ $group: { _id: 1, n: { $sum: 1 } } });
 
-    super(collection, pipeline, options);
+    super(ns, pipeline, options);
   }
 
   async execute(dispatcher: Dispatcher): Promise<number> {

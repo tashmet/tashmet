@@ -1,5 +1,5 @@
 import { Collection } from "../collection";
-import { CollationOptions, Dispatcher, Document } from "../interfaces";
+import { CollationOptions, Dispatcher, Document, Namespace } from "../interfaces";
 import { CommandOperation, CommandOperationOptions } from "./command";
 
 /** @public */
@@ -33,13 +33,13 @@ export class AggregateOperation<T = Document> extends CommandOperation<T> {
   pipeline: Document[];
   hasWriteStage: boolean;
 
-  constructor(collection: Collection, pipeline: Document[], options?: AggregateOptions) {
-    super(collection, { ...options, dbName: collection.dbName });
+  constructor(ns: Namespace, pipeline: Document[], options?: AggregateOptions) {
+    super(ns, { ...options, dbName: ns.db });
 
     this.options = options ?? {};
 
     // Covers when ns.collection is null, undefined or the empty string, use DB_AGGREGATE_COLLECTION
-    this.target = collection.collectionName || 1;
+    this.target = ns.coll || 1;
 
     this.pipeline = pipeline;
 

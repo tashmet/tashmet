@@ -53,7 +53,7 @@ export abstract class AbstractCursor<TSchema> {
   protected transform: ((doc: TSchema) => any) | undefined;
 
   public constructor(
-    protected collection: Collection,
+    protected namespace: Namespace,
     protected dispatcher: Dispatcher,
     protected options: AbstractCursorOptions = {}
   ) {}
@@ -187,12 +187,8 @@ export abstract class AbstractCursor<TSchema> {
     return this;
   }
 
-  protected get namespace(): Namespace {
-    return {db: this.collection.dbName, coll: this.collection.collectionName};
-  }
-
   protected async getMore(batchSize: number): Promise<Document> {
-    const getMoreOperation = new GetMoreOperation(this.collection, this.id, {
+    const getMoreOperation = new GetMoreOperation(this.namespace, this.id, {
       ...this.options,
       batchSize
     });

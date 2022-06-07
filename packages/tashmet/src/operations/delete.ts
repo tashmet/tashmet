@@ -1,5 +1,4 @@
-import { Collection } from '../collection';
-import { Document, CollationOptions, Dispatcher } from '../interfaces';
+import { Document, CollationOptions, Dispatcher, Namespace } from '../interfaces';
 import { CommandOperation, CommandOperationOptions } from './command';
 
 
@@ -40,15 +39,15 @@ export interface DeleteStatement {
 
 /** @internal */
 export class DeleteOperation extends CommandOperation<Document> {
-  constructor(collection: Collection, protected statements: DeleteStatement[], public options: DeleteOptions) {
-    super(collection, options);
+  constructor(ns: Namespace, protected statements: DeleteStatement[], public options: DeleteOptions) {
+    super(ns, options);
   }
 
   async execute(dispatcher: Dispatcher): Promise<DeleteResult> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
-      delete: this.collection.collectionName,
+      delete: this.ns.coll,
       deletes: this.statements,
       ordered
     };
@@ -63,14 +62,14 @@ export class DeleteOperation extends CommandOperation<Document> {
 }
 
 export class DeleteOneOperation extends DeleteOperation {
-  constructor(collection: Collection, filter: Document, options: DeleteOptions) {
-    super(collection, [makeDeleteStatement(filter, { ...options, limit: 1 })], options);
+  constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
+    super(ns, [makeDeleteStatement(filter, { ...options, limit: 1 })], options);
   }
 }
 
 export class DeleteManyOperation extends DeleteOperation {
-  constructor(collection: Collection, filter: Document, options: DeleteOptions) {
-    super(collection, [makeDeleteStatement(filter, options)], options);
+  constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
+    super(ns, [makeDeleteStatement(filter, options)], options);
   }
 }
 

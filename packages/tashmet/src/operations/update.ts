@@ -1,6 +1,6 @@
 import ObjectId from 'bson-objectid';
 import { Collection } from '../collection';
-import { CollationOptions, Dispatcher, Document } from '../interfaces';
+import { CollationOptions, Dispatcher, Document, Namespace } from '../interfaces';
 import { CommandOperation, CommandOperationOptions } from './command';
 
 
@@ -55,11 +55,11 @@ export interface UpdateStatement {
 /** @internal */
 export class UpdateOperation extends CommandOperation<Document> {
   constructor(
-    collection: Collection,
+    ns: Namespace,
     public statements: UpdateStatement[],
     public options: UpdateOptions & { ordered?: boolean }
   ) {
-    super(collection, options);
+    super(ns, options);
   }
 
   async execute(
@@ -68,7 +68,7 @@ export class UpdateOperation extends CommandOperation<Document> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
-      update: this.collection.collectionName,
+      update: this.ns.coll,
       updates: this.statements,
       ordered
     };
@@ -95,9 +95,9 @@ export class UpdateOperation extends CommandOperation<Document> {
 
 /** @internal */
 export class UpdateOneOperation extends UpdateOperation {
-  constructor(collection: Collection, filter: Document, update: Document, options: UpdateOptions) {
+  constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
-      collection,
+      ns,
       [makeUpdateStatement(filter, update, { ...options, multi: false })],
       options
     );
@@ -106,9 +106,9 @@ export class UpdateOneOperation extends UpdateOperation {
 
 /** @internal */
 export class UpdateManyOperation extends UpdateOperation {
-  constructor(collection: Collection, filter: Document, update: Document, options: UpdateOptions) {
+  constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
-      collection,
+      ns,
       [makeUpdateStatement(filter, update, { ...options, multi: true })],
       options
     );
@@ -132,13 +132,13 @@ export interface ReplaceOptions extends CommandOperationOptions {
 /** @internal */
 export class ReplaceOneOperation extends UpdateOperation {
   constructor(
-    collection: Collection,
+    ns: Namespace,
     filter: Document,
     replacement: Document,
     options: ReplaceOptions
   ) {
     super(
-      collection,
+      ns,
       [makeUpdateStatement(filter, replacement, { ...options, multi: false })],
       options
     );

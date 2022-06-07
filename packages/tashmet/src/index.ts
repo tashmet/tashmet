@@ -77,9 +77,9 @@ import {
   provider,
   Provider,
 } from '@tashmet/core';
-import {BootstrapConfig} from '@tashmet/core/dist/ioc/bootstrap';
-import {Database, DatabaseFactory, Dispatcher} from './interfaces';
-import {DefaultDatabaseFactory} from './database';
+import { BootstrapConfig } from '@tashmet/core/dist/ioc/bootstrap';
+import { Database, DatabaseFactory, Dispatcher } from './interfaces';
+import { DefaultDatabaseFactory } from './database';
 import { DefaultDispatcher } from './dispatcher';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}

@@ -1,5 +1,5 @@
 import { Collection } from "../collection";
-import { CollationOptions, Dispatcher, Document } from "../interfaces";
+import { CollationOptions, Dispatcher, Document, Namespace } from "../interfaces";
 
 export interface CommandOperationOptions {
   /** Specify a read concern and level for the collection. (only MongoDB 3.2 or higher supported) */
@@ -26,11 +26,11 @@ export interface CommandOperationOptions {
 }
 
 export abstract class CommandOperation<T> {
-  constructor(public collection: Collection, public options: CommandOperationOptions = {}) {}
+  constructor(public ns: Namespace, public options: CommandOperationOptions = {}) {}
 
   abstract execute(dispatcher: Dispatcher): Promise<any>;
 
   async executeCommand(dispatcher: Dispatcher, cmd: Document): Promise<any> {
-    return dispatcher.dispatch({db: this.collection.dbName, coll: this.collection.collectionName}, cmd);
+    return dispatcher.dispatch(this.ns, cmd);
   }
 }

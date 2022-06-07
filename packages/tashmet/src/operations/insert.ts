@@ -1,18 +1,17 @@
-import { Collection } from '../collection';
-import { Document, InferIdType } from '../interfaces';
+import { Document, InferIdType, Namespace } from '../interfaces';
 import { CommandOperation, CommandOperationOptions } from './command';
 
 
 export class InsertOperation extends CommandOperation<Document> {
-  constructor(collection: Collection, public readonly documents: Document[], public readonly options: any) {
-    super(collection, options);
+  constructor(ns: Namespace, public readonly documents: Document[], public readonly options: any) {
+    super(ns, options);
   }
 
   execute(engine: any): Promise<Document> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
-      insert: this.collection.collectionName,
+      insert: this.ns.coll,
       documents: this.documents,
       ordered
     };
@@ -48,8 +47,8 @@ export interface InsertOneResult<TSchema = Document> {
 }
 
 export class InsertOneOperation extends InsertOperation {
-  constructor(collection: Collection, doc: Document, options: InsertOneOptions) {
-    super(collection, [doc], options);
+  constructor(ns: Namespace, doc: Document, options: InsertOneOptions) {
+    super(ns, [doc], options);
   }
 
   async execute(engine: any): Promise<InsertOneResult> {
@@ -74,8 +73,8 @@ export interface InsertManyResult<TSchema = Document> {
 
 /** @internal */
 export class InsertManyOperation extends InsertOperation {
-  constructor(collection: Collection, docs: Document[], options: any) {
-    super(collection, docs, options);
+  constructor(ns: Namespace, docs: Document[], options: any) {
+    super(ns, docs, options);
   }
 
   async execute(engine: any): Promise<InsertManyResult> {

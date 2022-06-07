@@ -1,16 +1,15 @@
-import { Collection } from '../collection';
-import { Dispatcher, Document } from '../interfaces';
+import { Dispatcher, Document, Namespace } from '../interfaces';
 import { AggregateOptions } from '../operations/aggregate';
 import { AbstractCursor } from './abstractCursor';
 
 export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    collection: Collection,
+    namespace: Namespace,
     dispatcher: Dispatcher,
     private pipeline: Document[],
     options: AggregateOptions = {},
   ) {
-    super(collection, dispatcher, options);
+    super(namespace, dispatcher, options);
   }
 
   protected async initialize(): Promise<Document> {

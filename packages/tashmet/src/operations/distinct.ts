@@ -1,5 +1,4 @@
-import { Collection } from "../collection";
-import { Dispatcher, Document } from "../interfaces";
+import { Dispatcher, Document, Namespace } from "../interfaces";
 import { CommandOperation, CommandOperationOptions } from "./command";
 
 /** @public */
@@ -19,17 +18,17 @@ export class DistinctOperation extends CommandOperation<any[]> {
    * @param options - Optional settings. See Collection.prototype.distinct for a list of options.
    */
   constructor(
-    public collection: Collection,
+    public ns: Namespace,
     public key: string,
     public query: Document,
     public options: DistinctOptions = {}
   ) {
-    super(collection, options);
+    super(ns, options);
   }
 
   async execute(dispatcher: Dispatcher): Promise<any[]> {
     const cmd: Document = {
-      distinct: this.collection.collectionName,
+      distinct: this.ns.coll,
       key: this.key,
       query: this.query,
     };

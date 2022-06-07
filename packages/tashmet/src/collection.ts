@@ -11,6 +11,7 @@ import {
   UpdateFilter,
   WithId,
   Dispatcher,
+  Namespace,
 } from "./interfaces";
 import { ChangeStream } from "./changeStream";
 import { AggregationCursor } from "./cursor/aggregationCursor";
@@ -22,6 +23,7 @@ import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateRes
 import { CommandOperation } from "./operations/command";
 import { AggregateOptions } from "./operations/aggregate";
 import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments";
+import { DropCollectionOperation } from "./operations/drop";
 
 /**
  * A collection of documents.
@@ -58,11 +60,11 @@ export class Collection<TSchema extends Document = any> {
   }
 
   public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): AggregationCursor<T> {
-    return new AggregationCursor<T>(this, this.dispatcher, pipeline, options);
+    return new AggregationCursor<T>(this.ns, this.dispatcher, pipeline, options);
   }
 
   public countDocuments(filter: Filter<TSchema> = {}, options: CountDocumentsOptions = {}): Promise<number> {
-    return this.executeOperation(new CountDocumentsOperation(this, filter, options));
+    return this.executeOperation(new CountDocumentsOperation(this.ns, filter, options));
   }
 
   /**
@@ -72,7 +74,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A cursor.
    */
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): FindCursor<TSchema> {
-    return new FindCursor<TSchema>(this, this.dispatcher, filter, options);
+    return new FindCursor<TSchema>(this.ns, this.dispatcher, filter, options);
   }
 
   /**
@@ -94,7 +96,7 @@ export class Collection<TSchema extends Document = any> {
    * @throws Error if a document with the same ID already exists
    */
   public async insertOne(document: OptionalId<TSchema>): Promise<InsertOneResult> {
-    return this.executeOperation(new InsertOneOperation(this, document, {}));
+    return this.executeOperation(new InsertOneOperation(this.ns, document, {}));
   }
 
   /**
@@ -107,7 +109,7 @@ export class Collection<TSchema extends Document = any> {
    * @throws Error if a document with the same ID already exists
    */
   public async insertMany(documents: OptionalId<TSchema>[]): Promise<InsertManyResult> {
-    return this.executeOperation(new InsertManyOperation(this, documents, {}));
+    return this.executeOperation(new InsertManyOperation(this.ns, documents, {}));
   }
 
   /**
@@ -116,7 +118,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter The Filter used to select the document to remove
    */
   public async deleteOne(filter: Filter<TSchema>): Promise<DeleteResult> {
-    return this.executeOperation(new DeleteOneOperation(this, filter, {}));
+    return this.executeOperation(new DeleteOneOperation(this.ns, filter, {}));
   }
 
   /**
@@ -125,7 +127,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter The Filter used to select the documents to remove
    */
   public async deleteMany(filter: Filter<TSchema>): Promise<DeleteResult> {
-    return this.executeOperation(new DeleteManyOperation(this, filter, {}));
+    return this.executeOperation(new DeleteManyOperation(this.ns, filter, {}));
   }
 
   /**
@@ -138,7 +140,7 @@ export class Collection<TSchema extends Document = any> {
   public async replaceOne(
     filter: Filter<TSchema>, replacement: TSchema, options?: ReplaceOneOptions
   ): Promise<UpdateResult> {
-    return this.executeOperation(new ReplaceOneOperation(this, filter, replacement, options || {}));
+    return this.executeOperation(new ReplaceOneOperation(this.ns, filter, replacement, options || {}));
   }
 
   /**
@@ -148,7 +150,7 @@ export class Collection<TSchema extends Document = any> {
    * @param update - The update operations to be applied to the document
    */
   public async updateOne(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
-    return this.executeOperation(new UpdateOneOperation(this, filter, update, {}));
+    return this.executeOperation(new UpdateOneOperation(this.ns, filter, update, {}));
   }
 
   /**
@@ -158,7 +160,7 @@ export class Collection<TSchema extends Document = any> {
    * @param update - The update operations to be applied to the documents
    */
   public async updateMany(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
-    return this.executeOperation(new UpdateManyOperation(this, filter, update, {}));
+    return this.executeOperation(new UpdateManyOperation(this.ns, filter, update, {}));
   }
 
   /**
@@ -199,7 +201,7 @@ export class Collection<TSchema extends Document = any> {
     key: /*Key | */string,
     filter: Filter<TSchema> = {}
   ): Promise<Array<Flatten<WithId<TSchema>[Key]>>> {
-    return this.executeOperation(new DistinctOperation(this, key, filter));
+    return this.executeOperation(new DistinctOperation(this.ns, key, filter));
   }
 
   /**
@@ -217,10 +219,14 @@ export class Collection<TSchema extends Document = any> {
   }
 
   public drop() {
-    return this.db.dropCollection(this.collectionName);
+    return this.executeOperation(new DropCollectionOperation(this.ns, {}));
   }
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
     return operation.execute(this.dispatcher) as Promise<T>;
+  }
+
+  private get ns(): Namespace {
+    return {db: this.db.databaseName, coll: this.collectionName};
   }
 }

@@ -1,5 +1,4 @@
-import { Collection } from "../collection";
-import { Dispatcher, Document } from "../interfaces";
+import { Dispatcher, Document, Namespace } from "../interfaces";
 import { CommandOperation, CommandOperationOptions } from "./command";
 
 /**
@@ -22,15 +21,15 @@ export interface GetMoreOptions extends CommandOperationOptions {
 /** @internal */
 export class GetMoreOperation extends CommandOperation<Document> {
   constructor(
-    public collection: Collection,
+    ns: Namespace,
     public cursorId: number,
     public options: GetMoreOptions = {}
-  ) { super(collection, options); }
+  ) { super(ns, options); }
 
   execute(dispatcher: Dispatcher): Promise<Document> {
     return this.executeCommand(dispatcher, {
       getMore: this.cursorId,
-      collection: this.collection.collectionName,
+      collection: this.ns.coll,
       batchSIze: this.options.batchSize,
     });
   }
