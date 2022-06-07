@@ -31,6 +31,7 @@
 	],
 	"dependencies": {
 		"@tashmet/tashmet": "^1.4.0",
+		"@tashmet/mingo-engine": "^1.0.0",
 		"bson-objectid": "^1.3.0",
 		"eventemitter3": "^3.0.0",
 		"mingo": "6.0.5"

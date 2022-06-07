@@ -1,18 +1,16 @@
 import {Aggregator as MingoInternalAggregator} from 'mingo/aggregator';
 import {
-  Aggregator,
-  Cursor,
+  //Aggregator,
   Document,
   AggregateOptions,
   Lazy,
   Namespace,
   StorageEngine,
-  lockedCursor,
   Filter,
   FindOptions,
   provider
 } from '@tashmet/tashmet';
-import { MingoStore } from './store';
+//import { MingoStore } from './store';
 
 export interface PrefetchAggregation {
   filter: Filter<any>;

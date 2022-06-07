@@ -10,16 +10,14 @@ import {
   provider,
   Provider,
   StorageEngine,
-  MemoryStorageEngine,
-  StoreConfig,
-  ViewFactory,
+  DatabaseEngineFactory,
+  DatabaseEngine,
 } from '@tashmet/tashmet';
 import {hashCode, intersection} from 'mingo/util';
-import {/*MingoAggregator,*/ PrefetchAggregationStrategy} from './aggregator';
+import {PrefetchAggregationStrategy} from './aggregator';
 import {MingoConfig} from './interfaces';
-import {MingoStore} from './store';
 import {SimpleValidatorFactory} from './validator';
-import {MingoViewFactory} from './view';
+import {MingoDatabaseEngine} from '@tashmet/mingo-engine';
 
 export {filterValidator} from './validator';
 export * from './interfaces';
@@ -37,7 +35,7 @@ export class MingoComparator implements Comparator {
 }
 
 @provider()
-export default class MingoStorageEngine extends StorageEngine {
+export default class MingoDatabaseEngineFactory extends DatabaseEngineFactory {
   private static defaultConfig: MingoConfig = {
     useStrictMode: true,
     scriptEnabled: true,
@@ -47,17 +45,13 @@ export default class MingoStorageEngine extends StorageEngine {
     return (container: Container) => {
       container.register(SimpleValidatorFactory);
       container.register(Provider.ofInstance(MingoConfig, {
-        ...MingoStorageEngine.defaultConfig,
+        ...MingoDatabaseEngineFactory.defaultConfig,
         ...config
       }));
-      container.register(MingoStorageEngine);
-      container.register(Provider.ofResolver(MemoryStorageEngine, Lookup.of(MingoStorageEngine)));
-      container.register(Provider.ofResolver(StorageEngine, Lookup.of(MingoStorageEngine)));
-      container.register(MingoViewFactory);
-      container.register(Provider.ofResolver(ViewFactory, Lookup.of(MingoViewFactory)));
+      container.register(MingoDatabaseEngineFactory);
+      container.register(Provider.ofResolver(DatabaseEngineFactory, Lookup.of(MingoDatabaseEngineFactory)));
       container.register(Provider.ofInstance(HashCode, hashCode));
       container.register(MingoComparator);
-      // container.register(MingoAggregator);
       container.register(PrefetchAggregationStrategy);
     }
   }
@@ -67,7 +61,7 @@ export default class MingoStorageEngine extends StorageEngine {
     private config: MingoConfig,
   ) { super(); }
 
-  public createStore<TSchema extends Document>(config: StoreConfig) {
-    return MingoStore.fromConfig<TSchema>({...this.config, ...config});
-  }
+  public createDatabaseEngine(dbName: string, storageEngine?: StorageEngine): DatabaseEngine {
+    return MingoDatabaseEngine.inMemory(dbName);
+  }    
 }
