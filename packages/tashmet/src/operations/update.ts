@@ -1,5 +1,4 @@
 import ObjectId from 'bson-objectid';
-import { Collection } from '../collection';
 import { CollationOptions, Dispatcher, Document, Namespace } from '../interfaces';
 import { CommandOperation, CommandOperationOptions } from './command';
 import { Aspect, aspects } from './operation';

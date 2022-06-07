@@ -188,7 +188,6 @@ export class Collection<TSchema extends Document = any> {
    */
   public async bulkWrite(operations: AnyBulkWriteOperation<TSchema>[]): Promise<BulkWriteResult> {
     throw Error('Not implemented');
-    //return this.writeOpFactory.createOperation(operations).execute();
   }
 
   /**
