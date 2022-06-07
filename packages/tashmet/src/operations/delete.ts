@@ -1,5 +1,6 @@
 import { Document, CollationOptions, Dispatcher, Namespace } from '../interfaces';
 import { CommandOperation, CommandOperationOptions } from './command';
+import { Aspect, aspects } from './operation';
 
 
 /** @public */
@@ -38,6 +39,10 @@ export interface DeleteStatement {
 }
 
 /** @internal */
+@aspects(
+  Aspect.RETRYABLE,
+  Aspect.WRITE_OPERATION
+)
 export class DeleteOperation extends CommandOperation<Document> {
   constructor(ns: Namespace, protected statements: DeleteStatement[], public options: DeleteOptions) {
     super(ns, options);
@@ -61,12 +66,23 @@ export class DeleteOperation extends CommandOperation<Document> {
   }
 }
 
+@aspects(
+  Aspect.RETRYABLE,
+  Aspect.WRITE_OPERATION,
+  Aspect.EXPLAINABLE,
+  Aspect.SKIP_COLLATION
+)
 export class DeleteOneOperation extends DeleteOperation {
   constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
     super(ns, [makeDeleteStatement(filter, { ...options, limit: 1 })], options);
   }
 }
 
+@aspects(
+  Aspect.WRITE_OPERATION,
+  Aspect.EXPLAINABLE,
+  Aspect.SKIP_COLLATION
+)
 export class DeleteManyOperation extends DeleteOperation {
   constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
     super(ns, [makeDeleteStatement(filter, options)], options);

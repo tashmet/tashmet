@@ -1,5 +1,5 @@
-import { Collection } from "../collection";
 import { CollationOptions, Dispatcher, Document, Namespace } from "../interfaces";
+import { AspectAnnotation } from "./operation";
 
 export interface CommandOperationOptions {
   /** Specify a read concern and level for the collection. (only MongoDB 3.2 or higher supported) */
@@ -32,5 +32,10 @@ export abstract class CommandOperation<T> {
 
   async executeCommand(dispatcher: Dispatcher, cmd: Document): Promise<any> {
     return dispatcher.dispatch(this.ns, cmd);
+  }
+
+  hasAspect(aspect: symbol): boolean {
+    const aspects = AspectAnnotation.onClass(this.constructor);
+    return aspects.length > 0 && aspects[0].has(aspect);
   }
 }

@@ -1,7 +1,9 @@
 import { Document, InferIdType, Namespace } from '../interfaces';
 import { CommandOperation, CommandOperationOptions } from './command';
+import { Aspect, aspects } from './operation';
 
 
+@aspects(Aspect.RETRYABLE, Aspect.WRITE_OPERATION)
 export class InsertOperation extends CommandOperation<Document> {
   constructor(ns: Namespace, public readonly documents: Document[], public readonly options: any) {
     super(ns, options);
@@ -46,6 +48,7 @@ export interface InsertOneResult<TSchema = Document> {
   insertedId: InferIdType<TSchema>;
 }
 
+@aspects(Aspect.RETRYABLE, Aspect.WRITE_OPERATION)
 export class InsertOneOperation extends InsertOperation {
   constructor(ns: Namespace, doc: Document, options: InsertOneOptions) {
     super(ns, [doc], options);
@@ -72,6 +75,7 @@ export interface InsertManyResult<TSchema = Document> {
 }
 
 /** @internal */
+@aspects(Aspect.WRITE_OPERATION)
 export class InsertManyOperation extends InsertOperation {
   constructor(ns: Namespace, docs: Document[], options: any) {
     super(ns, docs, options);

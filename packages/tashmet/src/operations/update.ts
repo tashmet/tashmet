@@ -2,6 +2,7 @@ import ObjectId from 'bson-objectid';
 import { Collection } from '../collection';
 import { CollationOptions, Dispatcher, Document, Namespace } from '../interfaces';
 import { CommandOperation, CommandOperationOptions } from './command';
+import { Aspect, aspects } from './operation';
 
 
 /** @public */
@@ -53,6 +54,7 @@ export interface UpdateStatement {
 }
 
 /** @internal */
+@aspects(Aspect.RETRYABLE, Aspect.WRITE_OPERATION, Aspect.SKIP_COLLATION)
 export class UpdateOperation extends CommandOperation<Document> {
   constructor(
     ns: Namespace,
@@ -94,6 +96,12 @@ export class UpdateOperation extends CommandOperation<Document> {
 }
 
 /** @internal */
+@aspects(
+  Aspect.RETRYABLE,
+  Aspect.WRITE_OPERATION,
+  Aspect.EXPLAINABLE,
+  Aspect.SKIP_COLLATION
+)
 export class UpdateOneOperation extends UpdateOperation {
   constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
@@ -105,6 +113,11 @@ export class UpdateOneOperation extends UpdateOperation {
 }
 
 /** @internal */
+@aspects(
+  Aspect.WRITE_OPERATION,
+  Aspect.EXPLAINABLE,
+  Aspect.SKIP_COLLATION
+)
 export class UpdateManyOperation extends UpdateOperation {
   constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
@@ -130,6 +143,11 @@ export interface ReplaceOptions extends CommandOperationOptions {
 }
 
 /** @internal */
+@aspects(
+  Aspect.RETRYABLE,
+  Aspect.WRITE_OPERATION,
+  Aspect.SKIP_COLLATION
+)
 export class ReplaceOneOperation extends UpdateOperation {
   constructor(
     ns: Namespace,

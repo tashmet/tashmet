@@ -1,5 +1,6 @@
 import { Dispatcher, Document, Namespace } from "../interfaces";
 import { CommandOperation, CommandOperationOptions } from "./command";
+import { Aspect, aspects } from "./operation";
 
 /**
  * @public
@@ -19,6 +20,7 @@ export interface GetMoreOptions extends CommandOperationOptions {
 }
 
 /** @internal */
+@aspects(Aspect.READ_OPERATION, Aspect.CURSOR_ITERATING)
 export class GetMoreOperation extends CommandOperation<Document> {
   constructor(
     ns: Namespace,

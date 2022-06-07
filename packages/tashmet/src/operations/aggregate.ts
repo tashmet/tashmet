@@ -1,6 +1,6 @@
-import { Collection } from "../collection";
 import { CollationOptions, Dispatcher, Document, Namespace } from "../interfaces";
 import { CommandOperation, CommandOperationOptions } from "./command";
+import { Aspect, aspects } from "./operation";
 
 /** @public */
 export interface AggregateOptions extends CommandOperationOptions {
@@ -27,6 +27,7 @@ export interface AggregateOptions extends CommandOperationOptions {
 }
 
 /** @internal */
+@aspects(Aspect.READ_OPERATION, Aspect.RETRYABLE, Aspect.EXPLAINABLE, Aspect.CURSOR_CREATING)
 export class AggregateOperation<T = Document> extends CommandOperation<T> {
   options: AggregateOptions;
   target: string | 1;

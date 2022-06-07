@@ -1,5 +1,6 @@
 import { Dispatcher, Document, Namespace } from "../interfaces";
 import { CommandOperation, CommandOperationOptions } from "./command";
+import { Aspect, aspects } from "./operation";
 
 /** @public */
 export type DistinctOptions = CommandOperationOptions;
@@ -8,6 +9,7 @@ export type DistinctOptions = CommandOperationOptions;
  * Return a list of distinct values for the given key across a collection.
  * @internal
  */
+@aspects(Aspect.READ_OPERATION, Aspect.RETRYABLE, Aspect.EXPLAINABLE)
 export class DistinctOperation extends CommandOperation<any[]> {
   /**
    * Construct a Distinct operation.

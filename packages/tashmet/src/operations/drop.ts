@@ -1,10 +1,12 @@
 import { Dispatcher, Namespace } from "../interfaces";
 import { CommandOperation, CommandOperationOptions } from "./command";
+import { Aspect, aspects } from "./operation";
 
 /** @public */
 export type DropCollectionOptions = CommandOperationOptions;
 
 /** @internal */
+@aspects(Aspect.WRITE_OPERATION)
 export class DropCollectionOperation extends CommandOperation<boolean> {
 
   constructor(namespace: Namespace, public options: DropCollectionOptions) {
@@ -21,6 +23,7 @@ export class DropCollectionOperation extends CommandOperation<boolean> {
 export type DropDatabaseOptions = CommandOperationOptions;
 
 /** @internal */
+@aspects(Aspect.WRITE_OPERATION)
 export class DropDatabaseOperation extends CommandOperation<boolean> {
   constructor(namespace: Namespace, public options: DropDatabaseOptions) {
     super(namespace, options);
