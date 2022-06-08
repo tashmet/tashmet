@@ -1,6 +1,7 @@
-import { Document, StorageEngine } from './interfaces';
+import ObjectId from 'bson-objectid';
+import { Document, StorageEngine, Streamable } from '@tashmet/engine';
 
-export class MemoryStorageEngine implements StorageEngine {
+export class MemoryStorageEngine implements StorageEngine, Streamable {
   private indexes: {[coll: string]: Record<string, number>} = {};
 
   public constructor(
@@ -28,7 +29,7 @@ export class MemoryStorageEngine implements StorageEngine {
     delete this.indexes[collection];
   }
 
-  public async *collection(collection: string): AsyncGenerator<Document> {
+  public async *stream(collection: string): AsyncGenerator<Document> {
     const coll = this.collections[collection];
     if (Array.isArray(coll)) {
       for (const doc of coll) {
@@ -40,13 +41,18 @@ export class MemoryStorageEngine implements StorageEngine {
     }
   }
 
-  public exists(collection: string, id: string): boolean {
+  public async exists(collection: string, id: string): Promise<boolean> {
     return this.indexes[collection][id] !== undefined;
   }
 
   public async insert(collection: string, document: Document): Promise<void> {
     const coll = this.collections[collection];
     if (Array.isArray(coll)) {
+      if (!document.hasOwnProperty('_id')) {
+        document._id = new ObjectId().toHexString();
+      } else if (await this.exists(collection, document._id)) {
+        throw new Error('Duplicate id');
+      }
       coll.push(document);
       this.indexes[collection][document._id] = coll.length - 1;
     }

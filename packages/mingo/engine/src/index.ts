@@ -1,15 +1,23 @@
+import {
+  AbstractAggregator,
+  AggregatorFactory,
+  AggregationEngine,
+  DatabaseEngine,
+  Document,
+  makeAggregateCommand,
+  makeCountCommand,
+  makeCreateCommand,
+  makeDeleteCommand,
+  makeDistinctCommand,
+  makeFindCommand,
+  makeGetMoreCommand,
+  makeUpdateCommand,
+  makeInsertCommand,
+  StorageEngine,
+  Streamable,
+  makeDropCommand,
+} from '@tashmet/engine';
 import { MemoryStorageEngine } from './storageEngine';
-import { $aggregate } from './commands/aggregate';
-import { $count } from './commands/count';
-import { $create } from './commands/create';
-import { $delete } from './commands/delete';
-import { $distinct } from './commands/distinct';
-import { $drop } from './commands/drop';
-import { $find } from './commands/find';
-import { $getMore } from './commands/getMore';
-import { $insert } from './commands/insert';
-import { $update } from './commands/update';
-import { AbstractAggregator, AggregatorFactory, DatabaseEngine, Document, MingoConfig, StorageEngine } from './interfaces';
 import { BufferAggregator } from './aggregator';
 
 export class MingoAggregatorFactory implements AggregatorFactory {
@@ -21,19 +29,31 @@ export class MingoAggregatorFactory implements AggregatorFactory {
 }
 
 export class MingoDatabaseEngine extends DatabaseEngine {
-  public static inMemory(databaseName: string, config: Partial<MingoConfig> = {}) {
-    const storage = new MemoryStorageEngine(databaseName); 
+  public static inMemory(databaseName: string) {
+    return MingoDatabaseEngine.fromMemory(new MemoryStorageEngine(databaseName));
+  }
+
+  public static fromMemory(storage: MemoryStorageEngine) {
     const aggFact = new MingoAggregatorFactory(coll => storage.resolve(coll));
-    return new MingoDatabaseEngine(storage, aggFact, config);
+    const aggregator = new AggregationEngine(storage, aggFact);
+    return new MingoDatabaseEngine(storage, aggregator);
   }
 
   public constructor(
-    store: StorageEngine,
-    aggFact: AggregatorFactory,
-    options: MingoConfig = {}
+    store: StorageEngine & Streamable,
+    aggregator: AggregationEngine,
   ) {
-    super(store, aggFact, {
-      $aggregate, $count, $create, $delete, $distinct, $drop, $find, $getMore, $insert, $update,
+    super(store.databaseName, {
+      $aggregate: makeAggregateCommand(aggregator),
+      $count: makeCountCommand(aggregator),
+      $create: makeCreateCommand(store, aggregator),
+      $delete: makeDeleteCommand(store, aggregator),
+      $distinct: makeDistinctCommand(aggregator),
+      $drop: makeDropCommand(store),
+      $find: makeFindCommand(aggregator),
+      $getMore: makeGetMoreCommand(aggregator),
+      $insert: makeInsertCommand(store),
+      $update: makeUpdateCommand(store, aggregator.aggFact),
     });
   }
 }

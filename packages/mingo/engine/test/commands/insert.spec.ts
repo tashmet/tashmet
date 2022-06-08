@@ -1,11 +1,11 @@
 import {expect} from 'chai';
 import 'mocha';
-import { MingoDatabaseEngine, MingoAggregatorFactory } from '../../src';
+import { MingoDatabaseEngine } from '../../src';
 import { MemoryStorageEngine } from '../../src/storageEngine';
 
 
 let store = new MemoryStorageEngine('testdb');
-let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory(coll => store.resolve(coll)));
+let engine = MingoDatabaseEngine.fromMemory(store);
 
 describe('insert', () => {
   describe('successful insert', () => {
@@ -26,7 +26,7 @@ describe('insert', () => {
     });
 
     it('should have inserted the documents into the store', async () => {
-      const it = store.collection('test');
+      const it = store.stream('test');
       expect((await it.next()).value.title).to.eql('foo');
       expect((await it.next()).value.title).to.eql('bar');
       expect((await it.next()).done).to.eql(true);
@@ -48,7 +48,7 @@ describe('insert', () => {
         insert: 'test',
         documents: [{_id: 1, title: 'foo'}, {_id: 2, title: 'bar'}],
       });
-      expect(result).to.eql({n: 1, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate key error'}]});
+      expect(result).to.eql({n: 1, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate id'}]});
     });
 
     it('should not insert remaining documents after initial fail when ordered', async () => {
@@ -57,7 +57,7 @@ describe('insert', () => {
         documents: [{_id: 1, title: 'foo'}, {_id: 2, title: 'bar'}],
         ordered: true,
       });
-      expect(result).to.eql({n: 0, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate key error'}]});
+      expect(result).to.eql({n: 0, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate id'}]});
     });
   });
 });

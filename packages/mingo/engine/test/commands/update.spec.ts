@@ -2,7 +2,7 @@ import 'mingo/init/system';
 import { expect } from 'chai';
 import 'mocha';
 import { MemoryStorageEngine } from '../../src/storageEngine';
-import { MingoAggregatorFactory, MingoDatabaseEngine } from '../../src';
+import { MingoDatabaseEngine } from '../../src';
 
 
 let store = new MemoryStorageEngine('testdb', {'test': [
@@ -11,7 +11,7 @@ let store = new MemoryStorageEngine('testdb', {'test': [
   { _id: 3, category: "pie", type: "boston cream", qty: 20 },
   { _id: 4, category: "pie", type: "blueberry", qty: 15 }
 ]});
-let engine = new MingoDatabaseEngine(store, new MingoAggregatorFactory(coll => store.resolve(coll)));
+let engine = MingoDatabaseEngine.fromMemory(store);
 
 describe('update', () => {
   it('should update a single document', async () => {
@@ -23,7 +23,7 @@ describe('update', () => {
   });
 
   it('should have updated the document in the store', async () => {
-      const it = store.collection('test');
+      const it = store.stream('test');
       expect((await it.next()).value).to.eql({_id: 1, category: "cake", type: "chocolate", qty: 20});
   });
 
