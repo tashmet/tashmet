@@ -44,7 +44,11 @@ describe('Collection', () => {
   });
 
   afterEach(async () => {
-    await col.deleteMany({});
+    try {
+      await col.deleteMany({});
+    } catch (err) {
+      // ignore
+    }
   });
 
   describe('insertOne', () => {
@@ -116,7 +120,7 @@ describe('Collection', () => {
         matchedCount: 1,
         modifiedCount: 1,
         upsertedCount: 0,
-        upsertedId: undefined,
+        upsertedId: null,
       });
     });
     it('should have zero matchedCount and modifiedCount if no document matched selector', async () => {
@@ -128,7 +132,7 @@ describe('Collection', () => {
         matchedCount: 0,
         modifiedCount: 0,
         upsertedCount: 0,
-        upsertedId: undefined,
+        upsertedId: null,
       });
     });
     it('should completely replace document', async () => {
@@ -170,7 +174,7 @@ describe('Collection', () => {
         matchedCount: 1,
         modifiedCount: 1,
         upsertedCount: 0,
-        upsertedId: undefined,
+        upsertedId: null,
       });
     });
     it('should have modified the document', async () => {
@@ -180,12 +184,12 @@ describe('Collection', () => {
     })
   })
 
-  describe('count', () => {
+  describe('countDocuments', () => {
     it('should return 0 when no documents are matching', () => {
-      return expect(col.find({'item.category': 'candy'}).count()).to.eventually.eql(0);
+      return expect(col.countDocuments({'item.category': 'candy'})).to.eventually.eql(0);
     });
     it('should be a positive number when items are matched', async () => {
-      return expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
+      return expect(col.countDocuments({'item.category': 'cake'})).to.eventually.eql(3);
     });
   });
 
@@ -333,11 +337,11 @@ describe('Collection', () => {
     });
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
-      return expect(col.find({'item.category': 'cookies'}).count()).to.eventually.eql(0);
+      return expect(col.countDocuments({'item.category': 'cookies'})).to.eventually.eql(0);
     });
     it('should not remove other documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
-      return expect(col.find().count()).to.eventually.eql(3);
+      return expect(col.countDocuments()).to.eventually.eql(3);
     });
     it('should emit a change event', async () => {
       const cs = col.watch();

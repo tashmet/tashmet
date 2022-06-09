@@ -108,7 +108,7 @@ describe('aggregation', () => {
     });
 
     it('should initially have correct documents', async () => {
-      salaries.aggregate([
+      await salaries.aggregate([
         {
           $group: {
             _id: { fiscal_year: "$fiscal_year", dept: "$dept" },
@@ -123,7 +123,7 @@ describe('aggregation', () => {
             whenNotMatched: "insert",
           },
         },
-      ]);
+      ]).toArray();
       return expect(budgets.find().toArray())
         .to.eventually.eql([
           { _id: { fiscal_year: 2017, dept: "A" }, salaries: 220000 },
@@ -167,7 +167,7 @@ describe('aggregation', () => {
         },
       ]);
 
-      salaries.aggregate([
+      await salaries.aggregate([
         { $match: { fiscal_year: { $gte: 2019 } } },
         {
           $group: {
@@ -183,7 +183,7 @@ describe('aggregation', () => {
             whenNotMatched: "insert",
           },
         },
-      ]);
+      ]).toArray();
 
       return expect(budgets.find().toArray())
         .to.eventually.eql([
@@ -238,7 +238,7 @@ describe('aggregation', () => {
         },
       ]);
 
-      salaries.aggregate([
+      await salaries.aggregate([
         { $match: { fiscal_year: 2019 } },
         {
           $group: {
@@ -261,7 +261,7 @@ describe('aggregation', () => {
             whenMatched: "fail",
           },
         },
-      ]);
+      ]).toArray();
 
       expect(db.collection('orgArchive').find().toArray()).to.eventually.eql([
         { employees: ["Ant", "Gecko"], dept: "A", fiscal_year: 2018 },
@@ -322,7 +322,7 @@ describe('aggregation', () => {
         },
       ]);
 
-      po.aggregate([
+      await po.aggregate([
         { $group: { _id: "$quarter", purchased: { $sum: "$qty" } } }, // group purchase orders by quarter
         {
           $merge: {
@@ -332,7 +332,7 @@ describe('aggregation', () => {
             whenNotMatched: "insert",
           },
         },
-      ]);
+      ]).toArray();
 
       expect(await qr.find().toArray()).to.eql([
         { _id: "2019Q1", purchased: 1200 },
@@ -371,7 +371,7 @@ describe('aggregation', () => {
         },
       ]);
 
-      rs.aggregate([
+      await rs.aggregate([
         { $group: { _id: "$quarter", sales: { $sum: "$qty" } } }, // group sales by quarter
         {
           $merge: {
@@ -381,7 +381,7 @@ describe('aggregation', () => {
             whenNotMatched: "insert",
           },
         },
-      ]);
+      ]).toArray();
 
       expect(await qr.find().toArray()).to.eql([
         { _id: "2019Q1", sales: 1950, purchased: 1200 },
@@ -405,7 +405,7 @@ describe('aggregation', () => {
 
       await mt.insertOne({ _id: "2019-05", thumbsup: 26, thumbsdown: 31 });
 
-      votes.aggregate([
+      await votes.aggregate([
         {
           $match: {
             date: { $gte: new Date("2019-05-07"), $lt: new Date("2019-05-08") },
@@ -433,7 +433,7 @@ describe('aggregation', () => {
             whenNotMatched: "insert",
           },
         },
-      ]);
+      ]).toArray();
 
       expect(await mt.find().toArray()).to.eql([
         { _id: "2019-05", thumbsup: 40, thumbsdown: 41 },
@@ -444,7 +444,7 @@ describe('aggregation', () => {
       const cakeSales = db.collection('cakeSales');
       cakeSales.insertOne({ _id: 1, flavor: "chocolate", salesTotal: 1580, salesTrend: "up" });
 
-      cakeSales.aggregate([
+      await cakeSales.aggregate([
         {
           $merge: {
             into: 'cakeSales',
@@ -456,7 +456,7 @@ describe('aggregation', () => {
             ],
           },
         },
-      ]);
+      ]).toArray();
 
       expect(await cakeSales.find().toArray()).to.eql([
         {
