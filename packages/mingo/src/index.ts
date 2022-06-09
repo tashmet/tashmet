@@ -16,10 +16,8 @@ import {
 import {hashCode, intersection} from 'mingo/util';
 import {PrefetchAggregationStrategy} from './aggregator';
 import {MingoConfig} from './interfaces';
-import {SimpleValidatorFactory} from './validator';
 import {MingoDatabaseEngine} from '@tashmet/mingo-engine';
 
-export {filterValidator} from './validator';
 export * from './interfaces';
 
 @provider({key: Comparator})
@@ -43,7 +41,6 @@ export default class MingoDatabaseEngineFactory extends DatabaseEngineFactory {
 
   public static configure(config: Partial<MingoConfig> = {}) {
     return (container: Container) => {
-      container.register(SimpleValidatorFactory);
       container.register(Provider.ofInstance(MingoConfig, {
         ...MingoDatabaseEngineFactory.defaultConfig,
         ...config

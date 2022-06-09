@@ -1,16 +1,9 @@
-import {Aggregator as MingoInternalAggregator} from 'mingo/aggregator';
 import {
-  //Aggregator,
   Document,
-  AggregateOptions,
-  Lazy,
-  Namespace,
-  StorageEngine,
   Filter,
   FindOptions,
   provider
 } from '@tashmet/tashmet';
-//import { MingoStore } from './store';
 
 export interface PrefetchAggregation {
   filter: Filter<any>;
@@ -61,50 +54,3 @@ export class PrefetchAggregationStrategy {
     return {filter, options, pipeline: pipeline.slice(prevStepOps.length)};
   }
 }
-
-
-/*
-@provider({
-  key: Aggregator,
-  inject: [Lazy.of(StorageEngine), PrefetchAggregationStrategy]
-})
-export class MingoAggregator implements Aggregator {
-  public constructor(
-    private getEngine: () => StorageEngine,
-    private prefetchStrategy: PrefetchAggregationStrategy
-  ) {}
-
-  public execute<T = any>(ns: Namespace, pipeline: Document[], options: AggregateOptions = {}): Cursor<T> {
-    const mingoOptions = {
-      collectionResolver: (name: string) => this.lookupData({db: ns.db, coll: name}),
-      collation: options.collation,
-    };
-
-    const store = this.getEngine().get(ns);
-
-    if (store instanceof MingoStore) {
-      const aggregator = new MingoInternalAggregator(pipeline, mingoOptions);
-      const it = aggregator.stream(store.documents);
-      it.
-      return new MingoCursor<T>(aggregator.run(store.documents) as T[]);
-    } else {
-      //const cursor = new MingoCursor<T>([]);
-      const aggregate = async () => {
-        const s = this.prefetchStrategy.create(pipeline);
-        const aggregator = new MingoInternalAggregator(s.pipeline, mingoOptions);
-        const findResult = await store.find(s.filter, s.options);
-        cursor.setData(aggregator.run(findResult.cursor.firstBatch) as any[]);
-      }
-      return lockedCursor(cursor, aggregate());
-    }
-  }
-
-  private lookupData(ns: Namespace): Document[] {
-    const store = this.getEngine().get(ns);
-    if (store instanceof MingoStore) {
-      return store.documents;
-    }
-    throw new Error(`Unable to access data buffer for '${ns.db}.${ns.coll}'`);
-  }
-}
-*/

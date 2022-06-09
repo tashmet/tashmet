@@ -9,16 +9,18 @@ import {
   makeCreateCommand,
   makeDeleteCommand,
   makeDistinctCommand,
+  makeDropCommand,
   makeFindCommand,
   makeGetMoreCommand,
   makeUpdateCommand,
   makeInsertCommand,
   StorageEngine,
   Streamable,
-  makeDropCommand,
+  ValidatorFactory,
 } from '@tashmet/engine';
 import { MemoryStorageEngine } from './storageEngine';
 import { BufferAggregator } from './aggregator';
+import { Query } from 'mingo/query';
 
 export class MingoAggregatorFactory implements AggregatorFactory {
   public constructor(private collectionResolver: (collection: string) => Document[]) {}
@@ -28,9 +30,23 @@ export class MingoAggregatorFactory implements AggregatorFactory {
   }
 }
 
+export class FilterValidatorFactory extends ValidatorFactory {
+  public createValidator(rules: Document) {
+    const query = new Query(rules as any);
+
+    return (doc: any) => {
+      if (query.test(doc)) {
+        return doc;
+      } else {
+        throw new Error('Document failed validation');
+      }
+    }
+  }
+}
+
 export class MingoDatabaseEngine extends DatabaseEngine {
   public static inMemory(databaseName: string) {
-    return MingoDatabaseEngine.fromMemory(new MemoryStorageEngine(databaseName));
+    return MingoDatabaseEngine.fromMemory(new MemoryStorageEngine(databaseName, new FilterValidatorFactory()));
   }
 
   public static fromMemory(storage: MemoryStorageEngine) {
