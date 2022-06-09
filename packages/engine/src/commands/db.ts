@@ -3,7 +3,7 @@ import { AggregationEngine } from '../aggregation';
 import { Document, StorageEngine, DatabaseEngine } from '../interfaces';
 
 export function makeCreateCommand(storage: StorageEngine, aggregator?: AggregationEngine) {
-  return async ({create: coll, viewOn, pipeline}: Document) => {
+  return async ({create: coll, viewOn, pipeline, ...options}: Document) => {
     if (viewOn) {
       if (aggregator) {
         await aggregator.createView(coll, {viewOn, pipeline});
@@ -11,7 +11,7 @@ export function makeCreateCommand(storage: StorageEngine, aggregator?: Aggregati
         throw new Error('views are not supported by the database engine');
       }
     } else {
-      await storage.create(coll);
+      await storage.create(coll, options);
     }
     return {ok: 1};
   }

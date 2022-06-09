@@ -19,7 +19,7 @@ export type DatabaseCommandHandler = (command: Document, db: DatabaseEngine) => 
 export interface StorageEngine {
   readonly databaseName: string;
 
-  create(collection: string): Promise<void>;
+  create(collection: string, options: Document): Promise<void>;
 
   drop(collection: string): Promise<void>;
 
@@ -90,3 +90,9 @@ export const makeWriteChange = (
   documentKey: fullDocument._id,
   fullDocument,
 });
+
+export type Validator = (doc: Document) => Promise<Document>;
+
+export abstract class ValidatorFactory {
+  public abstract createValidator(rules: Document): Validator;
+}
