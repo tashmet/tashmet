@@ -1,3 +1,4 @@
+/*
 import {Document, Middleware, Store} from '../interfaces';
 
 //export {logging} from './logging';
@@ -35,3 +36,4 @@ export function withMiddleware<TSchema extends Document = Document, TStore exten
     }
   }), rest);
 }
+*/

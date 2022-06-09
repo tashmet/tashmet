@@ -1,3 +1,4 @@
+/*
 import {Middleware, MiddlewareHook, Store} from '../interfaces';
 
 export type SideEffectFunction<T> = (result: T, ...args: any[]) => void | Promise<void>;
@@ -23,3 +24,4 @@ export const readOnly = (store: Store<any>) => ({
     throw new Error(`trying to mutate read-only collection: '${store.ns.coll}'`);
   }
 }) as Middleware;
+*/

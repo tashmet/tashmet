@@ -1,9 +1,9 @@
+/*
 import {Logger} from '@tashmet/core';
 import {Middleware} from '../interfaces';
 //import {mutationSideEffect} from './mutation';
 
 
-/*
 const loggingMiddleware = (logger: Logger) => {
   const handleError = (error: Error) => logger.error(error.message);
 

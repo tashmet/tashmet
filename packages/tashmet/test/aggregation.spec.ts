@@ -1,70 +1,72 @@
 /*
 import {expect} from 'chai';
 import 'mocha';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import {QueryAggregator} from '../dist';
+import {AggregateOperation} from '../src/operations/aggregate';
 
-chai.use(chaiAsPromised);
+describe('AggregateOperation', function () {
+  const db = 'test';
 
-describe('QueryAggregator', () => {
-  describe('to pipeline', () => {
-    it('should contain a match stage when filter is provided', () => {
-      expect(new QueryAggregator({foo: 'bar'}, {}).pipeline).to.eql([
-        {$match: {foo: 'bar'}}
-      ]);
-    });
-  });
+  describe('#constructor', function () {
+    context('when out is in the options', function () {
+      const operation = new AggregateOperation(db, [], { out: 'test', dbName: db });
 
-  describe('from pipeline', () => {
-    it('should not aquire filter when match is not first step', () => {
-      const qa = QueryAggregator.fromPipeline([
-        {$sort: {foo: 1}},
-        {$match: {foo: 'bar'}},
-      ]);
-      expect(qa.filter).to.eql({});
+      it('sets trySecondaryWrite to true', function () {
+        expect(operation.trySecondaryWrite).to.be.true;
+      });
     });
-    it('should aquire filter when match is first step', () => {
-      const qa = QueryAggregator.fromPipeline([
-        {$match: {foo: 'bar'}},
-        {$sort: {foo: 1}},
-      ]);
-      expect(qa.filter).to.eql({foo: 'bar'});
+
+    context('when $out is the last stage', function () {
+      const operation = new AggregateOperation(db, [{ $out: 'test' }], { dbName: db });
+
+      it('sets trySecondaryWrite to true', function () {
+        expect(operation.trySecondaryWrite).to.be.true;
+      });
     });
-    it('should aquire sort', () => {
-      const qa = QueryAggregator.fromPipeline([
-        {$match: {foo: 'bar'}},
-        {$sort: {foo: 1}},
-      ]);
-      expect(qa.options).to.eql({sort: {foo: 1}});
+
+    context('when $out is not the last stage', function () {
+      const operation = new AggregateOperation(db, [{ $out: 'test' }, { $project: { name: 1 } }], {
+        dbName: db
+      });
+
+      it('sets trySecondaryWrite to false', function () {
+        expect(operation.trySecondaryWrite).to.be.false;
+      });
     });
-    it('should aquire limit when placed after $sort', () => {
-      const qa = QueryAggregator.fromPipeline([
-        {$sort: {foo: 1}},
-        {$limit: 1},
-      ]);
-      expect(qa.options).to.eql({sort: {foo: 1}, limit: 1});
+
+    context('when $merge is the last stage', function () {
+      const operation = new AggregateOperation(db, [{ $merge: { into: 'test' } }], { dbName: db });
+
+      it('sets trySecondaryWrite to true', function () {
+        expect(operation.trySecondaryWrite).to.be.true;
+      });
     });
-    it('should aquire limit only when placed before $sort', () => {
-      const qa = QueryAggregator.fromPipeline([
-        {$limit: 10},
-        {$sort: {foo: 1}},
-      ]);
-      expect(qa.options).to.eql({limit: 10});
+
+    context('when $merge is not the last stage', function () {
+      const operation = new AggregateOperation(
+        db,
+        [{ $merge: { into: 'test' } }, { $project: { name: 1 } }],
+        { dbName: db }
+      );
+
+      it('sets trySecondaryWrite to false', function () {
+        expect(operation.trySecondaryWrite).to.be.false;
+      });
     });
-    it('should aquire both skip and limit when skip placed first', () => {
-      const qa = QueryAggregator.fromPipeline([
-        {$skip: 1},
-        {$limit: 1},
-      ]);
-      expect(qa.options).to.eql({skip: 1, limit: 1});
+
+    context('when no writable stages in empty pipeline', function () {
+      const operation = new AggregateOperation(db, [], { dbName: db });
+
+      it('sets trySecondaryWrite to false', function () {
+        expect(operation.trySecondaryWrite).to.be.false;
+      });
     });
-    it('should aquire both skip and limit when limit placed first', () => {
-      const qa = QueryAggregator.fromPipeline([
-        {$limit: 1},
-        {$skip: 1},
-      ]);
-      expect(qa.options).to.eql({skip: 1, limit: 1});
+
+    context('when no writable stages', function () {
+      const operation = new AggregateOperation(db, [{ $project: { name: 1 } }], { dbName: db });
+
+      it('sets trySecondaryWrite to false', function () {
+        expect(operation.trySecondaryWrite).to.be.false;
+      });
     });
   });
 });

@@ -62,7 +62,6 @@ export { AggregationCursor } from './cursor/aggregationCursor';
 export { FindCursor } from './cursor/findCursor';
 export * from './changeStream';
 export * from './interfaces';
-export * from './middleware';
 export * from './changeSet';
 export { AggregateOptions } from './operations/aggregate';
 

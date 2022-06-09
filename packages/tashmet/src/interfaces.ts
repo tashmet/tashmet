@@ -1,7 +1,6 @@
 import ObjectId from 'bson-objectid';
 import { EventEmitter } from 'eventemitter3';
 import { Collection } from './collection';
-import { ChangeStreamDocument, ChangeStreamEvents } from './changeStream';
 import { ChangeSet } from './changeSet';
 import { CommandOperationOptions } from './operations/command';
 
@@ -235,23 +234,6 @@ export interface DatabaseFactory {
 
 export abstract class DatabaseFactory implements DatabaseFactory {}
 
-/*
-export interface Aggregator {
-  execute<T = any>(ns: Namespace, pipeline: Document[], options?: AggregateOptions): Cursor<T>;
-}
-*/
-
-//export abstract class Aggregator implements Aggregator {}
-
-export type Validator<T> = (doc: T) => Promise<T>;
-
-export abstract class ValidatorFactory {
-  public abstract create<T>(rules: Document): Validator<T>;
-}
-
-export abstract class CachingLayer {
-  public abstract create<T>(store: Store<T>): Middleware<T>;
-}
 
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
 export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
@@ -452,126 +434,11 @@ export interface BulkWriteResult {
   insertedIds: { [key: number]: any };
 }
 
-export abstract class Writer<TSchema, TModel> {
-  public constructor(protected store: Store<TSchema>) {}
-
-  public abstract execute(
-    model: TModel,
-    eventCb?: (change: ChangeStreamDocument) => void
-  ): Promise<Partial<BulkWriteResult>>;
-}
-
 export type Namespace = {db: string, coll: string};
-
-export abstract class Store<TSchema extends Document>
-  extends EventEmitter implements ChangeStreamEvents<TSchema>
-{
-  public readonly documents: TSchema[] = [];
-
-  public constructor(
-    public readonly ns: Namespace
-  ) { super(); }
-
-  public on(event: 'change', fn: (change: ChangeStreamDocument<TSchema>) => void): this {
-    return super.on(event, fn);
-  }
-
-  public emitAll(cs: ChangeSet<TSchema>) {
-    for (const change of cs.toChanges(this.ns)) {
-      this.emit('change', change);
-    }
-  }
-
-  public abstract write(changeSet: ChangeSet<TSchema>): Promise<void>;
-
-  protected count(command: Document): Promise<Document> { throw new Error(`Unsupported command: 'count'`); }
-  protected find(command: Document): Promise<Document> { throw new Error(`Unsupported command: 'find'`); }
-  protected aggregate(command: Document): Promise<Document> { throw new Error(`Unsupported command: 'aggregate'`); }
-
-  public command(command: Document): Promise<Document> {
-    if (command.hasOwnProperty('find')) {
-      return this.find(command);
-    } else if (command.hasOwnProperty('count')) {
-      return this.count(command);
-    } else if (command.hasOwnProperty('aggregate')) {
-      return this.aggregate(command);
-    }
-    throw new Error(`Unsupported command: '${JSON.stringify(command)}'`);
-  }
-}
-
-export type CollectionResolver = (name: string) => any[];
-
-export interface StoreConfig {
-  ns: Namespace;
-  collation?: CollationOptions;
-  options?: Document;
-}
-
-export abstract class StorageEngine {
-  private stores: Record<string, Store<any>> = {};
-
-  public abstract createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema>;
-
-  public register(store: Store<any>): Store<any> {
-    return this.stores[`${store.ns.db}.${store.ns.coll}`] = store;
-  }
-
-  public get<TSchema extends Document = Document>({db, coll}: Namespace): Store<TSchema> {
-    const key = `${db}.${coll}`;
-
-    if (key in this.stores) {
-      return this.stores[key];
-    } else {
-      throw new Error(`Store with namespace '${key}' does not exist in the storage engine`);
-    }
-  }
-
-  public drop({db, coll}: Namespace): boolean {
-    const key = `${db}.${coll}`;
-
-    if (key in this.stores) {
-      delete this.stores[key];
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
-
-export abstract class MemoryStorageEngine extends StorageEngine {};
-
 
 export type RequireKeys<T extends object, K extends keyof T> =
   Required<Pick<T, K>> & Omit<T, K>;
 
-export abstract class ViewFactory {
-  public abstract createView<TSchema extends Document>(
-    config: StoreConfig,
-    viewOf: Collection<any>,
-    pipeline: Document[],
-  ): Store<TSchema>;
-}
-
-export abstract class CollectionFactory {
-  public abstract createCollection<TSchema extends Document>(
-    database: Database,
-    options: CreateCollectionOptions
-  ): Collection<TSchema>;
-}
-
-export type MiddlewareHook<T> = (next: T) => T;
-
-export type Command<T> = (command: Document) => Promise<Document>;
-export type Write<T> = (changeSet: ChangeSet<T>) => Promise<void>;
-
-
-export interface Middleware<T = any> {
-  command?: MiddlewareHook<Command<T>>;
-  find?: MiddlewareHook<Command<T>>;
-  count?: MiddlewareHook<Command<T>>;
-  write?: MiddlewareHook<Write<T>>;
-}
 
 export const HashCode = Symbol('HashCode');
 
