@@ -1,4 +1,4 @@
-import { Cursor } from "./cursor";
+import { Cursor, IteratorCursor } from "./cursor";
 import { AggregatorFactory, CollationOptions, Document, Streamable, View } from "./interfaces";
 import { QueryEngine } from "./query";
 
@@ -22,8 +22,9 @@ export class AggregationEngine extends QueryEngine {
       .createAggregator(pipeline, {collation})
       .stream<Document>(coll);
 
-    const cursor = new Cursor(it[Symbol.asyncIterator](), ++this.cursorCounter, this);
-    return this.cursors[this.cursorCounter] = cursor;
+    return this.addCursor(
+      new IteratorCursor(it[Symbol.asyncIterator](), ++this.cursorCounter, this)
+    );
   }
 
   public createView(name: string, view: View) {

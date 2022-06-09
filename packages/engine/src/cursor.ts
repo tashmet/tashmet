@@ -1,40 +1,33 @@
 import { Document } from "./interfaces";
 
-export interface CursorRegistry {
-  getCursor(id: number): Cursor;
+export abstract class CursorRegistry {
+  protected cursorCounter = 0;
+  protected cursors: Record<number, Cursor> = {};
 
-  closeCursor(id: number): void;
+  public closeCursor(id: number) {
+    delete this.cursors[id];
+  }
+
+  public getCursor(id: number) {
+    return this.cursors[id];
+  }
+
+  public addCursor(cursor: Cursor) {
+    return this.cursors[cursor.id] = cursor;
+  }
 }
 
-export class Cursor {
+export abstract class Cursor {
+  public done: boolean = false;
+
   public constructor(
-    public readonly iterator: AsyncIterator<Document>,
     public readonly id: number,
     private registry: CursorRegistry,
   ) {}
 
-  public next(): Promise<IteratorResult<Document>> {
-    return this.iterator.next();
-  }
+  public abstract next(): Promise<Document>;
 
-  public async getBatch(
-    batchSize: number | undefined = undefined
-  ): Promise<Document[]> {
-
-    const batch: Document[] = [];
-    let result = await this.next();
-
-    while (!result.done) {
-      batch.push(result.value as Document);
-
-      if (!batchSize || (batchSize && batch.length < batchSize)) {
-        result = await this.next();
-      } else {
-        break;
-      }
-    }
-    return batch;
-  }
+  public abstract getBatch(batchSize?: number): Promise<Document[]>;
 
   public toArray(): Promise<Document[]> {
     return this.getBatch();
@@ -42,5 +35,38 @@ export class Cursor {
 
   public close() {
     return this.registry.closeCursor(this.id);
+  }
+}
+
+export class IteratorCursor extends Cursor {
+  public constructor(
+    public readonly iterator: AsyncIterator<Document>,
+    id: number,
+    registry: CursorRegistry,
+  ) { super(id, registry) }
+
+  public async next(): Promise<Document> {
+    const {value, done} = await this.iterator.next();
+    this.done = done === true;
+    return value;
+  }
+
+  public async getBatch(
+    batchSize: number | undefined = undefined
+  ): Promise<Document[]> {
+
+    const batch: Document[] = [];
+    let doc = await this.next();
+
+    while (!this.done) {
+      batch.push(doc);
+
+      if (!batchSize || (batchSize && batch.length < batchSize)) {
+        doc = await this.next();
+      } else {
+        break;
+      }
+    }
+    return batch;
   }
 }
