@@ -4,8 +4,8 @@ export abstract class CursorRegistry {
   protected cursorCounter = 0;
   protected cursors: Record<number, Cursor> = {};
 
-  public closeCursor(id: number) {
-    delete this.cursors[id];
+  public closeCursor(cursor: Cursor) {
+    delete this.cursors[cursor.id];
   }
 
   public getCursor(id: number) {
@@ -22,7 +22,6 @@ export abstract class Cursor {
 
   public constructor(
     public readonly id: number,
-    private registry: CursorRegistry,
   ) {}
 
   public abstract next(): Promise<Document>;
@@ -32,18 +31,13 @@ export abstract class Cursor {
   public toArray(): Promise<Document[]> {
     return this.getBatch();
   }
-
-  public close() {
-    return this.registry.closeCursor(this.id);
-  }
 }
 
 export class IteratorCursor extends Cursor {
   public constructor(
     public readonly iterator: AsyncIterator<Document>,
     id: number,
-    registry: CursorRegistry,
-  ) { super(id, registry) }
+  ) { super(id) }
 
   public async next(): Promise<Document> {
     const {value, done} = await this.iterator.next();

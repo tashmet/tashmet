@@ -1,7 +1,7 @@
 import { AggregationEngine, makeQueryPipeline } from '../aggregation';
 import { Cursor, CursorRegistry } from '../cursor';
 import { DatabaseEngine, Document } from '../interfaces';
-import { QueryEngine } from '../query';
+import { AbstractQueryEngine } from '../query';
 
 async function makeCursorResponse(
   c: Cursor, ns: {db: string, coll: string}, batchSize: number | undefined, firstBatch: boolean = true
@@ -23,9 +23,9 @@ export function makeAggregateCommand(aggregator: AggregationEngine) {
   }
 }
 
-export function makeFindCommand(query: QueryEngine) {
+export function makeFindCommand(query: AbstractQueryEngine) {
   return async ({find: coll, filter, sort, projection, skip, limit, collation, batchSize}: Document, db: DatabaseEngine) => {
-    const c = query.find(coll, {filter, sort, projection, skip, limit}, collation, batchSize);
+    const c = query.find(coll, {filter, sort, projection, skip, limit}, collation);
     return makeCursorResponse(c, {db: db.databaseName, coll}, batchSize);
   }
 }
@@ -38,7 +38,7 @@ export function makeGetMoreCommand(cursors: CursorRegistry) {
   }
 }
 
-export function makeCountCommand(engine: QueryEngine | AggregationEngine) {
+export function makeCountCommand(engine: AbstractQueryEngine | AggregationEngine) {
   return async ({count: collName, query: filter, sort, skip, limit, collation}: Document) => {
     if (engine instanceof AggregationEngine) {
       const pipeline: Document[] = [
@@ -47,13 +47,13 @@ export function makeCountCommand(engine: QueryEngine | AggregationEngine) {
       ];
       const c = engine.aggregate(collName, pipeline, collation);
       const {value} = await c.next();
-      c.close();
+      engine.closeCursor(c);
 
       return {n: value.count, ok: 1};
     } else {
       const c = engine.find(collName, {filter, sort, skip, limit}, collation);
       const n = (await c.toArray()).length;
-      c.close();
+      engine.closeCursor(c);
 
       return {n, ok: 1};
     }

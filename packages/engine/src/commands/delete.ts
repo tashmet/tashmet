@@ -1,8 +1,8 @@
 import { DatabaseEngine, Document, makeWriteChange, StorageEngine } from "../interfaces";
-import { QueryEngine } from "../query";
+import { AbstractQueryEngine } from "../query";
 
 
-export function makeDeleteCommand(storage: StorageEngine, query: QueryEngine) {
+export function makeDeleteCommand(storage: StorageEngine, query: AbstractQueryEngine) {
   return async ({delete: coll, deletes}: Document, db: DatabaseEngine) => {
     let n = 0;
 /*
@@ -29,7 +29,7 @@ export function makeDeleteCommand(storage: StorageEngine, query: QueryEngine) {
       }
 
       n += matched.length;
-      cursor.close();
+      query.closeCursor(cursor);
     }
 
     return {n, ok: 1};

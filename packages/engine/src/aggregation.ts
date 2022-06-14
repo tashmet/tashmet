@@ -1,8 +1,8 @@
 import { Cursor, IteratorCursor } from "./cursor";
 import { AggregatorFactory, CollationOptions, Document, Streamable, View } from "./interfaces";
-import { QueryEngine } from "./query";
+import { AbstractQueryEngine } from "./query";
 
-export class AggregationEngine extends QueryEngine {
+export class AggregationEngine extends AbstractQueryEngine {
   private views: Record<string, View> = {};
 
   public constructor(
@@ -23,7 +23,7 @@ export class AggregationEngine extends QueryEngine {
       .stream<Document>(coll);
 
     return this.addCursor(
-      new IteratorCursor(it[Symbol.asyncIterator](), ++this.cursorCounter, this)
+      new IteratorCursor(it[Symbol.asyncIterator](), ++this.cursorCounter)
     );
   }
 

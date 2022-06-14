@@ -11,7 +11,7 @@ export function makeDistinctCommand(aggregator: AggregationEngine) {
 
     const c = aggregator.aggregate(collName, pipeline, collation);
     const values = (await c.toArray()).map(doc => doc._id);
-    c.close();
+    aggregator.closeCursor(c);
 
     return {values, ok: 1};
   }

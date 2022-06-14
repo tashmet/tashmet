@@ -1,7 +1,7 @@
 export * from './interfaces';
 
 export { AggregationEngine } from './aggregation';
-export { QueryEngine } from './query';
+export { AbstractQueryEngine, QueryEngine, Queryable } from './query';
 export { Cursor, CursorRegistry } from './cursor';
 
 export {
