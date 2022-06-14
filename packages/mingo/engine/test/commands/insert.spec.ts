@@ -10,7 +10,7 @@ let engine = MingoDatabaseEngine.fromMemory(store);
 describe('insert', () => {
   describe('successful insert', () => {
     before(async () => {
-      await store.create('test');
+      await store.create('test', {});
     });
 
     after(async () => {
@@ -35,7 +35,7 @@ describe('insert', () => {
 
   describe('write errors', () => {
     beforeEach(async () => {
-      await store.create('test');
+      await store.create('test', {});
       await store.insert('test', {_id: 1, title: 'foo'});
     });
 

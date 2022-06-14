@@ -9,14 +9,14 @@ import {
   Lookup,
   provider,
   Provider,
-  StorageEngine,
   DatabaseEngineFactory,
   DatabaseEngine,
 } from '@tashmet/tashmet';
-import {hashCode, intersection} from 'mingo/util';
-import {PrefetchAggregationStrategy} from './aggregator';
-import {MingoConfig} from './interfaces';
-import {MingoDatabaseEngine} from '@tashmet/mingo-engine';
+import { hashCode, intersection } from 'mingo/util';
+import { PrefetchAggregationStrategy } from './aggregator';
+import { MingoConfig } from './interfaces';
+import { StorageEngine } from '@tashmet/engine';
+import { MingoDatabaseEngine } from '@tashmet/mingo-engine';
 
 export * from './interfaces';
 

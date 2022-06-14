@@ -46,7 +46,7 @@ export class FilterValidatorFactory extends ValidatorFactory {
 
 export class MingoDatabaseEngine extends DatabaseEngine {
   public static inMemory(databaseName: string) {
-    return MingoDatabaseEngine.fromMemory(new MemoryStorageEngine(databaseName, new FilterValidatorFactory()));
+    return MingoDatabaseEngine.fromMemory(new MemoryStorageEngine(databaseName, {}, new FilterValidatorFactory()));
   }
 
   public static fromMemory(storage: MemoryStorageEngine) {

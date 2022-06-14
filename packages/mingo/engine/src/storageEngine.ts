@@ -7,8 +7,8 @@ export class MemoryStorageEngine implements StorageEngine, Streamable {
 
   public constructor(
     public readonly databaseName: string,
-    private validatorFact: ValidatorFactory,
     private collections: {[coll: string]: Document[]} = {},
+    private validatorFact: ValidatorFactory | undefined = undefined,
   ) {
     for (const collName in collections) {
       const coll = collections[collName];
@@ -52,7 +52,7 @@ export class MemoryStorageEngine implements StorageEngine, Streamable {
     const coll = this.collections[collection];
     const rules = this.rules[collection];
 
-    if (rules) {
+    if (rules && this.validatorFact) {
       const validator = this.validatorFact.createValidator(rules);
       if (!validator(document)) {
         throw new Error('validation failed');
