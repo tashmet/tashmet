@@ -2,30 +2,30 @@ import {Fetch} from './interfaces';
 
 export class HttpRestLayer {
   public constructor(
-    public readonly path: string,
+    public readonly basePath: string,
     private fetch: Fetch,
     private headers: Record<string, string> = {},
   ) {}
 
-  public async get(queryString: string = '', head: boolean = false) {
+  public async get(path: string, queryString: string = '', head: boolean = false) {
     const method = head ? 'HEAD' : 'GET';
-    const path = queryString !== ''
-      ? this.path + '?' + queryString
-      : this.path;
+    const queryPath = queryString !== ''
+      ? this.resolvePath(path) + '?' + queryString
+      : this.resolvePath(path);
 
-    return this.fetch(path, {method, headers: this.headers});
+    return this.fetch(queryPath, {method, headers: this.headers});
   }
 
-  public async put(doc: any, id: string) {
-    return this.send('PUT', `${this.path}/${id}`, doc);
+  public async put(path: string, doc: any, id: string) {
+    return this.send('PUT', `${this.resolvePath(path)}/${id}`, doc);
   }
 
-  public async post(doc: any) {
-    return this.send('POST', this.path, doc);
+  public async post(path: string, doc: any) {
+    return this.send('POST', this.resolvePath(path), doc);
   }
 
-  public async delete(id: any) {
-    const resp = await this.fetch(this.path + '/' + id, {
+  public async delete(path: string, id: any) {
+    const resp = await this.fetch(this.resolvePath(path) + '/' + id, {
       method: 'DELETE',
       headers: this.makeHeaders(),
     });
@@ -63,5 +63,9 @@ export class HttpRestLayer {
         return resp.statusText;
       }
     }
+  }
+
+  private resolvePath(path: string) {
+    return this.basePath + path;
   }
 }

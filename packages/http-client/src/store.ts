@@ -1,3 +1,4 @@
+/*
 import {
   Store,
   Filter,
@@ -55,3 +56,4 @@ export class HttpStore<TSchema extends Document> extends Store<TSchema> {
     return this.restLayer.get(this.querySerializer.serialize({filter, ...options}), head);
   }
 }
+*/

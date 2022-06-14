@@ -29,6 +29,7 @@
     "README.md"
   ],
   "dependencies": {
+    "@tashmet/engine": "^0.1.0",
     "@tashmet/tashmet": "^1.4.0",
     "@tashmet/qs-builder": "^0.1.0"
   },
