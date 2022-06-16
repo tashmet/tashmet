@@ -1,3 +1,4 @@
+/*
 import Tashmet, { Document, StorageEngine, Store, StoreConfig, provider, Collection } from '@tashmet/tashmet';
 import Nabu, {json} from '@tashmet/nabu';
 import Mingo from '@tashmet/mingo';
@@ -86,7 +87,6 @@ describe('directory', () => {
       expect(storedDoc(1))
         .to.eql({item: { category: 'cake', type: 'chiffon' }, amount: 10 });
     });
-    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('insert');
@@ -98,7 +98,6 @@ describe('directory', () => {
         {_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
     });
-    */
   });
 
   describe('insertMany', () => {
@@ -119,7 +118,6 @@ describe('directory', () => {
         {_id: 1, item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
-    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('insert');
@@ -131,7 +129,6 @@ describe('directory', () => {
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
     });
-    */
   });
 
   describe('replaceOne', () => {
@@ -174,7 +171,6 @@ describe('directory', () => {
       expect(result.upsertedId).to.not.eql(undefined);
       expect(storedDoc(result.upsertedId as any)).to.eql({ amount: 20 });
     });
-    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('replace');
@@ -186,7 +182,6 @@ describe('directory', () => {
         {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
     });
-    */
   });
 
   describe('count', () => {
@@ -268,7 +263,6 @@ describe('directory', () => {
       expect(storedFiles().length).to.eql(storedCount - 1);
       expect(storedFiles()).to.not.contain('1.json');
     });
-    /*
     it('should emit a change event if a document was removed', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -278,7 +272,6 @@ describe('directory', () => {
       });
       col.deleteOne({_id: 1});
     });
-    */
   });
 
   describe('deleteMany', () => {
@@ -300,7 +293,6 @@ describe('directory', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
     });
-    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -309,6 +301,6 @@ describe('directory', () => {
       });
       col.deleteMany({'item.category': 'cookies'});
     });
-    */
   });
 });
+*/

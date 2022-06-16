@@ -1,37 +1,30 @@
-import * as nodePath from 'path';
 import {
   Comparator,
   Container,
-  ChangeSet,
-  Document,
-  locked,
   Logger,
   provider,
-  Store,
-  StoreConfig,
-  withMiddleware,
 } from '@tashmet/tashmet';
-import MingoStorageEngine from '@tashmet/mingo';
-import {BundleStore, BundleStreamConfig } from './collections/bundle';
+import { MemoryStorageEngine, MingoDatabaseEngine } from '@tashmet/mingo-engine';
+import { DatabaseEngine, Document } from '@tashmet/engine';
+import Mingo from '@tashmet/mingo';
 
-import {File, FileAccess, ReadableFile, Pipe, FileConfig, DirectoryContentConfig, DirectoryFilesConfig} from './interfaces';
-import {Pipeline} from './pipeline';
-import * as Pipes from './pipes';
-import {GlobFilesConfig, GlobContentConfig, ShardStream, ShardStore} from './collections/shard';
+import {File, FileAccess} from './interfaces';
 
 export * from './interfaces';
-export * from './pipeline';
-export * from './transform';
-export * from './gates';
-export * as Pipes from './pipes';
+export {json} from './operators/json';
+export {yaml} from './operators/yaml';
 
-import {useOperators, OperatorType} from 'mingo/core';
-import {Aggregator} from 'mingo/aggregator';
-import {$jsonParse, $jsonDump} from './operators/json';
-import {$yamlParse, $yamlDump} from './operators/yaml';
+import { useOperators, OperatorType } from 'mingo/core';
+import { $jsonParse, $jsonDump } from './operators/json';
+import { $yamlParse, $yamlDump } from './operators/yaml';
 
-useOperators(OperatorType.PIPELINE, { $jsonParse, $jsonDump, $yamlParse, $yamlDump });
+import { Stream } from './generators/stream';
+import { FileStream, DocumentStream, Writable } from './generators/interfaces';
+import { BufferDatabaseEngine } from './collections/buffer';
+import { FileBufferStorageEngine } from './storageEngine';
 
+useOperators(OperatorType.PIPELINE, { $yamlParse, $yamlDump });
+useOperators(OperatorType.EXPRESSION, { $jsonParse, $jsonDump });
 
 @provider()
 export default class Nabu {
@@ -42,58 +35,37 @@ export default class Nabu {
   }
 
   public constructor(
-    private memory: MingoStorageEngine,
+    private memory: Mingo,
     private logger: Logger,
     private fileAccess: FileAccess,
     private comparator: Comparator,
   ) {}
 
-  public async aggregate<T extends Document = Document>(path: string, pipeline: Document[]) {
-    return new Aggregator(pipeline).run(await this.fileAccess.read(path).toArray()) as T[];
-  }
-
-  public async write(documents: Document[]) {
+  /*
+  public async write(documents: Document[] | AsyncIterable<File<Buffer>>) {
     return this.fileAccess.write(Pipeline.fromMany(documents as any));
   }
-
-  public file<T extends object = any, TStored extends object = T>(config: FileConfig<T, TStored> & StoreConfig): Store<T> {
-    const {path, serializer, dictionary, afterParse, beforeSerialize} = config;
-
-    const input = (source: Pipeline<ReadableFile>) => source
-      .pipe(Pipes.File.read())
-      .pipe(Pipes.File.parse(serializer))
-      .pipe(Pipes.File.content())
-      .pipe(dictionary ? Pipes.toList<TStored>() : Pipes.identity<TStored>())
-      .pipe(Pipes.disperse())
-      .pipe(afterParse || Pipes.identity<T>())
-
-    const output = (source: Pipeline<T>) => source
-      .pipe(beforeSerialize || Pipes.identity())
-      .pipe(Pipes.collect())
-      .pipe(dictionary ? Pipes.toDict<TStored>() : Pipes.identity<TStored>())
-      .pipe(Pipes.File.create(path))
-      .pipe(Pipes.File.serialize(serializer));
-
-    const watch = this.fileAccess.watch(path);
-
-    const streamConfig = {
-      seed: input(this.fileAccess.read(path)),
-      input: watch ? input(watch) : undefined,
-      output: (source) => this.fileAccess.write(output(source)),
-    } as BundleStreamConfig<T>;
-
-    const buffer = this.memory.createStore<T>(config);
-    const store = new BundleStore(buffer, streamConfig.output);
-
-    const listen = async (input: Pipeline<T>) => {
-      const findResult = await buffer.command({find: buffer.ns.coll, filter: {}});
-      return store.load(this.comparator.difference(findResult.cursor.firstBatch, await input.toArray()));
+  */
+  public async *write(path?: string): Writable<File<Buffer>> {
+    while (true) {
+      const file = yield;
+      console.log(file);
     }
+  }
 
-    if (streamConfig.input) {
-      listen(streamConfig.input);
-    }
-    return withMiddleware<T>(store, [locked([store.populate(streamConfig.seed)])])
+  public read(pathOrGlob: string): FileStream {
+    return new Stream(this.fileAccess.read(pathOrGlob));
+  }
+
+  public generate<TSchema extends Document>(docs: TSchema[]): DocumentStream<TSchema> {
+    return Stream.fromArray(docs);
+  }
+
+  public fileBuffer(dbName: string): DatabaseEngine {
+    const buffer = new MemoryStorageEngine(dbName);
+    const bufferEngine = MingoDatabaseEngine.fromMemory(buffer);
+    const store = new FileBufferStorageEngine(dbName, buffer, this.fileAccess);
+    return new BufferDatabaseEngine(bufferEngine, store);
   }
 
   /**
@@ -101,18 +73,19 @@ export default class Nabu {
    *
    * @param config
    */
-
+/*
   public directoryFiles<T = any, TStored = T>({path, extension, ...config}: DirectoryFilesConfig<T, TStored> & StoreConfig) {
     return this.shards<File<T>>(
       config, ShardStream.fromGlobFiles({pattern: extension ? `${path}/*.${extension}` : `${path}/*`}, this.fileAccess))
   }
+  */
 
   /**
    * A collection based on content in files in a directory on a file system
    *
    * @param config
    */
-
+/*
   public directoryContent<T extends Document = any, TStored = T>(
     {path, extension, serializer, resolveId, resolvePath, ...storeConfig}: DirectoryContentConfig<T, TStored> & StoreConfig)
   {
@@ -131,25 +104,31 @@ export default class Nabu {
       }, this.fileAccess),
     );
   }
+  */
 
   /**
    * A collection based on files matching a glob pattern on a file system
    *
    * @param config
    */
+  /*
   public globFiles<T = any, TStored = T>({pattern, content, ...storeConfig}: GlobFilesConfig<T, TStored> & StoreConfig) {
     return this.shards<File<T>>(storeConfig, ShardStream.fromGlobFiles({pattern, content}, this.fileAccess));
   }
+  */
 
   /**
    * A collection based on content in files matching a glob pattern on a file system
    *
    * @param config
    */
+  /*
   public globContent<T extends Document = any, TStored = T>(config: GlobContentConfig<T, TStored> & StoreConfig) {
     return this.shards<T>(config, ShardStream.fromGlobContent<T, TStored>(config, this.fileAccess));
   }
+  */
 
+  /*
   private shards<T extends Document = any>(storeConfig: StoreConfig, {seed, input, inputDelete, output}: ShardStream<T>): Store<T> {
     const eachDocument = async (source: Pipeline, fn: (doc: any) => Promise<any>) => {
       for await (const doc of source) {
@@ -167,4 +146,5 @@ export default class Nabu {
     }
     return withMiddleware<T>(store, [locked([store.populate(seed)])])
   }
+  */
 }

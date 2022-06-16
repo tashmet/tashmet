@@ -1,31 +1,23 @@
-import { Options } from "mingo/core";
-import { Iterator } from "mingo/lazy";
-import { RawObject } from "mingo/types";
-import { setValue, resolve } from "mingo/util";
+import { Options, computeValue } from "mingo/core";
+import { RawObject, AnyVal } from "mingo/types";
 import { Encoding, Transform } from "../interfaces";
 
 /**
  * Parse JSON from a buffer.
  *
- * @param {Iterator} collection
+ * @param {Object} obj
  * @param {Object} expr
  * @param {Options} options
  */
 export function $jsonParse(
-  collection: Iterator,
+  obj: RawObject,
   expr: RawObject,
   options?: Options
-): Iterator {
-  return collection.map((obj: RawObject) => {
-    const newObj = { ...obj };
-    const key = expr['key'] as string || 'content';
-    const encoding = expr['encoding'] as Encoding || 'utf8';
-    const buffer = resolve(obj, key) as Buffer;
+): AnyVal {
+  const encoding = expr['encoding'] as Encoding || 'utf8';
+  const buffer = computeValue(obj, expr['buffer']) as Buffer;
 
-    setValue(newObj, key, JSON.parse(buffer.toString(encoding)));
-
-    return newObj;
-  });
+  return JSON.parse(buffer.toString(encoding));
 }
 
 /**
@@ -36,24 +28,19 @@ export function $jsonParse(
  * @param {Options} options
  */
 export function $jsonDump(
-  collection: Iterator,
+  obj: RawObject,
   expr: RawObject,
   options?: Options
-): Iterator {
-  return collection.map((obj: RawObject) => {
-    const newObj = { ...obj };
-    const key = expr['key'] as string || 'content';
+): AnyVal {
     const encoding = expr['encoding'] as Encoding || 'utf8';
+    const data = computeValue(obj, expr['object']) as Buffer;
 
-    setValue(newObj, key, Buffer.from(JSON.stringify(resolve(obj, key)), encoding));
-
-    return newObj;
-  });
+    return Buffer.from(JSON.stringify(data), encoding);
 }
 
 export const json = (encoding: Encoding = 'utf8') => {
   return {
-    input: [{$jsonParse: {key: 'content', encoding}}],
-    output: [{$jsonDump: {key: 'content', encoding}}],
+    input: [{$set: {content: {$jsonParse: {buffer: '$content', encoding}}}}],
+    output: [{$set: {content: {$jsonDump: {object: '$content', encoding}}}}],
   } as Transform;
 }

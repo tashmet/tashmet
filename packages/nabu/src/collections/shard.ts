@@ -1,3 +1,4 @@
+/*
 import {
   Store,
   ChangeSet,
@@ -139,3 +140,4 @@ export class ShardStream<T> {
     );
   }
 }
+*/

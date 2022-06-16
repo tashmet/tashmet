@@ -1,31 +1,34 @@
-import {Pipeline} from "./pipeline";
+import {Document} from '@tashmet/tashmet';
+//import {Pipeline} from "./pipeline";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 export type Pipe<TIn = any, TOut = TIn> = (input: TIn) => Promise<TOut>;
 
-export interface File<T = any> {
+export interface File<T = any> extends Document {
   path: string;
   content: T;
   isDir: boolean;
 }
 
-export type ReadableFile = File<AsyncGenerator<Buffer> | undefined>;
+export type ReadableFile = File<Buffer> | File<AsyncGenerator<Buffer> | undefined>;
+
 
 export abstract class FileAccess {
-  public abstract read(path: string | string[]): Pipeline<ReadableFile>;
+  public abstract read(path: string | string[]): AsyncGenerator<ReadableFile>;
 
-  public abstract write(files: Pipeline<File<Buffer>>): Promise<void>;
+  public abstract write(files: AsyncGenerator<File<Buffer>>): Promise<void>;
 
-  public abstract remove(files: Pipeline<File>): Promise<void>;
+  public abstract remove(files: AsyncGenerator<File>): Promise<void>;
 
-  public watch(globs: string | string[], deletion?: boolean): Pipeline<File> | null {
+  public watch(globs: string | string[], deletion?: boolean): AsyncGenerator<File> | null {
     return null;
   }
 }
 
-export type PipelineSink<T = any, TReturn = any> = (pipeline: Pipeline<T>) => Promise<TReturn>;
+
+//export type PipelineSink<T = any, TReturn = any> = (pipeline: Pipeline<T>) => Promise<TReturn>;
 
 export interface Serializer<T = any> extends Duplex {
   /**
@@ -37,6 +40,11 @@ export interface Serializer<T = any> extends Duplex {
    * Output pipe for serializing a document into a buffer.
    */
   output: Pipe<T, Buffer>;
+}
+
+export interface Transform {
+  input: Document[];
+  output: Document[];
 }
 
 export interface FileContentConfig<T, TStored = T> {
@@ -107,7 +115,7 @@ export interface FileConfig<T extends object, TStored = T> {
   /**
    * A serializer that will parse and serialize incoming and outgoing data.
    */
-  serializer: Serializer<TStored[] | Record<string, TStored>>;
+  serializer: Transform;//Serializer<TStored[] | Record<string, TStored>>;
 
   /**
    * Stream the collection as a dictionary instead of a list
@@ -122,7 +130,7 @@ export interface FileConfig<T extends object, TStored = T> {
   /**
    * An optional pipe that can modify incoming documents after they have been parsed.
    */
-  afterParse?: Pipe<TStored, T>;
+  afterParse?: Document[];
 
   /**
    * An optional pipe that can modify outgoing documents before the they are
@@ -131,7 +139,23 @@ export interface FileConfig<T extends object, TStored = T> {
    * This is a good opportunity to, for instance, remove run-time data that
    * does not need to be persisted.
    */
-  beforeSerialize?: Pipe<T, TStored>;
+  beforeSerialize?: Document[];
+}
+
+export interface ManyFilesInputConfig {
+  serializer: Transform;
+
+  afterParse?: Document[];
+
+  id: Document | ((file: File<Document>) => string);
+}
+
+export interface ManyFilesOutputConfig {
+  serializer: Transform;
+
+  beforeSerialize?: Document[];
+
+  path: Document | ((doc: Document) => string);
 }
 
 export interface DirectoryConfig<T> {
@@ -156,7 +180,7 @@ export type DirectoryFilesConfig<T = any, TStored = T> =
 export type DirectoryContentConfig<T = any, TStored = T> =
   DirectoryConfig<T> & FileContentConfig<T, TStored> & ExtractedFileContentConfig<T>;
 
-  export type ShardOutput<T> = (source: Pipeline<T>, deletion: boolean) => Promise<void>;
+//export type ShardOutput<T> = (source: Pipeline<T>, deletion: boolean) => Promise<void>;
 
 
 export type Encoding =

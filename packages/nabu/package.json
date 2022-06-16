@@ -21,6 +21,8 @@
   "dependencies": {
     "@async-generators/to-array": "^0.1.0",
     "@tashmet/tashmet": "^1.4.0",
+    "@tashmet/engine": "^0.1.0",
+    "@tashmet/mingo-engine": "^1.0.0",
     "eventemitter3": "^3.0.0",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",

@@ -7,9 +7,8 @@ import minimatch from 'minimatch';
 export * from './interfaces';
 
 import {Container, Optional, provider, Provider} from '@tashmet/tashmet';
-import {FileAccess, File, ReadableFile, Pipeline} from '@tashmet/nabu';
+import {FileAccess, File, ReadableFile} from '@tashmet/nabu';
 import {Stream} from '@tashmet/nabu-stream';
-import * as Pipes from './pipes';
 import {FileSystemConfig} from './interfaces';
 
 
@@ -36,15 +35,31 @@ export default class VinylFS extends FileAccess  {
     private watcher: chokidar.FSWatcher | undefined
   ) { super(); }
 
-  public read(location: string | string[]): Pipeline<ReadableFile> {
-    return Stream.toPipeline<Vinyl>(vfs.src(location, {buffer: false}))
-      .pipe<File>(Pipes.fromVinyl());
+  public read(location: string | string[]): AsyncGenerator<ReadableFile> {
+    const files = Stream.toGenerator(vfs.src(location, {buffer: true}));
+
+    async function *reader() {
+      for await (const vinyl of files()) {
+        yield {
+          path: vinyl.path,
+          content: vinyl.contents,
+          isDir: vinyl.isDirectory()
+        };
+      }
+    }
+    return reader();
   }
 
-  public async write(files: Pipeline<File>): Promise<void> {
-    return files
-      .pipe(Pipes.toVinyl())
-      .sink(Stream.toSink(vfs.dest('.')));
+  public async write(files: AsyncGenerator<File>): Promise<void> {
+    async function *writer() {
+      for await (const file of files) {
+        yield new Vinyl({
+          path: file.path,
+          contents: file.content,
+        });
+      }
+    }
+    return Stream.toSink(vfs.dest('.'))(writer());
   }
 
   public async remove(files: AsyncGenerator<File>): Promise<void> {
@@ -55,7 +70,7 @@ export default class VinylFS extends FileAccess  {
     }
   }
 
-  public watch(globs: string | string[], deletion = false): Pipeline<File> | null {
+  public watch(globs: string | string[], deletion = false): AsyncGenerator<File> | null {
     if (!this.watcher) {
       return null;
     }
@@ -86,6 +101,6 @@ export default class VinylFS extends FileAccess  {
       this.watcher.on(ev, path => onChange(path, ev));
     }
 
-    return Stream.toPipeline(readable).pipe<File>(Pipes.fromVinyl());
+    return Stream.toGenerator(readable)();//.pipe<File>(Pipes.fromVinyl());
   }
 }

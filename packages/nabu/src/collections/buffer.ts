@@ -1,20 +1,42 @@
 import {
-  Store,
   ChangeSet,
-  Document,
-  FindOptions,
-  Filter,
 } from '@tashmet/tashmet';
-import {Pipeline} from '../pipeline';
+import {
+  AbstractDatabaseEngine,
+  Document,
+  StorageEngine,
+  makeInsertCommand,
+  makeDeleteCommand,
+  makeUpdateCommand,
+  Streamable,
+  makeCreateCommand,
+} from '@tashmet/engine';
+import { MingoDatabaseEngine } from '@tashmet/mingo-engine';
 
-/**
- * An abstract store where all read operations are directed to a given buffer.
- */
-export abstract class BufferStore<TSchema> extends Store<TSchema> {
+export class BufferDatabaseEngine extends AbstractDatabaseEngine {
+  private locked: boolean = false;
+
   public constructor(
-    public buffer: Store<TSchema>,
-  ) { super(buffer.ns); }
+    public buffer: MingoDatabaseEngine,
+    public persistance: StorageEngine & Streamable,
+  ) {
+    super(buffer.databaseName, {
+      $create: makeCreateCommand(persistance, buffer.aggregator),
+      $insert: makeInsertCommand(persistance),
+      $delete: makeDeleteCommand(persistance, buffer.aggregator),
+      $update: makeUpdateCommand(persistance, buffer.aggregator.aggFact),
+    });
+  }
 
+  public async command(command: Document): Promise<Document> {
+    const op = Object.keys(command)[0];
+
+    if (['create', 'drop', 'insert', 'delete', 'update'].includes(op)) {
+      return super.command(command);
+    } 
+    return this.buffer.command(command);
+  }
+/*
   public async write(cs: ChangeSet<TSchema>) {
     await this.buffer.write(cs);
     try {
@@ -30,15 +52,17 @@ export abstract class BufferStore<TSchema> extends Store<TSchema> {
   public command(command: Document): Promise<Document> {
     return this.buffer.command(command);
   }
+*/
+  /*
 
-  public async populate(seed: Pipeline<TSchema> | undefined) {
+  public async populate(seed: AsyncGenerator<Document> | undefined) {
     if (seed) {
-      return this.load(ChangeSet.fromInsert(await seed.toArray()));
+      return this.buffer.command({insert: ''})
     }
   }
-
-  public async load(cs: ChangeSet<TSchema>) {
+  public async load(cs: ChangeSet<Document>) {
     await this.buffer.write(cs);
     this.emitAll(cs);
   }
+  */
 }

@@ -1,5 +1,5 @@
 import * as stream from 'stream';
-import {Pipeline, PipelineSink} from '@tashmet/nabu';
+//import {Pipeline, PipelineSink} from '@tashmet/nabu';
 
 type Readable = stream.Readable | NodeJS.ReadStream | NodeJS.ReadWriteStream;
 type Writable = stream.Writable | NodeJS.WriteStream | NodeJS.ReadWriteStream;
@@ -17,8 +17,8 @@ async function signalReadable(reader: Readable) {
 }
 
 export class Stream {
-  public static toPipeline<T>(readable: Readable) {
-    async function* gen() {
+  public static toGenerator<T>(readable: Readable) {
+    return async function* gen() {
       await signalReadable(readable);
       const endPromise = signalEnd(readable);
 
@@ -30,16 +30,15 @@ export class Stream {
         await Promise.race([endPromise, signalReadable(readable)]);
       }
     }
-    return new Pipeline<T>(gen());
   }
 
-  public static fromPipeline<T>(pipeline: Pipeline): stream.Readable {
-    return stream.Readable.from(pipeline);
+  public static fromGenerator<T>(generator: AsyncGenerator): stream.Readable {
+    return stream.Readable.from(generator);
   }
 
-  public static toSink<T = any, TReturn = any>(dest: Writable): PipelineSink<T, TReturn> {
-    return pipeline => new Promise<TReturn>((resolve, reject) => {
-      Stream.fromPipeline(pipeline).pipe(dest)
+  public static toSink<T = any, TReturn = any>(dest: Writable) {
+    return (generator: AsyncGenerator<T, TReturn>) => new Promise<TReturn>((resolve, reject) => {
+      Stream.fromGenerator(generator).pipe(dest)
         .on('finish', resolve)
         .on('error', reject);
     });
