@@ -41,7 +41,21 @@ export interface View {
   pipeline: Document[];
 }
 
-export class DatabaseEngine extends EventEmitter {
+export interface DatabaseEngine {
+  readonly databaseName: string;
+
+  command(command: Document): Promise<Document>;
+
+  on(event: 'change', listener: (change: Document) => void): this;
+
+  emit(event: 'change', change: Document): boolean;
+}
+
+export abstract class DatabaseEngineFactory {
+  public abstract createDatabaseEngine(dbName: string): DatabaseEngine;
+}
+
+export class AbstractDatabaseEngine extends EventEmitter implements DatabaseEngine {
   private commandNames = new Set<string>();
 
   public constructor(
