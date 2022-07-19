@@ -2,7 +2,6 @@ import {
   AbstractAggregator,
   AggregatorFactory,
   AggregationEngine,
-  DatabaseEngine,
   Document,
   makeAggregateCommand,
   makeCountCommand,
@@ -17,10 +16,13 @@ import {
   StorageEngine,
   Streamable,
   ValidatorFactory,
+  AbstractDatabaseEngine,
 } from '@tashmet/engine';
 import { MemoryStorageEngine } from './storageEngine';
 import { BufferAggregator } from './aggregator';
 import { Query } from 'mingo/query';
+
+export { MemoryStorageEngine };
 
 export class MingoAggregatorFactory implements AggregatorFactory {
   public constructor(private collectionResolver: (collection: string) => Document[]) {}
@@ -44,7 +46,7 @@ export class FilterValidatorFactory extends ValidatorFactory {
   }
 }
 
-export class MingoDatabaseEngine extends DatabaseEngine {
+export class MingoDatabaseEngine extends AbstractDatabaseEngine {
   public static inMemory(databaseName: string) {
     return MingoDatabaseEngine.fromMemory(new MemoryStorageEngine(databaseName, {}, new FilterValidatorFactory()));
   }
@@ -56,8 +58,8 @@ export class MingoDatabaseEngine extends DatabaseEngine {
   }
 
   public constructor(
-    store: StorageEngine & Streamable,
-    aggregator: AggregationEngine,
+    public readonly store: StorageEngine & Streamable,
+    public readonly aggregator: AggregationEngine,
   ) {
     super(store.databaseName, {
       $aggregate: makeAggregateCommand(aggregator),
