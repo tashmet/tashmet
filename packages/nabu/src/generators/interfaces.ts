@@ -6,7 +6,7 @@ export interface Writable<T> extends AsyncGenerator<T | undefined, void, T> {}
 /**
  * An async iterator with support for aggregation.
  */
-export interface AggregatableStream<T> {
+export interface AggregatableStream<T> extends AsyncIterable<T> {
   [Symbol.asyncIterator](): AsyncIterator<T, void>;
 
   aggregate(pipeline: Document[]): DocumentStream<T>;
@@ -25,7 +25,7 @@ export interface FileStream extends AggregatableStream<File<Buffer>> {
    * 
    * @param config 
    */
-  loadBundle<T extends Document = Document>(config: FileConfig<T>): DocumentStream<T>
+  loadBundle<T extends Document = Document>(config: FileConfig): DocumentStream<T>
   loadFiles<T extends Document = Document>(config: ManyFilesInputConfig): DocumentStream<T>
 }
 
@@ -38,7 +38,7 @@ export interface DocumentStream<T extends Document = Document> extends Aggregata
    * 
    * @param config 
    */
-  createBundle(config: FileConfig<T>): FileStream;
+  createBundle(config: FileConfig): FileStream;
 
   /**
    * Create a stream where each document is turned into a file.

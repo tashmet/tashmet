@@ -1,6 +1,7 @@
 import {
   Comparator,
   Container,
+  Dispatcher,
   Logger,
   provider,
 } from '@tashmet/tashmet';
@@ -8,7 +9,7 @@ import { MemoryStorageEngine, MingoDatabaseEngine } from '@tashmet/mingo-engine'
 import { DatabaseEngine, Document } from '@tashmet/engine';
 import Mingo from '@tashmet/mingo';
 
-import {File, FileAccess} from './interfaces';
+import { CollectionBundleConfig, DocumentBundleConfig, File, FileAccess, NabuConfig, NabuDatabaseConfig} from './interfaces';
 
 export * from './interfaces';
 export {json} from './operators/json';
@@ -20,21 +21,32 @@ import { $yamlParse, $yamlDump } from './operators/yaml';
 
 import { Stream } from './generators/stream';
 import { FileStream, DocumentStream, Writable } from './generators/interfaces';
-import { BufferDatabaseEngine } from './collections/buffer';
-import { FileBufferStorageEngine } from './storageEngine';
+import { DocumentBundleStorageEngine } from './storageEngines/documentBundle';
+import { CollectionBundleStorageEngine } from './storageEngines/collectionBundle';
 
 useOperators(OperatorType.PIPELINE, { $yamlParse, $yamlDump });
 useOperators(OperatorType.EXPRESSION, { $jsonParse, $jsonDump });
 
 @provider()
 export default class Nabu {
-  public static configure() {
+  public static configure(config: Partial<NabuConfig> = {}) {
     return (container: Container) => {
       container.register(Nabu);
+
+      return () => {
+        const nabu = container.resolve(Nabu);
+
+        for (const [dbName, dbConfig] of Object.entries(config.databases || {})) {
+          container
+            .resolve(Dispatcher)
+            .addDatabaseEngine(nabu.createBuffer(dbName, dbConfig));
+        }
+      }
     }
   }
 
   public constructor(
+    //private config: NabuConfig,
     private memory: Mingo,
     private logger: Logger,
     private fileAccess: FileAccess,
@@ -61,90 +73,14 @@ export default class Nabu {
     return Stream.fromArray(docs);
   }
 
-  public fileBuffer(dbName: string): DatabaseEngine {
-    const buffer = new MemoryStorageEngine(dbName);
-    const bufferEngine = MingoDatabaseEngine.fromMemory(buffer);
-    const store = new FileBufferStorageEngine(dbName, buffer, this.fileAccess);
-    return new BufferDatabaseEngine(bufferEngine, store);
-  }
+  public createBuffer(dbName: string, config: NabuDatabaseConfig): DatabaseEngine {
+    let storage: MemoryStorageEngine;
 
-  /**
-   * A collection based on files in a directory on a file-system
-   *
-   * @param config
-   */
-/*
-  public directoryFiles<T = any, TStored = T>({path, extension, ...config}: DirectoryFilesConfig<T, TStored> & StoreConfig) {
-    return this.shards<File<T>>(
-      config, ShardStream.fromGlobFiles({pattern: extension ? `${path}/*.${extension}` : `${path}/*`}, this.fileAccess))
-  }
-  */
-
-  /**
-   * A collection based on content in files in a directory on a file system
-   *
-   * @param config
-   */
-/*
-  public directoryContent<T extends Document = any, TStored = T>(
-    {path, extension, serializer, resolveId, resolvePath, ...storeConfig}: DirectoryContentConfig<T, TStored> & StoreConfig)
-  {
-    const fileName = (doc: any) => `${doc._id}.${extension}`;
-    const defaultPathResolver = async (doc: any) => nodePath.join(path, fileName(doc));
-    const defaultIdResolver: Pipe<File, string> = async file =>
-      nodePath.basename(file.path).split('.')[0]
-
-    return this.shards<T>(
-      storeConfig,
-      ShardStream.fromGlobContent<T, TStored>({
-        pattern: extension ? `${path}/*.${extension}` : `${path}/*`,
-        serializer,
-        resolveId: resolveId || defaultIdResolver,
-        resolvePath: resolvePath || defaultPathResolver,
-      }, this.fileAccess),
-    );
-  }
-  */
-
-  /**
-   * A collection based on files matching a glob pattern on a file system
-   *
-   * @param config
-   */
-  /*
-  public globFiles<T = any, TStored = T>({pattern, content, ...storeConfig}: GlobFilesConfig<T, TStored> & StoreConfig) {
-    return this.shards<File<T>>(storeConfig, ShardStream.fromGlobFiles({pattern, content}, this.fileAccess));
-  }
-  */
-
-  /**
-   * A collection based on content in files matching a glob pattern on a file system
-   *
-   * @param config
-   */
-  /*
-  public globContent<T extends Document = any, TStored = T>(config: GlobContentConfig<T, TStored> & StoreConfig) {
-    return this.shards<T>(config, ShardStream.fromGlobContent<T, TStored>(config, this.fileAccess));
-  }
-  */
-
-  /*
-  private shards<T extends Document = any>(storeConfig: StoreConfig, {seed, input, inputDelete, output}: ShardStream<T>): Store<T> {
-    const eachDocument = async (source: Pipeline, fn: (doc: any) => Promise<any>) => {
-      for await (const doc of source) {
-        await fn(doc);
-      }
+    if (config.hasOwnProperty('documentBundle')) {
+      storage = new DocumentBundleStorageEngine(dbName, this.fileAccess, config as DocumentBundleConfig);
+    } else {
+      storage = new CollectionBundleStorageEngine(dbName, this.fileAccess, config as CollectionBundleConfig);
     }
-
-    const store = new ShardStore(this.memory.createStore<T>(storeConfig), output);
-
-    if (input) {
-      eachDocument(input, doc => store.load(ChangeSet.fromInsert([doc])));
-    }
-    if (inputDelete) {
-      eachDocument(inputDelete, doc => store.load(ChangeSet.fromDelete([doc])));
-    }
-    return withMiddleware<T>(store, [locked([store.populate(seed)])])
+    return MingoDatabaseEngine.fromMemory(storage);
   }
-  */
 }

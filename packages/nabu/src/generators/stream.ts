@@ -61,7 +61,7 @@ export class Stream<T extends Document = Document>
   }
 
   public loadBundle<TSchema extends Document = Document>(
-    {serializer, dictionary}: FileConfig<Document>
+    {serializer, dictionary}: FileConfig
   ): DocumentStream<TSchema> {
     const unpack: Document[] = dictionary
       ? [
@@ -76,7 +76,7 @@ export class Stream<T extends Document = Document>
     return this.aggregate<TSchema>([...serializer.input, ...unpack]);
   }
 
-  public createBundle({path, dictionary, serializer}: FileConfig<T>): FileStream {
+  public createBundle({path, dictionary, serializer}: FileConfig): FileStream {
     const pipeline: Document[] = dictionary
       ? [
         {$project: {k: '$_id', v: '$$ROOT', 'v._id': 0, group: 'group', _id: 0}},

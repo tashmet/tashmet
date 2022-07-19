@@ -1,5 +1,4 @@
 import {Document} from '@tashmet/tashmet';
-//import {Pipeline} from "./pipeline";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -18,7 +17,7 @@ export type ReadableFile = File<Buffer> | File<AsyncGenerator<Buffer> | undefine
 export abstract class FileAccess {
   public abstract read(path: string | string[]): AsyncGenerator<ReadableFile>;
 
-  public abstract write(files: AsyncGenerator<File<Buffer>>): Promise<void>;
+  public abstract write(files: AsyncIterable<File<Buffer>>): Promise<void>;
 
   public abstract remove(files: AsyncGenerator<File>): Promise<void>;
 
@@ -106,7 +105,7 @@ export interface Duplex {
   output: Pipe;
 }
 
-export interface FileConfig<T extends object, TStored = T> {
+export interface FileConfig {
   /**
    * Path to the file containing the collection.
    */
@@ -195,3 +194,36 @@ export type Encoding =
   'binary' |
   'hex' |
   undefined;
+
+
+export interface DatabaseBundleConfig {
+  databaseBundle: string;
+
+  dictionary: boolean;
+}
+
+export interface CollectionBundleConfig {
+  collectionBundle: (collection: string) => string;
+
+  glob?: string;
+
+  format: string;
+
+  dictionary: boolean;
+}
+
+export interface DocumentBundleConfig {
+  documentBundle: (collection: string, doc?: Document) => string;
+
+  format: string;
+
+  id?: (file: File) => string;
+}
+
+export type NabuDatabaseConfig = DatabaseBundleConfig | CollectionBundleConfig | DocumentBundleConfig;
+
+export interface NabuConfig {
+  databases: Record<string, NabuDatabaseConfig>;
+}
+
+export abstract class NabuConfig implements NabuConfig {}
