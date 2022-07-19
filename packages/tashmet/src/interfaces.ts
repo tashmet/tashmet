@@ -1,3 +1,4 @@
+import { DatabaseEngine } from '@tashmet/engine';
 import ObjectId from 'bson-objectid';
 import { EventEmitter } from 'eventemitter3';
 import { Collection } from './collection';
@@ -459,12 +460,6 @@ export abstract class Comparator implements Comparator {}
 
 export abstract class Dispatcher extends EventEmitter {
   public abstract dispatch(namespace: Namespace, command: Document): Promise<Document>;
-}
 
-export abstract class DatabaseEngineFactory {
-  public abstract createDatabaseEngine(dbName: string): DatabaseEngine;
-}
-
-export abstract class DatabaseEngine extends EventEmitter {
-  public abstract command(command: Document): Promise<Document>;
+  public abstract addDatabaseEngine(engine: DatabaseEngine): void;
 }

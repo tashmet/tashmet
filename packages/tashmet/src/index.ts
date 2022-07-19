@@ -84,13 +84,15 @@ import { DefaultDispatcher } from './dispatcher';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}
 
+export type PluginConfig = (container: Container) => void | (() => void);
+
 interface Plugin<TConf> {
-  configure(conf: TConf): (container: Container) => void;
+  configure(conf: TConf): PluginConfig;
 }
 
 export class TashmetConfigurator {
   private providers: (Provider<any> | Newable<any>)[] = [];
-  private plugins: ((container: Container) => void)[] = [];
+  private plugins: PluginConfig[] = [];
 
   public constructor(
     private container: ((logger: Logger) => Container) | undefined = undefined,
@@ -125,9 +127,7 @@ export class TashmetConfigurator {
     container.register(Provider.ofResolver(DatabaseFactory, Lookup.of(DefaultDatabaseFactory)));
     container.register(Tashmet);
 
-    for (const plugin of this.plugins) {
-      plugin(container);
-    }
+    const loaders = this.plugins.map(p => p(container));
 
     for (const provider of this.providers) {
       container.register(provider);
@@ -135,6 +135,12 @@ export class TashmetConfigurator {
 
     if (!container.isRegistered(app)) {
       container.register(app);
+    }
+
+    for (const loader of loaders) {
+      if (typeof loader === 'function') {
+        loader();
+      }
     }
 
     return container.resolve(app);

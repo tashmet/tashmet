@@ -1,5 +1,6 @@
 import { provider } from "@tashmet/core";
-import { Document, DatabaseEngine, DatabaseEngineFactory, Dispatcher, Namespace } from "./interfaces";
+import { DatabaseEngine, DatabaseEngineFactory } from "@tashmet/engine";
+import { Document, Dispatcher, Namespace } from "./interfaces";
 
 @provider()
 export class DefaultDispatcher extends Dispatcher {
@@ -16,5 +17,9 @@ export class DefaultDispatcher extends Dispatcher {
     }
 
     return engine.command(command);
+  }
+
+  public addDatabaseEngine(engine: DatabaseEngine) {
+    this.engines[engine.databaseName] = engine;
   }
 }
