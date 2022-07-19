@@ -32,7 +32,7 @@ export class GetMoreOperation extends CommandOperation<Document> {
     return this.executeCommand(dispatcher, {
       getMore: this.cursorId,
       collection: this.ns.coll,
-      batchSIze: this.options.batchSize,
+      batchSize: this.options.batchSize,
     });
   }
 }
