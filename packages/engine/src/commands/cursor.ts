@@ -46,10 +46,10 @@ export function makeCountCommand(engine: AbstractQueryEngine | AggregationEngine
         {$count: 'count'}
       ];
       const c = engine.aggregate(collName, pipeline, collation);
-      const {value} = await c.next();
+      const {count} = await c.next();
       engine.closeCursor(c);
 
-      return {n: value.count, ok: 1};
+      return {n: count, ok: 1};
     } else {
       const c = engine.find(collName, {filter, sort, skip, limit}, collation);
       const n = (await c.toArray()).length;
