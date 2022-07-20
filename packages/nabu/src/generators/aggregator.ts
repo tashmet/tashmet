@@ -1,7 +1,7 @@
 import { Document } from '@tashmet/tashmet';
 import { getOperator, OperatorType, initOptions } from 'mingo/core';
 import { Query } from 'mingo/query';
-import { assert } from 'mingo/util';
+import { assert, cloneDeep } from 'mingo/util';
 import { Iterator, Lazy } from 'mingo/lazy';
 import { toArray } from './interfaces';
 
@@ -78,7 +78,7 @@ export class StreamAggregator<T extends Document = Document> {
 
   async* operatorStreamed<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
     for await (const item of source) {
-      const it = mingoOp(Lazy([item]), expr, options) as Iterator;
+      const it = mingoOp(Lazy([cloneDeep(item)]), expr, options) as Iterator;
 
       for (const item of it.value() as any[]) {
         yield item;
@@ -88,7 +88,7 @@ export class StreamAggregator<T extends Document = Document> {
 
   async* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
     const buffer = await toArray(source);
-    const it = mingoOp(Lazy(buffer), expr, options) as Iterator;
+    const it = mingoOp(Lazy(buffer).map(cloneDeep), expr, options) as Iterator;
     for (const item of it.value() as any[]) {
       yield item;
     }

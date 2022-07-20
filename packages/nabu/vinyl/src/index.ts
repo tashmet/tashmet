@@ -53,21 +53,19 @@ export default class VinylFS extends FileAccess  {
   public async write(files: AsyncGenerator<File>): Promise<void> {
     async function *writer() {
       for await (const file of files) {
-        yield new Vinyl({
-          path: file.path,
-          contents: file.content,
-        });
+        if (file.content) {
+          yield new Vinyl({
+            path: file.path,
+            contents: file.content,
+          });
+        } else {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        }
       }
     }
     return Stream.toSink(vfs.dest('.'))(writer());
-  }
-
-  public async remove(files: AsyncGenerator<File>): Promise<void> {
-    for await (const file of files) {
-      if (fs.existsSync(file.path)) {
-        fs.unlinkSync(file.path);
-      }
-    }
   }
 
   public watch(globs: string | string[], deletion = false): AsyncGenerator<File> | null {

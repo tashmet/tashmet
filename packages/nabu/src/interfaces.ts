@@ -19,8 +19,6 @@ export abstract class FileAccess {
 
   public abstract write(files: AsyncIterable<File<Buffer>>): Promise<void>;
 
-  public abstract remove(files: AsyncGenerator<File>): Promise<void>;
-
   public watch(globs: string | string[], deletion?: boolean): AsyncGenerator<File> | null {
     return null;
   }
