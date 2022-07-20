@@ -211,7 +211,7 @@ export interface CollectionBundleConfig {
 }
 
 export interface DocumentBundleConfig {
-  documentBundle: (collection: string, doc?: Document) => string;
+  documentBundle: (collection: string, id?: string) => string;
 
   format: string;
 

@@ -1,6 +1,5 @@
-/*
-import Tashmet, { Document, StorageEngine, Store, StoreConfig, provider, Collection } from '@tashmet/tashmet';
-import Nabu, {json} from '@tashmet/nabu';
+import Tashmet, {Collection} from '@tashmet/tashmet';
+import Nabu from '@tashmet/nabu';
 import Mingo from '@tashmet/mingo';
 import 'mingo/init/system';
 import {expect} from 'chai';
@@ -15,39 +14,33 @@ chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 function storedDoc(id: string | number): any {
-  return fs.readJsonSync(`test/e2e/testCollection/${id}.json`);
+  //return fs.readJsonSync(`test/e2e/testCollection.json`)[id];
+  const doc = fs.readJsonSync(`test/e2e/testCollection.json`);
+  //console.log(doc);
+  return doc[id];
 }
 
-function storedFiles(): string[] {
-  return fs.readdirSync('test/e2e/testCollection');
+function storedKeys() {
+  return Object.keys(fs.readJsonSync(`test/e2e/testCollection.json`));
 }
 
-@provider({
-  key: StorageEngine,
-})
-class TestStorageEngine extends StorageEngine {
-  public constructor(private nabu: Nabu) {super();}
-
-  public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
-    return this.nabu.directoryContent({
-      path: `test/${config.ns.db}/${config.ns.coll}`,
-      extension: 'json',
-      serializer: json(),
-      ...config
-    });
-  }
-}
-
-describe('directory', () => {
+describe('collectionBundle', () => {
   let col: Collection<any>;
 
   before(async () => {
     const client = await Tashmet
       .configure()
       .use(Mingo, {})
-      .use(Nabu, {})
       .use(Vinyl, {watch: false})
-      .provide(TestStorageEngine)
+      .use(Nabu, {
+        databases: {
+          e2e: {
+            collectionBundle: coll => `test/e2e/${coll}.json`,
+            format: 'json',
+            dictionary: true,
+          }
+        }
+      })
       .connect();
     col = client.db('e2e').collection('testCollection');
   });
@@ -67,10 +60,6 @@ describe('directory', () => {
     await col.deleteMany({});
   });
 
-  after(() => {
-    fs.rmdirSync('test/e2e/testCollection');
-  });
-
   describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
       const doc = {item: { category: 'brownies', type: 'blondie' }, amount: 10 };
@@ -87,8 +76,10 @@ describe('directory', () => {
       expect(storedDoc(1))
         .to.eql({item: { category: 'cake', type: 'chiffon' }, amount: 10 });
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
+        console.log(action);
         expect(action).to.eql('insert');
         expect(data.length).to.eql(1);
         expect(data[0]).to.eql({_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 });
@@ -98,6 +89,7 @@ describe('directory', () => {
         {_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
     });
+    */
   });
 
   describe('insertMany', () => {
@@ -118,6 +110,7 @@ describe('directory', () => {
         {_id: 1, item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('insert');
@@ -129,6 +122,7 @@ describe('directory', () => {
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
     });
+    */
   });
 
   describe('replaceOne', () => {
@@ -141,7 +135,7 @@ describe('directory', () => {
         matchedCount: 1,
         modifiedCount: 1,
         upsertedCount: 0,
-        upsertedId: undefined,
+        upsertedId: null,
       });
       expect(storedDoc(1)).to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 20 });
     });
@@ -154,7 +148,7 @@ describe('directory', () => {
         matchedCount: 0,
         modifiedCount: 0,
         upsertedCount: 0,
-        upsertedId: undefined,
+        upsertedId: null,
       });
     });
     it('should completely replace document', async () => {
@@ -171,6 +165,7 @@ describe('directory', () => {
       expect(result.upsertedId).to.not.eql(undefined);
       expect(storedDoc(result.upsertedId as any)).to.eql({ amount: 20 });
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('replace');
@@ -182,8 +177,10 @@ describe('directory', () => {
         {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
     });
+    */
   });
 
+  /*
   describe('count', () => {
     it('should return 0 when no documents are matching', () => {
       expect(col.find({'item.category': 'candy'}).count()).to.eventually.eql(0);
@@ -192,6 +189,7 @@ describe('directory', () => {
       expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
     });
   });
+  */
 
   describe('findOne', () => {
     it('should return null when document is not found', () => {
@@ -257,12 +255,13 @@ describe('directory', () => {
         .to.eventually.eql({acknowledged: true, deletedCount: 1});
     });
     it('should have removed selected document', async () => {
-      const storedCount = storedFiles().length;
+      const storedCount = storedKeys().length;
       await col.deleteOne({_id: 1});
       expect(col.findOne({_id: 1})).to.eventually.be.null;
-      expect(storedFiles().length).to.eql(storedCount - 1);
-      expect(storedFiles()).to.not.contain('1.json');
+      expect(storedKeys().length).to.eql(storedCount - 1);
+      expect(storedKeys()).to.not.contain('1');
     });
+    /*
     it('should emit a change event if a document was removed', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -272,6 +271,7 @@ describe('directory', () => {
       });
       col.deleteOne({_id: 1});
     });
+    */
   });
 
   describe('deleteMany', () => {
@@ -280,11 +280,12 @@ describe('directory', () => {
         .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
     it('should return non-zero deletedCount when documents match selector', async () => {
-      const storedCount = storedFiles().length;
+      const storedCount = storedKeys().length;
       const result = await col.deleteMany({'item.category': 'cookies'});
       expect(result.deletedCount).to.eql(2);
-      expect(storedFiles().length).to.eql(storedCount - 2);
+      expect(storedKeys().length).to.eql(storedCount - 2);
     });
+    /*
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find({'item.category': 'cookies'}).count()).to.eventually.eql(0);
@@ -293,6 +294,8 @@ describe('directory', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.find().count()).to.eventually.eql(3);
     });
+    */
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
@@ -301,6 +304,6 @@ describe('directory', () => {
       });
       col.deleteMany({'item.category': 'cookies'});
     });
+    */
   });
 });
-*/

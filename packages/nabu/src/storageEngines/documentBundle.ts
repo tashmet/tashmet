@@ -31,12 +31,31 @@ export class DocumentBundleStorageEngine extends BufferStorageEngine {
   }
 
   public async insert(collection: string, document: Document): Promise<void> {
-    const serializer = this.resolveSerializer(this.config.format);
     await super.insert(collection, document);
 
-    this.fileAccess.write(Stream
+    const serializer = this.resolveSerializer(this.config.format);
+    await this.fileAccess.write(Stream
       .fromArray([document])
-      .createFiles({serializer, path: doc => this.config.documentBundle(collection, doc)})
+      .createFiles({serializer, path: doc => this.config.documentBundle(collection, document._id)})
     );
+  }
+
+  public async replace(collection: string, id: string, document: Document): Promise<void> {
+    await super.replace(collection, id, document);
+
+    const serializer = this.resolveSerializer(this.config.format);
+    await this.fileAccess.write(Stream
+      .fromArray([document])
+      .createFiles({serializer, path: doc => this.config.documentBundle(collection, id)})
+    );
+  }
+
+  public async delete(collection: string, id: string): Promise<void> {
+    await super.delete(collection, id);
+
+    await this.fileAccess.write(Stream.fromArray([{
+      path: this.config.documentBundle(collection, id),
+      isDir: false,
+    }]));
   }
 }
