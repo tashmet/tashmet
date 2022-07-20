@@ -137,10 +137,10 @@ describe('Collection', () => {
     });
     it('should completely replace document', async () => {
       await col.replaceOne(
-        {_id: 1}, {item: { category: 'cake', type: 'chiffon' }, amount: 20 }
+        {_id: 1}, { amount: 20 }
       );
       const doc = await col.findOne({_id: 1});
-      expect(doc?.amount).to.eql(20);
+      expect(doc).to.eql({_id: 1, amount: 20});
     });
     it('should upsert when specified', async () => {
       const result = await col.replaceOne(

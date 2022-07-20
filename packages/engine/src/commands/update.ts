@@ -21,7 +21,10 @@ export function makeUpdateCommand(store: StorageEngine & Streamable, aggFact: Ag
       } else if (Object.keys(u)[0].charAt(0) === '$') {
         pipeline = Object.entries(u).reduce<Document[]>((acc, [k, v]) => acc.concat([{[k]: v}]), []);
       } else {
-        pipeline = [{$set: u}];
+        pipeline = [
+          {$project: {'_id': 1}},
+          {$set: u}
+        ];
         operation = 'replace';
       }
 
