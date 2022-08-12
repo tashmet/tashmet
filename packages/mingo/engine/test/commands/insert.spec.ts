@@ -36,7 +36,7 @@ describe('insert', () => {
   describe('write errors', () => {
     beforeEach(async () => {
       await store.create('test', {});
-      await store.insert('test', {_id: 1, title: 'foo'});
+      await engine.command({insert: 'test', documents: [{_id: 1, title: 'foo'}]});
     });
 
     afterEach(async () => {
