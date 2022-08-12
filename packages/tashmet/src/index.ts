@@ -55,14 +55,15 @@ export {
 
 } from '@tashmet/core';
 
+export { ChangeStream, ChangeStreamDocument } from '@tashmet/engine';
+
 export { Collection } from './collection';
 export { DatabaseService, DefaultDatabaseFactory } from './database';
 export { AbstractCursor } from './cursor/abstractCursor';
 export { AggregationCursor } from './cursor/aggregationCursor';
 export { FindCursor } from './cursor/findCursor';
-export * from './changeStream';
 export * from './interfaces';
-export * from './changeSet';
+//export * from '@tashmet/engine/src/changeSet';
 export { AggregateOptions } from './operations/aggregate';
 
 import {

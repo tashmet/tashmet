@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {ChangeSet} from '../src/changeSet';
+import {ChangeSet} from '@tashmet/engine/src/changeSet';
 
 chai.use(chaiAsPromised);
 

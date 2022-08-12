@@ -13,7 +13,7 @@ import {
   Dispatcher,
   Namespace,
 } from "./interfaces";
-import { ChangeStream } from "./changeStream";
+import { ChangeStream } from "@tashmet/engine";
 import { AggregationCursor } from "./cursor/aggregationCursor";
 import { FindCursor } from "./cursor/findCursor";
 import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert";

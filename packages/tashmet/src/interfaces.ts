@@ -2,7 +2,7 @@ import { DatabaseEngine } from '@tashmet/engine';
 import ObjectId from 'bson-objectid';
 import { EventEmitter } from 'eventemitter3';
 import { Collection } from './collection';
-import { ChangeSet } from './changeSet';
+import { ChangeSet } from '@tashmet/engine/src/changeSet';
 import { CommandOperationOptions } from './operations/command';
 
 export type Document = Record<string, any>;
