@@ -18,7 +18,8 @@
     "noUnusedParameters": false,
     "noUnusedLocals": false,
     "strictNullChecks": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "downlevelIteration": true
   },
   "compileOnSave": false,
   "exclude": [

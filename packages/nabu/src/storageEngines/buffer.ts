@@ -1,5 +1,5 @@
 import { MemoryStorageEngine } from '@tashmet/mingo-engine';
-import { Document } from '@tashmet/engine';
+import { Document, makeWriteChange } from '@tashmet/engine';
 
 import { FileAccess, Transform } from '../interfaces';
 import { yaml } from '../operators/yaml';
@@ -20,7 +20,7 @@ export abstract class BufferStorageEngine extends MemoryStorageEngine {
 
   protected async populate(collection: string, stream: AsyncIterable<Document>): Promise<void> {
     for await (const doc of stream) {
-      await super.insert(collection, doc);
+      await super.write([makeWriteChange('insert', doc, {db: this.databaseName, coll: collection})], {ordered: false});
     }
   }
 

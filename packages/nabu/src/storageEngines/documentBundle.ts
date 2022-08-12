@@ -1,4 +1,4 @@
-import { Document } from '@tashmet/engine';
+import { ChangeStreamDocument, Document, WriteOptions } from '@tashmet/engine';
 
 import {
   DocumentBundleConfig,
@@ -30,32 +30,18 @@ export class DocumentBundleStorageEngine extends BufferStorageEngine {
     }));
   }
 
-  public async insert(collection: string, document: Document): Promise<void> {
-    await super.insert(collection, document);
-
+  public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {
+    const writeErrors = await super.write(changes, options);
     const serializer = this.resolveSerializer(this.config.format);
-    await this.fileAccess.write(Stream
-      .fromArray([document])
-      .createFiles({serializer, path: doc => this.config.documentBundle(collection, document._id)})
-    );
-  }
 
-  public async replace(collection: string, id: string, document: Document): Promise<void> {
-    await super.replace(collection, id, document);
+    const stream = Stream.fromArray(changes).createFiles({
+      path: c => this.config.documentBundle(c.ns.coll, c.documentKey),
+      serializer,
+      content: c => c.operationType === 'delete' ? undefined : c.fullDocument,
+    });
 
-    const serializer = this.resolveSerializer(this.config.format);
-    await this.fileAccess.write(Stream
-      .fromArray([document])
-      .createFiles({serializer, path: doc => this.config.documentBundle(collection, id)})
-    );
-  }
+    await this.fileAccess.write(stream);
 
-  public async delete(collection: string, id: string): Promise<void> {
-    await super.delete(collection, id);
-
-    await this.fileAccess.write(Stream.fromArray([{
-      path: this.config.documentBundle(collection, id),
-      isDir: false,
-    }]));
+    return writeErrors;
   }
 }

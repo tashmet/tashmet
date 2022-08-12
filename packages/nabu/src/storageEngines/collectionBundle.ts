@@ -1,4 +1,4 @@
-import { Document } from '@tashmet/engine';
+import { ChangeStreamDocument, Document, WriteOptions } from '@tashmet/engine';
 
 import { CollectionBundleConfig, FileAccess, FileConfig } from '../interfaces';
 import { Stream } from '../generators/stream';
@@ -26,19 +26,13 @@ export class CollectionBundleStorageEngine extends BufferStorageEngine {
     }
   }
 
-  public async insert(collection: string, document: Document): Promise<void> {
-    await super.insert(collection, document);
-    await this.persistCollection(collection);
-  }
-
-  public async delete(collection: string, id: string): Promise<void> {
-    await super.delete(collection, id);
-    await this.persistCollection(collection);
-  }
-
-  public async replace(collection: string, id: string, document: Document): Promise<void> {
-    await super.replace(collection, id, document);
-    await this.persistCollection(collection);
+  public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {
+    const res = await super.write(changes, options);
+    const collections = new Set(changes.map(c => c.ns.coll));
+    for (const c of [...collections]) {
+      await this.persistCollection(c);
+    }
+    return res;
   }
 
   private bundleConfig(collection: string): FileConfig {

@@ -33,9 +33,9 @@ export function $jsonDump(
   options?: Options
 ): AnyVal {
     const encoding = expr['encoding'] as Encoding || 'utf8';
-    const data = computeValue(obj, expr['object']) as Buffer;
+    const data = computeValue(obj, expr['object']);
 
-    return Buffer.from(JSON.stringify(data), encoding);
+    return data ? Buffer.from(JSON.stringify(data), encoding) : undefined;
 }
 
 export const json = (encoding: Encoding = 'utf8') => {

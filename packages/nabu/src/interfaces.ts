@@ -153,6 +153,8 @@ export interface ManyFilesOutputConfig {
   beforeSerialize?: Document[];
 
   path: Document | ((doc: Document) => string);
+
+  content?: string | ((doc: Document) => string | Document);
 }
 
 export interface DirectoryConfig<T> {

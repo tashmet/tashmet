@@ -116,12 +116,16 @@ export class Stream<T extends Document = Document>
     return this.aggregate(pipeline);
   }
 
-  public createFiles({path, serializer}: ManyFilesOutputConfig): FileStream {
+  public createFiles({path, serializer, content}: ManyFilesOutputConfig): FileStream {
+    const c = content || '$$ROOT';
+
     const pipeline: Document[] = [
       { $project: {
         _id: 0,
         path: { $function: { body: path, args: [ "$$ROOT" ], lang: "js" }},
-        content: '$$ROOT'}
+        content: typeof c === 'function'
+          ? { $function: { body: c, args: [ "$$ROOT" ], lang: "js" }}
+          : c }
       },
       { $set: {isDir: false} },
     ];
