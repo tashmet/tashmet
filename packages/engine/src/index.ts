@@ -3,6 +3,8 @@ export * from './interfaces';
 export { AggregationEngine } from './aggregation';
 export { AbstractQueryEngine, QueryEngine, Queryable } from './query';
 export { Cursor, CursorRegistry } from './cursor';
+export { ChangeSet, idSet } from './changeSet';
+export * from './changeStream';
 
 export {
   makeAggregateCommand,

@@ -1,5 +1,18 @@
 import ObjectId from 'bson-objectid';
 import { EventEmitter } from "eventemitter3";
+import { ChangeStreamDocument } from './changeStream';
+
+
+/** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
+export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
+  ? // eslint-disable-next-line @typescript-eslint/ban-types
+    {} extends IdType // TODO(NODE-3285): Improve type readability
+    ? // eslint-disable-next-line @typescript-eslint/ban-types
+      Exclude<IdType, {}>
+    : unknown extends IdType
+    ? ObjectId
+    : IdType
+  : ObjectId; // user has not defined _id on schema
 
 export interface CollationOptions {
   readonly locale: string;
@@ -16,6 +29,15 @@ export type Document = Record<string, any>;
 
 export type DatabaseCommandHandler = (command: Document, db: DatabaseEngine) => Promise<Document>;
 
+export interface WriteError {
+  errMsg: string;
+  index: number;
+}
+
+export interface WriteOptions {
+  ordered: boolean;
+}
+
 export interface StorageEngine {
   readonly databaseName: string;
 
@@ -25,11 +47,7 @@ export interface StorageEngine {
 
   exists(collection: string, id: string): Promise<boolean>;
 
-  insert(collection: string, document: Document): Promise<void>;
-
-  delete(collection: string, id: string): Promise<void>;
-
-  replace(collection: string, id: string, document: Document): Promise<void>;
+  write(changes: ChangeStreamDocument[], options?: WriteOptions): Promise<WriteError[]>;
 }
 
 export interface Streamable {
