@@ -1,26 +1,26 @@
 import { ChangeStreamDocument } from "../changeStream";
-import { DatabaseEngine, Document, makeWriteChange, StorageEngine } from "../interfaces";
+import { DatabaseEngine, Document, StorageEngine } from "../interfaces";
 import { AbstractQueryEngine } from "../query";
-import { writeChanges } from "./write";
+import { WriteCommand } from "./write";
 
-export async function makeDeleteChanges(
-  deletes: Document[], ns: {db: string, coll: string}, query: AbstractQueryEngine
-) {
-  const changes: ChangeStreamDocument[] = [];
-
-  for (const {q, limit, collation} of deletes) {
-    const cursor = query.find(ns.coll, {filter: q, limit}, collation);
-    const matched = await cursor.toArray();
-    changes.push(...matched.map(doc => makeWriteChange('delete', doc, ns)));
-
-    query.closeCursor(cursor);
+class DeleteCommand extends WriteCommand {
+  public constructor(private deletes: Document[], ns: {db: string, coll: string}, private query: AbstractQueryEngine) {
+    super('delete', ns);
   }
-  return changes;
+
+  public async execute(): Promise<ChangeStreamDocument<Document>[]> {
+    const changes: ChangeStreamDocument[] = [];
+
+    for (const {q, limit, collation} of this.deletes) {
+      const cursor = this.query.find(this.ns.coll, {filter: q, limit}, collation);
+      changes.push(...this.createChanges(...await cursor.toArray()))
+      this.query.closeCursor(cursor);
+    }
+    return changes;
+  }
 }
 
-export function makeDeleteCommand(storage: StorageEngine, query: AbstractQueryEngine) {
-  return async ({delete: coll, deletes, ordered}: Document, db: DatabaseEngine) => {
-    const changes = await makeDeleteChanges(deletes, {db: db.databaseName, coll}, query);
-    return writeChanges(storage, db, 'delete', changes, {ordered});
-  }
+export function makeDeleteCommand(store: StorageEngine, query: AbstractQueryEngine) {
+  return async ({delete: coll, deletes, ordered}: Document, db: DatabaseEngine) =>
+    new DeleteCommand(deletes, {db: db.databaseName, coll}, query).write(store, db, ordered);
 }

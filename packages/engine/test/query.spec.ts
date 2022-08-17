@@ -27,11 +27,11 @@ describe('QueryCursor', () => {
     sandbox.restore();
   });
 
-  it('should not apply a limit when no batch size is given', async () => {
+  it('should apply default limit when no batch size is given', async () => {
     const cursor = new QueryCursor(queryable, 'test', {}, 1);
     await cursor.getBatch();
 
-    expect(spy).to.have.been.calledWith('test', {});
+    expect(spy).to.have.been.calledWith('test', {skip: 0, limit: 1000});
   });
 
   it('should apply a limit equal to batch size', async () => {

@@ -41,9 +41,8 @@ export class QueryCursor extends Cursor {
   }
 
   public getQuery(batchSize: number | undefined): Document | undefined {
-    if (!batchSize) {
-      return this.query;
-    }
+    batchSize = batchSize || 1000;
+
     const skip = this.skip + (this.query.skip || 0);
     const limit = this.query.limit ? Math.min(batchSize, this.query.limit) : batchSize;
 

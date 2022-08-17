@@ -38,24 +38,26 @@ export function makeGetMoreCommand(cursors: CursorRegistry) {
   }
 }
 
-export function makeCountCommand(engine: AbstractQueryEngine | AggregationEngine) {
+export function makeCountAggregationCommand(engine: AggregationEngine) {
   return async ({count: collName, query: filter, sort, skip, limit, collation}: Document) => {
-    if (engine instanceof AggregationEngine) {
-      const pipeline: Document[] = [
-        ...makeQueryPipeline({filter, sort, skip, limit}),
-        {$count: 'count'}
-      ];
-      const c = engine.aggregate(collName, pipeline, collation);
-      const {count} = await c.next();
-      engine.closeCursor(c);
+    const pipeline: Document[] = [
+      ...makeQueryPipeline({filter, sort, skip, limit}),
+      {$count: 'count'}
+    ];
+    const c = engine.aggregate(collName, pipeline, collation);
+    const {count} = await c.next();
+    engine.closeCursor(c);
 
-      return {n: count, ok: 1};
-    } else {
-      const c = engine.find(collName, {filter, sort, skip, limit}, collation);
-      const n = (await c.toArray()).length;
-      engine.closeCursor(c);
+    return {n: count, ok: 1};
+  }
+}
 
-      return {n, ok: 1};
-    }
+export function makeCountQueryCommand(engine: AbstractQueryEngine) {
+  return async ({count: collName, query: filter, sort, skip, limit, collation}: Document) => {
+    const c = engine.find(collName, {filter, sort, skip, limit, projection: {_id: 1}}, collation);
+    const n = (await c.toArray()).length;
+    engine.closeCursor(c);
+
+    return {n, ok: 1};
   }
 }

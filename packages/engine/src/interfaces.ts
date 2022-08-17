@@ -111,18 +111,6 @@ export abstract class AbstractAggregator<T extends Document = Document> {
   }
 }
 
-export const makeWriteChange = (
-  operationType: 'insert' | 'update' | 'replace' | 'delete',
-  fullDocument: Document,
-  ns: {db: string, coll: string
-}) => ({
-  _id: new ObjectId(),
-  operationType,
-  ns,
-  documentKey: fullDocument._id,
-  fullDocument,
-});
-
 export type Validator = (doc: Document) => Promise<Document>;
 
 export abstract class ValidatorFactory {

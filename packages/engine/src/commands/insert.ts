@@ -1,19 +1,24 @@
 import ObjectID from "bson-objectid";
 import { ChangeStreamDocument } from "../changeStream";
-import { DatabaseEngine, Document, makeWriteChange, StorageEngine } from "../interfaces";
-import { writeChanges } from "./write";
+import { DatabaseEngine, Document, StorageEngine } from "../interfaces";
+import { WriteCommand } from "./write";
 
-export function makeInsertChanges(documents: Document[], ns: any): ChangeStreamDocument[] {
-  for (const doc of documents) {
-    if (!doc.hasOwnProperty('_id')) {
-      doc._id = new ObjectID().toHexString();
-    }
+export class InsertCommand extends WriteCommand {
+  public constructor(private documents: Document[], ns: {db: string, coll: string}) {
+    super('insert', ns);
   }
 
-  return documents.map(doc => makeWriteChange('insert', doc, ns));
+  public async execute(): Promise<ChangeStreamDocument[]> {
+    for (const doc of this.documents) {
+      if (!doc.hasOwnProperty('_id')) {
+        doc._id = new ObjectID().toHexString();
+      }
+    }
+    return this.createChanges(...this.documents);
+  }
 }
 
-export function makeInsertCommand(storage: StorageEngine) {
+export function makeInsertCommand(store: StorageEngine) {
   return async ({insert: coll, documents, ordered}: Document, db: DatabaseEngine) =>
-    writeChanges(storage, db, 'insert', makeInsertChanges(documents, {db: db.databaseName, coll}), {ordered});
+    new InsertCommand(documents, {db: db.databaseName, coll}).write(store, db, ordered);
 }

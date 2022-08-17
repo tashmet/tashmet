@@ -1,6 +1,6 @@
 import { Cursor, IteratorCursor } from "./cursor";
 import { AggregatorFactory, CollationOptions, Document, Streamable, View } from "./interfaces";
-import { AbstractQueryEngine } from "./query";
+import { AbstractQueryEngine, Queryable, QueryCursor } from "./query";
 
 export class AggregationEngine extends AbstractQueryEngine {
   private views: Record<string, View> = {};
@@ -44,6 +44,74 @@ export class AggregationEngine extends AbstractQueryEngine {
         .stream(this.read(view.viewOn));
     }
     return this.streamable.stream(collection);
+  }
+}
+
+export interface PrefetchAggregationStrategy {
+  filter: Document;
+  options: Document;
+  pipeline: Document[];
+}
+
+export class PrefetchAggregationEngine extends AggregationEngine {
+  public constructor(
+    streamable: Streamable,
+    aggFact: AggregatorFactory,
+    private queryable: Queryable
+  ) { super(streamable, aggFact); }
+
+  public find(collName: string, query: Document, collation?: CollationOptions): Cursor {
+    return this.addCursor(
+      new QueryCursor(this.queryable, collName, {...query, collation}, ++this.cursorCounter)
+    );
+  }
+
+  public aggregate(collName: string, pipeline: Document[], collation?: CollationOptions) {
+    const strategy = this.createPrefetchStrategy(pipeline);
+
+    const cursor = this.find(collName, {filter: strategy.filter, ...strategy.options}, collation);
+
+    return cursor;
+  }
+
+  private createPrefetchStrategy(pipeline: Document[]): PrefetchAggregationStrategy {
+    let filter: Document = {};
+    let options: Document = {};
+
+    const handlers: Record<string, (value: any) => void> = {
+      '$match': v => filter = v,
+      '$sort': v => options.sort = v,
+      '$skip': v => options.skip = v,
+      '$limit': v => options.limit = v,
+      '$project': v => options.projection = v,
+    }
+
+    const allAllowed = ['$match', '$sort', '$skip', '$limit', '$project'];
+    const allowPreceding: Record<string, string[]> = {
+      '$match': [],
+      '$sort': ['$match'],
+      '$skip': allAllowed,
+      '$limit': allAllowed,
+      '$project': allAllowed,
+    };
+
+    let prevStepOps: string[] = [];
+
+    const isValid = (op: string) =>
+      op in handlers && prevStepOps.every(prevOp => allowPreceding[op].includes(prevOp));
+
+    for (let i = 0; i < pipeline.length; i++) {
+      const step = pipeline[i];
+      const op = Object.keys(step)[0];
+      if (isValid(op)) {
+        handlers[op](step[op]);
+        prevStepOps.push(op);
+      } else {
+        break;
+      }
+    }
+
+    return {filter, options, pipeline: pipeline.slice(prevStepOps.length)};
   }
 }
 
