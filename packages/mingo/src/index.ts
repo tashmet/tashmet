@@ -1,15 +1,14 @@
 import {
   Document,
-  ChangeSet,
   Comparator,
   Container,
-  idSet,
   HashCode,
   Logger,
   Lookup,
   provider,
   Provider,
 } from '@tashmet/tashmet';
+import { idSet, ChangeSet } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util';
 import { PrefetchAggregationStrategy } from './aggregator';
 import { MingoConfig } from './interfaces';

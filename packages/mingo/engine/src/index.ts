@@ -4,14 +4,14 @@ import {
   AggregationEngine,
   Document,
   makeAggregateCommand,
-  makeCountCommand,
+  makeCountAggregationCommand,
   makeCreateCommand,
   makeDeleteCommand,
   makeDistinctCommand,
   makeDropCommand,
   makeFindCommand,
   makeGetMoreCommand,
-  makeUpdateCommand,
+  makeUpdateAggregationCommand,
   makeInsertCommand,
   StorageEngine,
   Streamable,
@@ -63,7 +63,7 @@ export class MingoDatabaseEngine extends AbstractDatabaseEngine {
   ) {
     super(store.databaseName, {
       $aggregate: makeAggregateCommand(aggregator),
-      $count: makeCountCommand(aggregator),
+      $count: makeCountAggregationCommand(aggregator),
       $create: makeCreateCommand(store, aggregator),
       $delete: makeDeleteCommand(store, aggregator),
       $distinct: makeDistinctCommand(aggregator),
@@ -71,7 +71,7 @@ export class MingoDatabaseEngine extends AbstractDatabaseEngine {
       $find: makeFindCommand(aggregator),
       $getMore: makeGetMoreCommand(aggregator),
       $insert: makeInsertCommand(store),
-      $update: makeUpdateCommand(store, aggregator.aggFact),
+      $update: makeUpdateAggregationCommand(store, aggregator.aggFact),
     });
   }
 }

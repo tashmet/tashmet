@@ -1,7 +1,7 @@
-import { Document, StorageEngine, Streamable, ValidatorFactory, WriteError, WriteOptions } from '@tashmet/engine';
+import { AtomicWriteCollection, Document, sequentialWrite, StorageEngine, Streamable, ValidatorFactory, WriteOptions } from '@tashmet/engine';
 import { ChangeStreamDocument } from '@tashmet/tashmet';
 
-export class MemoryCollection {
+export class MemoryCollection implements AtomicWriteCollection {
   public indexes: Record<string, number> = {};
 
   public constructor(
@@ -19,7 +19,7 @@ export class MemoryCollection {
     return this.indexes[id] !== undefined;
   }
 
-  public async insert(document: Document): Promise<Document> {
+  public async insert(document: Document): Promise<void> {
     if (this.rules && this.validatorFact) {
       const validator = this.validatorFact.createValidator(this.rules);
       if (!validator(document)) {
@@ -32,7 +32,6 @@ export class MemoryCollection {
 
     this.documents.push(document);
     this.indexes[document._id] = this.documents.length - 1;
-    return document;
   }
 
   public async delete(id: string): Promise<void> {
@@ -98,35 +97,7 @@ export class MemoryStorageEngine implements StorageEngine, Streamable {
   }
 
   public async write(changes: ChangeStreamDocument[], {ordered}: WriteOptions) {
-    const writeErrors: WriteError[] = [];
-
-    let index=0;
-    for (const c of changes) {
-      try {
-        const coll = this.collections[c.ns.coll];
-        switch (c.operationType) {
-          case 'insert':
-            if (c.fullDocument) {
-              await coll.insert(c.fullDocument);
-            }
-            break;
-          case 'update':
-          case 'replace':
-            if (c.fullDocument && c.documentKey)
-              await coll.replace(c.documentKey as any, c.fullDocument);
-            break;
-          case 'delete':
-            if (c.documentKey)
-              await coll.delete(c.documentKey as any);
-        }
-      } catch (err) {
-        writeErrors.push({errMsg: err.message, index});
-        if (ordered)
-          break;
-      }
-      index++;
-    }
-    return writeErrors;
+    return sequentialWrite(this.collections, changes, ordered);
   }
 
   public resolve(collection: string): Document[] {
