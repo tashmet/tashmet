@@ -1,37 +1,39 @@
-import {Fetch} from './interfaces';
+import {Fetch, HttpRestLayer} from './interfaces';
 
-export class HttpRestLayer {
+export class DefaultHttpRestLayer implements HttpRestLayer {
   public constructor(
     public readonly basePath: string,
+    private path: (collection: string) => string,
     private fetch: Fetch,
     private headers: Record<string, string> = {},
   ) {}
 
-  public async get(path: string, queryString: string = '', head: boolean = false) {
+  public async get(collection: string, queryString: string = '', head: boolean = false) {
     const method = head ? 'HEAD' : 'GET';
     const queryPath = queryString !== ''
-      ? this.resolvePath(path) + '?' + queryString
-      : this.resolvePath(path);
+      ? this.resolvePath(collection) + '?' + queryString
+      : this.resolvePath(collection);
 
     return this.fetch(queryPath, {method, headers: this.headers});
   }
 
-  public async put(path: string, doc: any, id: string) {
-    return this.send('PUT', `${this.resolvePath(path)}/${id}`, doc);
+  public async put(collection: string, doc: any, id: string) {
+    return this.send('PUT', `${this.resolvePath(collection)}/${id}`, doc);
   }
 
-  public async post(path: string, doc: any) {
-    return this.send('POST', this.resolvePath(path), doc);
+  public async post(collection: string, doc: any) {
+    return this.send('POST', this.resolvePath(collection), doc);
   }
 
-  public async delete(path: string, id: any) {
-    const resp = await this.fetch(this.resolvePath(path) + '/' + id, {
+  public async delete(collection: string, id: any) {
+    const resp = await this.fetch(this.resolvePath(collection) + '/' + id, {
       method: 'DELETE',
       headers: this.makeHeaders(),
     });
     if (!resp.ok) {
       throw new Error(await this.errorMessage(resp));
     }
+    return resp;
   }
 
   private async send(method: 'POST' | 'PUT', path: string, doc: any) {
@@ -65,7 +67,9 @@ export class HttpRestLayer {
     }
   }
 
-  private resolvePath(path: string) {
-    return this.basePath + path;
+  private resolvePath(collection: string) {
+    const path = this.basePath + this.path(collection);
+    //console.log(path);
+    return path;
   }
 }

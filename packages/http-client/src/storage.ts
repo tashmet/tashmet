@@ -1,8 +1,24 @@
-import { Document, StorageEngine } from '@tashmet/engine';
-import { HttpRestLayer } from './common';
+import { AtomicWriteCollection, ChangeStreamDocument, Document, sequentialWrite, StorageEngine, Streamable, WriteError, WriteOptions } from '@tashmet/engine';
+import { HttpRestLayer } from './interfaces';
 
-export class HttpStorageEngine implements StorageEngine {
-  private collections: Record<string, string> = {};
+export class HttpCollection implements AtomicWriteCollection {
+  public constructor(public readonly name: string, private restLayer: HttpRestLayer) {}
+
+  public async insert(doc: Document) {
+    await this.restLayer.post(this.name, doc);
+  }
+
+  public async replace(id: string, doc: Document) {
+    await this.restLayer.put(this.name, doc, id);
+  }
+
+  public async delete(id: string) {
+    await this.restLayer.delete(this.name, id);
+  }
+}
+
+export class HttpStorageEngine implements StorageEngine, Streamable {
+  private collections: Record<string, HttpCollection> = {};
 
   public constructor(
     public readonly databaseName: string,
@@ -13,7 +29,8 @@ export class HttpStorageEngine implements StorageEngine {
     if (this.collections[collection]) {
       throw new Error(`Collection ${collection} already exists`);
     } else {
-      this.collections[collection] = options?.storageEngine?.path || collection;
+      //this.collections[collection] = options?.storageEngine?.path || collection;
+      this.collections[collection] = new HttpCollection(collection, this.restLayer);
     }
   }
 
@@ -25,18 +42,15 @@ export class HttpStorageEngine implements StorageEngine {
     }
   }
 
-  public async insert(collection: string, doc: Document): Promise<void> {
-    const result = await this.restLayer.post(collection, doc);
-    Object.assign(doc, {_id: result.insertedId});
-    return result;
+  public async write(changes: ChangeStreamDocument<Document>[], options?: WriteOptions | undefined): Promise<WriteError[]> {
+    return sequentialWrite(this.collections, changes, !!options?.ordered);
   }
 
-  public async delete(collection: string, id: string): Promise<void> {
-    await this.restLayer.delete(collection, id);
-  }
-
-  public async replace(collection: string, id: string, doc: Document): Promise<void> {
-    await this.restLayer.put(collection, doc, id);
+  public async *stream(collection: string): AsyncIterable<Document> {
+    const resp = await this.restLayer.get(collection);
+    for (const doc of resp.json()) {
+      yield doc;
+    }
   }
 
   public async exists(collection: string, id: string): Promise<boolean> {

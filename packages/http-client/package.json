@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",
-    "test": "exit 0"
+		"test": "exit 0"
   },
   "keywords": [
     "tashmet",

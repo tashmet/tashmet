@@ -1,9 +1,11 @@
-import {Filter, FindOptions, Namespace} from '@tashmet/tashmet';
+import {Filter, FindOptions, Namespace, Document} from '@tashmet/tashmet';
 import {QuerySerializer} from '@tashmet/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
 
 export interface HttpClientConfig {
+  basePath: string;
+
   querySerializer: QuerySerializer;
 
   // emitter?: (collection: Collection, path: string) => DatabaseEventEmitter;
@@ -21,13 +23,26 @@ export interface HttpClientConfig {
 
   /** Additional headers */
   headers: Record<string, string>;
+
+  databases: Record<string, HttpStoreConfig>;
+}
+
+export interface HttpRestLayer {
+  get(path: string, queryString?: string, head?: boolean): Promise<Document>;
+
+  put(path: string, doc: any, id: string): Promise<Document>;
+
+  post(path: string, doc: any): Promise<Document>;
+
+  delete(path: string, id: any): Promise<Document>;
 }
 
 export abstract class HttpClientConfig implements HttpClientConfig {}
 
 export interface HttpStoreConfig extends Partial<HttpClientConfig> {
-  ns: Namespace;
-  path: string;
+  //ns: Namespace;
+  //path: string;
+  path: (collection: string) => string;
 }
 
 export type SerializeQuery = (filter?: Filter<any>, options?: FindOptions) => string;
