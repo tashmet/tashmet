@@ -3,17 +3,14 @@ import {
   Comparator,
   Container,
   HashCode,
-  Logger,
-  Lookup,
   provider,
   Provider,
 } from '@tashmet/tashmet';
-import { idSet, ChangeSet } from '@tashmet/engine';
+import { idSet, ChangeSet, AggregatorFactory, AbstractAggregator, ValidatorFactory } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util';
-import { PrefetchAggregationStrategy } from './aggregator';
+import { BufferAggregator, PrefetchAggregationStrategy } from './aggregator';
 import { MingoConfig } from './interfaces';
-import { StorageEngine, DatabaseEngine, DatabaseEngineFactory } from '@tashmet/engine';
-import { MingoDatabaseEngine } from '@tashmet/mingo-engine';
+import { Query } from 'mingo';
 
 export * from './interfaces';
 
@@ -29,8 +26,31 @@ export class MingoComparator implements Comparator {
   }
 }
 
+@provider({
+  key: AggregatorFactory,
+})
+export class MingoAggregatorFactory implements AggregatorFactory {
+  public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
+    return new BufferAggregator(pipeline, options);
+  }
+}
+
+export class FilterValidatorFactory extends ValidatorFactory {
+  public createValidator(rules: Document) {
+    const query = new Query(rules as any);
+
+    return (doc: any) => {
+      if (query.test(doc)) {
+        return doc;
+      } else {
+        throw new Error('Document failed validation');
+      }
+    }
+  }
+}
+
 @provider()
-export default class MingoDatabaseEngineFactory extends DatabaseEngineFactory {
+export default class Mingo {
   private static defaultConfig: MingoConfig = {
     useStrictMode: true,
     scriptEnabled: true,
@@ -39,23 +59,13 @@ export default class MingoDatabaseEngineFactory extends DatabaseEngineFactory {
   public static configure(config: Partial<MingoConfig> = {}) {
     return (container: Container) => {
       container.register(Provider.ofInstance(MingoConfig, {
-        ...MingoDatabaseEngineFactory.defaultConfig,
+        ...Mingo.defaultConfig,
         ...config
       }));
-      container.register(MingoDatabaseEngineFactory);
-      container.register(Provider.ofResolver(DatabaseEngineFactory, Lookup.of(MingoDatabaseEngineFactory)));
       container.register(Provider.ofInstance(HashCode, hashCode));
       container.register(MingoComparator);
       container.register(PrefetchAggregationStrategy);
+      container.register(MingoAggregatorFactory);
     }
   }
-
-  public constructor(
-    private logger: Logger,
-    private config: MingoConfig,
-  ) { super(); }
-
-  public createDatabaseEngine(dbName: string, storageEngine?: StorageEngine): DatabaseEngine {
-    return MingoDatabaseEngine.inMemory(dbName);
-  }    
 }

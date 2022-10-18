@@ -1,14 +1,41 @@
+import { AbstractAggregator } from '@tashmet/engine';
 import {
   Document,
   Filter,
   FindOptions,
   provider
 } from '@tashmet/tashmet';
+import { Aggregator } from 'mingo';
 
 export interface PrefetchAggregation {
   filter: Filter<any>;
   options: FindOptions<any>;
   pipeline: Document[];
+}
+
+export class BufferAggregator extends AbstractAggregator<Document> {
+  private aggregator: Aggregator;
+
+  public constructor(pipeline: Document[], options: any) {
+    super(pipeline);
+    this.aggregator = new Aggregator(pipeline, options);
+  }
+
+  public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
+    const buffer = [];
+    for await (const item of input) {
+      buffer.push(item)
+    }
+    const it = this.aggregator.stream(buffer);
+    while (true) {
+      const {value, done} = it.next();
+      if (done && !value) {
+        break;
+      } else {
+        yield value as TResult;
+      }
+    }
+  }
 }
 
 @provider()
