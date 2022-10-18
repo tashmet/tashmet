@@ -1,4 +1,14 @@
-import { AtomicWriteCollection, ChangeStreamDocument, Document, sequentialWrite, StorageEngine, Streamable, WriteError, WriteOptions } from '@tashmet/engine';
+import {
+  AtomicWriteCollection,
+  ChangeStreamDocument,
+  CollectionRegistry,
+  Document,
+  sequentialWrite,
+  Streamable,
+  Writable,
+  WriteError,
+  WriteOptions
+} from '@tashmet/engine';
 import { HttpRestLayer } from './interfaces';
 
 export class HttpCollection implements AtomicWriteCollection {
@@ -17,7 +27,7 @@ export class HttpCollection implements AtomicWriteCollection {
   }
 }
 
-export class HttpStorageEngine implements StorageEngine, Streamable {
+export class HttpStorage implements CollectionRegistry, Streamable, Writable {
   private collections: Record<string, HttpCollection> = {};
 
   public constructor(

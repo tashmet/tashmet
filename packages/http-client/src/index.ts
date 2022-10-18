@@ -8,45 +8,20 @@ import {
 import { QuerySerializer } from '@tashmet/qs-builder';
 import {
   AbstractAggregator,
-  AbstractDatabaseEngine,
   AggregatorFactory,
-  DatabaseEngine,
+  StorageEngine,
   Document,
-  makeCountQueryCommand,
-  makeCreateCommand,
-  makeDeleteCommand,
-  makeDropCommand,
-  makeFindCommand,
-  makeGetMoreCommand,
-  makeInsertCommand,
-  makeUpdateQueryCommand,
+  QueryEngine,
+  AdminController,
+  QueryController,
 } from '@tashmet/engine';
 import { DefaultHttpRestLayer } from './common';
 import { HttpClientConfig, HttpStoreConfig, Fetch } from './interfaces';
 import { HttpQueryable } from './query';
-import { HttpStorageEngine } from './storage';
-import { AggregationEngine, PrefetchAggregationEngine } from '@tashmet/engine/dist/aggregation';
+import { HttpStorage } from './storage';
 
 export * from './interfaces';
 export { QuerySerializer } from '@tashmet/qs-builder';
-
-export class HttpDatabaseEngine extends AbstractDatabaseEngine {
-  public constructor(
-    store: HttpStorageEngine,
-    engine: AggregationEngine,
-  ) {
-    super(store.databaseName, {
-      $create: makeCreateCommand(store),
-      $count: makeCountQueryCommand(engine),
-      $delete: makeDeleteCommand(store, engine),
-      $drop: makeDropCommand(store),
-      $find: makeFindCommand(engine),
-      $getMore: makeGetMoreCommand(engine),
-      $insert: makeInsertCommand(store),
-      $update: makeUpdateQueryCommand(store, engine),
-    });
-  }
-}
 
 class NullAggregatorFactory implements AggregatorFactory {
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
@@ -82,7 +57,7 @@ export default class Http {
         for (const [dbName, dbConfig] of Object.entries(config.databases || {})) {
           container
             .resolve(Dispatcher)
-            .addDatabaseEngine(httpClient.createApi(dbName, dbConfig));
+            .addStorageEngine(httpClient.createApi(dbName, dbConfig));
         }
       }
     }
@@ -94,7 +69,7 @@ export default class Http {
     //private cachingLayer: CachingLayer | undefined,
   ) {}
 
-  public createApi(dbName: string, config: HttpStoreConfig): DatabaseEngine {
+  public createApi(dbName: string, config: HttpStoreConfig): StorageEngine {
     const {basePath, path, /*emitter,*/ querySerializer, fetch} = {
       ...this.config,
       ...config,
@@ -115,10 +90,14 @@ export default class Http {
     }
 
     const restLayer = new DefaultHttpRestLayer(basePath || '', path, loggedFetch);
-    const storage = new HttpStorageEngine(dbName, restLayer);
-    //const qEngine = new QueryEngine(new HttpQueryable(querySerializer, restLayer));
-    const engine = new PrefetchAggregationEngine(storage, new NullAggregatorFactory(), new HttpQueryable(querySerializer, restLayer));
-    const dbEngine = new HttpDatabaseEngine(storage, engine);
+    const storage = new HttpStorage(dbName, restLayer);
+    const qEngine = new QueryEngine(new HttpQueryable(querySerializer, restLayer));
+    //const engine = new PrefetchAggregationEngine(storage, new NullAggregatorFactory(), new HttpQueryable(querySerializer, restLayer));
+    //const engine = new QueryEngine(new HttpQueryable(querySerializer, restLayer));
+    //const dbEngine = new HttpDatabaseEngine(storage, engine);
+    const storageEngine = StorageEngine.fromControllers(dbName,
+      new AdminController(storage, undefined), new QueryController(dbName, storage, qEngine)
+    );
 
     /*
     if (this.cachingLayer) {
@@ -136,6 +115,6 @@ export default class Http {
       return collection;
     }
     */
-    return dbEngine;
+    return storageEngine;
   }
 }
