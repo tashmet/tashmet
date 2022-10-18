@@ -1,11 +1,11 @@
-import { MemoryStorageEngine } from '@tashmet/mingo-engine';
+import { MemoryStorage } from '@tashmet/memory';
 import { Document, makeWriteChange } from '@tashmet/engine';
 
 import { FileAccess, Transform } from '../interfaces';
 import { yaml } from '../operators/yaml';
 import { json } from '../operators/json';
 
-export abstract class BufferStorageEngine extends MemoryStorageEngine {
+export abstract class BufferStorage extends MemoryStorage {
   protected configs: Record<string, Document> = {};
 
   constructor(

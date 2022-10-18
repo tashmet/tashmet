@@ -2,10 +2,10 @@ import { ChangeStreamDocument, Document, WriteOptions } from '@tashmet/engine';
 
 import { CollectionBundleConfig, FileAccess, FileConfig } from '../interfaces';
 import { Stream } from '../generators/stream';
-import { BufferStorageEngine } from './buffer';
+import { BufferStorage } from './buffer';
 
 
-export class CollectionBundleStorageEngine extends BufferStorageEngine {
+export class CollectionBundleStorage extends BufferStorage {
   constructor(
     databaseName: string,
     fileAccess: FileAccess,
@@ -19,8 +19,8 @@ export class CollectionBundleStorageEngine extends BufferStorageEngine {
     this.configs[collection] = options.storageEngine;
 
     try {
-      //const stream = new Stream(this.fileAccess.read(config.path));
-      //await this.populate(collection, stream.loadBundle(config));
+      const stream = new Stream(this.fileAccess.read(config.path));
+      await this.populate(collection, stream.loadBundle(config));
     } catch (err) {
       // File not found, do nothing
     }

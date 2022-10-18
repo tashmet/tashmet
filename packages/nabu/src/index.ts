@@ -5,9 +5,8 @@ import {
   Logger,
   provider,
 } from '@tashmet/tashmet';
-import { MemoryStorageEngine, MingoDatabaseEngine } from '@tashmet/mingo-engine';
-import { DatabaseEngine, Document } from '@tashmet/engine';
-import Mingo from '@tashmet/mingo';
+import { MemoryStorage } from '@tashmet/memory';
+import { StorageEngine, Document, AggregatorFactory, AggregationEngine, ViewMap, AdminController, AggregationController } from '@tashmet/engine';
 
 import { CollectionBundleConfig, DocumentBundleConfig, File, FileAccess, NabuConfig, NabuDatabaseConfig} from './interfaces';
 
@@ -21,8 +20,8 @@ import { $yamlParse, $yamlDump } from './operators/yaml';
 
 import { Stream } from './generators/stream';
 import { FileStream, DocumentStream, Writable } from './generators/interfaces';
-import { DocumentBundleStorageEngine } from './storageEngines/documentBundle';
-import { CollectionBundleStorageEngine } from './storageEngines/collectionBundle';
+import { DocumentBundleStorage } from './storage/documentBundle';
+import { CollectionBundleStorage } from './storage/collectionBundle';
 
 useOperators(OperatorType.PIPELINE, { $yamlParse, $yamlDump });
 useOperators(OperatorType.EXPRESSION, { $jsonParse, $jsonDump });
@@ -39,7 +38,7 @@ export default class Nabu {
         for (const [dbName, dbConfig] of Object.entries(config.databases || {})) {
           container
             .resolve(Dispatcher)
-            .addDatabaseEngine(nabu.createBuffer(dbName, dbConfig));
+            .addStorageEngine(nabu.createBuffer(dbName, dbConfig));
         }
       }
     }
@@ -47,10 +46,11 @@ export default class Nabu {
 
   public constructor(
     //private config: NabuConfig,
-    private memory: Mingo,
-    private logger: Logger,
+    private aggFact: AggregatorFactory,
+    //private memory: Mingo,
+    //private logger: Logger,
     private fileAccess: FileAccess,
-    private comparator: Comparator,
+    //private comparator: Comparator,
   ) {}
 
   /*
@@ -73,14 +73,22 @@ export default class Nabu {
     return Stream.fromArray(docs);
   }
 
-  public createBuffer(dbName: string, config: NabuDatabaseConfig): DatabaseEngine {
-    let storage: MemoryStorageEngine;
+  public createBuffer(dbName: string, config: NabuDatabaseConfig): StorageEngine {
+    let storage: MemoryStorage;
 
     if (config.hasOwnProperty('documentBundle')) {
-      storage = new DocumentBundleStorageEngine(dbName, this.fileAccess, config as DocumentBundleConfig);
+      storage = new DocumentBundleStorage(dbName, this.fileAccess, config as DocumentBundleConfig);
     } else {
-      storage = new CollectionBundleStorageEngine(dbName, this.fileAccess, config as CollectionBundleConfig);
+      storage = new CollectionBundleStorage(dbName, this.fileAccess, config as CollectionBundleConfig);
     }
-    return MingoDatabaseEngine.fromMemory(storage);
+
+    const engine = new AggregationEngine(this.aggFact, storage, {
+      collectionResolver: (name: string) => storage.resolve(name),
+    });
+    const views: ViewMap = {};
+    return StorageEngine.fromControllers(dbName,
+      new AdminController(storage, views),
+      new AggregationController(dbName, storage, engine, views)
+    );
   }
 }

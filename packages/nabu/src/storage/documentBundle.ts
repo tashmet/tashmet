@@ -6,9 +6,9 @@ import {
 } from '../interfaces';
 import { Stream } from '../generators/stream';
 import * as nodePath from 'path';
-import { BufferStorageEngine } from './buffer';
+import { BufferStorage } from './buffer';
 
-export class DocumentBundleStorageEngine extends BufferStorageEngine {
+export class DocumentBundleStorage extends BufferStorage {
   constructor(
     databaseName: string,
     fileAccess: FileAccess,
@@ -35,7 +35,7 @@ export class DocumentBundleStorageEngine extends BufferStorageEngine {
     const serializer = this.resolveSerializer(this.config.format);
 
     const stream = Stream.fromArray(changes).createFiles({
-      path: c => this.config.documentBundle(c.ns.coll, c.documentKey),
+      path: c => this.config.documentBundle(c.ns.coll, c.documentKey._id),
       serializer,
       content: c => c.operationType === 'delete' ? undefined : c.fullDocument,
     });
