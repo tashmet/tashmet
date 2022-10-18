@@ -1,49 +1,40 @@
-import { Cursor, IteratorCursor } from "./cursor";
-import { AggregatorFactory, CollationOptions, Document, Streamable, View } from "./interfaces";
-import { AbstractQueryEngine, Queryable, QueryCursor } from "./query";
+import { Cursor, CursorRegistry, IteratorCursor } from "./cursor";
+import { AggregatorFactory, CollationOptions, Document, Streamable } from "./interfaces";
 
-export class AggregationEngine extends AbstractQueryEngine {
-  private views: Record<string, View> = {};
+export async function *arrayToGenerator<T>(array: T[]) {
+  for (const item of array) {
+    yield item;
+  }
+}
 
+export class AggregationEngine extends CursorRegistry {
   public constructor(
-    public readonly streamable: Streamable,
-    public readonly aggFact: AggregatorFactory,
-  ) {
-    super();
-  }
+    private aggFact: AggregatorFactory,
+    private documentReader: Streamable,
+    private options: Document = {},
+  ) { super(); }
 
-  public find(collName: string, query: Document, collation?: CollationOptions): Cursor {
-    return this.aggregate(collName, makeQueryPipeline(query), collation);
-  }
+  public aggregate(
+    collection: string | Document[] | AsyncIterable<Document>,
+    pipeline: Document[],
+    collation: CollationOptions | undefined,
+  ): Cursor {
+    let input: AsyncIterable<Document>;
 
-  public aggregate(collName: string, pipeline: Document[], collation?: CollationOptions) {
-    let coll = this.read(collName);
-    const it = this.aggFact
-      .createAggregator(pipeline, {collation})
-      .stream<Document>(coll);
+    if (typeof collection === 'string') {
+      input = this.documentReader.stream(collection);
+    } else if (Array.isArray(collection)) {
+      input = arrayToGenerator(collection);
+    } else {
+      input = collection;
+    }
+
+    const aggregator = this.aggFact.createAggregator(pipeline, {collation, ...this.options});
+    const output = aggregator.stream<Document>(input);
 
     return this.addCursor(
-      new IteratorCursor(it[Symbol.asyncIterator](), ++this.cursorCounter)
+      new IteratorCursor(output[Symbol.asyncIterator](), ++this.cursorCounter)
     );
-  }
-
-  public createView(name: string, view: View) {
-    this.views[name] = view;
-  }
-
-  public isView(collection: string) {
-    return !!this.views[collection];
-  }
-
-  public read(collection: string): AsyncIterable<Document> {
-    const view = this.views[collection];
-
-    if (view) {
-      return this.aggFact
-        .createAggregator(view.pipeline, {})
-        .stream(this.read(view.viewOn));
-    }
-    return this.streamable.stream(collection);
   }
 }
 
@@ -53,28 +44,7 @@ export interface PrefetchAggregationStrategy {
   pipeline: Document[];
 }
 
-export class PrefetchAggregationEngine extends AggregationEngine {
-  public constructor(
-    streamable: Streamable,
-    aggFact: AggregatorFactory,
-    private queryable: Queryable
-  ) { super(streamable, aggFact); }
-
-  public find(collName: string, query: Document, collation?: CollationOptions): Cursor {
-    return this.addCursor(
-      new QueryCursor(this.queryable, collName, {...query, collation}, ++this.cursorCounter)
-    );
-  }
-
-  public aggregate(collName: string, pipeline: Document[], collation?: CollationOptions) {
-    const strategy = this.createPrefetchStrategy(pipeline);
-
-    const cursor = this.find(collName, {filter: strategy.filter, ...strategy.options}, collation);
-
-    return cursor;
-  }
-
-  private createPrefetchStrategy(pipeline: Document[]): PrefetchAggregationStrategy {
+export function makePrefetchStrategy(pipeline: Document[]) {
     let filter: Document = {};
     let options: Document = {};
 
@@ -112,8 +82,33 @@ export class PrefetchAggregationEngine extends AggregationEngine {
     }
 
     return {filter, options, pipeline: pipeline.slice(prevStepOps.length)};
+}
+
+/*
+export class PrefetchAggregationEngine extends AggregationEngine {
+  public constructor(
+    streamable: Streamable,
+    aggFact: AggregatorFactory,
+    private queryable: Queryable
+  ) { super(streamable, aggFact); }
+
+  public find(collName: string, query: Document, collation?: CollationOptions): Cursor {
+    return this.addCursor(
+      new QueryCursor(this.queryable, collName, {...query, collation}, ++this.cursorCounter)
+    );
+  }
+
+  public aggregate(collName: string, pipeline: Document[], collation?: CollationOptions) {
+    const {filter, options, pipeline: outputPipeline} = makePrefetchStrategy(pipeline);
+
+    if (outputPipeline.length > 0) {
+      throw new Error('Pipeline contains unsupported operators');
+    }
+
+    return this.find(collName, {filter: filter, ...options}, collation);
   }
 }
+*/
 
 export const makeQueryPipeline = ({filter, sort, skip, limit, projection}: Document) => {
   const operators: Document[] = [];

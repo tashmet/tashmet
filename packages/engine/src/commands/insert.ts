@@ -1,6 +1,6 @@
 import ObjectID from "bson-objectid";
 import { ChangeStreamDocument } from "../changeStream";
-import { DatabaseEngine, Document, StorageEngine } from "../interfaces";
+import { Document } from "../interfaces";
 import { WriteCommand } from "./write";
 
 export class InsertCommand extends WriteCommand {
@@ -16,9 +16,4 @@ export class InsertCommand extends WriteCommand {
     }
     return this.createChanges(...this.documents);
   }
-}
-
-export function makeInsertCommand(store: StorageEngine) {
-  return async ({insert: coll, documents, ordered}: Document, db: DatabaseEngine) =>
-    new InsertCommand(documents, {db: db.databaseName, coll}).write(store, db, ordered);
 }

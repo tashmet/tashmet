@@ -1,10 +1,12 @@
+import { makeQueryPipeline } from "../aggregation";
 import { ChangeStreamDocument } from "../changeStream";
-import { DatabaseEngine, Document, StorageEngine } from "../interfaces";
-import { AbstractQueryEngine } from "../query";
+import { AggregationEngine } from "../aggregation";
+import { Document } from "../interfaces";
 import { WriteCommand } from "./write";
+import { QueryEngine } from "../query";
 
-class DeleteCommand extends WriteCommand {
-  public constructor(private deletes: Document[], ns: {db: string, coll: string}, private query: AbstractQueryEngine) {
+export abstract class DeleteCommand extends WriteCommand {
+  public constructor(private deletes: Document[], ns: {db: string, coll: string}) {
     super('delete', ns);
   }
 
@@ -12,15 +14,28 @@ class DeleteCommand extends WriteCommand {
     const changes: ChangeStreamDocument[] = [];
 
     for (const {q, limit, collation} of this.deletes) {
-      const cursor = this.query.find(this.ns.coll, {filter: q, limit}, collation);
-      changes.push(...this.createChanges(...await cursor.toArray()))
-      this.query.closeCursor(cursor);
+      const docs = await this.onDelete({q, limit, collation});
+      changes.push(...this.createChanges(...docs));
     }
     return changes;
   }
+
+  protected abstract onDelete({q, limit, collation}: Document): Promise<Document[]>;
 }
 
-export function makeDeleteCommand(store: StorageEngine, query: AbstractQueryEngine) {
-  return async ({delete: coll, deletes, ordered}: Document, db: DatabaseEngine) =>
-    new DeleteCommand(deletes, {db: db.databaseName, coll}, query).write(store, db, ordered);
+export class AggregationDeleteCommand extends DeleteCommand {
+  public constructor(deletes: Document[], ns: any, private aggregation: AggregationEngine) { super(deletes, ns); }
+
+  protected async onDelete({q, limit, collation}: Document) {
+    const pipeline = makeQueryPipeline({filter: q, limit, projection: {_id: 1}});
+    return this.aggregation.aggregate(this.ns.coll, pipeline, collation).toArray();
+  }
+}
+
+export class QueryDeleteCommand extends DeleteCommand {
+  public constructor(deletes: Document[], ns: any, private engine: QueryEngine) { super(deletes, ns); }
+
+  protected async onDelete({q, limit, collation}: Document) {
+    return this.engine.find(this.ns.coll, {filter: q, limit, projection: {_id: 1}}, collation).toArray();
+  }
 }

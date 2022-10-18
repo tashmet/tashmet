@@ -4,8 +4,8 @@ export abstract class CursorRegistry {
   protected cursorCounter = 0;
   protected cursors: Record<number, Cursor> = {};
 
-  public closeCursor(cursor: Cursor) {
-    delete this.cursors[cursor.id];
+  public closeCursor(id: number) {
+    delete this.cursors[id];
   }
 
   public getCursor(id: number) {

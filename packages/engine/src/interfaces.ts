@@ -1,6 +1,19 @@
+import { Annotation, methodDecorator, Newable } from '@tashmet/core';
 import ObjectId from 'bson-objectid';
 import { EventEmitter } from "eventemitter3";
 import { ChangeStreamDocument } from './changeStream';
+
+
+export class CommandAnnotation extends Annotation {
+  public constructor(
+    public readonly name: string,
+    public readonly propertyKey: string
+  ) { super(); }
+}
+
+
+export const command = (name: string) =>
+  methodDecorator(({propertyKey}) => new CommandAnnotation(name, propertyKey));
 
 
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
@@ -27,7 +40,7 @@ export interface CollationOptions {
 
 export type Document = Record<string, any>;
 
-export type DatabaseCommandHandler = (command: Document, db: DatabaseEngine) => Promise<Document>;
+export type DatabaseCommandHandler = (command: Document) => Promise<Document>;
 
 export interface WriteError {
   errMsg: string;
@@ -38,20 +51,12 @@ export interface WriteOptions {
   ordered: boolean;
 }
 
-export interface StorageEngine {
-  readonly databaseName: string;
-
-  create(collection: string, options: Document): Promise<void>;
-
-  drop(collection: string): Promise<void>;
-
-  exists(collection: string, id: string): Promise<boolean>;
-
-  write(changes: ChangeStreamDocument[], options?: WriteOptions): Promise<WriteError[]>;
-}
-
 export interface Streamable {
   stream(collection: string): AsyncIterable<Document>;
+}
+
+export interface Writable {
+  write(changes: ChangeStreamDocument[], options: WriteOptions): Promise<WriteError[]>;
 }
 
 export interface View {
@@ -59,7 +64,15 @@ export interface View {
   pipeline: Document[];
 }
 
-export interface DatabaseEngine {
+export type ViewMap = Record<string, View>;
+
+export interface CollectionRegistry {
+  create(name: string, options: Document): Promise<void>;
+
+  drop(name: string): Promise<void>;
+}
+
+export interface StorageEngine {
   readonly databaseName: string;
 
   command(command: Document): Promise<Document>;
@@ -69,12 +82,28 @@ export interface DatabaseEngine {
   emit(event: 'change', change: Document): boolean;
 }
 
-export abstract class DatabaseEngineFactory {
-  public abstract createDatabaseEngine(dbName: string): DatabaseEngine;
-}
-
-export class AbstractDatabaseEngine extends EventEmitter implements DatabaseEngine {
+export class StorageEngine extends EventEmitter implements StorageEngine {
   private commandNames = new Set<string>();
+
+  public static fromControllers(databaseName: string, ...controllers: any[]) {
+    const commands: Record<string, DatabaseCommandHandler> = {};
+
+    for (const c of controllers) {
+      for (const anno of CommandAnnotation.onClass(c.constructor, true)) {
+        commands[anno.name] = cmd => c[anno.propertyKey](cmd);
+      }
+    }
+
+    const engine = new StorageEngine(databaseName, commands);
+
+    for (const c of controllers) {
+      if (c instanceof EventEmitter) {
+        c.on('change', change => engine.emit('change', change))
+      }
+    }
+
+    return engine;
+  }
 
   public constructor(
     public readonly databaseName: string,
@@ -85,17 +114,28 @@ export class AbstractDatabaseEngine extends EventEmitter implements DatabaseEngi
   }
 
   public command(command: Document): Promise<Document> {
-    const op = Object.keys(command)[0];
-    if (!this.commandNames.has(`$${op}`)) {
+    const op = StorageEngine.operation(command);
+    if (!this.commandNames.has(op)) {
       throw new Error(`Command ${op} is not supported`);
     }
-    return this.commands[`$${op}`](command, this);
+    return this.commands[`${op}`](command);
+  }
+
+  public static operation(command: Document): string {
+    return Object.keys(command)[0];
   }
 }
+
+export abstract class StorageEngineFactory {
+  public abstract createStorageEngine(dbName: string): StorageEngine;
+}
+
 
 export interface AggregatorFactory {
   createAggregator(pipeline: Document[], options: any): AbstractAggregator;
 }
+
+export abstract class AggregatorFactory implements AggregatorFactory {};
 
 export abstract class AbstractAggregator<T extends Document = Document> {
   public constructor(protected pipeline: Document[]) {}
@@ -116,3 +156,5 @@ export type Validator = (doc: Document) => Promise<Document>;
 export abstract class ValidatorFactory {
   public abstract createValidator(rules: Document): Validator;
 }
+
+export type CollectionMap<T> = Record<string, T>;

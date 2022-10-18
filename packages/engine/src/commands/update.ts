@@ -1,9 +1,10 @@
 import { CollationSpec } from 'mingo/core';
 import { ChangeStreamDocument } from '../changeStream';
-import { AggregatorFactory, DatabaseEngine, Document, StorageEngine, Streamable } from '../interfaces';
-import { AbstractQueryEngine } from '../query';
+import { AggregationEngine } from '../aggregation';
+import { Document } from '../interfaces';
 import { InsertCommand } from './insert';
 import { WriteCommand, makeWriteChange } from './write';
+import { QueryEngine } from '../query';
 
 export enum UpdateType {
   Regular,
@@ -19,16 +20,6 @@ export function updateType(u: any) {
   } else {
     return UpdateType.Replace;
   }
-}
-
-export function makeUpdateAggregationCommand(store: StorageEngine & Streamable, aggFact: AggregatorFactory) { 
-  return ({update: coll, updates, ordered}: Document, db: DatabaseEngine) =>
-    new AggregationUpdateCommand(updates, {db: db.databaseName, coll}, store, aggFact).write(store, db, ordered);
-}
-
-export function makeUpdateQueryCommand(store: StorageEngine, query: AbstractQueryEngine) {
-  return ({update: coll, updates, ordered}: Document, db: DatabaseEngine) =>
-    new QueryUpdateCommand(updates, {db: db.databaseName, coll}, query).write(store, db, ordered);
 }
 
 abstract class UpdateCommand extends WriteCommand {
@@ -58,8 +49,8 @@ abstract class UpdateCommand extends WriteCommand {
   }
 }
 
-class QueryUpdateCommand extends UpdateCommand {
-  public constructor(updates: Document[], ns: any, private query: AbstractQueryEngine) {
+export class QueryUpdateCommand extends UpdateCommand {
+  public constructor(updates: Document[], ns: any, private engine: QueryEngine) {
     super(updates, ns);
   }
 
@@ -67,18 +58,22 @@ class QueryUpdateCommand extends UpdateCommand {
     if (type !== UpdateType.Replace) {
       throw Error('Only replace is supported with query update');
     }
-    const docs = await this.query.find(this.ns.coll, {filter: q, limit: multi ? undefined : 1}, collation).toArray();
+    const output = await this.engine.find(this.ns.coll, {
+      filter: q,
+      limit: multi ? undefined : 1,
+      collation
+    }).toArray();
 
-    if (docs.length === 0 && upsert) {
+    if (output.length === 0 && upsert) {
       await this.upsert([u]);
     } else {
-      this.update(docs.map(doc => ({_id: doc._id, ...u})), type);
+      this.update(output.map((doc: Document) => ({_id: doc._id, ...u})), type);
     }
   }
 }
 
-class AggregationUpdateCommand extends UpdateCommand {
-  public constructor(updates: Document[], ns: any, private store: Streamable, private aggFact: AggregatorFactory) {
+export class AggregationUpdateCommand extends UpdateCommand {
+  public constructor(updates: Document[], ns: any, private engine: AggregationEngine) {
     super(updates, ns);
   }
 
@@ -103,7 +98,7 @@ class AggregationUpdateCommand extends UpdateCommand {
     if (multi !== true) {
       pipeline.unshift({$limit: 1});
     }
-    let output = await this.aggregate([{$match: q || {}}, ...pipeline], this.store.stream(this.ns.coll), collation);
+    let output = await this.aggregate([{$match: q || {}}, ...pipeline], this.ns.coll, collation);
 
     if (output.length === 0 && upsert) {
       await this.upsert(await this.aggregate(pipeline, this.genEmptyDoc(), collation));
@@ -112,8 +107,9 @@ class AggregationUpdateCommand extends UpdateCommand {
     }
   }
 
-  private aggregate = (pipeline: Document[], stream: AsyncIterable<Document>, collation?: CollationSpec): Promise<Document[]> => {
-    return this.aggFact.createAggregator(pipeline, {collation}).run(stream);
+  private aggregate = (pipeline: Document[], coll: string | AsyncIterable<Document>, collation?: CollationSpec): Promise<Document[]> => {
+    const c = this.engine.aggregate(coll, pipeline, collation);
+    return c.toArray();
   }
 
   private async *genEmptyDoc() {

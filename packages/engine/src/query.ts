@@ -1,11 +1,7 @@
 import { Cursor, CursorRegistry } from "./cursor";
 import { CollationOptions, Document } from "./interfaces";
 
-export abstract class AbstractQueryEngine extends CursorRegistry {
-  public abstract find(collName: string, query: Document, collation?: CollationOptions): Cursor;
-}
-
-export class QueryEngine extends AbstractQueryEngine {
+export class QueryEngine extends CursorRegistry {
   public constructor(private queryable: Queryable) { super(); }
 
   public find(collName: string, query: Document, collation?: CollationOptions): Cursor {
