@@ -1,4 +1,4 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import 'mocha';
 import MemoryStorageEngineFactory from '../../src';
 import { MingoAggregatorFactory } from '../../../mingo/src';

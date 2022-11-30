@@ -1,4 +1,4 @@
-import { provider, Container, Provider, Lookup } from '@tashmet/core';
+import { provider, Container, Provider, Lookup, Optional } from '@tashmet/core';
 import {
   AdminController,
   AggregationController,
@@ -120,7 +120,9 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
   }
 }
 
-@provider()
+@provider({
+  inject: [AggregatorFactory, Optional.of(ValidatorFactory)]
+})
 export default class MemoryStorageEngineFactory extends StorageEngineFactory {
   public static configure(config: Partial<any> = {}) {
     return (container: Container) => {
@@ -131,16 +133,17 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
 
   public constructor(
     private aggFact: AggregatorFactory,
+    private validatorFact?: ValidatorFactory,
   ) { super(); }
 
   public createStorageEngine(dbName: string): StorageEngine {
-    const storage = new MemoryStorage(dbName);
+    const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
     const engine = new AggregationEngine(this.aggFact, storage, {
       collectionResolver: (name: string) => storage.resolve(name),
     });
     const views: ViewMap = {};
     return StorageEngine.fromControllers(dbName,
-      new AdminController(storage, views),
+      new AdminController(dbName, storage, views),
       new AggregationController(dbName, storage, engine, views)
     );
   }
