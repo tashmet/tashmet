@@ -1,16 +1,17 @@
 import { MemoryStorage } from '@tashmet/memory';
 import { Document, makeWriteChange } from '@tashmet/engine';
 
-import { FileAccess, Transform } from '../interfaces';
-import { yaml } from '../operators/yaml';
-import { json } from '../operators/json';
+import { StreamProvider } from '../interfaces';
+import { GeneratorPipe } from '../stream';
+import { jsonParser, jsonSerializer } from '../operators/json';
+import { yamlParser, yamlSerializer } from '../operators/yaml';
 
 export abstract class BufferStorage extends MemoryStorage {
   protected configs: Record<string, Document> = {};
 
   constructor(
     databaseName: string,
-    protected fileAccess: FileAccess,
+    protected streamProvider: StreamProvider,
   ) { super(databaseName); }
 
   public drop(collection: string): Promise<void> {
@@ -24,10 +25,18 @@ export abstract class BufferStorage extends MemoryStorage {
     }
   }
 
-  protected resolveSerializer(extension: string): Transform {
+  protected resolveSerializer(extension: string): GeneratorPipe {
     switch (extension) {
-      case 'json': return json('utf8');
-      case 'yaml': return yaml('utf8');
+      case 'json': return jsonSerializer();
+      case 'yaml': return yamlSerializer();
+    }
+    throw new Error('Unknown format');
+  }
+
+  protected resolveParser(extension: string): GeneratorPipe {
+    switch (extension) {
+      case 'json': return jsonParser();
+      case 'yaml': return yamlParser();
     }
     throw new Error('Unknown format');
   }

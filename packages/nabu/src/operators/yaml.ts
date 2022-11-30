@@ -1,10 +1,6 @@
-import { Options } from "mingo/core";
-import { Iterator } from "mingo/lazy";
-import { RawObject } from "mingo/types";
-import { setValue, removeValue, resolve } from "mingo/util";
-
+import { Document } from '@tashmet/engine';
 import jsYaml = require('js-yaml');
-import { Encoding, Transform } from "../interfaces";
+import { transform } from './common';
 const yamlFront = require('yaml-front-matter');
 
 /**
@@ -111,81 +107,55 @@ const defaultOptions: YamlConfig = {
   condenseFlow: false
 };
 
+export function parseYaml(buffer: Buffer, config: YamlConfig = {}): Document {
+  const {frontMatter, contentKey} = Object.assign({}, defaultOptions, config);
+  const data = buffer.toString('utf-8');
+  if (frontMatter) {
+    const doc = yamlFront.loadFront(data);
+    const content = doc.__content.trim();
+    doc[contentKey as string] = content;
+    delete doc.__content;
+    return doc;
+  } else {
+    const doc = jsYaml.safeLoad(data)
+    if (typeof doc !== 'object') {
+      throw new Error('Deserialized YAML is not an object')
+    }
+    return doc
+  }
+}
+
 /**
- * Adds new fields to documents.
- * Outputs documents that contain all existing fields from the input documents and newly added fields.
+ * YAML parsing pipe
  *
- * @param {Iterator} collection
- * @param {Object} expr
- * @param {Options} options
+ * @param buffer Buffer containing raw YAML data
  */
-export function $yamlParse(
-  collection: Iterator,
-  expr: RawObject,
-  options?: Options
-): Iterator {
-  const cfg = Object.assign({}, defaultOptions, expr);
-
-  return collection.map((obj: RawObject) => {
-    const newObj = { ...obj };
-    const key = expr['key'] as string || 'content';
-    const encoding = expr['encoding'] as Encoding || 'utf8';
-    const buffer = resolve(obj, key) as Buffer;
-    let doc: any;
-
-    const data = buffer.toString(encoding);
-    if (cfg.frontMatter) {
-      doc = yamlFront.loadFront(data);
-      const content = doc.__content.trim();
-      doc[cfg.contentKey as string] = content;
-      delete doc.__content;
-    } else {
-      doc = jsYaml.safeLoad(data)
-      if (typeof doc !== 'object') {
-        throw new Error('Deserialized YAML is not an object')
-      }
-    }
-    setValue(newObj, key, doc);
-
-    return newObj;
-  });
+export function yamlParser(config?: YamlConfig) {
+  return transform(doc => ({...doc, content: parseYaml(doc.content, config)}));
 }
 
-export function $yamlDump(
-  collection: Iterator,
-  expr: RawObject,
-  options?: Options
-): Iterator {
-  const cfg = Object.assign({}, defaultOptions, expr);
-
-  return collection.map((obj: RawObject) => {
-    const newObj = { ...obj };
-    const key = expr['key'] as string || 'content';
-    const encoding = expr['encoding'] as Encoding || 'utf8';
-    const {frontMatter, contentKey, ...options} = cfg;
-    const value = resolve(newObj, key)
-    let output: string;
-
-    if (frontMatter && contentKey) {
-      removeValue(newObj, `${key}.${contentKey}`);
-      const frontMatterData = jsYaml.safeDump(value, options);
-      output = '---\n' + frontMatter + '---';
-      if (obj[contentKey]) {
-        //output += '\n' + data[contentKey].replace(/^\s+|\s+$/g, '');
-      }
-    } else {
-      output = jsYaml.safeDump(value, options);
-    }
-
-    setValue(newObj, key, Buffer.from(output, encoding));
-
-    return newObj;
-  });
+export function yamlSerializer(config?: YamlConfig) {
+  return transform(doc => doc.content ? ({...doc, content: serializeYaml(doc.content, config)}) : doc);
 }
 
-export const yaml = (encoding: Encoding = 'utf8') => {
-  return {
-    input: [{$yamlParse: {key: 'content', encoding}}],
-    output: [{$yamlDump: {key: 'content', encoding}}],
-  } as Transform;
+/**
+ * YAML parsing pipe
+ *
+ * @param buffer Buffer containing raw YAML data
+ */
+export function serializeYaml(data: Document, config?: YamlConfig): Buffer {
+  const {frontMatter, contentKey, ...cfg} = Object.assign({}, defaultOptions, config);
+
+  if (frontMatter) {
+    const key = contentKey as string;
+    const { [key]: omitted, ...rest } = data;
+    const frontMatter = jsYaml.safeDump(rest, cfg);
+    let output = '---\n' + frontMatter + '---';
+    if (data[key]) {
+      output += '\n' + data[key].replace(/^\s+|\s+$/g, '');
+    }
+    return Buffer.from(output, 'utf-8');
+  } else {
+    return Buffer.from(jsYaml.safeDump(data, cfg), 'utf-8');
+  }
 }

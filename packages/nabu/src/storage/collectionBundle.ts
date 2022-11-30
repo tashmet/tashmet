@@ -1,26 +1,53 @@
 import { ChangeStreamDocument, Document, WriteOptions } from '@tashmet/engine';
 
-import { CollectionBundleConfig, FileAccess, FileConfig } from '../interfaces';
-import { Stream } from '../generators/stream';
+import { CollectionBundleConfig, StreamProvider } from '../interfaces';
+import { clone } from '../operators/common';
 import { BufferStorage } from './buffer';
 
+export function loadBundle(dictionary: boolean = false): Document[] {
+  return dictionary
+    ? [
+      {$project: { documents: { $objectToArray: "$content" } } },
+      {$unwind: "$documents" },
+      {$set: { 'documents.v._id': '$documents.k' }},
+      {$replaceRoot: {newRoot: '$documents.v'}},
+    ] : [
+      {$unwind: "$content" },
+      {$replaceRoot: {newRoot: '$content'}}
+    ];
+}
+
+export function createBundle(path: string, dictionary: boolean = false): Document[] {
+  return dictionary
+    ? [
+      {$project: {k: '$_id', v: '$$ROOT', 'v._id': 0, group: 'group', _id: 0}},
+      {$group: {_id: 'group', content: {$push: {k: '$k', v: '$v'}}}},
+      {$project: {_id: 0, path, content: {$arrayToObject: '$content'}}},
+      {$set: {isDir: false}},
+    ] : [
+      {$group: {_id: 1, content: {$push: '$$ROOT'}}},
+      {$project: {_id: 0, path, content: 1}},
+      {$set: {isDir: false}},
+    ];
+}
 
 export class CollectionBundleStorage extends BufferStorage {
   constructor(
     databaseName: string,
-    fileAccess: FileAccess,
+    streamProvider: StreamProvider,
     private config: CollectionBundleConfig,
-  ) { super(databaseName, fileAccess); }
+  ) { super(databaseName, streamProvider); }
 
   public async create(collection: string, options: Document): Promise<void> {
-    const config = this.bundleConfig(collection);
-
     await super.create(collection, options || {});
     this.configs[collection] = options.storageEngine;
 
     try {
-      const stream = new Stream(this.fileAccess.read(config.path));
-      await this.populate(collection, stream.loadBundle(config));
+      /*
+      const stream = this.streamProvider.read(this.config.collectionBundle(collection))
+        .pipe(loadBundle(this.config.dictionary))
+      await this.populate(collection, stream);
+      */
     } catch (err) {
       // File not found, do nothing
     }
@@ -35,25 +62,26 @@ export class CollectionBundleStorage extends BufferStorage {
     return res;
   }
 
-  private bundleConfig(collection: string): FileConfig {
-    return {
-      path: this.config.collectionBundle(collection),
-      serializer: this.resolveSerializer(this.config.format),
-      dictionary: this.config.dictionary,
-    };
-  }
-
   private async persistCollection(collection: string): Promise<void> {
     const docs = this.resolve(collection);
 
-    const stream = docs.length > 0
-      ? Stream
-        .fromArray(docs)
-        .createBundle(this.bundleConfig(collection))
-      : Stream.fromArray([{
+    if (docs.length > 0) {
+      return this.streamProvider
+        .generate(docs)
+        .pipe(clone())
+        .pipe(createBundle(
+          this.config.collectionBundle(collection),
+          this.config.dictionary
+        ))
+        .pipe(this.resolveSerializer(this.config.format))
+        .write();
+    } else {
+      return this.streamProvider
+      .generate([{
         path: this.config.collectionBundle(collection),
         isDir: false,
-      }]);
-    return this.fileAccess.write(stream);
+      }])
+      .write();
+    }
   }
 }

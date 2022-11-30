@@ -1,3 +1,4 @@
+/*
 import { File, json } from '../../../src';
 import {expect} from 'chai';
 import 'mocha';
@@ -198,3 +199,4 @@ describe('Stream', () => {
     });
   });
 });
+*/

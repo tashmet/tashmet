@@ -1,46 +1,43 @@
-import { Options, computeValue } from "mingo/core";
-import { RawObject, AnyVal } from "mingo/types";
-import { Encoding, Transform } from "../interfaces";
+import { Encoding } from "../interfaces";
+import { transform } from "./common";
 
-/**
- * Parse JSON from a buffer.
- *
- * @param {Object} obj
- * @param {Object} expr
- * @param {Options} options
- */
-export function $jsonParse(
-  obj: RawObject,
-  expr: RawObject,
-  options?: Options
-): AnyVal {
-  const encoding = expr['encoding'] as Encoding || 'utf8';
-  const buffer = computeValue(obj, expr['buffer']) as Buffer;
+export interface JsonParserOptions {
+  encoding?: Encoding;
 
-  return JSON.parse(buffer.toString(encoding));
+  reviver?: (this: any, key: string, value: any) => any;
 }
 
-/**
- * Serialize JSON to a buffer.
- * 
- * @param {Iterator} collection
- * @param {Object} expr
- * @param {Options} options
- */
-export function $jsonDump(
-  obj: RawObject,
-  expr: RawObject,
-  options?: Options
-): AnyVal {
-    const encoding = expr['encoding'] as Encoding || 'utf8';
-    const data = computeValue(obj, expr['object']);
-
-    return data ? Buffer.from(JSON.stringify(data), encoding) : undefined;
+const defaultParserOptions: JsonParserOptions = {
+  encoding: 'utf-8',
+  reviver: undefined,
 }
 
-export const json = (encoding: Encoding = 'utf8') => {
-  return {
-    input: [{$set: {content: {$jsonParse: {buffer: '$content', encoding}}}}],
-    output: [{$set: {content: {$jsonDump: {object: '$content', encoding}}}}],
-  } as Transform;
+export function jsonParser(options?: JsonParserOptions) {
+  const {encoding, reviver} = Object.assign({}, defaultParserOptions, options);
+  return transform(file => ({
+    ...file, content: JSON.parse(file.content.toString(encoding), reviver)
+  }));
 }
+
+export interface JsonSerializerOptions {
+  encoding?: Encoding;
+
+  replacer?: (string | number)[] | null | undefined;
+
+  space?: string | number | undefined;
+}
+
+const defaultSerializerOptions: JsonSerializerOptions = {
+  encoding: 'utf-8',
+  replacer: undefined,
+  space: 2,
+}
+
+export function jsonSerializer(options?: JsonSerializerOptions) {
+  const {encoding, replacer, space} = Object.assign({}, defaultSerializerOptions, options);
+  return transform(file => file.content ? ({
+    ...file, content: Buffer.from(JSON.stringify(file.content, replacer, space), encoding)
+  }): file);
+}
+
+export type JsonOptions = JsonParserOptions & JsonSerializerOptions;
