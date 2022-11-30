@@ -62,6 +62,11 @@ export class DatabaseService implements Database {
     return this.executeOperation(new DropDatabaseOperation({db: this.databaseName, coll: ''}, {})); 
   }
 
+  public async command(): Promise<Document> {
+    //this.dispatcher.dispatch()
+    throw Error('Not implemented');
+  }
+
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
     return operation.execute(this.dispatcher) as Promise<T>;
   }

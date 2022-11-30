@@ -1,4 +1,4 @@
-import { DatabaseEngine } from '@tashmet/engine';
+import { StorageEngine } from '@tashmet/engine';
 import ObjectId from 'bson-objectid';
 import { EventEmitter } from 'eventemitter3';
 import { Collection } from './collection';
@@ -227,6 +227,8 @@ export interface Database {
    * @param name - Name of collection to drop
    */
   dropCollection(name: string): Promise<boolean>;
+
+  command(command: Document): Promise<Document>;
 }
 
 export interface DatabaseFactory {
@@ -458,8 +460,13 @@ export interface Comparator {
 
 export abstract class Comparator implements Comparator {}
 
+export type CommandFunction = (ns: Namespace, command: Document) => Promise<Document>
+export type Middleware = (next: CommandFunction) => CommandFunction;
+
 export abstract class Dispatcher extends EventEmitter {
   public abstract dispatch(namespace: Namespace, command: Document): Promise<Document>;
 
-  public abstract addDatabaseEngine(engine: DatabaseEngine): void;
+  public abstract addStorageEngine(engine: StorageEngine): void;
+
+  public abstract addMiddleware(middleware: Middleware): void;
 }

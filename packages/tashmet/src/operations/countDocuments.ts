@@ -1,5 +1,6 @@
 import { Dispatcher, Document, Namespace } from "../interfaces";
-import { AggregateOperation, AggregateOptions } from "./aggregate";
+import { AggregateOptions } from "./aggregate";
+import { CommandOperation } from "./command";
 
 /** @public */
 export interface CountDocumentsOptions extends AggregateOptions {
@@ -10,27 +11,24 @@ export interface CountDocumentsOptions extends AggregateOptions {
 }
 
 /** @internal */
-export class CountDocumentsOperation extends AggregateOperation<number> {
-  constructor(ns: Namespace, query: Document, options: CountDocumentsOptions) {
-    const pipeline = [];
-    pipeline.push({ $match: query });
+export class CountDocumentsOperation extends CommandOperation<number> {
+  public options: CountDocumentsOptions;
 
-    if (typeof options.skip === 'number') {
-      pipeline.push({ $skip: options.skip });
-    }
-
-    if (typeof options.limit === 'number') {
-      pipeline.push({ $limit: options.limit });
-    }
-
-    pipeline.push({ $group: { _id: 1, n: { $sum: 1 } } });
-
-    super(ns, pipeline, options);
+  constructor(ns: Namespace, private query: Document, options: CountDocumentsOptions) {
+    super(ns, options);
   }
 
   async execute(dispatcher: Dispatcher): Promise<number> {
-    const response = await super.execute(dispatcher) as unknown as Document;
-    const docs = response.cursor.firstBatch;
-    return docs.length ? docs[0].n : 0;
+    const cmd: Document = {count: this.ns.coll, query: this.query};
+
+    if (this.options.skip) {
+      cmd.skip = this.options.skip;
+    }
+    if (this.options.limit) {
+      cmd.limit = this.options.limit;
+    }
+
+    const {n} = await this.executeCommand(dispatcher, cmd);
+    return n;
   }
 }

@@ -1,5 +1,5 @@
-import {Queryable, QueryCursor} from '../src/query';
-import {expect} from 'chai';
+import { Queryable, QueryCursor } from '../src/query';
+import { expect } from 'chai';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';

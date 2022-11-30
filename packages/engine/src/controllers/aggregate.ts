@@ -46,10 +46,10 @@ export class AggregationController extends AbstractReadWriteController {
   }
 
   @command('find')
-  public find({find, filter, sort, skip, limit, collation, batchSize}: Document) {
+  public find({find, filter, sort, skip, limit, projection, collation, batchSize}: Document) {
     return this.aggregate({
       aggregate: find,
-      pipeline: makeQueryPipeline({filter, sort, skip, limit}),
+      pipeline: makeQueryPipeline({filter, sort, skip, limit, projection}),
       collation,
       cursor: {batchSize},
     });

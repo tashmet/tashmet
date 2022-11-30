@@ -63,7 +63,6 @@ export { AbstractCursor } from './cursor/abstractCursor';
 export { AggregationCursor } from './cursor/aggregationCursor';
 export { FindCursor } from './cursor/findCursor';
 export * from './interfaces';
-//export * from '@tashmet/engine/src/changeSet';
 export { AggregateOptions } from './operations/aggregate';
 
 import {

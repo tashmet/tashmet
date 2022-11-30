@@ -1,10 +1,12 @@
+import { EventEmitter } from 'eventemitter3';
 import { Document, command, ViewMap, CollectionRegistry } from '../interfaces';
 
-export class AdminController {
+export class AdminController extends EventEmitter {
   public constructor(
+    protected db: string,
     protected collections: CollectionRegistry,
     protected views: ViewMap | undefined,
-  ) {}
+  ) { super(); }
 
   @command('create')
   public async create({create: name, viewOn, pipeline, ...options}: Document) {
@@ -28,6 +30,7 @@ export class AdminController {
     } else {
       await this.collections.drop(name);
     }
+    this.emit('change', { operationType: 'drop', ns: { db: this.db, coll: name } });
     return {ok: 1};
   }
 }
