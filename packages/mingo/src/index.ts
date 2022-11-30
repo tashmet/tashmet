@@ -35,6 +35,9 @@ export class MingoAggregatorFactory implements AggregatorFactory {
   }
 }
 
+@provider({
+  key: ValidatorFactory,
+})
 export class FilterValidatorFactory extends ValidatorFactory {
   public createValidator(rules: Document) {
     const query = new Query(rules as any);
@@ -65,6 +68,7 @@ export default class Mingo {
       container.register(Provider.ofInstance(HashCode, hashCode));
       container.register(MingoComparator);
       container.register(PrefetchAggregationStrategy);
+      container.register(FilterValidatorFactory);
       container.register(MingoAggregatorFactory);
     }
   }
