@@ -52,8 +52,8 @@ export class Stream<T extends Document = Document>
     return toArray(this);
   }
 
-  public write(): Promise<void> {
-    return this.fileAccess.write(this);
+  public write(options?: Document): Promise<void> {
+    return this.fileAccess.write(this, options);
   }
 
   public pipe(pipe: GeneratorPipe | Document[] | Document): Stream<Document> {

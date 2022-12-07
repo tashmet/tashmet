@@ -67,17 +67,16 @@ export class CollectionBundleStorage extends BufferStorage {
 
     if (docs.length > 0) {
       return this.streamProvider
-        .generate(docs)
+        .source(docs)
         .pipe(clone())
         .pipe(createBundle(
           this.config.collectionBundle(collection),
           this.config.dictionary
         ))
-        .pipe(this.resolveSerializer(this.config.format))
         .write();
     } else {
       return this.streamProvider
-      .generate([{
+      .source([{
         path: this.config.collectionBundle(collection),
         isDir: false,
       }])

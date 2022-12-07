@@ -1,0 +1,30 @@
+{
+	"name": "@tashmet/nabu-http",
+	"version": "0.1.0",
+	"description": "Nabu HTTP integration",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint --cache --ext .js,.ts src/",
+		"test": "exit 0"
+	},
+	"author": "Björn Andersson",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tashmet/tashmet"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@tashmet/tashmet": "^1.4.0",
+		"@tashmet/nabu": "^2.0.0",
+    	"isomorphic-fetch": "^3.0.0"
+	},
+	"devDependencies": {
+		"@types/reflect-metadata": "^0.1.0",
+		"tslib": "^2.3.1"
+	}
+}

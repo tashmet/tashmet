@@ -1,5 +1,4 @@
-import { Encoding } from "../interfaces";
-import { transform } from "./common";
+import { ContentReaderFunction, ContentWriterFunction, Encoding } from "../interfaces";
 
 export interface JsonParserOptions {
   encoding?: Encoding;
@@ -10,13 +9,6 @@ export interface JsonParserOptions {
 const defaultParserOptions: JsonParserOptions = {
   encoding: 'utf-8',
   reviver: undefined,
-}
-
-export function jsonParser(options?: JsonParserOptions) {
-  const {encoding, reviver} = Object.assign({}, defaultParserOptions, options);
-  return transform(file => ({
-    ...file, content: JSON.parse(file.content.toString(encoding), reviver)
-  }));
 }
 
 export interface JsonSerializerOptions {
@@ -33,11 +25,16 @@ const defaultSerializerOptions: JsonSerializerOptions = {
   space: 2,
 }
 
-export function jsonSerializer(options?: JsonSerializerOptions) {
-  const {encoding, replacer, space} = Object.assign({}, defaultSerializerOptions, options);
-  return transform(file => file.content ? ({
-    ...file, content: Buffer.from(JSON.stringify(file.content, replacer, space), encoding)
-  }): file);
+export type JsonOptions = JsonParserOptions & JsonSerializerOptions;
+
+export const jsonReader: ContentReaderFunction<JsonParserOptions, Document> = async (content, options) => {
+  const {encoding, reviver} = Object.assign({}, defaultParserOptions, options);
+
+  return JSON.parse(content.toString(encoding), reviver)
 }
 
-export type JsonOptions = JsonParserOptions & JsonSerializerOptions;
+export const jsonWriter: ContentWriterFunction<JsonSerializerOptions> = async (content, options) => {
+  const {encoding, replacer, space} = Object.assign({}, defaultSerializerOptions, options);
+
+  return Buffer.from(JSON.stringify(content, replacer, space), encoding)
+}

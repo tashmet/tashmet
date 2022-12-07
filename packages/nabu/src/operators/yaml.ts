@@ -1,6 +1,6 @@
 import { Document } from '@tashmet/engine';
 import jsYaml = require('js-yaml');
-import { transform } from './common';
+import { ContentReaderFunction, ContentWriterFunction } from '../interfaces';
 const yamlFront = require('yaml-front-matter');
 
 /**
@@ -130,19 +130,6 @@ export function parseYaml(buffer: Buffer, config: YamlConfig = {}): Document {
  *
  * @param buffer Buffer containing raw YAML data
  */
-export function yamlParser(config?: YamlConfig) {
-  return transform(doc => ({...doc, content: parseYaml(doc.content, config)}));
-}
-
-export function yamlSerializer(config?: YamlConfig) {
-  return transform(doc => doc.content ? ({...doc, content: serializeYaml(doc.content, config)}) : doc);
-}
-
-/**
- * YAML parsing pipe
- *
- * @param buffer Buffer containing raw YAML data
- */
 export function serializeYaml(data: Document, config?: YamlConfig): Buffer {
   const {frontMatter, contentKey, ...cfg} = Object.assign({}, defaultOptions, config);
 
@@ -159,3 +146,9 @@ export function serializeYaml(data: Document, config?: YamlConfig): Buffer {
     return Buffer.from(jsYaml.safeDump(data, cfg), 'utf-8');
   }
 }
+
+export const yamlReader: ContentReaderFunction<YamlConfig, Document> = async (content, options) =>
+  parseYaml(content, options);
+
+export const yamlWriter: ContentWriterFunction<YamlConfig> = async (content, options) =>
+  serializeYaml(content, options);

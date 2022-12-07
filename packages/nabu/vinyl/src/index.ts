@@ -6,12 +6,88 @@ import * as fs from 'fs';
 import minimatch from 'minimatch';
 export * from './interfaces';
 
-import {Container, Optional, provider, Provider} from '@tashmet/tashmet';
-import {FileAccess, File, ReadableFile} from '@tashmet/nabu';
+import {Container, Document, Optional, provider, Provider} from '@tashmet/tashmet';
+import {FileAccess, File, ReadableFile, FileReader, FileWriter, ContentWriter, ContentReader, fileExtension} from '@tashmet/nabu';
 import {Stream} from '@tashmet/nabu-stream';
 import {FileSystemConfig} from './interfaces';
 
 
+export class VinylFSReader implements FileReader {
+  readonly pattern = /^((?!:).)*$/;
+
+  public constructor(private contentReader: ContentReader) {}
+
+  public read(location: string | string[], options: Document = {}): AsyncGenerator<ReadableFile> {
+    const files = Stream.toGenerator(vfs.src(location, {buffer: options.content !== 'generator'}));
+    const cr = this.contentReader;
+
+    async function *reader() {
+      for await (const vinyl of files()) {
+        yield {
+          path: vinyl.path,
+          content: await cr.read(vinyl.contents, options),
+          isDir: vinyl.isDirectory()
+        };
+      }
+    }
+    return reader();
+  }
+}
+
+export class VinylFSWriter implements FileWriter {
+  readonly pattern = /^((?!:).)*$/;
+
+  public constructor(private contentWriter: ContentWriter) {}
+
+  public async write(files: AsyncGenerator<File>, options: Document = {}): Promise<void> {
+    async function *writer(cw: ContentWriter) {
+      for await (const file of files) {
+        if (file.content) {
+          const ext = fileExtension(file.path);
+
+          yield new Vinyl({
+            path: file.path,
+            contents: await cw.write(file.content, {content: ext}),
+          });
+        } else {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        }
+      }
+    }
+    return Stream.toSink(vfs.dest('.'))(writer(this.contentWriter));
+  }
+}
+
+
+export default class VinylFS {
+  public static configure(config: FileSystemConfig) {
+    return (container: Container) => {
+      /*
+      if (config.watch) {
+        container.register(
+          Provider.ofInstance<chokidar.FSWatcher>('chokidar.FSWatcher', chokidar.watch([], {
+            ignoreInitial: true,
+            persistent: true
+          }))
+        );
+      }
+      */
+      //container.register(VinylFS);
+
+      return () => {
+        const fa = container.resolve(FileAccess);
+        const cr = container.resolve(ContentReader);
+        const cw = container.resolve(ContentWriter);
+
+        fa.registerWriter(new VinylFSWriter(cw));
+        fa.registerReader(new VinylFSReader(cr));
+      }
+    }
+  }
+}
+/*
 @provider({
   key: FileAccess,
   inject: [Optional.of('chokidar.FSWatcher')]
@@ -102,3 +178,4 @@ export default class VinylFS extends FileAccess  {
     return Stream.toGenerator(readable)();//.pipe<File>(Pipes.fromVinyl());
   }
 }
+*/

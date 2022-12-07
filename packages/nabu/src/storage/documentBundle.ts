@@ -50,8 +50,7 @@ export class DocumentBundleStorage extends BufferStorage {
 
   public async create(collection: string, options: Document): Promise<void> {
     const path = this.config.documentBundle(collection);
-    const stream = this.streamProvider.read(path)
-      .pipe(this.resolveParser(this.config.format))
+    const stream = this.streamProvider.source(path, {content: this.config.format})
       .pipe(loadFiles(file => nodePath.basename(file.path).split('.')[0]));
 
     await super.create(collection, options || {});
@@ -62,13 +61,12 @@ export class DocumentBundleStorage extends BufferStorage {
 
   public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {
     const writeErrors = await super.write(changes, options);
-    await this.streamProvider.generate(changes)
+    await this.streamProvider.source(changes)
       .pipe(clone())
       .pipe(createFiles(
         c => this.config.documentBundle(c.ns.coll, c.documentKey._id),
         c => c.operationType === 'delete' ? undefined : c.fullDocument,
       ))
-      .pipe(this.resolveSerializer(this.config.format))
       .write();
 
     return writeErrors;
