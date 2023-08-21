@@ -1,4 +1,4 @@
-import {Filter, FindOptions, Namespace, Document} from '@tashmet/tashmet';
+import {Filter, FindOptions, Document} from '@tashmet/tashmet';
 import {QuerySerializer} from '@tashmet/qs-builder';
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>;

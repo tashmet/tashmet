@@ -96,7 +96,7 @@ export default class Http {
     //const engine = new QueryEngine(new HttpQueryable(querySerializer, restLayer));
     //const dbEngine = new HttpDatabaseEngine(storage, engine);
     const storageEngine = StorageEngine.fromControllers(dbName,
-      new AdminController(storage, undefined), new QueryController(dbName, storage, qEngine)
+      new AdminController(dbName, storage, undefined), new QueryController(dbName, storage, qEngine)
     );
 
     /*
