@@ -1,5 +1,6 @@
 import Tashmet, {Collection, SortingDirection} from '../../../packages/tashmet';
 import Mingo from '../../../packages/mingo';
+import Memory from '../../../packages/memory/dist';
 import 'mingo/init/system';
 import {expect} from 'chai';
 import 'mocha';
@@ -28,6 +29,7 @@ describe('Collection', () => {
     tashmet = await Tashmet
       .configure()
       .use(Mingo, {})
+      .use(Memory, {})
       .connect();
   });
 
@@ -153,7 +155,7 @@ describe('Collection', () => {
       const cs = col.watch();
       cs.on('change', ({operationType, documentKey, fullDocument}) => {
         expect(operationType).to.eql('replace');
-        expect(documentKey).to.eql(1)
+        expect(documentKey).to.eql({_id: 1})
         expect(fullDocument).to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 20, _id: 1});
         cs.close();
         done();
@@ -318,7 +320,7 @@ describe('Collection', () => {
       const cs = col.watch();
       cs.on('change', ({operationType, documentKey}) => {
         expect(operationType).to.eql('delete');
-        expect(documentKey).to.eql(1);
+        expect(documentKey).to.eql({_id: 1});
         cs.close();
         done();
       });
@@ -371,6 +373,7 @@ describe('Collection', () => {
       const change = cs.next();
       expect(change).to.not.be.undefined;
       expect(change?.operationType).to.eql('drop');
+      cs.close();
     });
   });
 });

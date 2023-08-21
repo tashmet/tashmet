@@ -5,6 +5,7 @@ import 'mocha';
 
 import Tashmet, { Collection } from '../../../packages/tashmet';
 import Mingo from '../../../packages/mingo';
+import Memory from '../../../packages/memory/dist';
 import 'mingo/init/system';
 
 
@@ -18,6 +19,7 @@ describe('view', () => {
     const client = await Tashmet
       .configure()
       .use(Mingo, {})
+      .use(Memory, {})
       .connect();
 
     const db = client.db('testdb');

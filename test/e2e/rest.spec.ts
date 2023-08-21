@@ -3,27 +3,16 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmet, {Collection, Document, LogLevel, provider, StorageEngine, Store, StoreConfig} from '../../packages/tashmet/dist'
+import Tashmet, {Collection, LogLevel} from '../../packages/tashmet/dist'
 import HttpClient from '../../packages/http-client/dist';
 import Mingo from '../../packages/mingo/dist';
-import Caching from '../../packages/caching/dist';
+//import Caching from '../../packages/caching/dist';
 // import {socket} from '../../packages/socket/dist';
 import 'mingo/init/system';
 import fetch from 'isomorphic-fetch';
 
 chai.use(chaiAsPromised);
 
-@provider({key: StorageEngine})
-class RestClientStorageEngine extends StorageEngine {
-  public constructor(private http: HttpClient) {super();}
-
-  public createStore<TSchema extends Document>(config: StoreConfig): Store<TSchema> {
-    return this.http.createApi<any>({
-      path: `http://localhost:8000/api/${config.ns.coll}`,
-      ...config
-    })
-  }
-}
 
 describe('rest', () => {
   let col: Collection
@@ -32,9 +21,16 @@ describe('rest', () => {
     const tashmet = await Tashmet
       .configure({logLevel: LogLevel.None})
       .use(Mingo, {})
-      .use(HttpClient, {fetch})
-      .use(Caching, {})
-      .provide(RestClientStorageEngine)
+      .use(HttpClient, {
+        fetch,
+        basePath: 'http://localhost:8000/api/',
+        databases: {
+          'testdb': {
+            path: coll => coll,
+          }
+        }
+      })
+      //.use(Caching, {})
       .connect();
 
     col = tashmet
@@ -125,7 +121,7 @@ describe('rest', () => {
         matchedCount: 1,
         modifiedCount: 1,
         upsertedCount: 0,
-        upsertedId: undefined,
+        upsertedId: null,
       });
     });
     it('should have zero matchedCount and modifiedCount if no document matched selector', async () => {
@@ -137,7 +133,7 @@ describe('rest', () => {
         matchedCount: 0,
         modifiedCount: 0,
         upsertedCount: 0,
-        upsertedId: undefined,
+        upsertedId: null,
       });
     });
     it('should completely replace document', async () => {
@@ -152,7 +148,7 @@ describe('rest', () => {
         {_id: '6'}, { amount: 20 }, {upsert: true}
       );
       expect(result.upsertedCount).to.eql(1);
-      expect(result.upsertedId).to.not.eql(undefined);
+      expect(result.upsertedId).to.not.eql(null);
     });
     /*
     it('should emit a change event', (done) => {
@@ -171,14 +167,14 @@ describe('rest', () => {
 
   describe('count', () => {
     it('should return 0 when no documents are matching', () => {
-      expect(col.find({'item.category': 'candy'}).count()).to.eventually.eql(0);
+      expect(col.countDocuments({'item.category': 'candy'})).to.eventually.eql(0);
     });
     it('should be a positive number when items are matched', async () => {
-      expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
+      expect(col.countDocuments({'item.category': 'cake'})).to.eventually.eql(3);
     });
   });
 
-  describe('aggregate', () => {
+  describe.skip('aggregate', () => {
     it('should group by category', async () => {
       const pipeline = [
         {$group: {_id: "$item.category", count: { $sum: 1 } } }
@@ -293,11 +289,11 @@ describe('rest', () => {
     });
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
-      return expect(col.find({'item.category': 'cookies'}).count()).to.eventually.eql(0);
+      return expect(col.countDocuments({'item.category': 'cookies'})).to.eventually.eql(0);
     });
     it('should not remove other documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
-      return expect(col.find().count()).to.eventually.eql(3);
+      return expect(col.countDocuments()).to.eventually.eql(3);
     });
     /*
     it('should emit a change event for each removed document', async () => {

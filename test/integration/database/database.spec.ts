@@ -3,8 +3,9 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmet, {Database} from '../../../packages/tashmet'
-import Mingo from '../../../packages/mingo'
+import Tashmet, {Database} from '../../../packages/tashmet';
+import Mingo from '../../../packages/mingo';
+import Memory from '../../../packages/memory/dist';
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
@@ -17,6 +18,7 @@ describe('database', () => {
     const tashmet = await Tashmet
       .configure()
       .use(Mingo, {})
+      .use(Memory, {})
       .connect();
     db = tashmet.db('testdb');
     db.collection('test');
