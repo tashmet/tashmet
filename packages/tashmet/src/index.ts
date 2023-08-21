@@ -76,6 +76,7 @@ import {
   Newable,
   provider,
   Provider,
+  ServiceIdentifier,
 } from '@tashmet/core';
 import { BootstrapConfig } from '@tashmet/core/dist/ioc/bootstrap';
 import { Database, DatabaseFactory, Dispatcher } from './interfaces';
@@ -148,15 +149,20 @@ export class TashmetConfigurator {
 }
 
 @provider({
-  inject: [DatabaseFactory]
+  inject: [Container, DatabaseFactory]
 })
 export default class Tashmet {
   public constructor(
+    private container: Container,
     private databaseFactory: DatabaseFactory,
   ) {}
 
   public db(name: string): Database {
     return this.databaseFactory.createDatabase(name);
+  }
+
+  public resolve<T>(key: ServiceIdentifier<T>) {
+    return this.container.resolve(key);
   }
 
   public static configure(config: Partial<Configuration> = {}) {
