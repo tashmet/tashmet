@@ -1,10 +1,11 @@
 import Tashmet from '@tashmet/tashmet';
-import Mingo from '@tashmet/mingo';
-import 'mingo/init/system';
+import Mingo from '@tashmet/mingo-aggregation';
+import Memory from '@tashmet/memory';
 
 Tashmet
   .configure()
   .use(Mingo, {})
+  .use(Memory, {})
   .connect()
   .then(async tashmet => {
     const db = tashmet.db('aggregation');
