@@ -4,6 +4,7 @@ import {
   Container,
   Dispatcher,
   Document,
+  Logger,
   provider,
 } from '@tashmet/tashmet';
 import { MemoryStorage } from '@tashmet/memory';
@@ -38,12 +39,19 @@ export * from './interfaces';
 
 const globToRegExp = require('glob-to-regexp');
 
-@provider({key: ContentReader})
+@provider({
+  key: ContentReader,
+  inject: [Logger.inScope('nabu.NabuContentReader')],
+})
 export class NabuContentReader implements ContentReader {
   private patterns: string[] = [];
   private readers: ContentReaderFunction[] = [];
 
+  public constructor(private logger: Logger) {}
+
   public async read(file: File<any>): Promise<File<any>> {
+    this.logger.info(`reading '${file.path}'`);
+
     for (let i=0; i<this.patterns.length; i++) {
       if (globToRegExp(this.patterns[i]).test(file.path, {extended: true})) {
         return {...file, content: await this.readers[i](file.content)};
@@ -58,12 +66,19 @@ export class NabuContentReader implements ContentReader {
   }
 }
 
-@provider({key: ContentWriter})
+@provider({
+  key: ContentWriter,
+  inject: [Logger.inScope('nabu.NabuContentWriter')]
+})
 export class NabuContentWriter implements ContentWriter {
   private patterns: string[] = [];
   private writers: ContentWriterFunction[] = [];
 
+  public constructor(private logger: Logger) {}
+
   public async write(file: File<any>): Promise<File<any>> {
+    this.logger.info(`writing '${file.path}'`);
+
     if (file.content === undefined) {
       return file;
     }
