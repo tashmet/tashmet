@@ -6,7 +6,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna run build",
-    "clean": "rimraf packages/*/dist dist",
+    "clean": "rimraf packages/**/dist packages/**/*/dist dist",
     "commit": "git-cz",
     "lint": "lerna run --no-bail lint",
     "test": "npm run test:packages && npm run test:integration && npm run test:e2e",
