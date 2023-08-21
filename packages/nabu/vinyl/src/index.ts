@@ -17,17 +17,17 @@ export class VinylFSReader implements FileReader {
 
   public constructor(private contentReader: ContentReader) {}
 
-  public read(location: string | string[], options: Document = {}): AsyncGenerator<ReadableFile> {
-    const files = Stream.toGenerator(vfs.src(location, {buffer: options.content !== 'generator'}));
+  public read(location: string | string[]): AsyncGenerator<ReadableFile> {
+    const files = Stream.toGenerator(vfs.src(location, {buffer: true}));
     const cr = this.contentReader;
 
     async function *reader() {
       for await (const vinyl of files()) {
-        yield {
+        yield await cr.read({
           path: vinyl.path,
-          content: await cr.read(vinyl.contents, options),
+          content: vinyl.contents,
           isDir: vinyl.isDirectory()
-        };
+        });
       }
     }
     return reader();
@@ -39,24 +39,32 @@ export class VinylFSWriter implements FileWriter {
 
   public constructor(private contentWriter: ContentWriter) {}
 
-  public async write(files: AsyncGenerator<File>, options: Document = {}): Promise<void> {
+  public async write(files: AsyncGenerator<File>): Promise<void> {
+    const deletes: string[] = [];
+
     async function *writer(cw: ContentWriter) {
       for await (const file of files) {
-        if (file.content) {
-          const ext = fileExtension(file.path);
+        const {path, content} = await cw.write(file);
 
+        if (file.content) {
+          //console.log('write: ' + file.path);
           yield new Vinyl({
-            path: file.path,
-            contents: await cw.write(file.content, {content: ext}),
+            path,
+            contents: content,
           });
         } else {
-          if (fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-          }
+          deletes.push(file.path);
         }
       }
     }
-    return Stream.toSink(vfs.dest('.'))(writer(this.contentWriter));
+    return Stream.toSink(vfs.dest('.'))(writer(this.contentWriter)).then(() => {
+      for (const path of deletes) {
+        if (fs.existsSync(path)) {
+          //console.log('unlink: ' + path);
+          fs.unlinkSync(path);
+        }
+      }
+    });
   }
 }
 

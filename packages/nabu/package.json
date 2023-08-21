@@ -18,21 +18,23 @@
   "publishConfig": {
     "access": "public"
   },
+	"files": [
+		"dist",
+		"src",
+		"LICENSE",
+		"README.md"
+	],
   "dependencies": {
     "@async-generators/to-array": "^0.1.0",
     "@tashmet/tashmet": "^1.4.0",
     "@tashmet/engine": "^0.1.0",
     "@tashmet/memory": "^0.1.0",
     "eventemitter3": "^3.0.0",
-    "js-yaml": "^3.13.1",
-    "lodash": "^4.17.15",
-    "minimatch": "^3.0.4",
-    "yaml-front-matter": "^4.1.0"
+    "glob-to-regexp": "^0.4.1",
+    "minimatch": "^3.0.4"
   },
   "devDependencies": {
     "@types/dedent": "^0.7.0",
-    "@types/js-yaml": "^3.12.1",
-    "@types/lodash": "^4.14.149",
     "@types/minimatch": "^3.0.3",
     "dedent": "^0.7.0",
     "mock-fs": "^4.10.4"

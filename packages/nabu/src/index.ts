@@ -1,5 +1,6 @@
 import {
   AbstractCursor,
+  Collection,
   Container,
   Dispatcher,
   Document,
@@ -21,8 +22,8 @@ import {
   ContentWriter,
   ContentWriterFunction,
   DocumentBundleConfig,
+  File,
   FileAccess,
-  fileExtension,
   NabuConfig,
   NabuDatabaseConfig,
   StreamProvider
@@ -30,41 +31,56 @@ import {
 import { Stream } from './stream';
 import { DocumentBundleStorage } from './storage/documentBundle';
 import { CollectionBundleStorage } from './storage/collectionBundle';
-import { yamlReader, yamlWriter } from './operators/yaml';
-import { textReader } from './operators/text';
+import { textWriter } from './operators/text';
 import { jsonReader, jsonWriter } from './operators/json';
 
 export * from './interfaces';
 
+const globToRegExp = require('glob-to-regexp');
+
 @provider({key: ContentReader})
 export class NabuContentReader implements ContentReader {
-  private readers: Record<string, ContentReaderFunction> = {};
+  private patterns: string[] = [];
+  private readers: ContentReaderFunction[] = [];
 
-  public async read(content: any, options: Document): Promise<any> {
-    if (options.content && options.content in this.readers) {
-      return this.readers[options.content](content, options);
+  public async read(file: File<any>): Promise<File<any>> {
+    for (let i=0; i<this.patterns.length; i++) {
+      if (globToRegExp(this.patterns[i]).test(file.path, {extended: true})) {
+        return {...file, content: await this.readers[i](file.content)};
+      }
     }
-    return content;
+    throw new Error('No matching content reader found');
   }
 
-  public register(name: string, reader: (content: any, options: Document) => Promise<any>) {
-    this.readers[name] = reader;
+  public register(pattern: string, reader: (content: any) => Promise<any>) {
+    this.patterns.push(pattern);
+    this.readers.push(reader);
   }
 }
 
 @provider({key: ContentWriter})
 export class NabuContentWriter implements ContentWriter {
-  private writers: Record<string, ContentReaderFunction> = {};
+  private patterns: string[] = [];
+  private writers: ContentWriterFunction[] = [];
 
-  public async write(content: any, options: Document): Promise<any> {
-    if (options.content && options.content in this.writers) {
-      return this.writers[options.content](content, options);
+  public async write(file: File<any>): Promise<File<any>> {
+    if (file.content === undefined) {
+      return file;
     }
-    return content;
+    for (let i=0; i<this.patterns.length; i++) {
+      if (globToRegExp(this.patterns[i]).test(file.path, {extended: true})) {
+        return {...file, content: await this.writers[i](file.content)};
+      }
+    }
+    if (typeof file.content === 'string') {
+      return {...file, content: await textWriter(file.content) };
+    }
+    throw new Error('No matching content writer found');
   }
 
-  public register(name: string, writer: ContentWriterFunction) {
-    this.writers[name] = writer;
+  public register(pattern: string, writer: (content: any) => Promise<any>) {
+    this.patterns.push(pattern);
+    this.writers.push(writer);
   }
 }
 
@@ -88,12 +104,9 @@ export default class Nabu implements StreamProvider {
             .addStorageEngine(nabu.createBuffer(dbName, dbConfig));
         }
 
-        cr.register('text', textReader);
-        cr.register('yaml', yamlReader);
-        cr.register('json', jsonReader);
-
-        cw.register('json', jsonWriter);
-        cw.register('yaml', yamlWriter);
+        //cr.register('text', textReader);
+        cr.register('*.json', content => jsonReader(content));
+        cw.register('*.json', content => jsonWriter(content));
       }
     }
   }
@@ -104,25 +117,18 @@ export default class Nabu implements StreamProvider {
   ) {}
 
   public source(
-    src: string | Document[] | AsyncIterable<Document> | AbstractCursor<Document>,
-    options?: Document,
+    src: string | Document[] | AsyncIterable<Document> | AbstractCursor<Document> | Collection<Document>
   ): Stream {
     if (typeof src === "string") {
-      options = options || {};
-
-      if (options.content === undefined) {
-        try {
-          options.content = fileExtension(src);
-        } catch (err) {
-          // do nothing
-        }
-      }
-
-      return new Stream(this.fileAccess.read(src, options), this.fileAccess, this.aggFact);
+      return new Stream(this.fileAccess.read(src), this.fileAccess, this.aggFact);
     }
 
     if (Array.isArray(src)) {
       return Stream.fromArray(src, this.fileAccess, this.aggFact);
+    }
+
+    if (src instanceof Collection) {
+      return new Stream(src.aggregate([]), this.fileAccess, this.aggFact);
     }
 
     return new Stream(src, this.fileAccess, this.aggFact);

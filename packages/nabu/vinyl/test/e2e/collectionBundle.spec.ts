@@ -14,9 +14,7 @@ chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 function storedDoc(id: string | number): any {
-  //return fs.readJsonSync(`test/e2e/testCollection.json`)[id];
   const doc = fs.readJsonSync(`test/e2e/testCollection.json`);
-  //console.log(doc);
   return doc[id];
 }
 
@@ -36,7 +34,6 @@ describe('collectionBundle', () => {
         databases: {
           e2e: {
             collectionBundle: coll => `test/e2e/${coll}.json`,
-            format: 'json',
             dictionary: true,
           }
         }

@@ -1,0 +1,33 @@
+{
+	"name": "@tashmet/nabu-yaml",
+	"version": "0.1.0",
+	"description": "Nabu YAML content reader/writer",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint --cache --ext .js,.ts src/",
+		"test": "exit 0"
+	},
+	"author": "Björn Andersson",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tashmet/tashmet"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@tashmet/core": "^1.0.2",
+		"@tashmet/engine": "^0.1.0",
+		"@tashmet/nabu": "^2.0.0",
+		"js-yaml": "^3.13.1",
+		"yaml-front-matter": "^4.1.0"
+	},
+	"devDependencies": {
+		"@types/reflect-metadata": "^0.1.0",
+    	"@types/js-yaml": "^3.12.1",
+		"tslib": "^2.3.1"
+	}
+}

@@ -4,6 +4,7 @@ import { StreamProvider } from '../interfaces';
 
 export abstract class BufferStorage extends MemoryStorage {
   protected configs: Record<string, Document> = {};
+  protected rLock: Promise<any> | undefined;
 
   constructor(
     databaseName: string,
@@ -19,5 +20,21 @@ export abstract class BufferStorage extends MemoryStorage {
     for await (const doc of stream) {
       await super.write([makeWriteChange('insert', doc, {db: this.databaseName, coll: collection})], {ordered: false});
     }
+  }
+
+  public async *stream(collection: string): AsyncGenerator<Document> {
+    if (this.rLock) {
+      await this.rLock;
+    }
+    for await (const doc of super.stream(collection)) {
+      yield doc;
+    }
+  }
+
+  public async exists(collection: string, id: string): Promise<boolean> {
+    if (this.rLock) {
+      await this.rLock;
+    }
+    return super.exists(collection, id);
   }
 }

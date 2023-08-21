@@ -32,7 +32,6 @@ describe('documentBundle', () => {
         databases: {
           e2e: {
             documentBundle: (coll, id) => `test/e2e/${coll}/${id ? id : '*'}.json`,
-            format: 'json',
           }
         }
       })

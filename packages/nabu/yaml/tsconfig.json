@@ -19,8 +19,7 @@
     "noUnusedLocals": false,
     "strictNullChecks": true,
     "esModuleInterop": true,
-    "importHelpers": true,
-    "downlevelIteration": true
+    "importHelpers": true
   },
   "compileOnSave": false,
   "exclude": [

@@ -1,4 +1,4 @@
-import { AbstractCursor, Document } from '@tashmet/tashmet';
+import { AbstractCursor, Collection, Document } from '@tashmet/tashmet';
 import { Stream } from './stream';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -37,15 +37,11 @@ export interface CollectionBundleConfig {
 
   glob?: string;
 
-  format: string;
-
   dictionary: boolean;
 }
 
 export interface DocumentBundleConfig {
   documentBundle: (collection: string, id?: string) => string;
-
-  format: string;
 
   id?: (file: File) => string;
 }
@@ -67,6 +63,8 @@ export interface StreamProvider {
   source<T extends Document>(it: AsyncIterable<T>): Stream<T>;
 
   source<T extends Document>(cursor: AbstractCursor<T>): Stream<T>;
+
+  source<T extends Document>(collection: Collection<T>): Stream<T>;
 }
 
 export interface UriPattern {
@@ -117,16 +115,15 @@ export class FileAccess {
     return reader.read(uri, options);
   }
 
-  public async write(files: AsyncIterable<File<Buffer>>, options?: Document): Promise<void> {
+  public async write(files: AsyncIterable<File<Buffer>>): Promise<void> {
     for (const w of this.writers) {
-      await this.writeToWriter(w, files, options);
+      await this.writeToWriter(w, files);
     }
   }
 
   private async writeToWriter(
     writer: FileWriter,
-    files: AsyncIterable<File<Buffer>>,
-    options?: Document
+    files: AsyncIterable<File<Buffer>>
   ): Promise<void> {
     async function *gen() {
       for await (const file of files) {
@@ -135,7 +132,7 @@ export class FileAccess {
         }
       }
     }
-    await writer.write(gen(), options);
+    await writer.write(gen());
   }
 
   public watch(globs: string | string[], deletion?: boolean): AsyncGenerator<File> | null {
@@ -144,19 +141,19 @@ export class FileAccess {
 }
 
 export abstract class ContentReader {
-  public abstract read(content: any, options: Document): Promise<any>;
+  public abstract read(content: any): Promise<any>;
 
-  public abstract register(name: string, reader: ContentReaderFunction): void;
+  public abstract register(pattern: string, reader: ContentReaderFunction): void;
 }
 
 export abstract class ContentWriter {
-  public abstract write(content: any, options: Document): Promise<any>;
+  public abstract write(content: any): Promise<any>;
 
-  public abstract register(name: string, writer: ContentWriterFunction): void;
+  public abstract register(pattern: string, writer: ContentWriterFunction): void;
 }
 
-export type ContentReaderFunction<TOptions = Document, TResult = any> = (content: any, options: TOptions) => Promise<TResult>;
-export type ContentWriterFunction<TOptions = Document> = (content: any, options: TOptions) => Promise<Buffer>;
+export type ContentReaderFunction = (content: any) => Promise<any>;
+export type ContentWriterFunction = (content: any) => Promise<Buffer>;
 
 export function fileExtension(path: string) {
   const matches = /(?:\.([^.]+))?$/.exec(path);

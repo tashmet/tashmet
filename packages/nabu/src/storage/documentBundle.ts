@@ -50,13 +50,13 @@ export class DocumentBundleStorage extends BufferStorage {
 
   public async create(collection: string, options: Document): Promise<void> {
     const path = this.config.documentBundle(collection);
-    const stream = this.streamProvider.source(path, {content: this.config.format})
+    const stream = this.streamProvider.source(path)
       .pipe(loadFiles(file => nodePath.basename(file.path).split('.')[0]));
 
     await super.create(collection, options || {});
     this.configs[collection] = options.storageEngine;
 
-    await this.populate(collection, stream);
+    return this.rLock = this.populate(collection, stream);
   }
 
   public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {

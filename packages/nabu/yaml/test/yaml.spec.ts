@@ -1,4 +1,4 @@
-import {parseYaml, serializeYaml} from '../../../src/operators/yaml';
+import {parseYaml, serializeYaml} from '../src/index';
 import {expect} from 'chai';
 import 'mocha';
 import * as chai from 'chai';
