@@ -1,4 +1,4 @@
-import { Encoding } from "../interfaces";
+import { Encoding } from "../interfaces.js";
 
 export interface JsonParserOptions {
   encoding?: Encoding;

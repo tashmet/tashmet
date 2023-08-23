@@ -3,7 +3,7 @@
     "target": "es6",
     "lib": ["es6", "dom"],
     "types": ["reflect-metadata", "node"],
-    "module": "commonjs",
+    "module": "ES6",
     "moduleResolution": "node",
     "rootDirs": ["src", "test"],
     "outDir": "dist",
@@ -20,7 +20,8 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "importHelpers": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "allowSyntheticDefaultImports": true,
   },
   "compileOnSave": false,
   "exclude": [

@@ -1,6 +1,6 @@
-import {Annotation, Newable, classDecorator} from '../../reflection';
-import {ServiceIdentifier, ServiceRequest} from '../interfaces';
-import {ClassProviderConfig, FactoryProviderConfig, InjectedProviderConfig} from '../provider';
+import {Annotation, Newable, classDecorator} from '../../reflection/index.js';
+import {ServiceIdentifier, ServiceRequest} from '../interfaces.js';
+import {ClassProviderConfig, FactoryProviderConfig, InjectedProviderConfig} from '../provider.js';
 
 export abstract class InjectedProviderAnnotation<T>
   extends Annotation implements InjectedProviderConfig<T>

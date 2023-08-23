@@ -1,9 +1,9 @@
-import { QueryDeleteCommand } from '../commands/delete';
-import { InsertCommand } from '../commands/insert';
-import { QueryUpdateCommand } from '../commands/update';
-import { command, Document, Writable } from '../interfaces';
-import { QueryEngine } from '../query';
-import { AbstractReadWriteController } from './common';
+import { QueryDeleteCommand } from '../commands/delete.js';
+import { InsertCommand } from '../commands/insert.js';
+import { QueryUpdateCommand } from '../commands/update.js';
+import { command, Document, Writable } from '../interfaces.js';
+import { QueryEngine } from '../query.js';
+import { AbstractReadWriteController } from './common.js';
 
 
 export class QueryController extends AbstractReadWriteController {

@@ -1,5 +1,5 @@
-import {Newable} from '../reflection';
-import {Container, Resolver, ServiceRequest, ServiceIdentifier} from './interfaces';
+import {Newable} from '../reflection/index.js';
+import {Container, Resolver, ServiceRequest, ServiceIdentifier} from './interfaces.js';
 
 /**
  * Resolver that stores an instance of T.

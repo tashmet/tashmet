@@ -1,5 +1,4 @@
-import { EventEmitter } from 'eventemitter3';
-import { Document, command, ViewMap, CollectionRegistry } from '../interfaces';
+import { Document, command, EventEmitter, ViewMap, CollectionRegistry } from '../interfaces.js';
 
 export class AdminController extends EventEmitter {
   public constructor(

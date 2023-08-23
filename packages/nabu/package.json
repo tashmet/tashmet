@@ -2,6 +2,7 @@
   "name": "@tashmet/nabu",
   "version": "2.0.0",
   "description": "Tashmet file system persistence",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",
@@ -18,17 +19,18 @@
   "publishConfig": {
     "access": "public"
   },
-	"files": [
-		"dist",
-		"src",
-		"LICENSE",
-		"README.md"
-	],
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "@async-generators/to-array": "^0.1.0",
-    "@tashmet/tashmet": "^1.4.0",
     "@tashmet/engine": "^0.1.0",
     "@tashmet/memory": "^0.1.0",
+    "@tashmet/tashmet": "^1.4.0",
+    "@types/glob-to-regexp": "^0.4.1",
     "eventemitter3": "^3.0.0",
     "glob-to-regexp": "^0.4.1",
     "minimatch": "^3.0.4"

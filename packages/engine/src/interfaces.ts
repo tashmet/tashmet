@@ -1,7 +1,9 @@
 import { Annotation, methodDecorator, Newable } from '@tashmet/core';
 import ObjectId from 'bson-objectid';
-import { EventEmitter } from "eventemitter3";
-import { ChangeStreamDocument } from './changeStream';
+import ev from "eventemitter3";
+import { ChangeStreamDocument } from './changeStream.js';
+
+export const { EventEmitter } = ev;
 
 
 export class CommandAnnotation extends Annotation {

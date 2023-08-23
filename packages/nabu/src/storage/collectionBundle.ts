@@ -1,8 +1,8 @@
 import { ChangeStreamDocument, Document, WriteOptions } from '@tashmet/engine';
 
-import { CollectionBundleConfig, StreamProvider } from '../interfaces';
-import { clone } from '../operators/common';
-import { BufferStorage } from './buffer';
+import { CollectionBundleConfig, StreamProvider } from '../interfaces.js';
+import { clone } from '../operators/common.js';
+import { BufferStorage } from './buffer.js';
 
 export function loadBundle(dictionary: boolean = false): Document[] {
   return dictionary

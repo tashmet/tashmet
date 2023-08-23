@@ -7,12 +7,12 @@ import {
   Provider,
 } from '@tashmet/tashmet';
 import { idSet, ChangeSet, AggregatorFactory, AbstractAggregator, ValidatorFactory } from '@tashmet/engine';
-import { hashCode, intersection } from 'mingo/util';
-import { BufferAggregator, PrefetchAggregationStrategy } from './aggregator';
-import { MingoConfig } from './interfaces';
+import { hashCode, intersection } from 'mingo/util.js';
+import { BufferAggregator, PrefetchAggregationStrategy } from './aggregator.js';
+import { MingoConfig } from './interfaces.js';
 import { Query } from 'mingo';
 
-export * from './interfaces';
+export * from './interfaces.js';
 
 @provider({key: Comparator})
 export class MingoComparator implements Comparator {

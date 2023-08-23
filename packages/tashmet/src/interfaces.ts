@@ -1,9 +1,8 @@
 import { StorageEngine } from '@tashmet/engine';
 import ObjectId from 'bson-objectid';
-import { EventEmitter } from 'eventemitter3';
-import { Collection } from './collection';
-import { ChangeSet } from '@tashmet/engine/src/changeSet';
-import { CommandOperationOptions } from './operations/command';
+import { Collection } from './collection.js';
+import { ChangeSet, EventEmitter } from '@tashmet/engine';
+import { CommandOperationOptions } from './operations/command.js';
 
 export type Document = Record<string, any>;
 

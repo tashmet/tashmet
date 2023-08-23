@@ -2,6 +2,7 @@
 	"name": "@tashmet/nabu-vinyl",
 	"version": "0.2.0",
 	"description": "Nabu Vinyl file streams integration",
+	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {

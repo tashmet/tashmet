@@ -57,13 +57,13 @@ export {
 
 export { ChangeStream, ChangeStreamDocument } from '@tashmet/engine';
 
-export { Collection } from './collection';
-export { DatabaseService, DefaultDatabaseFactory } from './database';
-export { AbstractCursor } from './cursor/abstractCursor';
-export { AggregationCursor } from './cursor/aggregationCursor';
-export { FindCursor } from './cursor/findCursor';
-export * from './interfaces';
-export { AggregateOptions } from './operations/aggregate';
+export { Collection } from './collection.js';
+export { DatabaseService, DefaultDatabaseFactory } from './database.js';
+export { AbstractCursor } from './cursor/abstractCursor.js';
+export { AggregationCursor } from './cursor/aggregationCursor.js';
+export { FindCursor } from './cursor/findCursor.js';
+export * from './interfaces.js';
+export { AggregateOptions } from './operations/aggregate.js';
 
 import {
   Container,
@@ -79,9 +79,9 @@ import {
   ServiceIdentifier,
 } from '@tashmet/core';
 import { BootstrapConfig } from '@tashmet/core/dist/ioc/bootstrap';
-import { Database, DatabaseFactory, Dispatcher } from './interfaces';
-import { DefaultDatabaseFactory } from './database';
-import { DefaultDispatcher } from './dispatcher';
+import { Database, DatabaseFactory, Dispatcher } from './interfaces.js';
+import { DefaultDatabaseFactory } from './database.js';
+import { DefaultDispatcher } from './dispatcher.js';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}
 

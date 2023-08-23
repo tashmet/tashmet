@@ -1,6 +1,6 @@
-import { Document, CollationOptions, Dispatcher, Namespace } from '../interfaces';
-import { CommandOperation, CommandOperationOptions } from './command';
-import { Aspect, aspects } from './operation';
+import { Document, CollationOptions, Dispatcher, Namespace } from '../interfaces.js';
+import { CommandOperation, CommandOperationOptions } from './command.js';
+import { Aspect, aspects } from './operation.js';
 
 
 /** @public */

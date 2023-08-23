@@ -12,18 +12,18 @@ import {
   WithId,
   Dispatcher,
   Namespace,
-} from "./interfaces";
+} from "./interfaces.js";
 import { ChangeStream } from "@tashmet/engine";
-import { AggregationCursor } from "./cursor/aggregationCursor";
-import { FindCursor } from "./cursor/findCursor";
-import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert";
-import { DistinctOperation } from "./operations/distinct";
-import { DeleteManyOperation, DeleteOneOperation, DeleteResult } from "./operations/delete";
-import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateResult } from "./operations/update";
-import { CommandOperation } from "./operations/command";
-import { AggregateOptions } from "./operations/aggregate";
-import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments";
-import { DropCollectionOperation } from "./operations/drop";
+import { AggregationCursor } from "./cursor/aggregationCursor.js";
+import { FindCursor } from "./cursor/findCursor.js";
+import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert.js";
+import { DistinctOperation } from "./operations/distinct.js";
+import { DeleteManyOperation, DeleteOneOperation, DeleteResult } from "./operations/delete.js";
+import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateResult } from "./operations/update.js";
+import { CommandOperation } from "./operations/command.js";
+import { AggregateOptions } from "./operations/aggregate.js";
+import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments.js";
+import { DropCollectionOperation } from "./operations/drop.js";
 
 /**
  * A collection of documents.

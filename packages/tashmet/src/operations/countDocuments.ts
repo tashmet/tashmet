@@ -1,6 +1,6 @@
-import { Dispatcher, Document, Namespace } from "../interfaces";
-import { AggregateOptions } from "./aggregate";
-import { CommandOperation } from "./command";
+import { Dispatcher, Document, Namespace } from "../interfaces.js";
+import { AggregateOptions } from "./aggregate.js";
+import { CommandOperation } from "./command.js";
 
 /** @public */
 export interface CountDocumentsOptions extends AggregateOptions {

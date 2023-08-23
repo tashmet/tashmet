@@ -1,5 +1,5 @@
-import { Dispatcher, Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap } from '../interfaces';
-import { AbstractCursor } from './abstractCursor';
+import { Dispatcher, Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap } from '../interfaces.js';
+import { AbstractCursor } from './abstractCursor.js';
 
 export function sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {
   if (typeof key === 'string') {

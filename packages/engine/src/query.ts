@@ -1,5 +1,5 @@
-import { Cursor, CursorRegistry } from "./cursor";
-import { CollationOptions, Document } from "./interfaces";
+import { Cursor, CursorRegistry } from "./cursor.js";
+import { CollationOptions, Document } from "./interfaces.js";
 
 export class QueryEngine extends CursorRegistry {
   public constructor(private queryable: Queryable) { super(); }

@@ -1,5 +1,5 @@
-import {Abstract, Newable} from '../reflection';
-import {Provider} from './provider';
+import {Abstract, Newable} from '../reflection/index.js';
+import {Provider} from './provider.js';
 
 export type ServiceIdentifier<T> = (string | symbol | Newable<T> | Abstract<T>);
 

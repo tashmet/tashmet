@@ -1,4 +1,4 @@
-import {Injection} from '../ioc/resolvers';
+import {Injection} from '../ioc/resolvers.js';
 
 export const enum LogLevel {
   Debug,

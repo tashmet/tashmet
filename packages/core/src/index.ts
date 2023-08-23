@@ -1,3 +1,3 @@
-export * from './ioc';
-export * from './logging';
-export * from './reflection';
+export * from './ioc/index.js';
+export * from './logging/index.js';
+export * from './reflection/index.js';

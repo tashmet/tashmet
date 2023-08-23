@@ -2,6 +2,7 @@
 	"name": "@tashmet/nabu-yaml",
 	"version": "0.1.0",
 	"description": "Nabu YAML content reader/writer",
+	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
@@ -22,12 +23,14 @@
 		"@tashmet/core": "^1.0.2",
 		"@tashmet/engine": "^0.1.0",
 		"@tashmet/nabu": "^2.0.0",
-		"js-yaml": "^3.13.1",
-		"yaml-front-matter": "^4.1.0"
+		"js-yaml": "^4.1.0",
+		"yaml-front-matter": "^4.0.0"
 	},
 	"devDependencies": {
+		"@types/node": "17.0.0",
+		"@types/js-yaml": "^4.0.5",
 		"@types/reflect-metadata": "^0.1.0",
-    	"@types/js-yaml": "^3.12.1",
+		"@types/yaml-front-matter": "^4.0.0",
 		"tslib": "^2.3.1"
 	}
 }

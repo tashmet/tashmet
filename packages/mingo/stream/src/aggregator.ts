@@ -1,8 +1,8 @@
 import { Document, provider } from '@tashmet/tashmet';
-import { getOperator, OperatorType, initOptions } from 'mingo/core';
-import { Query } from 'mingo/query';
-import { assert, cloneDeep } from 'mingo/util';
-import { Iterator, Lazy } from 'mingo/lazy';
+import { getOperator, OperatorType, initOptions } from 'mingo/core.js';
+import { Query } from 'mingo/query.js';
+import { assert, cloneDeep } from 'mingo/util.js';
+import { Iterator, Lazy } from 'mingo/lazy.js';
 import { AbstractAggregator, AggregatorFactory } from '@tashmet/engine';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {

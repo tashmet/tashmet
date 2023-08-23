@@ -1,6 +1,6 @@
-import { Dispatcher, Document, Namespace } from '../interfaces';
-import { AggregateOptions } from '../operations/aggregate';
-import { AbstractCursor } from './abstractCursor';
+import { Dispatcher, Document, Namespace } from '../interfaces.js';
+import { AggregateOptions } from '../operations/aggregate.js';
+import { AbstractCursor } from './abstractCursor.js';
 
 export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(

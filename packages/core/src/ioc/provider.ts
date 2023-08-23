@@ -1,6 +1,6 @@
-import {Newable} from '../reflection';
-import {Resolver, ServiceRequest, ServiceIdentifier} from './interfaces';
-import {Instance, Cache, Injection} from './resolvers';
+import {Newable} from '../reflection/index.js';
+import {Resolver, ServiceRequest, ServiceIdentifier} from './interfaces.js';
+import {Instance, Cache, Injection} from './resolvers.js';
 
 export interface ProviderConfig<T> {
   /**

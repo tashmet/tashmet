@@ -1,4 +1,4 @@
-import {LogFormatter, LogEvent, Sink, LogLevel, SinkFactory} from './interfaces';
+import {LogFormatter, LogEvent, Sink, LogLevel, SinkFactory} from './interfaces.js';
 
 export class ScopeLogFormatter implements LogFormatter {
   private lastScope = '';

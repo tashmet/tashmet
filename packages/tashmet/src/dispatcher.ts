@@ -1,6 +1,6 @@
 import { Optional, provider } from "@tashmet/core";
 import { StorageEngine, StorageEngineFactory } from "@tashmet/engine";
-import { Document, Dispatcher, Namespace, CommandFunction, Middleware } from "./interfaces";
+import { Document, Dispatcher, Namespace, CommandFunction, Middleware } from "./interfaces.js";
 
 
 @provider({

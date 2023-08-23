@@ -4,12 +4,12 @@ import * as stream from 'stream';
 import * as vfs from 'vinyl-fs';
 import * as fs from 'fs';
 import minimatch from 'minimatch';
-export * from './interfaces';
+export * from './interfaces.js';
 
 import {Container, Document, Optional, provider, Provider} from '@tashmet/tashmet';
 import {FileAccess, File, ReadableFile, FileReader, FileWriter, ContentWriter, ContentReader, fileExtension} from '@tashmet/nabu';
 import {Stream} from '@tashmet/nabu-stream';
-import {FileSystemConfig} from './interfaces';
+import {FileSystemConfig} from './interfaces.js';
 
 
 export class VinylFSReader implements FileReader {

@@ -1,5 +1,5 @@
-import { CollationOptions, Dispatcher, Document, Namespace } from "../interfaces";
-import { AspectAnnotation } from "./operation";
+import { CollationOptions, Dispatcher, Document, Namespace } from "../interfaces.js";
+import { AspectAnnotation } from "./operation.js";
 
 export interface CommandOperationOptions {
   /** Specify a read concern and level for the collection. (only MongoDB 3.2 or higher supported) */

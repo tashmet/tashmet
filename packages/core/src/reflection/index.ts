@@ -1,8 +1,8 @@
-export {Annotation} from './annotation';
+export {Annotation} from './annotation.js';
 export {
   classDecorator,
   methodDecorator,
   parameterDecorator,
   propertyDecorator
-} from './decoration';
-export * from './interfaces';
+} from './decoration.js';
+export * from './interfaces.js';

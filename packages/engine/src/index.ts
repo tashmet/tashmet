@@ -1,19 +1,19 @@
-import { ChangeStreamDocument } from './changeStream';
-import { Document, WriteError } from './interfaces';
+import { ChangeStreamDocument } from './changeStream.js';
+import { Document, WriteError } from './interfaces.js';
 
-export * from './interfaces';
+export * from './interfaces.js';
 
-export { AggregationEngine } from './aggregation';
-export { QueryEngine, Queryable } from './query';
-export { Cursor, CursorRegistry } from './cursor';
-export { ChangeSet, idSet } from './changeSet';
-export * from './changeStream';
+export { AggregationEngine } from './aggregation.js';
+export { QueryEngine, Queryable } from './query.js';
+export { Cursor, CursorRegistry } from './cursor.js';
+export { ChangeSet, idSet } from './changeSet.js';
+export * from './changeStream.js';
 
-export { AggregationController } from './controllers/aggregate';
-export { AdminController } from './controllers/admin';
-export { QueryController } from './controllers/query';
+export { AggregationController } from './controllers/aggregate.js';
+export { AdminController } from './controllers/admin.js';
+export { QueryController } from './controllers/query.js';
 
-export { makeWriteChange } from './commands/write';
+export { makeWriteChange } from './commands/write.js';
 
 
 export interface AtomicWriteCollection {

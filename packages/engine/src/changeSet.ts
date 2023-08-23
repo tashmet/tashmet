@@ -1,5 +1,5 @@
 import ObjectID from 'bson-objectid';
-import { Document } from './interfaces';
+import { Document } from './interfaces.js';
 //import {ChangeStreamDocument} from '../../tashmet/src/changeStream';
 
 export function idSet(collection: any[]) {

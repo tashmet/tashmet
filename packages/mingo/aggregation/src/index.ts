@@ -4,9 +4,9 @@ import {
   provider,
   Provider,
 } from '@tashmet/tashmet';
-import { hashCode } from 'mingo/util';
+import { hashCode } from 'mingo/util.js';
 import { MingoConfig, MingoAggregatorFactory } from '@tashmet/mingo';
-import 'mingo/init/system';
+import 'mingo/init/system.js';
 
 @provider()
 export default class Mingo {

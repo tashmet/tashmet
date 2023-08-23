@@ -1,5 +1,5 @@
-import {annotations, parameters, propMetadata} from './decoration';
-import {Constructor} from './interfaces';
+import {annotations, parameters, propMetadata} from './decoration.js';
+import {Constructor} from './interfaces.js';
 
 export type StaticThis<T> = { new (...args: any[]): T };
 

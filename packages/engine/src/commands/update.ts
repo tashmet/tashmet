@@ -1,10 +1,9 @@
-import { CollationSpec } from 'mingo/core';
-import { ChangeStreamDocument } from '../changeStream';
-import { AggregationEngine } from '../aggregation';
-import { Document } from '../interfaces';
-import { InsertCommand } from './insert';
-import { WriteCommand, makeWriteChange } from './write';
-import { QueryEngine } from '../query';
+import { ChangeStreamDocument } from '../changeStream.js';
+import { AggregationEngine } from '../aggregation.js';
+import { CollationOptions, Document } from '../interfaces.js';
+import { InsertCommand } from './insert.js';
+import { WriteCommand, makeWriteChange } from './write.js';
+import { QueryEngine } from '../query.js';
 
 export enum UpdateType {
   Regular,
@@ -107,7 +106,7 @@ export class AggregationUpdateCommand extends UpdateCommand {
     }
   }
 
-  private aggregate = (pipeline: Document[], coll: string | AsyncIterable<Document>, collation?: CollationSpec): Promise<Document[]> => {
+  private aggregate = (pipeline: Document[], coll: string | AsyncIterable<Document>, collation?: CollationOptions): Promise<Document[]> => {
     const c = this.engine.aggregate(coll, pipeline, collation);
     return c.toArray();
   }

@@ -1,4 +1,4 @@
-import { ContentReaderFunction, ContentWriterFunction } from "../interfaces";
+import { ContentReaderFunction, ContentWriterFunction } from "../interfaces.js";
 
 export const textReader: ContentReaderFunction = async (content) => {
   if (typeof content === 'string') {

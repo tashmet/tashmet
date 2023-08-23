@@ -4,10 +4,10 @@ import {
   DocumentBundleConfig,
   File,
   StreamProvider,
-} from '../interfaces';
+} from '../interfaces.js';
 import * as nodePath from 'path';
-import { BufferStorage } from './buffer';
-import { clone } from '../operators/common';
+import { BufferStorage } from './buffer.js';
+import { clone } from '../operators/common.js';
 
 
 export function loadFiles(id: Document | ((file: File<Document>) => string)): Document[] {

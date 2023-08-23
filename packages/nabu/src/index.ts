@@ -28,16 +28,16 @@ import {
   NabuConfig,
   NabuDatabaseConfig,
   StreamProvider
-} from './interfaces';
-import { Stream } from './stream';
-import { DocumentBundleStorage } from './storage/documentBundle';
-import { CollectionBundleStorage } from './storage/collectionBundle';
-import { textWriter } from './operators/text';
-import { jsonReader, jsonWriter } from './operators/json';
+} from './interfaces.js';
+import { Stream } from './stream.js';
+import { DocumentBundleStorage } from './storage/documentBundle.js';
+import { CollectionBundleStorage } from './storage/collectionBundle.js';
+import { textWriter } from './operators/text.js';
+import { jsonReader, jsonWriter } from './operators/json.js';
 
-export * from './interfaces';
+export * from './interfaces.js';
 
-const globToRegExp = require('glob-to-regexp');
+import globToRegExp from 'glob-to-regexp';
 
 @provider({
   key: ContentReader,
@@ -50,10 +50,9 @@ export class NabuContentReader implements ContentReader {
   public constructor(private logger: Logger) {}
 
   public async read(file: File<any>): Promise<File<any>> {
-    this.logger.info(`reading '${file.path}'`);
-
     for (let i=0; i<this.patterns.length; i++) {
-      if (globToRegExp(this.patterns[i]).test(file.path, {extended: true})) {
+      if (globToRegExp(this.patterns[i], {extended: true}).test(file.path)) {
+        this.logger.info(`reading '${file.path}' matching '${this.patterns[i]}'`);
         return {...file, content: await this.readers[i](file.content)};
       }
     }
@@ -83,7 +82,7 @@ export class NabuContentWriter implements ContentWriter {
       return file;
     }
     for (let i=0; i<this.patterns.length; i++) {
-      if (globToRegExp(this.patterns[i]).test(file.path, {extended: true})) {
+      if (globToRegExp(this.patterns[i], {extended: true}).test(file.path)) {
         return {...file, content: await this.writers[i](file.content)};
       }
     }

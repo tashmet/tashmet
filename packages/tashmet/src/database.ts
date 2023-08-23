@@ -5,11 +5,11 @@ import {
   Dispatcher,
   Document,
   Namespace,
-} from './interfaces';
-import { Collection } from './collection';
+} from './interfaces.js';
+import { Collection } from './collection.js';
 import { Logger, provider } from '@tashmet/core';
-import { CommandOperation } from './operations/command';
-import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop';
+import { CommandOperation } from './operations/command.js';
+import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop.js';
 
 
 export class DatabaseService implements Database {

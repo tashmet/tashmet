@@ -1,4 +1,4 @@
-import { Document } from "./interfaces";
+import { Document } from "./interfaces.js";
 
 export abstract class CursorRegistry {
   protected cursorCounter = 0;

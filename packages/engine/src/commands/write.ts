@@ -1,6 +1,6 @@
 import ObjectID from "bson-objectid";
-import { ChangeStreamDocument } from "../changeStream";
-import { Document } from "../interfaces";
+import { ChangeStreamDocument } from "../changeStream.js";
+import { Document } from "../interfaces.js";
 
 
 export abstract class WriteCommand {

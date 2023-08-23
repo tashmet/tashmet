@@ -1,9 +1,9 @@
-import { AggregationEngine, makeQueryPipeline } from '../aggregation';
-import { AggregationDeleteCommand } from '../commands/delete';
-import { InsertCommand } from '../commands/insert';
-import { AggregationUpdateCommand } from '../commands/update';
-import { command, Document, ViewMap, Writable } from '../interfaces';
-import { AbstractReadWriteController } from './common';
+import { AggregationEngine, makeQueryPipeline } from '../aggregation.js';
+import { AggregationDeleteCommand } from '../commands/delete.js';
+import { InsertCommand } from '../commands/insert.js';
+import { AggregationUpdateCommand } from '../commands/update.js';
+import { command, Document, ViewMap, Writable } from '../interfaces.js';
+import { AbstractReadWriteController } from './common.js';
 
 /**
  * A database reader engine with support for aggregation and views

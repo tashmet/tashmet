@@ -1,5 +1,5 @@
-import { Dispatcher, Document, Namespace } from '../interfaces';
-import { GetMoreOperation } from '../operations/getMore';
+import { Dispatcher, Document, Namespace } from '../interfaces.js';
+import { GetMoreOperation } from '../operations/getMore.js';
 
 /** @public */
 export interface AbstractCursorOptions {

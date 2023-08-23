@@ -1,4 +1,4 @@
-import {Logger, LoggerConfig, Sink, LogLevel, SinkFactory} from './interfaces';
+import {Logger, LoggerConfig, Sink, LogLevel, SinkFactory} from './interfaces.js';
 
 export class DefaultLogger extends Logger {
   public static fromConfig(config: LoggerConfig): Logger {

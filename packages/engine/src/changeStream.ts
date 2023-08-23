@@ -1,5 +1,4 @@
-import {EventEmitter} from 'eventemitter3';
-import {Document, InferIdType} from './interfaces';
+import {Document, InferIdType, EventEmitter} from './interfaces.js';
 
 export interface ChangeStreamDocument<TSchema extends Document = Document> {
   /**

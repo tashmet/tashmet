@@ -1,7 +1,6 @@
-import { EventEmitter } from 'eventemitter3';
-import { WriteCommand } from '../commands/write';
-import { CursorRegistry } from '../cursor';
-import { command, Document, Writable } from '../interfaces';
+import { WriteCommand } from '../commands/write.js';
+import { CursorRegistry } from '../cursor.js';
+import { command, Document, EventEmitter, Writable } from '../interfaces.js';
 
 
 export abstract class AbstractReadWriteController extends EventEmitter {

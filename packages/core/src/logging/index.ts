@@ -1,2 +1,2 @@
-export * from './interfaces';
-export {consoleWriter, ScopeLogFormatter} from './console';
+export * from './interfaces.js';
+export {consoleWriter, ScopeLogFormatter} from './console.js';

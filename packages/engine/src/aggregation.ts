@@ -1,5 +1,5 @@
-import { Cursor, CursorRegistry, IteratorCursor } from "./cursor";
-import { AggregatorFactory, CollationOptions, Document, Streamable } from "./interfaces";
+import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
+import { AggregatorFactory, CollationOptions, Document, Streamable } from "./interfaces.js";
 
 export async function *arrayToGenerator<T>(array: T[]) {
   for (const item of array) {

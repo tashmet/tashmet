@@ -1,7 +1,7 @@
 import ObjectID from "bson-objectid";
-import { ChangeStreamDocument } from "../changeStream";
-import { Document } from "../interfaces";
-import { WriteCommand } from "./write";
+import { ChangeStreamDocument } from "../changeStream.js";
+import { Document } from "../interfaces.js";
+import { WriteCommand } from "./write.js";
 
 export class InsertCommand extends WriteCommand {
   public constructor(private documents: Document[], ns: {db: string, coll: string}) {

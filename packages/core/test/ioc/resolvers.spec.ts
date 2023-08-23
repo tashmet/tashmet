@@ -1,4 +1,4 @@
-import {Instance, Cache, Injection, Lazy, Lookup, Optional} from '../../src/ioc';
+import {Instance, Cache, Injection, Lazy, Lookup, Optional} from '../../dist/ioc';
 import {BasicContainer} from '../../src/ioc/container';
 import {Provider} from '../../src/ioc/provider';
 import {expect} from 'chai';

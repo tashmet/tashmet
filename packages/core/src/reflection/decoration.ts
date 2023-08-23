@@ -9,7 +9,7 @@ import {
   ParameterDecoratorConfig,
   PropertyDecorator,
   PropertyDecoratorConfig
-} from './interfaces';
+} from './interfaces.js';
 
 function metadata<T>(
   name: string, target: any, initialState: T, propertyKey?: string | symbol

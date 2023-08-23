@@ -1,5 +1,5 @@
 import { Annotation, classDecorator, Newable } from "@tashmet/core";
-import { CommandOperation } from "./command";
+import { CommandOperation } from "./command.js";
 
 export const Aspect = {
   READ_OPERATION: Symbol('READ_OPERATION'),

@@ -1,6 +1,6 @@
 import { AggregatorFactory } from '@tashmet/engine';
 import { Document } from '@tashmet/tashmet';
-import { FileAccess } from "./interfaces";
+import { FileAccess } from "./interfaces.js";
 
 
 export type GeneratorPipe = (source: AsyncIterable<Document>) => AsyncGenerator<Document>;

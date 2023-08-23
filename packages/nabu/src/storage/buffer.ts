@@ -1,6 +1,6 @@
 import { MemoryStorage } from '@tashmet/memory';
 import { Document, makeWriteChange } from '@tashmet/engine';
-import { StreamProvider } from '../interfaces';
+import { StreamProvider } from '../interfaces.js';
 
 export abstract class BufferStorage extends MemoryStorage {
   protected configs: Record<string, Document> = {};

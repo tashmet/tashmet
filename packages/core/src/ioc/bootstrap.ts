@@ -1,9 +1,9 @@
-import {Container} from './interfaces';
-import {BasicContainer} from './container';
-import {Provider} from './provider';
-import {Logger, LogLevel, LoggerConfig, LogFormatter} from '../logging/interfaces';
-import {DefaultLogger} from '../logging/logger';
-import {consoleWriter} from '../logging/console';
+import {Container} from './interfaces.js';
+import {BasicContainer} from './container.js';
+import {Provider} from './provider.js';
+import {Logger, LogLevel, LoggerConfig, LogFormatter} from '../logging/interfaces.js';
+import {DefaultLogger} from '../logging/logger.js';
+import {consoleWriter} from '../logging/console.js';
 
 export interface BootstrapConfig {
   logLevel: LogLevel;

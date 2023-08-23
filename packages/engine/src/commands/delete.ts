@@ -1,9 +1,9 @@
-import { makeQueryPipeline } from "../aggregation";
-import { ChangeStreamDocument } from "../changeStream";
-import { AggregationEngine } from "../aggregation";
-import { Document } from "../interfaces";
-import { WriteCommand } from "./write";
-import { QueryEngine } from "../query";
+import { makeQueryPipeline } from "../aggregation.js";
+import { ChangeStreamDocument } from "../changeStream.js";
+import { AggregationEngine } from "../aggregation.js";
+import { Document } from "../interfaces.js";
+import { WriteCommand } from "./write.js";
+import { QueryEngine } from "../query.js";
 
 export abstract class DeleteCommand extends WriteCommand {
   public constructor(private deletes: Document[], ns: {db: string, coll: string}) {

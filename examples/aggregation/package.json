@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Tashmet aggregation example application",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --cache --ext .js,.ts src/",

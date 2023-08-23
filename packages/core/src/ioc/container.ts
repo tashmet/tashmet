@@ -1,9 +1,9 @@
-import {Constructor, Newable} from '../reflection';
-import {Logger} from '../logging/interfaces';
-import {DefaultLogger} from '../logging/logger';
-import {Container, ServiceIdentifier, ServiceRequest, Resolver} from './interfaces';
-import {Provider} from './provider';
-import {ClassProviderAnnotation, FactoryProviderAnnotation} from './decorators/provider';
+import {Constructor, Newable} from '../reflection/index.js';
+import {Logger} from '../logging/interfaces.js';
+import {DefaultLogger} from '../logging/logger.js';
+import {Container, ServiceIdentifier, ServiceRequest, Resolver} from './interfaces.js';
+import {Provider} from './provider.js';
+import {ClassProviderAnnotation, FactoryProviderAnnotation} from './decorators/provider.js';
 
 /**
  * Abstract container that can be overridden to plug into an existing DI framework.
