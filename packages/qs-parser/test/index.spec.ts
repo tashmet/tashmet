@@ -1,7 +1,9 @@
 import 'mocha';
-import {expect} from 'chai';
+import chai from 'chai';
 
 import {QueryString, lhsColon, rhsColon} from '../src';
+
+const { expect } = chai;
 
 describe('nestedSort', () => {
   it('should parse sort with default config', () => {
