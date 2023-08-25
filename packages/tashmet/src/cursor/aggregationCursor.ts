@@ -20,7 +20,7 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
     });
   }
 
-  group<T = TSchema>($group: Document): AggregationCursor<T> {
+  group<T extends Document = TSchema>($group: Document): AggregationCursor<T> {
     return this.pushStage({$group});
   }
 
@@ -32,8 +32,8 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
     return this.pushStage({$match});
   }
 
-  private pushStage<T = TSchema>(stage: Document): AggregationCursor<T> {
+  private pushStage<T extends Document = TSchema>(stage: Document): AggregationCursor<T> {
     this.pipeline.push(stage);
-    return this as AggregationCursor<T>;
+    return this as unknown as AggregationCursor<T>;
   }
 }

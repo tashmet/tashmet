@@ -78,7 +78,7 @@ import {
   Provider,
   ServiceIdentifier,
 } from '@tashmet/core';
-import { BootstrapConfig } from '@tashmet/core/dist/ioc/bootstrap';
+import { BootstrapConfig } from '@tashmet/core';
 import { Database, DatabaseFactory, Dispatcher } from './interfaces.js';
 import { DefaultDatabaseFactory } from './database.js';
 import { DefaultDispatcher } from './dispatcher.js';

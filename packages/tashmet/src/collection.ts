@@ -209,7 +209,7 @@ export class Collection<TSchema extends Document = any> {
    * @param pipeline - An array of {@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/|aggregation pipeline stages} through which to pass change stream documents. This allows for filtering (using $match) and manipulating the change stream documents.
    * @param options - Optional settings for the command
    */
-  public watch<TLocal = TSchema>(pipeline: Document[] = []): ChangeStream<TLocal> {
+  public watch<TLocal extends Document = TSchema>(pipeline: Document[] = []): ChangeStream<TLocal> {
     const cs = new ChangeStream<TLocal>(pipeline, cs => {
       this.changeStreams.splice(this.changeStreams.indexOf(cs), 1);
     });

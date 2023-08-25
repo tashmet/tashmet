@@ -347,7 +347,7 @@ export type AddToSetOperators<Type> = {
   $each?: Array<Flatten<Type>>;
 };
 
-export type UpdateFilter<TSchema> = {
+export type UpdateFilter<TSchema extends Document> = {
   $currentDate?: OnlyFieldsOfType<
     TSchema,
     Date/* | Timestamp*/,
