@@ -1,4 +1,4 @@
-export {createContainer} from './bootstrap.js';
+export {createContainer, BootstrapConfig} from './bootstrap.js';
 export * from './interfaces.js';
 export * from './resolvers.js';
 export {AbstractContainer, BasicContainer} from './container.js';

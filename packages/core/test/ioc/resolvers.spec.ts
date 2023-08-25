@@ -1,15 +1,15 @@
-import {Instance, Cache, Injection, Lazy, Lookup, Optional} from '../../dist/ioc';
-import {BasicContainer} from '../../src/ioc/container';
-import {Provider} from '../../src/ioc/provider';
-import {expect} from 'chai';
-import * as chai from 'chai';
-import * as sinon from 'sinon';
+import {Instance, Cache, Injection, Lazy, Lookup, Optional} from '../../dist/ioc/index.js';
+import {BasicContainer} from '../../dist/ioc/container.js';
+import {Provider} from '../../dist/ioc/provider.js';
+import chai from 'chai';
+import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import 'mocha';
 
 chai.use(sinonChai);
 
 const sandbox = sinon.createSandbox();
+const { expect } = chai;
 
 describe('resolvers', () => {
   const container = new BasicContainer();

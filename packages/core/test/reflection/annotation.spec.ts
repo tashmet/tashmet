@@ -1,8 +1,10 @@
 import {
   classDecorator, parameterDecorator, propertyDecorator, Annotation
 } from '../../../core/src/reflection';
-import {expect} from 'chai';
+import chai from 'chai';
 import 'mocha';
+
+const { expect } = chai;
 
 describe('annotation', () => {
   describe('on class', () => {
