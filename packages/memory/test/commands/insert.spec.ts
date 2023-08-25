@@ -1,9 +1,10 @@
-import { expect } from 'chai';
+import chai from 'chai';
 import 'mocha';
 import MemoryStorageEngineFactory from '../../src';
 import { MingoAggregatorFactory } from '../../../mingo/src';
 import { StorageEngine } from '@tashmet/engine';
 
+const { expect } = chai;
 const storageEngineFact = new MemoryStorageEngineFactory(new MingoAggregatorFactory());
 
 describe('insert', () => {
