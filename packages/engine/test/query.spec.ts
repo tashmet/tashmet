@@ -1,12 +1,12 @@
 import { Queryable, QueryCursor } from '../src/query';
-import { expect } from 'chai';
-import * as chai from 'chai';
-import * as sinon from 'sinon';
+import chai from 'chai';
+import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import 'mocha';
 
 chai.use(sinonChai);
 
+const { expect } = chai;
 const sandbox = sinon.createSandbox();
 
 class MockQueryable implements Queryable {
