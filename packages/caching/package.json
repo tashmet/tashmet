@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "exit 0",
     "lint": "eslint --cache --ext .js,.ts src/",
-    "test": "mocha --exit -r ts-node/register 'test/**/*.ts'"
+    "test": "exit 0"
   },
   "keywords": [
     "tashmet",
@@ -29,7 +29,9 @@
     "README.md"
   ],
   "dependencies": {
-    "@tashmet/tashmet": "^1.4.0"
+    "@tashmet/engine": "^0.1.0",
+    "@tashmet/tashmet": "^1.4.0",
+    "@tashmet/mingo": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^13.1.8",

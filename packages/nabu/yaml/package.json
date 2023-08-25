@@ -27,7 +27,7 @@
 		"yaml-front-matter": "^4.0.0"
 	},
 	"devDependencies": {
-		"@types/node": "17.0.0",
+		"@types/node": "20.5.3",
 		"@types/js-yaml": "^4.0.5",
 		"@types/reflect-metadata": "^0.1.0",
 		"@types/yaml-front-matter": "^4.0.0",

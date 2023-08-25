@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es6",
     "lib": ["es6", "dom"],
     "types": ["reflect-metadata", "node"],
-    "module": "commonjs",
+    "module": "ES6",
     "moduleResolution": "node",
     "rootDirs": ["src", "test"],
     "outDir": "dist",
