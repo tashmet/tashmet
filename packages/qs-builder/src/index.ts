@@ -14,7 +14,7 @@ import {
 
 export * from './interfaces';
 
-const qsStringify = require('qs-stringify');
+import qsStringify from "qs-stringify";
 
 export type QueryStringBuilder = (writer: QueryStringWriter) => string[];
 
@@ -115,8 +115,9 @@ export class QueryStringWriter {
 
   public nestedFilter(config?: Partial<NestedFilterConfig>) {
     const {root} = {...defaultNestedFilterConfig, ...config};
+    const filter = this.query.filter || {};
 
-    return qsStringify(root ? {[root]: this.query.filter} : this.query.filter);
+    return qsStringify(root ? {[root]: filter} : filter);
   }
 
 

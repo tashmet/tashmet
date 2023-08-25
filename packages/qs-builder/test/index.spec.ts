@@ -1,7 +1,9 @@
 import {FindOptions} from '@tashmet/tashmet';
-import {expect} from 'chai';
+import chai from 'chai';
 import 'mocha';
 import {QuerySerializer} from '../src';
+
+const { expect } = chai;
 
 describe('QuerySerializer', () => {
   const filter = {

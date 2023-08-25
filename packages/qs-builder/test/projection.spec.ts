@@ -1,6 +1,8 @@
-import {expect} from 'chai';
+import chai from 'chai';
 import 'mocha';
 import {QueryStringWriter} from '../src';
+
+const { expect } = chai;
 
 describe('delimitedProjection', () => {
   it('should serialize single projection field', async () => {

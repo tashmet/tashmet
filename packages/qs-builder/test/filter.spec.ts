@@ -1,6 +1,8 @@
-import {expect} from 'chai';
+import chai from 'chai';
 import 'mocha';
 import {QueryStringWriter, OperatorFormat, Param, lhsBrackets, lhsColon, rhsColon} from '../src';
+
+const { expect } = chai;
 
 describe('flatFilter', () => {
   it('should serialize using LHSBrackets', async () => {
