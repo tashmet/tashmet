@@ -1,14 +1,15 @@
 import Tashmet, {Collection} from '@tashmet/tashmet';
 import Nabu from '@tashmet/nabu';
 import Mingo from '@tashmet/mingo';
-import 'mingo/init/system';
-import {expect} from 'chai';
+import 'mingo/init/system.js';
 import 'mocha';
-import * as chai from 'chai';
+import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import Vinyl from '../../dist';
+
+const { expect } = chai;
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);

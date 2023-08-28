@@ -1,8 +1,8 @@
 import * as chokidar from 'chokidar';
 import Vinyl from 'vinyl';
 import * as stream from 'stream';
-import * as vfs from 'vinyl-fs';
-import * as fs from 'fs';
+import vfs from 'vinyl-fs';
+import fs from 'fs';
 import minimatch from 'minimatch';
 export * from './interfaces.js';
 
@@ -47,7 +47,6 @@ export class VinylFSWriter implements FileWriter {
         const {path, content} = await cw.write(file);
 
         if (file.content) {
-          //console.log('write: ' + file.path);
           yield new Vinyl({
             path,
             contents: content,
@@ -60,7 +59,6 @@ export class VinylFSWriter implements FileWriter {
     return Stream.toSink(vfs.dest('.'))(writer(this.contentWriter)).then(() => {
       for (const path of deletes) {
         if (fs.existsSync(path)) {
-          //console.log('unlink: ' + path);
           fs.unlinkSync(path);
         }
       }

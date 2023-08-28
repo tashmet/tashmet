@@ -1,5 +1,4 @@
 import * as stream from 'stream';
-//import {Pipeline, PipelineSink} from '@tashmet/nabu';
 
 type Readable = stream.Readable | NodeJS.ReadStream | NodeJS.ReadWriteStream;
 type Writable = stream.Writable | NodeJS.WriteStream | NodeJS.ReadWriteStream;
@@ -21,8 +20,13 @@ export class Stream {
     return async function* gen() {
       await signalReadable(readable);
       const endPromise = signalEnd(readable);
+      let finished: boolean = false;
 
-      while (readable.readable) {
+      endPromise.then(() => {
+        finished = true;
+      });
+
+      while (!finished) {
         let chunk;
         while (null !== (chunk = readable.read())) {
           yield chunk;

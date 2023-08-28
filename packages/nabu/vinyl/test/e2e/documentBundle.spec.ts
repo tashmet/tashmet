@@ -2,16 +2,17 @@ import Tashmet, { Collection } from '@tashmet/tashmet';
 import Nabu from '@tashmet/nabu';
 import Mingo from '@tashmet/mingo';
 import 'mingo/init/system';
-import {expect} from 'chai';
 import 'mocha';
-import * as chai from 'chai';
+import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import Vinyl from '../../dist';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
+
+const { expect } = chai;
 
 function storedDoc(id: string | number): any {
   return fs.readJsonSync(`test/e2e/testCollection/${id}.json`);
