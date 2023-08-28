@@ -1,14 +1,15 @@
-import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmet, { Collection, Database } from '../../../packages/tashmet/dist';
-import Mingo from '../../../packages/mingo/dist';
-import Memory from '../../../packages/memory/dist';
+import Tashmet, { Collection, Database } from '../../../packages/tashmet/dist/index.js';
+import Mingo from '../../../packages/mingo/dist/index.js';
+import Memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
+
+const { expect } = chai;
 
 describe('aggregation', () => {
 

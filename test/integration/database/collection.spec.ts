@@ -1,13 +1,14 @@
-import Tashmet, {Collection, SortingDirection} from '../../../packages/tashmet';
-import Mingo from '../../../packages/mingo';
-import Memory from '../../../packages/memory/dist';
+import Tashmet, {Collection, SortingDirection} from '../../../packages/tashmet/dist/index.js';
+import Mingo from '../../../packages/mingo/dist/index.js';
+import Memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
-import {expect} from 'chai';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 chai.use(chaiAsPromised);
+
+const { expect } = chai;
 
 describe('Collection', () => {
   interface Item {

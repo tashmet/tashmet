@@ -1,6 +1,8 @@
-import {BasicContainer, provider, Provider} from '../../../packages/tashmet';
-import {expect} from 'chai';
+import {BasicContainer, provider, Provider} from '../../../packages/tashmet/dist/index.js';
+import chai from 'chai';
 import 'mocha';
+
+const { expect } = chai;
 
 describe('provider', () => {
   const container = new BasicContainer();

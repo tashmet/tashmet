@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "description": "Tashmet is an isomorphic publishing platform",
+  "type": "module",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna run build",
@@ -11,9 +12,9 @@
     "lint": "lerna run --no-bail lint",
     "test": "npm run test:packages && npm run test:integration && npm run test:e2e",
     "test:packages": "lerna run test",
-    "test:integration": "mocha --exit -r ts-node/register 'test/integration/**/*.ts'",
+    "test:integration": "mocha --config test/integration/.mocharc.json",
     "test:e2e": "start-server-and-test test:e2e-server http://localhost:8000/api/test test:e2e-client",
-    "test:e2e-client": "mocha --exit -r ts-node/register 'test/e2e/**/*.spec.ts'",
+    "test:e2e-client": "mocha --config test/e2e/.mocharc.json",
     "test:e2e-server": "ts-node ./test/server.ts"
   },
   "author": "Björn Andersson",

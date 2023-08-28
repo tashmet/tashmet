@@ -1,4 +1,3 @@
-import {expect} from 'chai';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
@@ -13,6 +12,7 @@ import fetch from 'isomorphic-fetch';
 
 chai.use(chaiAsPromised);
 
+const { expect } = chai;
 
 describe('rest', () => {
   let col: Collection
