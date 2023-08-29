@@ -3,6 +3,7 @@ import {
   Document,
   Filter,
   FindOptions,
+  Logger,
   provider
 } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
@@ -16,7 +17,7 @@ export interface PrefetchAggregation {
 export class BufferAggregator extends AbstractAggregator<Document> {
   private aggregator: Aggregator;
 
-  public constructor(pipeline: Document[], options: any) {
+  public constructor(pipeline: Document[], options: any, private logger: Logger) {
     super(pipeline);
     this.aggregator = new Aggregator(pipeline, options);
   }
@@ -26,6 +27,7 @@ export class BufferAggregator extends AbstractAggregator<Document> {
     for await (const item of input) {
       buffer.push(item)
     }
+    this.logger.inScope("MingoBufferAggregator").debug(`process buffer of ${buffer.length} document(s)`)
     const it = this.aggregator.stream(buffer);
     while (true) {
       const {value, done} = it.next();

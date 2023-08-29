@@ -5,6 +5,7 @@ import {
   HashCode,
   provider,
   Provider,
+  Logger,
 } from '@tashmet/tashmet';
 import { idSet, ChangeSet, AggregatorFactory, AbstractAggregator, ValidatorFactory } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
@@ -30,8 +31,10 @@ export class MingoComparator implements Comparator {
   key: AggregatorFactory,
 })
 export class MingoAggregatorFactory implements AggregatorFactory {
+  public constructor(private logger: Logger) {}
+
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    return new BufferAggregator(pipeline, options);
+    return new BufferAggregator(pipeline, options, this.logger);
   }
 }
 

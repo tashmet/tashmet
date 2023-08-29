@@ -1,3 +1,4 @@
+import { Logger } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
 import { AggregatorFactory, CollationOptions, Document, Streamable } from "./interfaces.js";
 
@@ -10,7 +11,7 @@ export async function *arrayToGenerator<T>(array: T[]) {
 export class AggregationEngine extends CursorRegistry {
   public constructor(
     private aggFact: AggregatorFactory,
-    private documentReader: Streamable,
+    private queryPlanner: QueryPlanner,
     private options: Document = {},
   ) { super(); }
 
@@ -22,7 +23,7 @@ export class AggregationEngine extends CursorRegistry {
     let input: AsyncIterable<Document>;
 
     if (typeof collection === 'string') {
-      input = this.documentReader.stream(collection);
+      input = this.queryPlanner.resolveDocuments(collection, pipeline);
     } else if (Array.isArray(collection)) {
       input = arrayToGenerator(collection);
     } else {
@@ -35,6 +36,31 @@ export class AggregationEngine extends CursorRegistry {
     return this.addCursor(
       new IteratorCursor(output[Symbol.asyncIterator](), ++this.cursorCounter)
     );
+  }
+}
+
+export class QueryPlanner {
+  public constructor(
+    private documentReader: Streamable,
+    private logger: Logger,
+  ) {}
+
+  public resolveDocuments(collection: string, pipeline: Document[]): AsyncIterable<Document> {
+    let documentIds: string[] | undefined;
+
+    if (pipeline.length > 0) {
+      const stage1 = pipeline[0];
+
+      const id = stage1.$match?._id;
+
+      if (typeof id === 'string') {
+        documentIds = [id];
+      } else if (Array.isArray(id)) {
+        documentIds = id;
+      }
+    }
+    this.logger.debug(`stream collection '${collection}' on ids: '${documentIds}'`)
+    return this.documentReader.stream(collection, documentIds);
   }
 }
 

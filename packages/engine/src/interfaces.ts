@@ -54,7 +54,7 @@ export interface WriteOptions {
 }
 
 export interface Streamable {
-  stream(collection: string): AsyncIterable<Document>;
+  stream(collection: string, documentIds?: string[]): AsyncIterable<Document>;
 }
 
 export interface Writable {

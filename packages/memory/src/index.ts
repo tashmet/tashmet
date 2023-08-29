@@ -1,4 +1,4 @@
-import { provider, Container, Provider, Lookup, Optional } from '@tashmet/core';
+import { provider, Container, Provider, Lookup, Optional, Logger } from '@tashmet/core';
 import {
   AdminController,
   AggregationController,
@@ -8,6 +8,7 @@ import {
   ChangeStreamDocument,
   CollectionRegistry,
   Document,
+  QueryPlanner,
   sequentialWrite,
   StorageEngine,
   StorageEngineFactory,
@@ -95,11 +96,19 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
     delete this.collections[collection];
   }
 
-  public async *stream(collection: string): AsyncGenerator<Document> {
+  public async *stream(collection: string, documentIds?: string[]): AsyncGenerator<Document> {
     const coll = this.collections[collection];
     if (coll) {
-      for (const doc of coll.documents) {
-        yield doc;
+      if (documentIds) {
+        for (const id of documentIds) {
+          if (coll.exists(id)) {
+            yield coll.documents[coll.indexes[id]];
+          }
+        }
+      } else {
+        for (const doc of coll.documents) {
+          yield doc;
+        }
       }
     } else {
       throw Error(`Collection ${collection} does not exist`);
@@ -121,7 +130,7 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
 }
 
 @provider({
-  inject: [AggregatorFactory, Optional.of(ValidatorFactory)]
+  inject: [AggregatorFactory, Logger, Optional.of(ValidatorFactory)]
 })
 export default class MemoryStorageEngineFactory extends StorageEngineFactory {
   public static configure(config: Partial<any> = {}) {
@@ -133,12 +142,13 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
 
   public constructor(
     private aggFact: AggregatorFactory,
+    private logger: Logger,
     private validatorFact?: ValidatorFactory,
   ) { super(); }
 
   public createStorageEngine(dbName: string): StorageEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
-    const engine = new AggregationEngine(this.aggFact, storage, {
+    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), {
       collectionResolver: (name: string) => storage.resolve(name),
     });
     const views: ViewMap = {};

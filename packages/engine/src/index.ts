@@ -8,6 +8,7 @@ export { QueryEngine, Queryable } from './query.js';
 export { Cursor, CursorRegistry } from './cursor.js';
 export { ChangeSet, idSet } from './changeSet.js';
 export * from './changeStream.js';
+export { QueryPlanner } from './aggregation.js';
 
 export { AggregationController } from './controllers/aggregate.js';
 export { AdminController } from './controllers/admin.js';

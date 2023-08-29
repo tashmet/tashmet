@@ -14,7 +14,8 @@ import {
   AggregationEngine,
   ViewMap,
   AdminController,
-  AggregationController
+  AggregationController,
+  QueryPlanner,
 } from '@tashmet/engine';
 import {
   CollectionBundleConfig,
@@ -128,6 +129,7 @@ export default class Nabu implements StreamProvider {
   public constructor(
     private aggFact: AggregatorFactory,
     private fileAccess: FileAccess,
+    private logger: Logger,
   ) {}
 
   public source(
@@ -161,7 +163,7 @@ export default class Nabu implements StreamProvider {
       storage = new CollectionBundleStorage(dbName, this, config as CollectionBundleConfig);
     }
 
-    const engine = new AggregationEngine(this.aggFact, storage, {
+    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), {
       collectionResolver: (name: string) => storage.resolve(name),
     });
     const views: ViewMap = {};
