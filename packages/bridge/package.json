@@ -1,6 +1,6 @@
 {
-	"name": "@tashmet/mingo",
-	"version": "1.0.0",
+	"name": "@tashmet/bridge",
+	"version": "0.1.0",
 	"description": "",
 	"type": "module",
 	"main": "dist/index.js",
@@ -12,8 +12,7 @@
 	},
 	"keywords": [
 		"tashmet",
-		"memory",
-		"mingo"
+		"bridge"
 	],
 	"author": "Björn Andersson",
 	"license": "MIT",
@@ -31,12 +30,7 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@tashmet/bridge": "^0.1.0",
-		"@tashmet/tashmet": "^1.4.0",
-		"@tashmet/engine": "^0.1.0",
-		"bson-objectid": "^1.3.0",
-		"eventemitter3": "^3.0.0",
-		"mingo": "6.0.5"
+		"@tashmet/core": "^1.0.2"
 	},
 	"devDependencies": {
 		"@types/node": "^13.1.8",

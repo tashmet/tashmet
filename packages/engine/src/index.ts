@@ -1,13 +1,11 @@
-import { ChangeStreamDocument } from './changeStream.js';
-import { Document, WriteError } from './interfaces.js';
+import { ChangeStreamDocument, Bridge, Namespace } from '@tashmet/bridge';
+import { Document, WriteError, StorageEngine, StorageEngineFactory } from './interfaces.js';
 
 export * from './interfaces.js';
 
 export { AggregationEngine } from './aggregation.js';
 export { QueryEngine, Queryable } from './query.js';
 export { Cursor, CursorRegistry } from './cursor.js';
-export { ChangeSet, idSet } from './changeSet.js';
-export * from './changeStream.js';
 export { QueryPlanner } from './aggregation.js';
 
 export { AggregationController } from './controllers/aggregate.js';
@@ -23,6 +21,28 @@ export interface AtomicWriteCollection {
   insert(document: Document): Promise<void>;
   replace(id: string, document: Document): Promise<void>;
   delete(id: string): Promise<void>;
+}
+
+export class StorageEngineBridge extends Bridge {
+  private engines: Record<string, StorageEngine> = {};
+
+  public constructor(private engineFactory: StorageEngineFactory | ((db: string) => StorageEngine)) { super(); }
+
+  public async command({db, coll}: Namespace, cmd: Document): Promise<Document> {
+    let engine = this.engines[db];
+
+    if (!engine) {
+      if (this.engineFactory instanceof StorageEngineFactory) {
+        engine = this.engines[db] = this.engineFactory.createStorageEngine(db);
+      } else {
+        engine = this.engineFactory(db);
+      }
+
+      engine.on('change', change => this.emit('change', change));
+    }
+
+    return engine.command(cmd);
+  }
 }
 
 export async function sequentialWrite(collections: Record<string, AtomicWriteCollection>, changes: ChangeStreamDocument[], ordered: boolean) {

@@ -27,6 +27,7 @@
   ],
   "dependencies": {
     "@async-generators/to-array": "^0.1.0",
+    "@tashmet/bridge": "^0.1.0",
     "@tashmet/engine": "^0.1.0",
     "@tashmet/memory": "^0.1.0",
     "@tashmet/tashmet": "^1.4.0",

@@ -10,10 +10,9 @@ import {
   ReplaceOneOptions,
   UpdateFilter,
   WithId,
-  Dispatcher,
   Namespace,
 } from "./interfaces.js";
-import { ChangeStream } from "@tashmet/engine";
+import { Dispatcher, ChangeStream } from "@tashmet/bridge";
 import { AggregationCursor } from "./cursor/aggregationCursor.js";
 import { FindCursor } from "./cursor/findCursor.js";
 import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert.js";

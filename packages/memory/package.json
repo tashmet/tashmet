@@ -30,6 +30,7 @@
 		"README.md"
 	],
 	"dependencies": {
+		"@tashmet/bridge": "^0.1.0",
 		"@tashmet/core": "^1.0.2",
 		"@tashmet/engine": "^0.1.0"
 	},

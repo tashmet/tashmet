@@ -2,20 +2,21 @@ import {
   AbstractCursor,
   Collection,
   Container,
-  Dispatcher,
   Document,
   Logger,
   provider,
 } from '@tashmet/tashmet';
+import { Dispatcher } from '@tashmet/bridge';
 import { MemoryStorage } from '@tashmet/memory';
 import {
-  StorageEngine,
   AggregatorFactory,
   AggregationEngine,
   ViewMap,
   AdminController,
   AggregationController,
   QueryPlanner,
+  StorageEngine,
+  StorageEngineBridge,
 } from '@tashmet/engine';
 import {
   CollectionBundleConfig,
@@ -113,10 +114,9 @@ export default class Nabu implements StreamProvider {
         const cr = container.resolve(ContentReader);
         const cw = container.resolve(ContentWriter);
 
+        const dispatcher = container.resolve(Dispatcher);
         for (const [dbName, dbConfig] of Object.entries(config.databases || {})) {
-          container
-            .resolve(Dispatcher)
-            .addStorageEngine(nabu.createBuffer(dbName, dbConfig));
+          dispatcher.addBridge(dbName, new StorageEngineBridge(db => nabu.createBuffer(db, dbConfig)));
         }
 
         //cr.register('text', textReader);

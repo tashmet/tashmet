@@ -1,0 +1,8 @@
+{
+  "_id": 5,
+  "item": {
+    "category": "cake",
+    "type": "carrot"
+  },
+  "amount": 20
+}

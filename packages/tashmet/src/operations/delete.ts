@@ -1,4 +1,5 @@
-import { Document, CollationOptions, Dispatcher, Namespace } from '../interfaces.js';
+import { Dispatcher } from '@tashmet/bridge';
+import { Document, CollationOptions, Namespace } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 import { Aspect, aspects } from './operation.js';
 

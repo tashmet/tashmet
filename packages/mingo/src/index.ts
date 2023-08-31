@@ -1,13 +1,13 @@
 import {
   Document,
-  Comparator,
   Container,
   HashCode,
   provider,
   Provider,
   Logger,
 } from '@tashmet/tashmet';
-import { idSet, ChangeSet, AggregatorFactory, AbstractAggregator, ValidatorFactory } from '@tashmet/engine';
+import { idSet, ChangeSet, Comparator } from '@tashmet/bridge';
+import { AggregatorFactory, AbstractAggregator, ValidatorFactory } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator, PrefetchAggregationStrategy } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';

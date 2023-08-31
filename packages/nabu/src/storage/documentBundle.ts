@@ -1,4 +1,5 @@
-import { ChangeStreamDocument, Document, WriteOptions } from '@tashmet/engine';
+import { Document, WriteOptions } from '@tashmet/engine';
+import { ChangeStreamDocument } from '@tashmet/bridge';
 
 import {
   DocumentBundleConfig,

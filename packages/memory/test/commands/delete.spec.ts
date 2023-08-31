@@ -3,9 +3,11 @@ import 'mocha';
 import MemoryStorageEngineFactory from '../../src';
 import { MingoAggregatorFactory } from '../../../mingo/src';
 import { StorageEngine } from '@tashmet/engine';
+import { DefaultLogger } from '@tashmet/core';
 
 const { expect } = chai;
-const storageEngineFact = new MemoryStorageEngineFactory(new MingoAggregatorFactory());
+const logger = new DefaultLogger();
+const storageEngineFact = new MemoryStorageEngineFactory(new MingoAggregatorFactory(logger), logger);
 
 
 describe('delete', () => {

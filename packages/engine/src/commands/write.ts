@@ -1,5 +1,5 @@
+import { ChangeStreamDocument } from "@tashmet/bridge";
 import ObjectID from "bson-objectid";
-import { ChangeStreamDocument } from "../changeStream.js";
 import { Document } from "../interfaces.js";
 
 

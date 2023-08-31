@@ -5,11 +5,11 @@ import {
   AggregationEngine,
   AggregatorFactory,
   AtomicWriteCollection,
-  ChangeStreamDocument,
   CollectionRegistry,
   Document,
   QueryPlanner,
   sequentialWrite,
+  StorageEngineBridge,
   StorageEngine,
   StorageEngineFactory,
   Streamable,
@@ -18,6 +18,10 @@ import {
   Writable,
   WriteOptions
 } from '@tashmet/engine';
+import {
+  Dispatcher,
+  ChangeStreamDocument,
+} from '@tashmet/bridge';
 
 export class MemoryCollection implements AtomicWriteCollection {
   public indexes: Record<string, number> = {};
@@ -137,6 +141,13 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
     return (container: Container) => {
       container.register(MemoryStorageEngineFactory);
       container.register(Provider.ofResolver(StorageEngineFactory, Lookup.of(MemoryStorageEngineFactory)));
+
+      return () => {
+        const fact = container.resolve(MemoryStorageEngineFactory);
+        container.resolve(Dispatcher).addBridge('*', new StorageEngineBridge(fact));
+
+          //.addStorageEngine(nabu.createBuffer(dbName, dbConfig));
+      }
     }
   }
 

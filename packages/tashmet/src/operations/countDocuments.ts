@@ -1,4 +1,5 @@
-import { Dispatcher, Document, Namespace } from "../interfaces.js";
+import { Dispatcher } from '@tashmet/bridge';
+import { Document, Namespace } from "../interfaces.js";
 import { AggregateOptions } from "./aggregate.js";
 import { CommandOperation } from "./command.js";
 

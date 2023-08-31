@@ -1,4 +1,5 @@
-import { Dispatcher, Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap } from '../interfaces.js';
+import { Dispatcher } from '@tashmet/bridge';
+import { Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap } from '../interfaces.js';
 import { AbstractCursor } from './abstractCursor.js';
 
 export function sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {

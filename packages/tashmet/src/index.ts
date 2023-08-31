@@ -55,7 +55,7 @@ export {
 
 } from '@tashmet/core';
 
-export { ChangeStream, ChangeStreamDocument } from '@tashmet/engine';
+export { ChangeStream, ChangeStreamDocument } from '@tashmet/bridge';
 
 export { Collection } from './collection.js';
 export { DatabaseService, DefaultDatabaseFactory } from './database.js';
@@ -79,9 +79,9 @@ import {
   ServiceIdentifier,
 } from '@tashmet/core';
 import { BootstrapConfig } from '@tashmet/core';
-import { Database, DatabaseFactory, Dispatcher } from './interfaces.js';
+import { Dispatcher } from '@tashmet/bridge';
+import { Database, DatabaseFactory } from './interfaces.js';
 import { DefaultDatabaseFactory } from './database.js';
-import { DefaultDispatcher } from './dispatcher.js';
 
 export interface Configuration extends LoggerConfig, BootstrapConfig {}
 
@@ -122,8 +122,7 @@ export class TashmetConfigurator {
       container: this.container,
     });
 
-    container.register(DefaultDispatcher);
-    container.register(Provider.ofResolver(Dispatcher, Lookup.of(DefaultDispatcher)));
+    container.register(Dispatcher);
     container.register(DefaultDatabaseFactory);
     container.register(Provider.ofResolver(DatabaseFactory, Lookup.of(DefaultDatabaseFactory)));
     container.register(Tashmet);

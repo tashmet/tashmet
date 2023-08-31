@@ -1,7 +1,5 @@
-import { StorageEngine } from '@tashmet/engine';
 import ObjectId from 'bson-objectid';
 import { Collection } from './collection.js';
-import { ChangeSet, EventEmitter } from '@tashmet/engine';
 import { CommandOperationOptions } from './operations/command.js';
 
 export type Document = Record<string, any>;
@@ -446,26 +444,3 @@ export const HashCode = Symbol('HashCode');
 
 export type HashCode = (value: any) => string | null;
 
-export interface Comparator {
-  /**
-   * Generate a change-set by comparing two collections
-   *
-   * @param a Collection before changes
-   * @param b Collection after changes
-   * @returns A change-set
-   */
-  difference<TSchema extends Document>(a: TSchema[], b: TSchema[]): ChangeSet<TSchema>;
-}
-
-export abstract class Comparator implements Comparator {}
-
-export type CommandFunction = (ns: Namespace, command: Document) => Promise<Document>
-export type Middleware = (next: CommandFunction) => CommandFunction;
-
-export abstract class Dispatcher extends EventEmitter {
-  public abstract dispatch(namespace: Namespace, command: Document): Promise<Document>;
-
-  public abstract addStorageEngine(engine: StorageEngine): void;
-
-  public abstract addMiddleware(middleware: Middleware): void;
-}
