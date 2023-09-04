@@ -93,7 +93,9 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
   }
 
   public async create(collection: string, {validator}: Document) {
-    this.collections[collection] = new MemoryCollection(collection, [], validator, this.validatorFact);
+    if (!this.collections[collection]) {
+      this.collections[collection] = new MemoryCollection(collection, [], validator, this.validatorFact);
+    }
   }
 
   public async drop(collection: string): Promise<void> {
