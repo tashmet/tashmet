@@ -1,19 +1,20 @@
 import chai from 'chai';
 import 'mocha';
-import MemoryStorageEngineFactory from '../../src';
-import { MingoAggregatorFactory } from '../../../mingo/src';
+import Memory from '../../src';
+import Mingo from '@tashmet/mingo';
 import { StorageEngine } from '@tashmet/engine';
-import { DefaultLogger } from '@tashmet/core';
 
 const { expect } = chai;
-const logger = new DefaultLogger();
-const storageEngineFact = new MemoryStorageEngineFactory(new MingoAggregatorFactory(logger), logger);
 
 describe('insert', () => {
   let engine: StorageEngine;
 
   before(() => {
-    engine = storageEngineFact.createStorageEngine('testdb');
+    engine = Memory
+      .configure({})
+      .use(Mingo, {})
+      .bootstrap()
+      .createStorageEngine('testdb');
   });
 
   describe('successful insert', () => {

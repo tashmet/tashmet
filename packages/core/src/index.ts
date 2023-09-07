@@ -1,7 +1,7 @@
 import { BootstrapConfig, createContainer } from './ioc/bootstrap.js';
 import { Container } from './ioc/interfaces.js';
 import { Provider } from './ioc/provider.js';
-import { LogFormatter, Logger, LoggerConfig, LogLevel } from './logging/interfaces.js';
+import { LogLevel } from './logging/interfaces.js';
 import { Newable } from './reflection/interfaces.js';
 
 export * from './ioc/index.js';
@@ -9,61 +9,65 @@ export * from './logging/index.js';
 export * from './reflection/index.js';
 
 export type PluginConfig = (container: Container) => void | (() => void);
+export type StaticThis<T> = { new (...args: any[]): T };
 
-export interface Configuration extends LoggerConfig, BootstrapConfig {}
+export interface Plugin<TConfig> {
+  configure(config: Partial<BootstrapConfig> & TConfig): PluginConfigurator<any, TConfig>
 
-interface Plugin<TConf> {
-  configure(conf: TConf): PluginConfig;
+  configure(config: TConfig, container?: Container): PluginConfigurator<any, TConfig>;
 }
 
-export abstract class AbstractConfigurator {
-  private plugins: PluginConfig[] = [];
-  private container: ((logger: Logger) => Container) | undefined = undefined;
-  private logLevel: LogLevel = LogLevel.None;
-  private logFormat: LogFormatter | undefined = undefined;
+export function plugin<TConfig>() {
+  return <U extends Plugin<TConfig>>(constructor: U) => {constructor};
+}
 
-  public constructor(
-    private providers: (Provider<any> | Newable<any>)[] = [],
-    config: Partial<Configuration>,
-  ) {
-    this.container = config.container;
-    this.logLevel = config.logLevel || LogLevel.None;
-    this.logFormat = config.logFormat;
+//export type PluginLoader = (() => void) | void;
+//export type PluginSetup<T> = (container: Container, config: T, standalone: boolean) => PluginLoader;
+
+export class PluginConfigurator<T, TConfig> {
+  protected plugins: PluginConfigurator<any, any>[] = [];
+  protected container: Container;
+
+  public constructor(private app: Newable<T>, protected config: Partial<BootstrapConfig> & TConfig, container?: Container) {
+    if (!container) {
+      this.container = createContainer({
+        logLevel: config.logLevel === undefined ? LogLevel.None : config.logLevel,
+        logFormat: config.logFormat,
+        container: config.container });
+    } else {
+      this.container = container;
+    }
+    this.container.register(app);
+    this.register();
   }
+
+  public register(): void {}
+
+  public load(): void {};
 
   public provide(...providers: (Provider<any> | Newable<any>)[]) {
-    this.providers.push(...providers);
+    for (const provider of providers) {
+      this.container.register(provider);
+    }
     return this;
   }
 
-  public use<TConf>(ctr: Plugin<TConf>, conf: TConf) {
-    this.plugins.push(ctr.configure(conf));
+  public use<TConf>(plugin: Plugin<TConf>, config: TConf) {
+    this.plugins.push(plugin.configure(config, this.container));
     return this;
   }
 
-  protected async bootstrap<T>(app: Newable<T>): Promise<T> {
-    const container = createContainer({
-      logFormat: this.logFormat,
-      logLevel: this.logLevel,
-      container: this.container,
-    });
-
-    for (const provider of this.providers) {
-      container.register(provider);
+  public bootstrap(): T {
+    for (const plugin of this.plugins) {
+      plugin.register();
     }
 
-    const loaders = this.plugins.map(p => p(container));
-
-    if (!container.isRegistered(app)) {
-      container.register(app);
+    for (const plugin of this.plugins) {
+      plugin.load();
     }
 
-    for (const loader of loaders) {
-      if (typeof loader === 'function') {
-        loader();
-      }
-    }
+    this.load();
 
-    return container.resolve(app);
+    return this.container.resolve(this.app);
   }
 }

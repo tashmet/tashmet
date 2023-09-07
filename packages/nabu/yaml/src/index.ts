@@ -1,4 +1,4 @@
-import { Container } from '@tashmet/core';
+import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
 import { Document } from '@tashmet/engine';
 import { ContentReader, ContentWriter } from '@tashmet/nabu';
 import { YamlConfig, YamlOptions } from './interfaces.js';
@@ -94,18 +94,21 @@ export function serializeYaml(data: Document, config?: YamlOptions): Buffer {
   }
 }
 
+@plugin<YamlConfig>()
 export default class NabuYaml {
-  public static configure(config: YamlConfig) {
-    return (container: Container) => {
-      return () => {
-        const cr = container.resolve(ContentReader);
-        const cw = container.resolve(ContentWriter);
+  public static configure(config: Partial<BootstrapConfig> & YamlConfig, container?: Container) {
+    return new YamlConfigurator(NabuYaml, config, container);
+  }
+}
 
-        for (const {match, ...opts} of config.rules || []) {
-          cr.register(match, async content => parseYaml(content, opts));
-          cw.register(match, async content => serializeYaml(content, opts));
-        }
-      }
+export class YamlConfigurator extends PluginConfigurator<NabuYaml, YamlConfig> {
+  public load() {
+    const cr = this.container.resolve(ContentReader);
+    const cw = this.container.resolve(ContentWriter);
+
+    for (const {match, ...opts} of this.config.rules || []) {
+      cr.register(match, async content => parseYaml(content, opts));
+      cw.register(match, async content => serializeYaml(content, opts));
     }
   }
 }

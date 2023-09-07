@@ -1,4 +1,14 @@
-import { provider, Container, Provider, Lookup, Optional, Logger } from '@tashmet/core';
+import {
+  provider,
+  Provider,
+  Lookup,
+  Optional,
+  Logger,
+  plugin,
+  BootstrapConfig,
+  PluginConfigurator,
+  Container
+} from '@tashmet/core';
 import {
   AdminController,
   AggregationController,
@@ -135,29 +145,22 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
   }
 }
 
+
+
 @provider({
   inject: [AggregatorFactory, Logger, Optional.of(ValidatorFactory)]
 })
+@plugin<any>()
 export default class MemoryStorageEngineFactory extends StorageEngineFactory {
-  public static configure(config: Partial<any> = {}) {
-    return (container: Container) => {
-      container.register(MemoryStorageEngineFactory);
-      container.register(Provider.ofResolver(StorageEngineFactory, Lookup.of(MemoryStorageEngineFactory)));
-
-      return () => {
-        const fact = container.resolve(MemoryStorageEngineFactory);
-        container.resolve(Dispatcher).addBridge('*', new StorageEngineBridge(fact));
-
-          //.addStorageEngine(nabu.createBuffer(dbName, dbConfig));
-      }
-    }
-  }
-
   public constructor(
     private aggFact: AggregatorFactory,
     private logger: Logger,
     private validatorFact?: ValidatorFactory,
   ) { super(); }
+
+  public static configure(config: Partial<BootstrapConfig>, container?: Container) {
+    return new MemoryConfigurator(MemoryStorageEngineFactory, config, container);
+  }
 
   public createStorageEngine(dbName: string): StorageEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
@@ -169,5 +172,20 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
       new AdminController(dbName, storage, views),
       new AggregationController(dbName, storage, engine, views)
     );
+  }
+}
+
+export class MemoryConfigurator extends PluginConfigurator<StorageEngineFactory, any> {
+  public register() {
+    this.container.register(Provider.ofResolver(StorageEngineFactory, Lookup.of(MemoryStorageEngineFactory)));
+
+    if (!this.container.isRegistered(Dispatcher)) {
+      this.container.register(Dispatcher);
+    }
+  }
+
+  public load() {
+    const fact = this.container.resolve(MemoryStorageEngineFactory);
+    this.container.resolve(Dispatcher).addBridge('*', new StorageEngineBridge(fact));
   }
 }

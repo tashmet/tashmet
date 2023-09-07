@@ -1,21 +1,22 @@
 import 'mingo/init/system';
 import chai from 'chai';
 import 'mocha';
-import MemoryStorageEngineFactory from '../../src';
-import { MingoAggregatorFactory } from '../../../mingo/src';
+import Memory from '../../src';
+import Mingo from '@tashmet/mingo';
 import { StorageEngine } from '@tashmet/engine';
-import { DefaultLogger } from '@tashmet/core';
 
 const { expect } = chai;
-const logger = new DefaultLogger();
-const storageEngineFact = new MemoryStorageEngineFactory(new MingoAggregatorFactory(logger), logger);
-
 
 describe('distinct', () => {
   let engine: StorageEngine;
 
   before(async () => {
-    engine = storageEngineFact.createStorageEngine('testdb');
+    engine = Memory
+      .configure({})
+      .use(Mingo, {})
+      .bootstrap()
+      .createStorageEngine('testdb');
+
     await engine.command({create: 'inventory'});
     await engine.command({insert: 'inventory', documents: [
       { _id: 1, dept: "A", item: { sku: "111", color: "red" }, sizes: [ "S", "M" ] },

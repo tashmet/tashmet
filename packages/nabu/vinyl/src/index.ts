@@ -6,10 +6,11 @@ import fs from 'fs';
 import minimatch from 'minimatch';
 export * from './interfaces.js';
 
-import {Container, Document, Optional, provider, Provider} from '@tashmet/tashmet';
+import {Container } from '@tashmet/tashmet';
 import {FileAccess, File, ReadableFile, FileReader, FileWriter, ContentWriter, ContentReader, fileExtension} from '@tashmet/nabu';
 import {Stream} from '@tashmet/nabu-stream';
 import {FileSystemConfig} from './interfaces.js';
+import { BootstrapConfig, plugin, PluginConfigurator } from '@tashmet/core';
 
 
 export class VinylFSReader implements FileReader {
@@ -67,30 +68,10 @@ export class VinylFSWriter implements FileWriter {
 }
 
 
+@plugin<FileSystemConfig>()
 export default class VinylFS {
-  public static configure(config: FileSystemConfig) {
-    return (container: Container) => {
-      /*
-      if (config.watch) {
-        container.register(
-          Provider.ofInstance<chokidar.FSWatcher>('chokidar.FSWatcher', chokidar.watch([], {
-            ignoreInitial: true,
-            persistent: true
-          }))
-        );
-      }
-      */
-      //container.register(VinylFS);
-
-      return () => {
-        const fa = container.resolve(FileAccess);
-        const cr = container.resolve(ContentReader);
-        const cw = container.resolve(ContentWriter);
-
-        fa.registerWriter(new VinylFSWriter(cw));
-        fa.registerReader(new VinylFSReader(cr));
-      }
-    }
+  public static configure(config: Partial<BootstrapConfig> & FileSystemConfig, container?: Container) {
+    return new VinylConfigurator(VinylFS, config, container);
   }
 }
 /*
@@ -185,3 +166,14 @@ export default class VinylFS extends FileAccess  {
   }
 }
 */
+
+export class VinylConfigurator extends PluginConfigurator<VinylFS, FileSystemConfig> {
+  public load() {
+    const fa = this.container.resolve(FileAccess);
+    const cr = this.container.resolve(ContentReader);
+    const cw = this.container.resolve(ContentWriter);
+
+    fa.registerWriter(new VinylFSWriter(cw));
+    fa.registerReader(new VinylFSReader(cr));
+  }
+}

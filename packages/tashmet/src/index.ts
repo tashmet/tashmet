@@ -70,28 +70,13 @@ import {
   Lookup,
   provider,
   Provider,
-  ServiceIdentifier,
-  AbstractConfigurator,
+  BootstrapConfig,
+  ServiceRequest,
+  PluginConfigurator,
 } from '@tashmet/core';
-import { Configuration } from '@tashmet/core';
 import { Dispatcher } from '@tashmet/bridge';
 import { Database, DatabaseFactory } from './interfaces.js';
 import { DefaultDatabaseFactory } from './database.js';
-
-export class TashmetConfigurator extends AbstractConfigurator {
-  public constructor(config: Partial<Configuration>) {
-    super([
-      Dispatcher,
-      DefaultDatabaseFactory,
-      Provider.ofResolver(DatabaseFactory, Lookup.of(DefaultDatabaseFactory)),
-      Tashmet,
-    ], config);
-  }
-
-  public async connect() {
-    return this.bootstrap(Tashmet);
-  }
-}
 
 @provider({
   inject: [Container, DatabaseFactory]
@@ -106,11 +91,16 @@ export default class Tashmet {
     return this.databaseFactory.createDatabase(name);
   }
 
-  public resolve<T>(key: ServiceIdentifier<T>) {
+  public resolve<T>(key: ServiceRequest<T>) {
     return this.container.resolve(key);
   }
 
-  public static configure(config: Partial<Configuration> = {}) {
-    return new TashmetConfigurator(config);
+  public static configure(config: Partial<BootstrapConfig>) {
+    return new PluginConfigurator<Tashmet, any>(Tashmet, config)
+      .provide(
+        Dispatcher,
+        DefaultDatabaseFactory,
+        Provider.ofResolver(DatabaseFactory, Lookup.of(DefaultDatabaseFactory))
+      );
   }
 }

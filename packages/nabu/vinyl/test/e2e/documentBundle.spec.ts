@@ -26,8 +26,8 @@ describe('documentBundle', () => {
   let col: Collection<any>;
 
   before(async () => {
-    const client = await Tashmet
-      .configure()
+    const client = Tashmet
+      .configure({})
       .use(Mingo, {})
       .use(Nabu, {
         databases: {
@@ -37,7 +37,8 @@ describe('documentBundle', () => {
         }
       })
       .use(Vinyl, {watch: false})
-      .connect();
+      .bootstrap();
+
     col = client.db('e2e').collection('testCollection');
   });
 
@@ -60,7 +61,7 @@ describe('documentBundle', () => {
     fs.rmdirSync('test/e2e/testCollection');
   });
 
-  describe('insertOne', () => {
+  describe.only('insertOne', () => {
     it('should add a single document and give it an id', async () => {
       const doc = {item: { category: 'brownies', type: 'blondie' }, amount: 10 };
       const result = await col.insertOne(doc);

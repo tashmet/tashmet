@@ -1,7 +1,6 @@
 import {
   AbstractCursor,
   Collection,
-  Container,
   Document,
   Logger,
   provider,
@@ -40,6 +39,7 @@ import { jsonReader, jsonWriter } from './operators/json.js';
 export * from './interfaces.js';
 
 import globToRegExp from 'glob-to-regexp';
+import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
 
 @provider({
   key: ContentReader,
@@ -101,29 +101,10 @@ export class NabuContentWriter implements ContentWriter {
 }
 
 @provider()
+@plugin<Partial<NabuConfig>>()
 export default class Nabu implements StreamProvider {
-  public static configure(config: Partial<NabuConfig> = {}) {
-    return (container: Container) => {
-      container.register(Nabu);
-      container.register(NabuContentReader);
-      container.register(NabuContentWriter);
-      container.register(FileAccess);
-
-      return () => {
-        const nabu = container.resolve(Nabu);
-        const cr = container.resolve(ContentReader);
-        const cw = container.resolve(ContentWriter);
-
-        const dispatcher = container.resolve(Dispatcher);
-        for (const [dbName, dbConfig] of Object.entries(config.databases || {})) {
-          dispatcher.addBridge(dbName, new StorageEngineBridge(db => nabu.createBuffer(db, dbConfig)));
-        }
-
-        //cr.register('text', textReader);
-        cr.register('*.json', content => jsonReader(content));
-        cw.register('*.json', content => jsonWriter(content));
-      }
-    }
+  public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>, container?: Container) {
+    return new NabuConfigurator(Nabu, config, container);
   }
 
   public constructor(
@@ -171,5 +152,29 @@ export default class Nabu implements StreamProvider {
       new AdminController(dbName, storage, views),
       new AggregationController(dbName, storage, engine, views)
     );
+  }
+}
+
+export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfig>> {
+  public register() {
+    this.container.register(NabuContentReader);
+    this.container.register(NabuContentWriter);
+    this.container.register(FileAccess);
+  }
+
+  public load() {
+    const cr = this.container.resolve(ContentReader);
+    const cw = this.container.resolve(ContentWriter);
+
+    //cr.register('text', textReader);
+    cr.register('*.json', content => jsonReader(content));
+    cw.register('*.json', content => jsonWriter(content));
+
+    const nabu = this.container.resolve(Nabu);
+    const dispatcher = this.container.resolve(Dispatcher);
+
+    for (const [dbName, dbConfig] of Object.entries(this.config.databases || {})) {
+      dispatcher.addBridge(dbName, new StorageEngineBridge(db => nabu.createBuffer(db, dbConfig)));
+    }
   }
 }

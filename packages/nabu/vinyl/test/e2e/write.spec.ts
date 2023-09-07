@@ -26,12 +26,12 @@ describe.skip('write', () => {
   let nabu: Nabu;
 
   before(async () => {
-    nabu = await Tashmet
-      .configure()
+    nabu = Nabu
+      .configure({})
       .use(Mingo, {})
       .use(Nabu, {})
       .use(Vinyl, {watch: false})
-      .bootstrap(Nabu);
+      .bootstrap();
   });
 
 
