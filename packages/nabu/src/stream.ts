@@ -52,7 +52,7 @@ export class Stream<T extends Document = Document>
     return toArray(this);
   }
 
-  public write(): Promise<void> {
+  public write(): Promise<any[]> {
     return this.fileAccess.write(this);
   }
 

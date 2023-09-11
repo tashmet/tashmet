@@ -61,7 +61,7 @@ describe('documentBundle', () => {
     fs.rmdirSync('test/e2e/testCollection');
   });
 
-  describe.only('insertOne', () => {
+  describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
       const doc = {item: { category: 'brownies', type: 'blondie' }, amount: 10 };
       const result = await col.insertOne(doc);
@@ -129,7 +129,7 @@ describe('documentBundle', () => {
   describe('replaceOne', () => {
     it('should update a single document', async () => {
       const result = await col.replaceOne(
-        {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
+        {_id: '1'}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
       expect(result).to.eql({
         acknowledged: true,
@@ -138,11 +138,11 @@ describe('documentBundle', () => {
         upsertedCount: 0,
         upsertedId: null,
       });
-      expect(storedDoc(1)).to.eql({_id: 1, item: { category: 'brownies', type: 'blondie' }, amount: 20 });
+      expect(storedDoc(1)).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
     });
     it('should have zero matchedCount and modifiedCount if no document matched selector', async () => {
       const result = await col.replaceOne(
-        {_id: 6}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
+        {_id: '6'}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
       expect(result).to.eql({
         acknowledged: true,
@@ -154,13 +154,13 @@ describe('documentBundle', () => {
     });
     it('should completely replace document', async () => {
       await col.replaceOne(
-        {_id: 1}, { amount: 20 }
+        {_id: '1'}, { amount: 20 }
       );
-      expect(storedDoc(1)).to.eql({_id: 1, amount: 20 });
+      expect(storedDoc(1)).to.eql({_id: '1', amount: 20 });
     });
     it('should upsert when specified', async () => {
       const result = await col.replaceOne(
-        {_id: 6}, { amount: 20 }, {upsert: true}
+        {_id: '6'}, { amount: 20 }, {upsert: true}
       );
       expect(result.upsertedCount).to.eql(1);
       expect(result.upsertedId).to.not.eql(undefined);
@@ -194,25 +194,26 @@ describe('documentBundle', () => {
 
   describe('findOne', () => {
     it('should return null when document is not found', () => {
-      return expect(col.findOne({_id: 7})).to.eventually.eql(null);
+      return expect(col.findOne({_id: '7'})).to.eventually.eql(null);
     });
     it('should return the document when found', async () => {
-      const doc = await col.findOne({_id: 1});
+      const doc = await col.findOne({_id: '1'});
+      expect(doc).to.not.be.null;
       expect(doc).to.haveOwnProperty('amount').equals(10);
     });
   });
 
   describe('find', () => {
     it('should return empty list when no documents match selector', () => {
-      return expect(col.find({_id: 7}).toArray()).to.eventually.be.empty;
+      return expect(col.find({_id: '7'}).toArray()).to.eventually.be.empty;
     });
     it('should return a list of matched documents', async () => {
       const docs = await col.find({'item.type': 'chiffon'}).toArray();
       expect(docs).to.have.length(1);
-      expect(docs[0]).to.haveOwnProperty('_id').equal(1);
+      expect(docs[0]).to.haveOwnProperty('_id').equal('1');
     });
     it('should handle query operators', async () => {
-      const docs = await col.find({_id: {$in: [1, 2, 7]}}).toArray();
+      const docs = await col.find({_id: {$in: ['1', '2', '7']}}).toArray();
       expect(docs).to.have.length(2);
     });
     it('should do sorting with key', async () => {
@@ -248,17 +249,17 @@ describe('documentBundle', () => {
 
   describe('deleteOne', () => {
     it('should return zero deletedCount when no document match selector', () => {
-      return expect(col.deleteOne({_id: 7}))
+      return expect(col.deleteOne({_id: '7'}))
         .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
     it('should return non-zero deletedCount when document matches selector', async () => {
-      return expect(col.deleteOne({_id: 1}))
+      return expect(col.deleteOne({_id: '1'}))
         .to.eventually.eql({acknowledged: true, deletedCount: 1});
     });
     it('should have removed selected document', async () => {
       const storedCount = storedFiles().length;
-      await col.deleteOne({_id: 1});
-      expect(col.findOne({_id: 1})).to.eventually.be.null;
+      await col.deleteOne({_id: '1'});
+      expect(col.findOne({_id: '1'})).to.eventually.be.null;
       expect(storedFiles().length).to.eql(storedCount - 1);
       expect(storedFiles()).to.not.contain('1.json');
     });
@@ -277,7 +278,7 @@ describe('documentBundle', () => {
 
   describe('deleteMany', () => {
     it('should return zero deletedCount when no document match selector', () => {
-      return expect(col.deleteMany({_id: 7}))
+      return expect(col.deleteMany({_id: '7'}))
         .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
     it('should return non-zero deletedCount when documents match selector', async () => {

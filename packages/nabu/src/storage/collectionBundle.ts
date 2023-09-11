@@ -44,26 +44,24 @@ export class CollectionBundleStorage extends BufferStorage {
     this.configs[collection] = options.storageEngine;
 
     try {
-      /*
-      const stream = this.streamProvider.read(this.config.collectionBundle(collection))
+      const stream = this.streamProvider.source(this.config.collectionBundle(collection))
         .pipe(loadBundle(this.config.dictionary))
       await this.populate(collection, stream);
-      */
     } catch (err) {
       // File not found, do nothing
     }
   }
 
   public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {
-    const res = await super.write(changes, options);
+    const writeErrors = await super.write(changes, options);
     const collections = new Set(changes.map(c => c.ns.coll));
     for (const c of [...collections]) {
       await this.persistCollection(c);
     }
-    return res;
+    return writeErrors;
   }
 
-  private async persistCollection(collection: string): Promise<void> {
+  private async persistCollection(collection: string): Promise<any> {
     const docs = this.resolve(collection);
 
     if (docs.length > 0) {

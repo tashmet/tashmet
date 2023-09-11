@@ -16,6 +16,9 @@ import {
   QueryPlanner,
   StorageEngine,
   StorageEngineBridge,
+  Writable,
+  Streamable,
+  CollectionRegistry,
 } from '@tashmet/engine';
 import {
   CollectionBundleConfig,
@@ -136,7 +139,7 @@ export default class Nabu implements StreamProvider {
   }
 
   public createBuffer(dbName: string, config: NabuDatabaseConfig): StorageEngine {
-    let storage: MemoryStorage;
+    let storage: Streamable & Writable & CollectionRegistry;
 
     if (config.hasOwnProperty('documentBundle')) {
       storage = new DocumentBundleStorage(dbName, this, config as DocumentBundleConfig);
@@ -145,7 +148,7 @@ export default class Nabu implements StreamProvider {
     }
 
     const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), {
-      collectionResolver: (name: string) => storage.resolve(name),
+      collectionResolver: (name: string) => { throw Error('not resolvable'); }//storage.resolve(name),
     });
     const views: ViewMap = {};
     return StorageEngine.fromControllers(dbName,

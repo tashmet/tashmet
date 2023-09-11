@@ -76,7 +76,7 @@ export interface FileReader extends UriPattern {
 }
 
 export interface FileWriter extends UriPattern {
-  write(files: AsyncIterable<File<any>>, options?: Document): Promise<void>;
+  write(files: AsyncIterable<File<any>>, options?: Document): Promise<any>;
 }
 
 export interface FileWatcher extends UriPattern {
@@ -115,16 +115,20 @@ export class FileAccess {
     return reader.read(uri, options);
   }
 
-  public async write(files: AsyncIterable<File<Buffer>>): Promise<void> {
+  public async write(files: AsyncIterable<File<Buffer>>): Promise<any[]> {
+    const writeErrors: any[] = [];
+
     for (const w of this.writers) {
-      await this.writeToWriter(w, files);
+      const res =  await this.writeToWriter(w, files);
+      writeErrors.push(...res);
     }
+    return writeErrors;
   }
 
   private async writeToWriter(
     writer: FileWriter,
     files: AsyncIterable<File<Buffer>>
-  ): Promise<void> {
+  ): Promise<any> {
     async function *gen() {
       for await (const file of files) {
         if (writer.pattern.test(file.path)) {
@@ -132,7 +136,7 @@ export class FileAccess {
         }
       }
     }
-    await writer.write(gen());
+    return writer.write(gen());
   }
 
   public watch(globs: string | string[], deletion?: boolean): AsyncGenerator<File> | null {

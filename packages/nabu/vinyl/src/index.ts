@@ -18,20 +18,17 @@ export class VinylFSReader implements FileReader {
 
   public constructor(private contentReader: ContentReader) {}
 
-  public read(location: string | string[]): AsyncGenerator<ReadableFile> {
-    const files = Stream.toGenerator(vfs.src(location, {buffer: true}));
+  public async *read(location: string | string[]): AsyncGenerator<ReadableFile> {
+    const files = Stream.toGenerator(vfs.src(location, { buffer: true, allowEmpty: true }));
     const cr = this.contentReader;
 
-    async function *reader() {
-      for await (const vinyl of files()) {
-        yield await cr.read({
-          path: vinyl.path,
-          content: vinyl.contents,
-          isDir: vinyl.isDirectory()
-        });
-      }
+    for await (const vinyl of files()) {
+      yield await cr.read({
+        path: vinyl.path,
+        content: vinyl.contents,
+        isDir: vinyl.isDirectory()
+      });
     }
-    return reader();
   }
 }
 
@@ -40,12 +37,18 @@ export class VinylFSWriter implements FileWriter {
 
   public constructor(private contentWriter: ContentWriter) {}
 
-  public async write(files: AsyncGenerator<File>): Promise<void> {
+  public async write(files: AsyncGenerator<File>): Promise<any> {
     const deletes: string[] = [];
+    const writeErrors: any[] = [];
+    let index = 0;
 
     async function *writer(cw: ContentWriter) {
       for await (const file of files) {
         const {path, content} = await cw.write(file);
+
+        if (!file.overwrite && fs.existsSync(path)) {
+          writeErrors.push({ errMsg: `Trying to overwrite file: ${path} with overwrite flag set to false`, index })
+        }
 
         if (file.content) {
           yield new Vinyl({
@@ -55,15 +58,19 @@ export class VinylFSWriter implements FileWriter {
         } else {
           deletes.push(file.path);
         }
+
+        index++;
       }
     }
-    return Stream.toSink(vfs.dest('.'))(writer(this.contentWriter)).then(() => {
-      for (const path of deletes) {
-        if (fs.existsSync(path)) {
-          fs.unlinkSync(path);
-        }
+
+    await Stream.toSink(vfs.dest('.'))(writer(this.contentWriter));
+
+    for (const path of deletes) {
+      if (fs.existsSync(path)) {
+        fs.unlinkSync(path);
       }
-    });
+    }
+    return writeErrors;
   }
 }
 

@@ -23,7 +23,7 @@ function storedKeys() {
   return Object.keys(fs.readJsonSync(`test/e2e/testCollection.json`));
 }
 
-describe.skip('collectionBundle', () => {
+describe('collectionBundle', () => {
   let col: Collection<any>;
 
   before(async () => {

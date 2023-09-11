@@ -18,8 +18,8 @@ async function signalReadable(reader: Readable) {
 export class Stream {
   public static toGenerator<T>(readable: Readable) {
     return async function* gen() {
-      await signalReadable(readable);
       const endPromise = signalEnd(readable);
+      await Promise.race([endPromise, signalReadable(readable)]);
       let finished: boolean = false;
 
       endPromise.then(() => {
