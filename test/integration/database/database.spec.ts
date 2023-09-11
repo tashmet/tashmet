@@ -16,11 +16,11 @@ describe('database', () => {
   let db: Database;
 
   before(async () => {
-    const tashmet = await Tashmet
+    const tashmet = Tashmet
       .configure()
       .use(Mingo, {})
       .use(Memory, {})
-      .connect();
+      .bootstrap();
     db = tashmet.db('testdb');
     db.collection('test');
   });

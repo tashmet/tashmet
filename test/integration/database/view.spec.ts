@@ -16,11 +16,11 @@ describe('view', () => {
   let totals: Collection;
 
   before(async () => {
-    const client = await Tashmet
+    const client = Tashmet
       .configure()
       .use(Mingo, {})
       .use(Memory, {})
-      .connect();
+      .bootstrap();
 
     const db = client.db('testdb');
 

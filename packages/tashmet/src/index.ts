@@ -95,8 +95,8 @@ export default class Tashmet {
     return this.container.resolve(key);
   }
 
-  public static configure(config: Partial<BootstrapConfig>) {
-    return new PluginConfigurator<Tashmet, any>(Tashmet, config)
+  public static configure(config?: Partial<BootstrapConfig>) {
+    return new PluginConfigurator<Tashmet, any>(Tashmet, config || {})
       .provide(
         Dispatcher,
         DefaultDatabaseFactory,

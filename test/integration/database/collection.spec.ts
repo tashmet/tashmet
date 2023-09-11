@@ -27,11 +27,11 @@ describe('Collection', () => {
   let tashmet: Tashmet;
 
   before(async () => {
-    tashmet = await Tashmet
+    tashmet = Tashmet
       .configure()
       .use(Mingo, {})
       .use(Memory, {})
-      .connect();
+      .bootstrap();
   });
 
   beforeEach(async () => {

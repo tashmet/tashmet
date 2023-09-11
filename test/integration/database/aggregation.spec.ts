@@ -19,11 +19,11 @@ describe('aggregation', () => {
     let db: Database;
 
     before(async () => {
-      const client = await Tashmet
+      const client = Tashmet
         .configure()
         .use(Mingo, {})
         .use(Memory, {})
-        .connect();
+        .bootstrap();
 
       db = client.db('testdb');
 

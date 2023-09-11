@@ -15,11 +15,11 @@ describe('validation', () => {
   let sales: Collection;
 
   before(async () => {
-    const tashmet = await Tashmet
+    const tashmet = Tashmet
       .configure()
       .use(Mingo, {})
       .use(Memory, {})
-      .connect();
+      .bootstrap();
 
     sales = tashmet.db('test').createCollection('sales', {
       validator: {
