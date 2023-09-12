@@ -32,11 +32,9 @@ export class StorageEngineBridge extends Bridge {
     let engine = this.engines[db];
 
     if (!engine) {
-      if (this.engineFactory instanceof StorageEngineFactory) {
-        engine = this.engines[db] = this.engineFactory.createStorageEngine(db);
-      } else {
-        engine = this.engineFactory(db);
-      }
+      engine = this.engines[db] = this.engineFactory instanceof StorageEngineFactory
+        ? this.engineFactory.createStorageEngine(db)
+        : this.engineFactory(db);
 
       engine.on('change', change => this.emit('change', change));
     }
