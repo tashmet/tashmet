@@ -53,8 +53,14 @@ export interface WriteOptions {
   ordered: boolean;
 }
 
+export interface StreamOptions {
+  documentIds?: string[];
+
+  projection?: Document;
+}
+
 export interface Streamable {
-  stream(collection: string, documentIds?: string[]): AsyncIterable<Document>;
+  stream(collection: string, options?: StreamOptions): AsyncIterable<Document>;
 }
 
 export interface Writable {

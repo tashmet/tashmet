@@ -21,9 +21,10 @@ export class AggregationEngine extends CursorRegistry {
     collation: CollationOptions | undefined,
   ): Cursor {
     let input: AsyncIterable<Document>;
+    const qa = QueryAnalysis.fromPipeline(pipeline);
 
     if (typeof collection === 'string') {
-      input = this.queryPlanner.resolveDocuments(collection, pipeline);
+      input = this.queryPlanner.resolveDocuments(collection, qa);
     } else if (Array.isArray(collection)) {
       input = arrayToGenerator(collection);
     } else {
@@ -45,32 +46,26 @@ export class QueryPlanner {
     private logger: Logger,
   ) {}
 
-  public resolveDocuments(collection: string, pipeline: Document[]): AsyncIterable<Document> {
+  public resolveDocuments(collection: string, qa: QueryAnalysis): AsyncIterable<Document> {
     let documentIds: string[] | undefined;
 
-    if (pipeline.length > 0) {
-      const stage1 = pipeline[0];
+    const id = qa.filter._id;
 
-      const id = stage1.$match?._id;
-
-      if (typeof id === 'string') {
-        documentIds = [id];
-      } else if (Array.isArray(id)) {
-        documentIds = id;
-      }
+    if (typeof id === 'string') {
+      documentIds = [id];
+    } else if (Array.isArray(id)) {
+      documentIds = id;
     }
     this.logger.debug(`stream collection '${collection}' on ids: '${documentIds}'`)
-    return this.documentReader.stream(collection, documentIds);
+    return this.documentReader.stream(collection, {
+      documentIds,
+      projection: Object.keys(qa.filter).length === 0 || qa.filter._id !== undefined ? qa.projection : undefined,
+    });
   }
 }
 
-export interface PrefetchAggregationStrategy {
-  filter: Document;
-  options: Document;
-  pipeline: Document[];
-}
-
-export function makePrefetchStrategy(pipeline: Document[]) {
+export class QueryAnalysis {
+  public static fromPipeline(pipeline: Document[]): QueryAnalysis {
     let filter: Document = {};
     let options: Document = {};
 
@@ -107,34 +102,15 @@ export function makePrefetchStrategy(pipeline: Document[]) {
       }
     }
 
-    return {filter, options, pipeline: pipeline.slice(prevStepOps.length)};
-}
+    return new QueryAnalysis(pipeline, filter, options.projection);
+  }
 
-/*
-export class PrefetchAggregationEngine extends AggregationEngine {
   public constructor(
-    streamable: Streamable,
-    aggFact: AggregatorFactory,
-    private queryable: Queryable
-  ) { super(streamable, aggFact); }
-
-  public find(collName: string, query: Document, collation?: CollationOptions): Cursor {
-    return this.addCursor(
-      new QueryCursor(this.queryable, collName, {...query, collation}, ++this.cursorCounter)
-    );
-  }
-
-  public aggregate(collName: string, pipeline: Document[], collation?: CollationOptions) {
-    const {filter, options, pipeline: outputPipeline} = makePrefetchStrategy(pipeline);
-
-    if (outputPipeline.length > 0) {
-      throw new Error('Pipeline contains unsupported operators');
-    }
-
-    return this.find(collName, {filter: filter, ...options}, collation);
-  }
+    public readonly pipeline: Document[],
+    public readonly filter: Document,
+    public readonly projection: Document,
+  ) {}
 }
-*/
 
 export const makeQueryPipeline = ({filter, sort, skip, limit, projection}: Document) => {
   const operators: Document[] = [];
