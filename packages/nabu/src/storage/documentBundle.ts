@@ -1,4 +1,4 @@
-import { CollectionRegistry, Document, Streamable, Writable, WriteOptions } from '@tashmet/engine';
+import { CollectionRegistry, Document, Streamable, StreamOptions, Writable, WriteOptions } from '@tashmet/engine';
 import { ChangeStreamDocument } from '@tashmet/bridge';
 
 import {
@@ -7,7 +7,6 @@ import {
   StreamProvider,
 } from '../interfaces.js';
 import * as nodePath from 'path';
-import { BufferStorage } from './buffer.js';
 import { clone } from '../operators/common.js';
 
 
@@ -48,11 +47,10 @@ export function createFiles(
 }
 
 export class DocumentBundleStorage implements CollectionRegistry, Streamable, Writable {
-  protected rLock: Promise<any> | undefined;
   protected configs: Record<string, Document> = {};
 
   constructor(
-    private databaseName: string,
+    public readonly databaseName: string,
     private streamProvider: StreamProvider,
     private config: DocumentBundleConfig,
   ) {}
@@ -60,17 +58,6 @@ export class DocumentBundleStorage implements CollectionRegistry, Streamable, Wr
 
   public async create(collection: string, options: Document): Promise<void> {
     this.configs[collection] = options.storageEngine;
-    //return this.rLock = new Promise<void>(async resolve => {
-      //const path = this.config.documentBundle(collection);
-      //const stream = this.streamProvider.source(path)
-        //.pipe(loadFiles(file => nodePath.basename(file.path).split('.')[0]));
-
-      //await super.create(collection, options || {});
-      //this.configs[collection] = options.storageEngine;
-
-      //await this.populate(collection, stream);
-      //resolve();
-    //});
   }
 
   public async drop(collection: string): Promise<void> {
@@ -87,56 +74,17 @@ export class DocumentBundleStorage implements CollectionRegistry, Streamable, Wr
       .write();
   }
 
-  public async *stream(collection: string, documentIds: string[] | undefined): AsyncIterable<Document> {
-    if (documentIds) {
-      for (const id of documentIds) {
-        let s = this.streamProvider.source(this.config.documentBundle(collection, id))
-          .pipe(loadFiles(file => nodePath.basename(file.path).split('.')[0]));
-        for await (const doc of s) {
-          yield doc;
-        }
+  public async *stream(collection: string, { documentIds, projection }: StreamOptions): AsyncIterable<Document> {
+    const paths = documentIds
+      ? documentIds.map(id => this.config.documentBundle(collection, id))
+      : [this.config.documentBundle(collection)];
+
+    for (const path of paths) {
+      const stream = this.streamProvider.source(path, { content: projection?._id !== 1})
+        .pipe(loadFiles(file => nodePath.basename(file.path).split('.')[0]));
+      for await (const doc of stream) {
+        yield doc;
       }
-    }
-    const stream = this.streamProvider.source(this.config.documentBundle(collection))
-      .pipe(loadFiles(file => nodePath.basename(file.path).split('.')[0]));
-    for await (const doc of stream) {
-      yield doc;
     }
   }
 }
-
-//export class DocumentBundleStorage extends BufferStorage {
-  //constructor(
-    //databaseName: string,
-    //streamProvider: StreamProvider,
-    //private config: DocumentBundleConfig,
-  //) { super(databaseName, streamProvider); }
-
-
-  //public async create(collection: string, options: Document): Promise<void> {
-    //return this.rLock = new Promise<void>(async resolve => {
-      //const path = this.config.documentBundle(collection);
-      //const stream = this.streamProvider.source(path)
-        //.pipe(loadFiles(file => nodePath.basename(file.path).split('.')[0]));
-
-      //await super.create(collection, options || {});
-      //this.configs[collection] = options.storageEngine;
-
-      //await this.populate(collection, stream);
-      //resolve();
-    //});
-  //}
-
-  //public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {
-    //const writeErrors = await super.write(changes, options);
-    //await this.streamProvider.source(changes)
-      //.pipe(clone())
-      //.pipe(createFiles(
-        //c => this.config.documentBundle(c.ns.coll, c.documentKey._id),
-        //c => c.operationType === 'delete' ? undefined : c.fullDocument,
-      //))
-      //.write();
-
-    //return writeErrors;
-  //}
-//}

@@ -46,7 +46,7 @@ export class IPFSService extends FileAccess  {
     return gen();
   }
 
-  public async write(files: AsyncGenerator<File>): Promise<void> {
+  public async write(files: AsyncGenerator<File>): Promise<any> {
     for await (const file of files) {
       if (file.content) {
         await this.ipfs.files.write(file.path, file.content, {create: true});

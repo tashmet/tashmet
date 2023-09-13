@@ -6,7 +6,6 @@ import {
   provider,
 } from '@tashmet/tashmet';
 import { Dispatcher } from '@tashmet/bridge';
-import { MemoryStorage } from '@tashmet/memory';
 import {
   AggregatorFactory,
   AggregationEngine,
@@ -117,10 +116,11 @@ export default class Nabu implements StreamProvider {
   ) {}
 
   public source(
-    src: string | Document[] | AsyncIterable<Document> | AbstractCursor<Document> | Collection<Document>
+    src: string | Document[] | AsyncIterable<Document> | AbstractCursor<Document> | Collection<Document>,
+    options?: Document
   ): Stream {
     if (typeof src === "string") {
-      return new Stream(this.fileAccess.read(src), this.fileAccess, this.aggFact);
+      return new Stream(this.fileAccess.read(src, options), this.fileAccess, this.aggFact);
     }
 
     if (Array.isArray(src)) {
@@ -148,7 +148,7 @@ export default class Nabu implements StreamProvider {
     }
 
     const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), {
-      collectionResolver: (name: string) => { throw Error('not resolvable'); }//storage.resolve(name),
+      collectionResolver: (name: string) => { throw Error('not resolvable'); }
     });
     const views: ViewMap = {};
     return StorageEngine.fromControllers(dbName,

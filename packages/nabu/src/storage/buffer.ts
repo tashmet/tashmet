@@ -1,5 +1,5 @@
 import { MemoryStorage } from '@tashmet/memory';
-import { Document, makeWriteChange } from '@tashmet/engine';
+import { Document, makeWriteChange, Streamable } from '@tashmet/engine';
 import { StreamProvider } from '../interfaces.js';
 
 export abstract class BufferStorage extends MemoryStorage {

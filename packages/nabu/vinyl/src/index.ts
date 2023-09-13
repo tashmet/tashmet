@@ -10,7 +10,7 @@ import {Container } from '@tashmet/tashmet';
 import {FileAccess, File, ReadableFile, FileReader, FileWriter, ContentWriter, ContentReader, fileExtension} from '@tashmet/nabu';
 import {Stream} from '@tashmet/nabu-stream';
 import {FileSystemConfig} from './interfaces.js';
-import { BootstrapConfig, plugin, PluginConfigurator } from '@tashmet/core';
+import { BootstrapConfig, Logger, plugin, PluginConfigurator } from '@tashmet/core';
 
 
 export class VinylFSReader implements FileReader {
@@ -18,8 +18,12 @@ export class VinylFSReader implements FileReader {
 
   public constructor(private contentReader: ContentReader) {}
 
-  public async *read(location: string | string[]): AsyncGenerator<ReadableFile> {
-    const files = Stream.toGenerator(vfs.src(location, { buffer: true, allowEmpty: true }));
+  public async *read(location: string | string[], options: any): AsyncGenerator<ReadableFile> {
+    const files = Stream.toGenerator(vfs.src(location, {
+      buffer: options?.content !== false,
+      read: options?.content !== false,
+      allowEmpty: true
+    }));
     const cr = this.contentReader;
 
     for await (const vinyl of files()) {

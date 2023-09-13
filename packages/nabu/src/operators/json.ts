@@ -30,7 +30,10 @@ export type JsonOptions = JsonParserOptions & JsonSerializerOptions;
 export const jsonReader = async (content: any, options: JsonParserOptions = {}) => {
   const {encoding, reviver} = Object.assign({}, defaultParserOptions, options);
 
-  return JSON.parse(content.toString(encoding), reviver);
+  return content
+    ? JSON.parse(content.toString(encoding), reviver)
+    : {}
+
 }
 
 export const jsonWriter = async (content: any, options: JsonSerializerOptions = {}) => {
