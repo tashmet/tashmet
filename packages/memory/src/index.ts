@@ -26,7 +26,8 @@ import {
   ValidatorFactory,
   ViewMap,
   Writable,
-  WriteOptions
+  WriteOptions,
+  StreamOptions
 } from '@tashmet/engine';
 import {
   Dispatcher,
@@ -112,11 +113,11 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
     delete this.collections[collection];
   }
 
-  public async *stream(collection: string, documentIds?: string[]): AsyncGenerator<Document> {
+  public async *stream(collection: string, options?: StreamOptions): AsyncGenerator<Document> {
     const coll = this.collections[collection];
     if (coll) {
-      if (documentIds) {
-        for (const id of documentIds) {
+      if (options?.documentIds) {
+        for (const id of options.documentIds) {
           if (coll.exists(id)) {
             yield coll.documents[coll.indexes[id]];
           }
