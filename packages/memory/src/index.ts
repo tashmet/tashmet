@@ -27,7 +27,8 @@ import {
   ViewMap,
   Writable,
   WriteOptions,
-  StreamOptions
+  StreamOptions,
+  DocumentAccess
 } from '@tashmet/engine';
 import {
   Dispatcher,
@@ -153,12 +154,13 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
 
 
 @provider({
-  inject: [AggregatorFactory, Logger, Optional.of(ValidatorFactory)]
+  inject: [AggregatorFactory, DocumentAccess, Logger, Optional.of(ValidatorFactory)]
 })
 @plugin<any>()
 export default class MemoryStorageEngineFactory extends StorageEngineFactory {
   public constructor(
     private aggFact: AggregatorFactory,
+    private documentAccess: DocumentAccess,
     private logger: Logger,
     private validatorFact?: ValidatorFactory,
   ) { super(); }
@@ -169,10 +171,10 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
 
   public createStorageEngine(dbName: string): StorageEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
-    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), storage, {
-      collectionResolver: (name: string) => storage.resolve(name),
-    });
+    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(this.documentAccess, this.logger), dbName);
     const views: ViewMap = {};
+    this.documentAccess.addStreamable(dbName, storage);
+    this.documentAccess.addWritable(dbName, storage);
     return StorageEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
       new AggregationController(dbName, storage, engine, views)
@@ -186,6 +188,10 @@ export class MemoryConfigurator extends PluginConfigurator<StorageEngineFactory,
 
     if (!this.container.isRegistered(Dispatcher)) {
       this.container.register(Dispatcher);
+    }
+
+    if (!this.container.isRegistered(DocumentAccess)) {
+      this.container.register(DocumentAccess);
     }
   }
 

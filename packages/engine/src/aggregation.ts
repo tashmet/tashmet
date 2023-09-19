@@ -1,6 +1,8 @@
+import { Namespace } from "@tashmet/bridge";
 import { Logger } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
-import { AggregatorFactory, CollationOptions, Document, Streamable, Writable } from "./interfaces.js";
+import { DocumentAccess } from "./documentAccess.js";
+import { AggregatorFactory, CollationOptions, Document } from "./interfaces.js";
 
 export async function *arrayToGenerator<T>(array: T[]) {
   for (const item of array) {
@@ -12,7 +14,7 @@ export class AggregationEngine extends CursorRegistry {
   public constructor(
     private aggFact: AggregatorFactory,
     private queryPlanner: QueryPlanner,
-    private writable: Writable,
+    private db: string,
     private options: Document = {},
   ) { super(); }
 
@@ -22,15 +24,10 @@ export class AggregationEngine extends CursorRegistry {
     collation: CollationOptions | undefined,
   ): Cursor {
     let input: AsyncIterable<Document>;
-    const qa = QueryAnalysis.fromPipeline(pipeline);
-
-    const foreignInputs: Record<string, AsyncIterable<Document>> = {};
-    for (const c of qa.foreignInputs) {
-      foreignInputs[c] = this.queryPlanner.resolveDocuments(c);
-    }
+    const qa = QueryAnalysis.fromPipeline({db: this.db, coll: typeof collection === 'string' ? collection : ''}, pipeline);
 
     if (typeof collection === 'string') {
-      input = this.queryPlanner.resolveDocuments(collection, qa);
+      input = this.queryPlanner.resolveDocuments(qa);
     } else if (Array.isArray(collection)) {
       input = arrayToGenerator(collection);
     } else {
@@ -40,10 +37,7 @@ export class AggregationEngine extends CursorRegistry {
     const aggregator = this.aggFact.createAggregator(pipeline, {
       collation,
       collection,
-      foreignInputs,
-      out: qa.out,
-      merge: qa.merge,
-      writable: this.writable,
+      qa,
       ...this.options
     });
     const output = aggregator.stream<Document>(input);
@@ -56,36 +50,32 @@ export class AggregationEngine extends CursorRegistry {
 
 export class QueryPlanner {
   public constructor(
-    private documentReader: Streamable,
+    private documentAccess: DocumentAccess,
     private logger: Logger,
   ) {}
 
-  public resolveDocuments(collection: string, qa?: QueryAnalysis): AsyncIterable<Document> {
-    if (qa) {
-      let documentIds: string[] | undefined;
+  public resolveDocuments(qa: QueryAnalysis): AsyncIterable<Document> {
+    let documentIds: string[] | undefined;
 
-      const id = qa.filter._id;
+    const id = qa.filter._id;
 
-      if (typeof id === 'string') {
-        documentIds = [id];
-      } else if (Array.isArray(id)) {
-        documentIds = id;
-      }
-      this.logger.debug(`stream collection '${collection}' on ids: '${documentIds}'`)
-      return this.documentReader.stream(collection, {
-        documentIds,
-        projection: Object.keys(qa.filter).length === 0 || qa.filter._id !== undefined ? qa.projection : undefined,
-      });
+    if (typeof id === 'string') {
+      documentIds = [id];
+    } else if (Array.isArray(id)) {
+      documentIds = id;
     }
-    return this.documentReader.stream(collection);
+    this.logger.debug(`stream collection '${qa.ns.db}.${qa.ns.coll}' on ids: '${documentIds}'`)
+    return this.documentAccess.stream(qa.ns, {
+      documentIds,
+      projection: Object.keys(qa.filter).length === 0 || qa.filter._id !== undefined ? qa.projection : undefined,
+    });
   }
 }
 
 export class QueryAnalysis {
-  public static fromPipeline(pipeline: Document[]): QueryAnalysis {
+  public static fromPipeline(ns: Namespace, pipeline: Document[]): QueryAnalysis {
     let filter: Document = {};
     let options: Document = {};
-    let foreignInputs: string[] = [];
 
     const handlers: Record<string, (value: any) => void> = {
       '$match': v => filter = v,
@@ -120,43 +110,48 @@ export class QueryAnalysis {
       }
     }
 
-    for (let i = 0; i < pipeline.length; i++) {
-      const step = pipeline[i];
+
+    return new QueryAnalysis(ns, pipeline, filter, options.projection);
+  }
+
+  public constructor(
+    public readonly ns: Namespace,
+    public readonly pipeline: Document[],
+    public readonly filter: Document,
+    public readonly projection: Document,
+  ) {}
+
+  public get foreignInputs(): Namespace[] {
+    const output: Namespace[] = [];
+    for (let i = 0; i < this.pipeline.length; i++) {
+      const step = this.pipeline[i];
       const op = Object.keys(step)[0];
 
       switch (op) {
         case '$lookup':
-          foreignInputs.push(step.$lookup.from);
+          output.push(this.toNamespace(step.$lookup.from));
           break;
         case '$merge':
-          foreignInputs.push(step.$merge.into);
+          output.push(this.toNamespace(step.$merge.into));
       }
     }
-
-    return new QueryAnalysis(pipeline, filter, options.projection, foreignInputs);
+    return output;
   }
 
-  public constructor(
-    public readonly pipeline: Document[],
-    public readonly filter: Document,
-    public readonly projection: Document,
-    public readonly foreignInputs: string[] = [],
-  ) {}
-
-  public get out(): string | undefined {
+  public get out(): Namespace | undefined {
     const lastStep = this.lastStep();
 
     if (lastStep && Object.keys(lastStep)[0] === '$out') {
-      return lastStep.$out;
+      return this.toNamespace(lastStep.$out);
     }
     return undefined;
   }
 
-  public get merge(): string | undefined {
+  public get merge(): Namespace | undefined {
     const lastStep = this.lastStep();
 
     if (lastStep && Object.keys(lastStep)[0] === '$merge') {
-      return lastStep.$merge.into;
+      return this.toNamespace(lastStep.$merge.into);
     }
     return undefined;
   }
@@ -165,6 +160,12 @@ export class QueryAnalysis {
     return this.pipeline.length > 0
       ? this.pipeline[this.pipeline.length - 1]
       : undefined;
+  }
+
+  private toNamespace(source: string | Namespace) {
+    return typeof source === 'string'
+      ? { db: this.ns.db, coll: source }
+      : source;
   }
 }
 

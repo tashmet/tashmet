@@ -18,6 +18,7 @@ import {
   Writable,
   Streamable,
   CollectionRegistry,
+  DocumentAccess,
 } from '@tashmet/engine';
 import {
   CollectionBundleConfig,
@@ -111,6 +112,7 @@ export default class Nabu implements StreamProvider {
 
   public constructor(
     private aggFact: AggregatorFactory,
+    private documentAccess: DocumentAccess,
     private fileAccess: FileAccess,
     private logger: Logger,
   ) {}
@@ -147,10 +149,11 @@ export default class Nabu implements StreamProvider {
       storage = new CollectionBundleStorage(dbName, this, config as CollectionBundleConfig);
     }
 
-    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), storage, {
-      collectionResolver: (name: string) => { throw Error('not resolvable'); }
-    });
+    const engine = new AggregationEngine(
+      this.aggFact, new QueryPlanner(this.documentAccess, this.logger.inScope('QueryPlanner')), dbName);
     const views: ViewMap = {};
+    this.documentAccess.addStreamable(dbName, storage);
+    this.documentAccess.addWritable(dbName, storage);
     return StorageEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
       new AggregationController(dbName, storage, engine, views)
@@ -163,6 +166,10 @@ export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfi
     this.container.register(NabuContentReader);
     this.container.register(NabuContentWriter);
     this.container.register(FileAccess);
+
+    if (!this.container.isRegistered(DocumentAccess)) {
+      this.container.register(DocumentAccess);
+    }
   }
 
   public load() {

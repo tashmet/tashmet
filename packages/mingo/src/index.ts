@@ -6,9 +6,9 @@ import {
   Logger,
 } from '@tashmet/tashmet';
 import { idSet, ChangeSet, Comparator } from '@tashmet/bridge';
-import { AggregatorFactory, AbstractAggregator, ValidatorFactory } from '@tashmet/engine';
+import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
-import { BufferAggregator, PrefetchAggregationStrategy } from './aggregator.js';
+import { BufferAggregator } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
 import { Query } from 'mingo';
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
@@ -32,14 +32,17 @@ export class MingoComparator implements Comparator {
 })
 @plugin<Partial<MingoConfig>>()
 export default class MingoAggregatorFactory implements AggregatorFactory {
-  public constructor(private logger: Logger) {}
+  public constructor(
+    private documentAccess: DocumentAccess,
+    private logger: Logger
+  ) {}
 
   public static configure(config: Partial<BootstrapConfig> & Partial<MingoConfig>, container?: Container) {
     return new MingoConfigurator(MingoAggregatorFactory, config, container);
   }
 
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    return new BufferAggregator(pipeline, options, this.logger);
+    return new BufferAggregator(pipeline, this.documentAccess, options, this.logger);
   }
 }
 
@@ -60,8 +63,6 @@ export class FilterValidatorFactory extends ValidatorFactory {
   }
 }
 
-//MingoAggregatorFactory.configure()
-
 export class MingoConfigurator extends PluginConfigurator<AggregatorFactory, Partial<MingoConfig>> {
   public register() {
     const defaultConfig: MingoConfig = {
@@ -72,7 +73,6 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory, Par
     this.container.register(Provider.ofInstance(MingoConfig, { ...defaultConfig, ...this.config }));
     this.container.register(Provider.ofInstance(HashCode, hashCode));
     this.container.register(MingoComparator);
-    this.container.register(PrefetchAggregationStrategy);
     this.container.register(FilterValidatorFactory);
   }
 }

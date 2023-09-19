@@ -26,5 +26,5 @@
     "dist",
     "node_modules"
   ],
-  "include": ["src"]
+  "include": ["src", "../engine/src/documentAccess.ts"]
 }

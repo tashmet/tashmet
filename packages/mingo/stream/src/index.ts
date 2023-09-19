@@ -48,7 +48,7 @@ async function* $match<T>(source: AsyncIterable<T>, expr: any) {
 }
 
 async function* $lookup<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-  const buffer = await toArray(options.foreignInputs[expr.from]);
+  const buffer = await toArray(options.qa.foreignInputs[expr.from]);
 
   for await (const item of source) {
     const it = mingoOp(Lazy([cloneDeep(item)]), {...expr, from: buffer}, options) as Iterator;

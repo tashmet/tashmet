@@ -7,6 +7,7 @@ export { AggregationEngine } from './aggregation.js';
 export { QueryEngine, Queryable } from './query.js';
 export { Cursor, CursorRegistry } from './cursor.js';
 export { QueryPlanner } from './aggregation.js';
+export { DocumentAccess } from './documentAccess.js';
 
 export { AggregationController } from './controllers/aggregate.js';
 export { AdminController } from './controllers/admin.js';
