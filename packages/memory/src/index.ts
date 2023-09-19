@@ -34,8 +34,12 @@ import {
   ChangeStreamDocument,
 } from '@tashmet/bridge';
 
+function hash(value: string | object): string {
+  return typeof value === "string" ? value : JSON.stringify(value);
+}
+
 export class MemoryCollection implements AtomicWriteCollection {
-  public indexes: Record<string, number> = {};
+  public indexes: Map<string, number> = new Map();
 
   public constructor(
     public readonly name: string,
@@ -44,12 +48,12 @@ export class MemoryCollection implements AtomicWriteCollection {
     private readonly validatorFact: ValidatorFactory | undefined,
   ) {
     for (let i = 0; i < documents.length; i++) {
-      this.indexes[documents[i]._id] = i;
+      this.indexes.set(documents[i]._id, i);
     }
   }
 
-  public exists(id: string): boolean {
-    return this.indexes[id] !== undefined;
+  public exists(id: string | Object): boolean {
+    return this.indexes.has(hash(id));
   }
 
   public async insert(document: Document): Promise<void> {
@@ -64,25 +68,25 @@ export class MemoryCollection implements AtomicWriteCollection {
     }
 
     this.documents.push(document);
-    this.indexes[document._id] = this.documents.length - 1;
+    this.indexes.set(hash(document._id), this.documents.length - 1);
   }
 
   public async delete(id: string): Promise<void> {
-    const index = this.indexes[id];
+    const index = this.indexes.get(hash(id));
 
     if (index !== undefined) {
       this.documents.splice(index, 1);
-      delete this.indexes[id];
-      for (const key in this.indexes) {
-        if (this.indexes[key] > index) {
-          this.indexes[key]--;
+      this.indexes.delete(hash(id));
+      for (const [k, v] of this.indexes) {
+        if (v > index) {
+          this.indexes.set(k, v - 1);
         }
       }
     }
   }
 
   public async replace(id: string, document: Document): Promise<void> {
-    const index = this.indexes[id];
+    const index = this.indexes.get(hash(id));
 
     if (index !== undefined) {
       this.documents.splice(index, 1, document);
@@ -119,7 +123,7 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
       if (options?.documentIds) {
         for (const id of options.documentIds) {
           if (coll.exists(id)) {
-            yield coll.documents[coll.indexes[id]];
+            yield coll.documents[coll.indexes.get(hash(id)) || 0];
           }
         }
       } else {
@@ -165,7 +169,7 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
 
   public createStorageEngine(dbName: string): StorageEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
-    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), {
+    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), storage, {
       collectionResolver: (name: string) => storage.resolve(name),
     });
     const views: ViewMap = {};
