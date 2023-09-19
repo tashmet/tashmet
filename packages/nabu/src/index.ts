@@ -147,7 +147,7 @@ export default class Nabu implements StreamProvider {
       storage = new CollectionBundleStorage(dbName, this, config as CollectionBundleConfig);
     }
 
-    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), {
+    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(storage, this.logger.inScope('QueryPlanner')), storage, {
       collectionResolver: (name: string) => { throw Error('not resolvable'); }
     });
     const views: ViewMap = {};

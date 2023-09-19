@@ -1,3 +1,4 @@
+import { ChangeSet } from '@tashmet/bridge';
 import { AbstractAggregator } from '@tashmet/engine';
 import {
   Document,
@@ -7,6 +8,7 @@ import {
   provider
 } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
+import { cloneDeep } from 'mingo/util';
 
 export interface PrefetchAggregation {
   filter: Filter<any>;
@@ -14,15 +16,31 @@ export interface PrefetchAggregation {
   pipeline: Document[];
 }
 
+export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
+  const result: T[] = [];
+  for await (const item of it) {
+    result.push(item);
+  }
+  return result;
+}
 export class BufferAggregator extends AbstractAggregator<Document> {
   private aggregator: Aggregator;
+  private foreignBuffers: Record<string, Document[]> = {};
 
-  public constructor(pipeline: Document[], options: any, private logger: Logger) {
+  public constructor(pipeline: Document[], private options: any, private logger: Logger) {
     super(pipeline);
-    this.aggregator = new Aggregator(pipeline, options);
+    this.aggregator = new Aggregator(pipeline, { collectionResolver: c => this.foreignBuffers[c] });
   }
 
   public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
+    for (const [k, v] of Object.entries(this.options.foreignInputs || {})) {
+      this.foreignBuffers[k] = await toArray(v as any);
+    }
+    let mergeInit: Document[] = [];
+    if (this.options.merge) {
+      mergeInit = cloneDeep(this.foreignBuffers[this.options.merge]) as Document[];
+    }
+
     const buffer = [];
     for await (const item of input) {
       buffer.push(item)
@@ -36,6 +54,12 @@ export class BufferAggregator extends AbstractAggregator<Document> {
       } else {
         yield value as TResult;
       }
+    }
+
+    if (this.options.merge) {
+      const cs = new ChangeSet(this.foreignBuffers[this.options.merge], mergeInit);
+      const changes = cs.toChanges({db: '', coll: this.options.merge});
+      await this.options.writable.write(changes, {ordered: true});
     }
   }
 }

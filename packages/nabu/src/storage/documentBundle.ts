@@ -74,7 +74,9 @@ export class DocumentBundleStorage implements CollectionRegistry, Streamable, Wr
       .write();
   }
 
-  public async *stream(collection: string, { documentIds, projection }: StreamOptions): AsyncIterable<Document> {
+  public async *stream(collection: string, options?: StreamOptions): AsyncIterable<Document> {
+    const { documentIds, projection } = options || {};
+
     const paths = documentIds
       ? documentIds.map(id => this.config.documentBundle(collection, id))
       : [this.config.documentBundle(collection)];

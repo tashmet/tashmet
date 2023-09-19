@@ -76,36 +76,3 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory, Par
     this.container.register(FilterValidatorFactory);
   }
 }
-
-//export const pluginSetup: PluginSetup<any> = (container, config, standalone) => {
-  //const defaultConfig: MingoConfig = {
-    //useStrictMode: true,
-    //scriptEnabled: true,
-  //};
-
-  //container.register(Provider.ofInstance(MingoConfig, { ...defaultConfig, ...config }));
-  //container.register(Provider.ofInstance(HashCode, hashCode));
-  //container.register(MingoComparator);
-  //container.register(PrefetchAggregationStrategy);
-  //container.register(FilterValidatorFactory);
-//}
-
-////export default plugin<Partial<MingoConfig>, MingoAggregatorFactory>(MingoAggregatorFactory, pluginSetup);
-
-
-//export class MingoPlugin extends Plugin<AggregatorFactory, MingoConfig> {
-  //public setup(container: Container, config: MingoConfig, standalone: boolean): PluginLoader {
-    //const defaultConfig: MingoConfig = {
-      //useStrictMode: true,
-      //scriptEnabled: true,
-    //};
-
-    //container.register(Provider.ofInstance(MingoConfig, { ...defaultConfig, ...config }));
-    //container.register(Provider.ofInstance(HashCode, hashCode));
-    //container.register(MingoComparator);
-    //container.register(PrefetchAggregationStrategy);
-    //container.register(FilterValidatorFactory);
-  //}
-//}
-
-//export default new MingoPlugin(MingoAggregatorFactory);

@@ -47,8 +47,20 @@ async function* $match<T>(source: AsyncIterable<T>, expr: any) {
   }
 }
 
+async function* $lookup<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
+  const buffer = await toArray(options.foreignInputs[expr.from]);
+
+  for await (const item of source) {
+    const it = mingoOp(Lazy([cloneDeep(item)]), {...expr, from: buffer}, options) as Iterator;
+
+    for (const item of it.value() as any[]) {
+      yield item;
+    }
+  }
+}
+
 export const defaultOperators: Record<string, any> = {
-  $skip, $limit, $match,
+  $skip, $limit, $match, $lookup
 }
 
 export const defaultStreamOperators: string[] = [
@@ -59,6 +71,7 @@ export const defaultStreamOperators: string[] = [
 export class StreamAggregator<T extends Document = Document> extends AbstractAggregator {
   public constructor(
     public readonly pipeline: Document[],
+    private options: any,
     private operators: Record<string, any> = defaultOperators,
     private streamOperators: string[] = defaultStreamOperators,
   ) { super(pipeline); }
@@ -76,7 +89,7 @@ export class StreamAggregator<T extends Document = Document> extends AbstractAgg
       );
 
       if (op in this.operators) {
-        output = this.operators[op](output, operator[op], call, initOptions());
+        output = this.operators[op](output, operator[op], call, {...initOptions(), ...this.options});
       } else if (this.streamOperators.includes(op)) {
         output = this.operatorStreamed(output, operator[op], call, initOptions());
       } else {
@@ -117,6 +130,6 @@ export default class MingoStreamAggregatorFactory implements AggregatorFactory {
   }
 
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    return new StreamAggregator(pipeline);
+    return new StreamAggregator(pipeline, options);
   }
 }

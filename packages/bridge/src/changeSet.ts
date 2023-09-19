@@ -3,14 +3,14 @@ import { Document } from './interfaces.js';
 //import {ChangeStreamDocument} from '../../tashmet/src/changeStream';
 
 export function idSet(collection: any[]) {
-  return new Set(collection.map(doc => doc._id));
+  return new Set(collection.map(doc => JSON.stringify(doc._id)));
 }
 
 export const makeWriteChange = (operationType: 'insert' | 'update' | 'replace' | 'delete', fullDocument: Document, ns: {db: string, coll: string}) => ({
   _id: new ObjectID(),
   operationType,
   ns,
-  documentKey: fullDocument._id,
+  documentKey: {_id: fullDocument._id},
   fullDocument,
 });
 
@@ -57,16 +57,16 @@ export class ChangeSet<T extends Document = Document> {
 
   public get insertions(): T[] {
     const outIds = idSet(this.outgoing);
-    return this.incoming.filter(doc => !outIds.has(doc._id));
+    return this.incoming.filter(doc => !outIds.has(JSON.stringify(doc._id)));
   }
 
   public get deletions(): T[] {
     const incIds = idSet(this.incoming);
-    return this.outgoing.filter(doc => !incIds.has(doc._id));
+    return this.outgoing.filter(doc => !incIds.has(JSON.stringify(doc._id)));
   }
 
   public get replacements(): T[] {
     const outIds = idSet(this.outgoing);
-    return this.incoming.filter(doc => outIds.has(doc._id));
+    return this.incoming.filter(doc => outIds.has(JSON.stringify(doc._id)));
   }
 }
