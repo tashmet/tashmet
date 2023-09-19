@@ -1,12 +1,12 @@
 import ev from "eventemitter3";
 import ObjectId from 'bson-objectid';
 import { ChangeSet } from "./changeSet.js";
-import { Annotation, methodDecorator } from "@tashmet/core";
-//import { ChangeStreamDocument } from './changeStream.js';
 
 export const { EventEmitter } = ev;
 export type Document = Record<string, any>;
-export type Namespace = {db: string, coll: string};
+export interface Namespace {db: string, coll: string};
+
+export const nsToString = (ns: Namespace): string => `${ns.db}.${ns.coll}`;
 
 
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */

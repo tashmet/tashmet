@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@tashmet/tashmet';
 import { idSet, ChangeSet, Comparator } from '@tashmet/bridge';
-import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess } from '@tashmet/engine';
+import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess, AggregatorOptions } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
@@ -41,7 +41,7 @@ export default class MingoAggregatorFactory implements AggregatorFactory {
     return new MingoConfigurator(MingoAggregatorFactory, config, container);
   }
 
-  public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
+  public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
     return new BufferAggregator(pipeline, this.documentAccess, options, this.logger);
   }
 }

@@ -1,5 +1,5 @@
-import { ChangeSet, ChangeStreamDocument } from '@tashmet/bridge';
-import { AbstractAggregator, DocumentAccess } from '@tashmet/engine';
+import { ChangeSet, ChangeStreamDocument, Namespace } from '@tashmet/bridge';
+import { AbstractAggregator, AggregatorOptions, DocumentAccess } from '@tashmet/engine';
 import {
   Document,
   Filter,
@@ -22,29 +22,52 @@ export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   }
   return result;
 }
+
+class CollectionBuffers {
+  public constructor(private documentAccess: DocumentAccess) {}
+  private buffers: Record<string, Document[]> = {};
+
+  public async load(ns: Namespace): Promise<void> {
+    this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.documentAccess.stream(ns, {}));
+  }
+
+  public get(ns: Namespace): Document[] {
+    return this.buffers[`${ns.db}.${ns.coll}`];
+  }
+}
+
 export class BufferAggregator extends AbstractAggregator<Document> {
   private aggregator: Aggregator;
-  private foreignBuffers: Record<string, Document[]> = {};
+  private foreignBuffers: CollectionBuffers;
 
-  public constructor(pipeline: Document[], private documentAccess: DocumentAccess, private options: any, private logger: Logger) {
+  public constructor(
+    pipeline: Document[],
+    private documentAccess: DocumentAccess,
+    private options: AggregatorOptions,
+    private logger: Logger)
+  {
     super(pipeline);
+    this.foreignBuffers = new CollectionBuffers(documentAccess);
     this.aggregator = new Aggregator(pipeline, {
-      collectionResolver: c => typeof c === 'string'
-        ? this.foreignBuffers[`${options.qa.ns.db}.${c}`]
-        : this.foreignBuffers[c]
+      collectionResolver: coll => {
+        if (options.queryAnalysis) {
+          return this.foreignBuffers.get({db: options.queryAnalysis.ns.db, coll});
+        }
+        throw Error('cound not resolve collection');
+      }
     });
   }
 
   public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
     let mergeInit: Document[] = [];
+    const mergeNs = this.options.queryAnalysis?.merge;
 
-    if (this.options.qa) {
-      for (const ns of this.options.qa.foreignInputs) {
-        this.foreignBuffers[`${ns.db}.${ns.coll}`] = await toArray(this.documentAccess.stream(ns, {}));
+    if (this.options.queryAnalysis) {
+      for (const ns of this.options.queryAnalysis.foreignInputs) {
+        await this.foreignBuffers.load(ns);
       }
-      if (this.options.qa.merge) {
-        const ns = this.options.qa.merge;
-        mergeInit = cloneDeep(this.foreignBuffers[`${ns.db}.${ns.coll}`]) as Document[];
+      if (mergeNs) {
+        mergeInit = cloneDeep(this.foreignBuffers.get(mergeNs)) as Document[];
       }
     }
 
@@ -63,10 +86,9 @@ export class BufferAggregator extends AbstractAggregator<Document> {
       }
     }
 
-    if (this.options.qa && this.options.qa.merge) {
-      const ns = this.options.qa.merge;
-      const cs = new ChangeSet(this.foreignBuffers[`${ns.db}.${ns.coll}`], mergeInit);
-      const changes = cs.toChanges(ns) as ChangeStreamDocument[];
+    if (mergeNs) {
+      const cs = new ChangeSet(this.foreignBuffers.get(mergeNs), mergeInit);
+      const changes = cs.toChanges(mergeNs) as ChangeStreamDocument[];
       await this.documentAccess.write(changes, {ordered: true});
     }
   }

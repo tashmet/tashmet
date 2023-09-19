@@ -2,6 +2,7 @@ import { ChangeStreamDocument } from '@tashmet/bridge';
 import { Annotation, methodDecorator, Newable } from '@tashmet/core';
 import ObjectId from 'bson-objectid';
 import ev from "eventemitter3";
+import { QueryAnalysis } from './aggregation';
 
 export const { EventEmitter } = ev;
 
@@ -138,9 +139,14 @@ export abstract class StorageEngineFactory {
   public abstract createStorageEngine(dbName: string): StorageEngine;
 }
 
+export interface AggregatorOptions {
+  queryAnalysis?: QueryAnalysis; 
+
+  collation?: CollationOptions;
+}
 
 export interface AggregatorFactory {
-  createAggregator(pipeline: Document[], options: any): AbstractAggregator;
+  createAggregator(pipeline: Document[], options?: AggregatorOptions): AbstractAggregator;
 }
 
 export abstract class AggregatorFactory implements AggregatorFactory {};

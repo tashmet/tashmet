@@ -36,8 +36,7 @@ export class AggregationEngine extends CursorRegistry {
 
     const aggregator = this.aggFact.createAggregator(pipeline, {
       collation,
-      collection,
-      qa,
+      queryAnalysis: qa,
       ...this.options
     });
     const output = aggregator.stream<Document>(input);
