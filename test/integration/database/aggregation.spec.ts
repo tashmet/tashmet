@@ -544,4 +544,129 @@ describe('aggregation', () => {
       ]);
     });
   });
+
+
+  describe('$lookup', () => {
+    let client: Tashmet;
+
+    before(async () => {
+      client = Tashmet
+        .configure()
+        .use(Mingo, {})
+        .use(Memory, {})
+        .bootstrap();
+    });
+
+    it("should perform a single equality join with", async () => {
+      let db = client.db('testdb1');
+      let orders = db.collection('orders');
+      let inventory = db.collection('inventory');
+
+      await orders.insertMany( [
+        { _id : 1, item : "almonds", price : 12, quantity : 2 },
+        { _id : 2, item : "pecans", price : 20, quantity : 1 },
+        { _id : 3  }
+      ] );
+
+      await inventory.insertMany( [
+        { _id : 1, sku : "almonds", description: "product 1", instock : 120 },
+        { _id : 2, sku : "bread", description: "product 2", instock : 80 },
+        { _id : 3, sku : "cashews", description: "product 3", instock : 60 },
+        { _id : 4, sku : "pecans", description: "product 4", instock : 70 },
+        { _id : 5, sku: null, description: "Incomplete" },
+        { _id : 6 }
+      ] );
+
+      expect(await orders.aggregate( [
+        {
+          $lookup:
+            {
+              from: "inventory",
+              localField: "item",
+              foreignField: "sku",
+              as: "inventory_docs"
+            }
+        }
+      ] ).toArray()).to.eql([
+        {
+          _id : 1,
+          item : "almonds",
+          price : 12,
+          quantity : 2,
+          inventory_docs : [
+              { _id : 1, sku : "almonds", description : "product 1", instock : 120 }
+          ]
+        },
+        {
+          _id : 2,
+          item : "pecans",
+          price : 20,
+          quantity : 1,
+          inventory_docs : [
+              { _id : 4, sku : "pecans", description : "product 4", instock : 70 }
+          ]
+        },
+        {
+          _id : 3,
+          inventory_docs : [
+              { _id : 5, sku : null, description : "Incomplete" },
+              { _id : 6 }
+          ]
+        }
+      ]);
+    });
+
+    it.skip("should work an array", async () => {
+      const db = client.db('testdb2');
+      const classes = db.collection('classes');
+      const members = db.collection('members');
+
+      await classes.insertMany( [
+        { _id: 1, title: "Reading is ...", enrollmentlist: [ "giraffe2", "pandabear", "artie" ], days: ["M", "W", "F"] },
+        { _id: 2, title: "But Writing ...", enrollmentlist: [ "giraffe1", "artie" ], days: ["T", "F"] }
+      ] );
+
+      await members.insertMany( [
+        { _id: 1, name: "artie", joined: "2016-05-01", status: "A" },
+        { _id: 2, name: "giraffe", joined: "2017-05-01", status: "D" },
+        { _id: 3, name: "giraffe1", joined: "2017-10-01", status: "A" },
+        { _id: 4, name: "panda", joined: "2018-10-11", status: "A" },
+        { _id: 5, name: "pandabear", joined: "2018-12-01", status: "A" },
+        { _id: 6, name: "giraffe2", joined: "2018-12-01", status: "D" }
+      ] );
+
+      expect(await classes.aggregate( [
+        {
+          $lookup: {
+            from: "members",
+            localField: "enrollmentlist",
+            foreignField: "name",
+            as: "enrollee_info"
+          }
+        }
+      ] ).toArray()).to.eql([
+        {
+          _id : 1,
+          title : "Reading is ...",
+          enrollmentlist : [ "giraffe2", "pandabear", "artie" ],
+          days : [ "M", "W", "F" ],
+          enrollee_info : [
+            { _id: 1, name: "artie", joined: "2016-05-01", status: "A" },
+            { _id: 5, name: "pandabear", joined: "2018-12-01", status: "A" },
+            { _id: 6, name: "giraffe2", joined: "2018-12-01", status: "D" }
+          ]
+        },
+        {
+          _id : 2,
+          title : "But Writing ...",
+          enrollmentlist : [ "giraffe1", "artie" ],
+          days : [ "T", "F" ],
+          enrollee_info : [
+            { _id : 1, name : "artie", joined: "2016-05-01", status: "A" },
+            { _id : 3, name : "giraffe1", joined: "2017-10-01", status: "A" }
+          ]
+        }
+      ]);
+    });
+  });
 });
