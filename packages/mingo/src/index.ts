@@ -14,6 +14,7 @@ import { Query } from 'mingo';
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
 
 export * from './interfaces.js';
+export { CollectionBuffers } from './aggregator.js';
 
 @provider({key: Comparator})
 export class MingoComparator implements Comparator {

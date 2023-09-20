@@ -13,7 +13,7 @@ const { expect } = chai;
 
 describe('aggregation', () => {
 
-  describe('on-demand materialized view', () => {
+  describe('$merge', () => {
     let budgets: Collection;
     let salaries: Collection;
     let db: Database;
@@ -491,6 +491,57 @@ describe('aggregation', () => {
           },
         ]);
       }).to.Throw;
+    });
+  });
+
+  describe('$out', () => {
+    let books: Collection;
+    let authors: Collection;
+    let db: Database;
+
+    before(async () => {
+      const client = Tashmet
+        .configure()
+        .use(Mingo, {})
+        .use(Memory, {})
+        .bootstrap();
+
+      db = client.db('testdb');
+
+      books = db.collection('books');
+      authors = db.collection('authors');
+    });
+
+    it('should write to output collection', async () => {
+      await books.insertMany([
+        { _id : 8751, title : "The Banquet", author : "Dante", "copies" : 2 },
+        { _id : 8752, title : "Divine Comedy", author : "Dante", "copies" : 1 },
+        { _id : 8645, title : "Eclogues", author : "Dante", "copies" : 2 },
+        { _id : 7000, title : "The Odyssey", author : "Homer", "copies" : 10 },
+        { _id : 7020, title : "Iliad", author : "Homer", "copies" : 10 }
+      ]);
+
+      await books.aggregate( [
+        { $group : { _id : "$author", books: { $push: "$title" } } },
+        { $out : "authors" }
+      ]).toArray();
+
+      expect(await authors.find().toArray()).to.eql([
+        { _id : "Dante", books : [ "The Banquet", "Divine Comedy", "Eclogues" ] },
+        { _id : "Homer", books : [ "The Odyssey", "Iliad" ] },
+      ]);
+    });
+    
+    it('should replace existing data', async () => {
+      await books.aggregate( [
+        { $group : { _id : "$author", books: { $push: "$title" } } },
+        { $out : "authors" }
+      ]).toArray();
+
+      expect(await authors.find().toArray()).to.eql([
+        { _id : "Dante", books : [ "The Banquet", "Divine Comedy", "Eclogues" ] },
+        { _id : "Homer", books : [ "The Odyssey", "Iliad" ] },
+      ]);
     });
   });
 });

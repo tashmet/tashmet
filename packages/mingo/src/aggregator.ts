@@ -23,12 +23,12 @@ export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   return result;
 }
 
-class CollectionBuffers {
+export class CollectionBuffers {
   public constructor(private documentAccess: DocumentAccess) {}
   private buffers: Record<string, Document[]> = {};
 
-  public async load(ns: Namespace): Promise<void> {
-    this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.documentAccess.stream(ns, {}));
+  public async load(ns: Namespace): Promise<Document[]> {
+    return this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.documentAccess.stream(ns, {}));
   }
 
   public get(ns: Namespace): Document[] {
@@ -60,7 +60,9 @@ export class BufferAggregator extends AbstractAggregator<Document> {
 
   public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
     let mergeInit: Document[] = [];
+    let outInit: Document[] = [];
     const mergeNs = this.options.queryAnalysis?.merge;
+    const outNs = this.options.queryAnalysis?.out;
 
     if (this.options.queryAnalysis) {
       for (const ns of this.options.queryAnalysis.foreignInputs) {
@@ -68,6 +70,9 @@ export class BufferAggregator extends AbstractAggregator<Document> {
       }
       if (mergeNs) {
         mergeInit = cloneDeep(this.foreignBuffers.get(mergeNs)) as Document[];
+      }
+      if (outNs) {
+        outInit = cloneDeep(this.foreignBuffers.get(outNs)) as Document[];
       }
     }
 
@@ -89,6 +94,11 @@ export class BufferAggregator extends AbstractAggregator<Document> {
     if (mergeNs) {
       const cs = new ChangeSet(this.foreignBuffers.get(mergeNs), mergeInit);
       const changes = cs.toChanges(mergeNs) as ChangeStreamDocument[];
+      await this.documentAccess.write(changes, {ordered: true});
+    }
+    if (outNs) {
+      const cs = new ChangeSet(this.foreignBuffers.get(outNs), outInit);
+      const changes = cs.toChanges(outNs) as ChangeStreamDocument[];
       await this.documentAccess.write(changes, {ordered: true});
     }
   }

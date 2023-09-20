@@ -132,6 +132,10 @@ export class QueryAnalysis {
           break;
         case '$merge':
           output.push(this.toNamespace(step.$merge.into));
+          break;
+        case '$out':
+          output.push(this.toNamespace(step.$out));
+          break;
       }
     }
     return output;
@@ -161,7 +165,7 @@ export class QueryAnalysis {
       : undefined;
   }
 
-  private toNamespace(source: string | Namespace) {
+  public toNamespace(source: string | Namespace) {
     return typeof source === 'string'
       ? { db: this.ns.db, coll: source }
       : source;
