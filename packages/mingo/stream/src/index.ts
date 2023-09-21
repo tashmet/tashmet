@@ -1,13 +1,12 @@
 import 'mingo/init/system.js';
 import { Document, provider } from '@tashmet/tashmet';
-import { MingoConfig, MingoConfigurator } from '@tashmet/mingo';
+import { MingoConfig, MingoConfigurator, BufferAggregator } from '@tashmet/mingo';
 import { getOperator, OperatorType } from 'mingo/core.js';
 import { Query } from 'mingo/query.js';
 import { assert, cloneDeep } from 'mingo/util.js';
 import { Iterator, Lazy } from 'mingo/lazy.js';
 import { AbstractAggregator, AggregatorFactory, DocumentAccess } from '@tashmet/engine';
 import { BootstrapConfig, Container, Logger, plugin } from '@tashmet/core';
-import { BufferAggregator } from '../../dist/aggregator';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   const result: T[] = [];
