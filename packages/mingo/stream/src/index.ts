@@ -1,12 +1,13 @@
 import 'mingo/init/system.js';
 import { Document, provider } from '@tashmet/tashmet';
 import { MingoConfig, MingoConfigurator } from '@tashmet/mingo';
-import { getOperator, OperatorType, initOptions } from 'mingo/core.js';
+import { getOperator, OperatorType } from 'mingo/core.js';
 import { Query } from 'mingo/query.js';
 import { assert, cloneDeep } from 'mingo/util.js';
 import { Iterator, Lazy } from 'mingo/lazy.js';
-import { AbstractAggregator, AggregatorFactory } from '@tashmet/engine';
-import { BootstrapConfig, Container, plugin } from '@tashmet/core';
+import { AbstractAggregator, AggregatorFactory, DocumentAccess } from '@tashmet/engine';
+import { BootstrapConfig, Container, Logger, plugin } from '@tashmet/core';
+import { BufferAggregator } from '../../dist/aggregator';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   const result: T[] = [];
@@ -47,20 +48,8 @@ async function* $match<T>(source: AsyncIterable<T>, expr: any) {
   }
 }
 
-async function* $lookup<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-  const buffer = await toArray(options.qa.foreignInputs[expr.from]);
-
-  for await (const item of source) {
-    const it = mingoOp(Lazy([cloneDeep(item)]), {...expr, from: buffer}, options) as Iterator;
-
-    for (const item of it.value() as any[]) {
-      yield item;
-    }
-  }
-}
-
 export const defaultOperators: Record<string, any> = {
-  $skip, $limit, $match, $lookup
+  $skip, $limit, $match,
 }
 
 export const defaultStreamOperators: string[] = [
@@ -68,16 +57,22 @@ export const defaultStreamOperators: string[] = [
 ]
 
 
-export class StreamAggregator<T extends Document = Document> extends AbstractAggregator {
+export class StreamAggregator<T extends Document = Document> extends BufferAggregator<T> {
   public constructor(
     public readonly pipeline: Document[],
-    private options: any,
+    documentAccess: DocumentAccess,
+    options: any,
+    logger: Logger,
     private operators: Record<string, any> = defaultOperators,
     private streamOperators: string[] = defaultStreamOperators,
-  ) { super(pipeline); }
+  ) {
+    super(pipeline, documentAccess, options, logger);
+  }
 
-  public stream<TResult>(input: AsyncIterable<T>): AsyncIterable<TResult> {
+  public async *stream<TResult>(input: AsyncIterable<T>): AsyncGenerator<TResult> {
     let output = input;
+
+    await this.loadBuffers();
 
     for (const operator of this.pipeline) {
       const operatorKeys = Object.keys(operator);
@@ -89,33 +84,37 @@ export class StreamAggregator<T extends Document = Document> extends AbstractAgg
       );
 
       if (op in this.operators) {
-        output = this.operators[op](output, operator[op], call, {...initOptions(), ...this.options});
+        output = this.operators[op](output, operator[op], call,this.mingoOptions);
       } else if (this.streamOperators.includes(op)) {
-        output = this.operatorStreamed(output, operator[op], call, initOptions());
+        output = operatorStreamed(output, operator[op], call, this.mingoOptions);
       } else {
-        output = this.operatorBuffered(output, operator[op], call, initOptions());
+        output = operatorBuffered(output, operator[op], call, this.mingoOptions);
       }
     }
 
-    return output as unknown as AsyncIterable<TResult>;
-  }
-
-  async* operatorStreamed<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-    for await (const item of source) {
-      const it = mingoOp(Lazy([cloneDeep(item)]), expr, options) as Iterator;
-
-      for (const item of it.value() as any[]) {
-        yield item;
-      }
+    for await (const doc of output as unknown as AsyncIterable<TResult>) {
+      yield doc;
     }
-  }
 
-  async* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-    const buffer = await toArray(source);
-    const it = mingoOp(Lazy(buffer).map(cloneDeep), expr, options) as Iterator;
+    await this.writeBuffers();
+  }
+}
+
+async function* operatorStreamed<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
+  for await (const item of source) {
+    const it = mingoOp(Lazy([cloneDeep(item)]), expr, options) as Iterator;
+
     for (const item of it.value() as any[]) {
       yield item;
     }
+  }
+}
+
+async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
+  const buffer = await toArray(source);
+  const it = mingoOp(Lazy(buffer).map(cloneDeep), expr, options) as Iterator;
+  for (const item of it.value() as any[]) {
+    yield item;
   }
 }
 
@@ -125,11 +124,13 @@ export class StreamAggregator<T extends Document = Document> extends AbstractAgg
 })
 @plugin<Partial<MingoConfig>>()
 export default class MingoStreamAggregatorFactory implements AggregatorFactory {
+  public constructor(private documentAccess: DocumentAccess, private logger: Logger) {}
+
   public static configure(config: Partial<BootstrapConfig> & Partial<MingoConfig>, container?: Container) {
     return new MingoConfigurator(MingoStreamAggregatorFactory, config, container);
   }
 
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    return new StreamAggregator(pipeline, options);
+    return new StreamAggregator(pipeline, this.documentAccess, options, this.logger);
   }
 }

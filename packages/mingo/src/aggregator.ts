@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
+import { initOptions, Options } from 'mingo/core.js';
 import { cloneDeep } from 'mingo/util.js';
 
 export interface PrefetchAggregation {
@@ -36,9 +37,10 @@ export class CollectionBuffers {
   }
 }
 
-export class BufferAggregator extends AbstractAggregator<Document> {
+export class BufferAggregator<T extends Document> extends AbstractAggregator<T> {
   private aggregator: Aggregator;
   private foreignBuffers: CollectionBuffers;
+  private outInit: Document[] = [];
 
   public constructor(
     pipeline: Document[],
@@ -48,28 +50,11 @@ export class BufferAggregator extends AbstractAggregator<Document> {
   {
     super(pipeline);
     this.foreignBuffers = new CollectionBuffers(documentAccess);
-    this.aggregator = new Aggregator(pipeline, {
-      collectionResolver: coll => {
-        if (options.queryAnalysis) {
-          return this.foreignBuffers.get({db: options.queryAnalysis.ns.db, coll});
-        }
-        throw Error('cound not resolve collection');
-      }
-    });
+    this.aggregator = new Aggregator(pipeline, this.mingoOptions);
   }
 
   public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
-    let outInit: Document[] = [];
-    const outNs = this.options.queryAnalysis?.out || this.options.queryAnalysis?.merge;
-
-    if (this.options.queryAnalysis) {
-      for (const ns of this.options.queryAnalysis.foreignInputs) {
-        await this.foreignBuffers.load(ns);
-      }
-      if (outNs) {
-        outInit = cloneDeep(this.foreignBuffers.get(outNs)) as Document[];
-      }
-    }
+    await this.loadBuffers();
 
     const buffer = await toArray(input);
     this.logger.inScope("MingoBufferAggregator").debug(`process buffer of ${buffer.length} document(s)`)
@@ -83,9 +68,41 @@ export class BufferAggregator extends AbstractAggregator<Document> {
       }
     }
 
-    if (outNs) {
-      const cs = new ChangeSet(this.foreignBuffers.get(outNs), outInit);
-      await this.documentAccess.write(cs.toChanges(outNs), {ordered: true});
+    await this.writeBuffers();
+  }
+
+  protected get mingoOptions(): Options {
+    return initOptions({
+      collectionResolver: coll => {
+        if (this.options.queryAnalysis) {
+          return this.foreignBuffers.get({db: this.options.queryAnalysis.ns.db, coll});
+        }
+        throw Error('cound not resolve collection');
+      }
+    });
+  }
+
+  protected get outNs(): Namespace | undefined {
+    return this.options.queryAnalysis?.out || this.options.queryAnalysis?.merge;
+  }
+
+  protected async loadBuffers() {
+    this.outInit = [];
+
+    if (this.options.queryAnalysis) {
+      for (const ns of this.options.queryAnalysis.foreignInputs) {
+        await this.foreignBuffers.load(ns);
+      }
+      if (this.outNs) {
+        this.outInit = cloneDeep(this.foreignBuffers.get(this.outNs)) as Document[];
+      }
+    }
+  }
+
+  protected async writeBuffers() {
+    if (this.outNs) {
+      const cs = new ChangeSet(this.foreignBuffers.get(this.outNs), this.outInit);
+      await this.documentAccess.write(cs.toChanges(this.outNs), {ordered: true});
     }
   }
 }
