@@ -1,6 +1,6 @@
 import ObjectID from 'bson-objectid';
+import { ChangeStreamDocument } from './changeStream.js';
 import { Document } from './interfaces.js';
-//import {ChangeStreamDocument} from '../../tashmet/src/changeStream';
 
 export function idSet(collection: any[]) {
   return new Set(collection.map(doc => JSON.stringify(doc._id)));
@@ -33,7 +33,7 @@ export class ChangeSet<T extends Document = Document> {
     return new ChangeSet([replacement], [old]);
   }
 
-  public toChanges(ns: {db: string, coll: string}): Document[] {
+  public toChanges(ns: {db: string, coll: string}): ChangeStreamDocument[] {
     return [
       ...this.insertions.map(doc => makeWriteChange('insert', doc, ns)),
       ...this.deletions.map(doc => makeWriteChange('delete', doc, ns)),

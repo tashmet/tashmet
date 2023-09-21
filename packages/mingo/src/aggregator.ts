@@ -1,4 +1,4 @@
-import { ChangeSet, ChangeStreamDocument, Namespace } from '@tashmet/bridge';
+import { ChangeSet, Namespace } from '@tashmet/bridge';
 import { AbstractAggregator, AggregatorOptions, DocumentAccess } from '@tashmet/engine';
 import {
   Document,
@@ -59,27 +59,19 @@ export class BufferAggregator extends AbstractAggregator<Document> {
   }
 
   public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
-    let mergeInit: Document[] = [];
     let outInit: Document[] = [];
-    const mergeNs = this.options.queryAnalysis?.merge;
-    const outNs = this.options.queryAnalysis?.out;
+    const outNs = this.options.queryAnalysis?.out || this.options.queryAnalysis?.merge;
 
     if (this.options.queryAnalysis) {
       for (const ns of this.options.queryAnalysis.foreignInputs) {
         await this.foreignBuffers.load(ns);
-      }
-      if (mergeNs) {
-        mergeInit = cloneDeep(this.foreignBuffers.get(mergeNs)) as Document[];
       }
       if (outNs) {
         outInit = cloneDeep(this.foreignBuffers.get(outNs)) as Document[];
       }
     }
 
-    const buffer = [];
-    for await (const item of input) {
-      buffer.push(item)
-    }
+    const buffer = await toArray(input);
     this.logger.inScope("MingoBufferAggregator").debug(`process buffer of ${buffer.length} document(s)`)
     const it = this.aggregator.stream(buffer);
     while (true) {
@@ -91,15 +83,9 @@ export class BufferAggregator extends AbstractAggregator<Document> {
       }
     }
 
-    if (mergeNs) {
-      const cs = new ChangeSet(this.foreignBuffers.get(mergeNs), mergeInit);
-      const changes = cs.toChanges(mergeNs) as ChangeStreamDocument[];
-      await this.documentAccess.write(changes, {ordered: true});
-    }
     if (outNs) {
       const cs = new ChangeSet(this.foreignBuffers.get(outNs), outInit);
-      const changes = cs.toChanges(outNs) as ChangeStreamDocument[];
-      await this.documentAccess.write(changes, {ordered: true});
+      await this.documentAccess.write(cs.toChanges(outNs), {ordered: true});
     }
   }
 }
