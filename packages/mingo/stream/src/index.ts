@@ -58,7 +58,7 @@ export const defaultStreamOperators: string[] = [
 
 export class StreamAggregator<T extends Document = Document> extends BufferAggregator<T> {
   public constructor(
-    public readonly pipeline: Document[],
+    pipeline: Document[],
     documentAccess: DocumentAccess,
     options: any,
     logger: Logger,

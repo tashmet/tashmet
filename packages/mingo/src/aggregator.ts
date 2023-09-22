@@ -48,9 +48,9 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
     private options: AggregatorOptions,
     private logger: Logger)
   {
-    super(pipeline);
+    super(cloneDeep(pipeline) as Document[]);
     this.foreignBuffers = new CollectionBuffers(documentAccess);
-    this.aggregator = new Aggregator(pipeline, this.mingoOptions);
+    this.aggregator = new Aggregator(this.pipeline, this.mingoOptions);
   }
 
   public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
@@ -74,6 +74,10 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
   protected get mingoOptions(): Options {
     return initOptions({
       collectionResolver: coll => {
+        if (coll.includes('.')) {
+          const ns = coll.split('.');
+          return this.foreignBuffers.get({db: ns[0], coll: ns[1]});
+        }
         if (this.options.queryAnalysis) {
           return this.foreignBuffers.get({db: this.options.queryAnalysis.ns.db, coll});
         }
@@ -88,12 +92,22 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
 
   protected async loadBuffers() {
     this.outInit = [];
+    const qa = this.options.queryAnalysis;
 
-    if (this.options.queryAnalysis) {
-      for (const ns of this.options.queryAnalysis.foreignInputs) {
+    if (qa) {
+      for (const ns of qa.foreignInputs) {
         await this.foreignBuffers.load(ns);
       }
       if (this.outNs) {
+        const step = this.pipeline[this.pipeline.length - 1];
+
+        if (qa.out) {
+          step.$out = `${step.$out.db}.${step.$out.coll}`;
+        }
+        if (qa.merge) {
+          step.$merge.into = `${step.$merge.into.db}.${step.$merge.into.coll}`;
+        }
+
         this.outInit = cloneDeep(this.foreignBuffers.get(this.outNs)) as Document[];
       }
     }
