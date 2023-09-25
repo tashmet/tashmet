@@ -1,9 +1,10 @@
 import { ChangeStreamDocument, Namespace } from "@tashmet/bridge";
-import { Document, Streamable, StreamOptions, Writable, WriteOptions } from "./interfaces";
+import { CollectionRegistry, Document, Streamable, StreamOptions, Writable, WriteOptions } from "./interfaces";
 
 export class DocumentAccess {
   private readables: Map<string, Streamable> = new Map();
   private writables: Map<string, Writable> = new Map();
+  private registry: Map<string, CollectionRegistry> = new Map();
 
   public constructor() {
   }
@@ -33,11 +34,34 @@ export class DocumentAccess {
     return writable.write(documents, options);
   }
 
+  public create(ns: Namespace, options: Document): Promise<void> {
+    const reg = this.registry.get(ns.db);
+
+    if (!reg) {
+      throw Error(`no database registed for: ${ns.db}`);
+    }
+    return reg.create(ns.coll, options);
+
+  }
+
+  public drop(ns: Namespace): Promise<void> {
+    const reg = this.registry.get(ns.db);
+
+    if (!reg) {
+      throw Error(`no database registed for: ${ns.db}`);
+    }
+    return reg.drop(ns.coll);
+  }
+
   public addStreamable(db: string, streamable: Streamable) {
     this.readables.set(db, streamable);
   }
 
   public addWritable(db: string, writable: Writable) {
     this.writables.set(db, writable);
+  }
+
+  public addRegistry(db: string, registry: CollectionRegistry) {
+    this.registry.set(db, registry);
   }
 }

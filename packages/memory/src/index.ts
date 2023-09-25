@@ -175,6 +175,7 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
     const views: ViewMap = {};
     this.documentAccess.addStreamable(dbName, storage);
     this.documentAccess.addWritable(dbName, storage);
+    this.documentAccess.addRegistry(dbName, storage);
     return StorageEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
       new AggregationController(dbName, storage, engine, views)

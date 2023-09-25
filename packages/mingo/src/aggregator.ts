@@ -28,7 +28,11 @@ export class CollectionBuffers {
   public constructor(private documentAccess: DocumentAccess) {}
   private buffers: Record<string, Document[]> = {};
 
-  public async load(ns: Namespace): Promise<Document[]> {
+  public async load(ns: Namespace, create: boolean = false): Promise<Document[]> {
+    if (create) {
+      await this.documentAccess.create(ns, {});
+    }
+
     return this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.documentAccess.stream(ns, {}));
   }
 
@@ -96,7 +100,7 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
 
     if (qa) {
       for (const ns of qa.foreignInputs) {
-        await this.foreignBuffers.load(ns);
+        await this.foreignBuffers.load(ns, true);
       }
       if (this.outNs) {
         const step = this.pipeline[this.pipeline.length - 1];

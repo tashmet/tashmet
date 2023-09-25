@@ -18,6 +18,16 @@ export class CommandAnnotation extends Annotation {
 export const command = (name: string) =>
   methodDecorator(({propertyKey}) => new CommandAnnotation(name, propertyKey));
 
+export class OperatorAnnotation extends Annotation {
+  public constructor(
+    public readonly name: string,
+    public readonly propertyKey: string
+  ) { super(); }
+}
+
+
+export const operator = (name: string) =>
+  methodDecorator<Operator<any>>(({propertyKey}) => new OperatorAnnotation(name, propertyKey));
 
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
 export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
@@ -149,7 +159,21 @@ export interface AggregatorFactory {
   createAggregator(pipeline: Document[], options?: AggregatorOptions): AbstractAggregator;
 }
 
-export abstract class AggregatorFactory implements AggregatorFactory {};
+export interface OperatorConfig {
+  name: string;
+}
+
+export type Operator<TExpr> = (it: AsyncIterable<Document>, expr: TExpr) => AsyncIterable<Document>;
+
+export abstract class AggregatorFactory implements AggregatorFactory {
+  protected operators: Record<string, Operator<any>> = {};
+
+  public addOperatorController(controller: any) {
+    for (const op of OperatorAnnotation.onClass(controller.constructor, true)) {
+      this.operators[op.name] = (it, expr) => controller[op.propertyKey](it, expr);
+    }
+  }
+};
 
 export abstract class AbstractAggregator<T extends Document = Document> {
   public constructor(protected pipeline: Document[]) {}

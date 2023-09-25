@@ -32,11 +32,11 @@ export class MingoComparator implements Comparator {
   key: AggregatorFactory,
 })
 @plugin<Partial<MingoConfig>>()
-export default class MingoAggregatorFactory implements AggregatorFactory {
+export default class MingoAggregatorFactory extends AggregatorFactory {
   public constructor(
     private documentAccess: DocumentAccess,
     private logger: Logger
-  ) {}
+  ) { super(); }
 
   public static configure(config: Partial<BootstrapConfig> & Partial<MingoConfig>, container?: Container) {
     return new MingoConfigurator(MingoAggregatorFactory, config, container);
@@ -75,5 +75,10 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory, Par
     this.container.register(Provider.ofInstance(HashCode, hashCode));
     this.container.register(MingoComparator);
     this.container.register(FilterValidatorFactory);
+  }
+
+  public load() {
+    const fact = this.container.resolve(AggregatorFactory);
+    fact.addOperatorController(fact);
   }
 }
