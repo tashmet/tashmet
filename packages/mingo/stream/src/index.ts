@@ -1,6 +1,6 @@
 import 'mingo/init/system.js';
 import { Document, provider } from '@tashmet/tashmet';
-import { MingoConfig, MingoConfigurator, BufferAggregator } from '@tashmet/mingo';
+import MingoAggregatorFactory, { MingoConfig, MingoConfigurator, BufferAggregator } from '@tashmet/mingo';
 import { getOperator, OperatorType } from 'mingo/core.js';
 import { Query } from 'mingo/query.js';
 import { assert, cloneDeep } from 'mingo/util.js';
@@ -87,8 +87,10 @@ async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp
   key: AggregatorFactory,
 })
 @plugin<Partial<MingoConfig>>()
-export default class MingoStreamAggregatorFactory extends AggregatorFactory {
-  public constructor(private documentAccess: DocumentAccess, private logger: Logger) { super(); }
+export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
+  public constructor(documentAccess: DocumentAccess, logger: Logger) {
+    super(documentAccess, logger);
+  }
 
   public static configure(config: Partial<BootstrapConfig> & Partial<MingoConfig>, container?: Container) {
     return new MingoConfigurator(MingoStreamAggregatorFactory, config, container);

@@ -1,3 +1,4 @@
+import { ExpressionOperator } from "@tashmet/engine";
 import { Encoding } from "../interfaces.js";
 
 export interface JsonParserOptions {
@@ -40,4 +41,12 @@ export const jsonWriter = async (content: any, options: JsonSerializerOptions = 
   const {encoding, replacer, space} = Object.assign({}, defaultSerializerOptions, options);
 
   return Buffer.from(JSON.stringify(content, replacer, space), encoding);
+}
+
+export const $jsonDump: ExpressionOperator<string> = (args, resolve) => {
+  return JSON.stringify(resolve(args));
+}
+
+export const $jsonParse: ExpressionOperator<string> = (args, resolve) => {
+  return JSON.parse(resolve(args));
 }

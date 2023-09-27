@@ -37,7 +37,7 @@ import { Stream } from './stream.js';
 import { DocumentBundleStorage } from './storage/documentBundle.js';
 import { CollectionBundleStorage } from './storage/collectionBundle.js';
 import { textWriter } from './operators/text.js';
-import { jsonReader, jsonWriter } from './operators/json.js';
+import { $jsonDump, $jsonParse, jsonReader, jsonWriter } from './operators/json.js';
 
 export * from './interfaces.js';
 
@@ -175,13 +175,16 @@ export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfi
   public load() {
     const cr = this.container.resolve(ContentReader);
     const cw = this.container.resolve(ContentWriter);
+    const aggFact = this.container.resolve(AggregatorFactory);
+    const nabu = this.container.resolve(Nabu);
+    const dispatcher = this.container.resolve(Dispatcher);
 
     //cr.register('text', textReader);
     cr.register('*.json', content => jsonReader(content));
     cw.register('*.json', content => jsonWriter(content));
 
-    const nabu = this.container.resolve(Nabu);
-    const dispatcher = this.container.resolve(Dispatcher);
+    aggFact.addExpressionOperator('$jsonDump', $jsonDump);
+    aggFact.addExpressionOperator('$jsonParse', $jsonParse);
 
     for (const [dbName, dbConfig] of Object.entries(this.config.databases || {})) {
       dispatcher.addBridge(dbName, new StorageEngineBridge(db => nabu.createBuffer(db, dbConfig)));

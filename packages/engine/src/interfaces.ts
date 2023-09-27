@@ -29,6 +29,8 @@ export class OperatorAnnotation extends Annotation {
 export const operator = (name: string) =>
   methodDecorator<Operator<any>>(({propertyKey}) => new OperatorAnnotation(name, propertyKey));
 
+export type ExpressionOperator<T> = (args: T, resolve: (path: string) => any) => any;
+
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
 export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
   ? // eslint-disable-next-line @typescript-eslint/ban-types
@@ -157,6 +159,8 @@ export interface AggregatorOptions {
 
 export interface AggregatorFactory {
   createAggregator(pipeline: Document[], options?: AggregatorOptions): AbstractAggregator;
+
+  addExpressionOperator(name: string, op: ExpressionOperator<any>): void;
 }
 
 export interface OperatorConfig {
@@ -167,12 +171,17 @@ export type Operator<TExpr> = (it: AsyncIterable<Document>, expr: TExpr) => Asyn
 
 export abstract class AggregatorFactory implements AggregatorFactory {
   protected operators: Record<string, Operator<any>> = {};
+  protected exprOps: Record<string, ExpressionOperator<any>> = {};
 
   public addOperatorController(controller: any) {
     for (const op of OperatorAnnotation.onClass(controller.constructor, true)) {
       this.operators[op.name] = (it, expr) => controller[op.propertyKey](it, expr);
     }
   }
+
+  //public addExpressionOperator(name: string, op: ExpressionOperator<any>) {
+    //this.exprOps[name] = op;
+  //}
 };
 
 export abstract class AbstractAggregator<T extends Document = Document> {

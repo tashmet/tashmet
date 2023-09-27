@@ -29,9 +29,9 @@ export class CollectionBuffers {
   private buffers: Record<string, Document[]> = {};
 
   public async load(ns: Namespace, create: boolean = false): Promise<Document[]> {
-    if (create) {
-      await this.documentAccess.create(ns, {});
-    }
+    //if (create) {
+      //await this.documentAccess.create(ns, {});
+    //}
 
     return this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.documentAccess.stream(ns, {}));
   }
