@@ -1,5 +1,5 @@
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
-import { Document } from '@tashmet/engine';
+import { AggregatorFactory, Document, ExpressionOperator } from '@tashmet/engine';
 import { ContentReader, ContentWriter } from '@tashmet/nabu';
 import { YamlConfig, YamlOptions } from './interfaces.js';
 
@@ -54,9 +54,9 @@ const defaultOptions: YamlOptions = {
   condenseFlow: false
 };
 
-export function parseYaml(buffer: Buffer, config: YamlOptions = {}): Document {
+export function parseYaml(data: string, config: YamlOptions = {}): Document {
   const {frontMatter, contentKey} = Object.assign({}, defaultOptions, config);
-  const data = buffer.toString('utf-8');
+  //const data = buffer.toString('utf-8');
   if (frontMatter) {
     const doc = loadFront(data) as any;
     const content = doc.__content.trim();
@@ -77,7 +77,7 @@ export function parseYaml(buffer: Buffer, config: YamlOptions = {}): Document {
  *
  * @param buffer Buffer containing raw YAML data
  */
-export function serializeYaml(data: Document, config?: YamlOptions): Buffer {
+export function serializeYaml(data: Document, config?: YamlOptions): string {
   const {frontMatter, contentKey, ...cfg} = Object.assign({}, defaultOptions, config);
 
   if (frontMatter) {
@@ -88,11 +88,20 @@ export function serializeYaml(data: Document, config?: YamlOptions): Buffer {
     if (data[key]) {
       output += '\n' + data[key].replace(/^\s+|\s+$/g, '');
     }
-    return Buffer.from(output, 'utf-8');
+    return output;
   } else {
-    return Buffer.from(jsYaml.dump(data, cfg), 'utf-8');
+    return jsYaml.dump(data, cfg);
   }
 }
+
+export const $yamlDump: ExpressionOperator<string> = (args, resolve) => {
+  return serializeYaml(resolve(args));
+}
+
+export const $yamlParse: ExpressionOperator<string> = (args, resolve) => {
+  return JSON.parse(resolve(args));
+}
+
 
 @plugin<YamlConfig>()
 export default class NabuYaml {
@@ -106,9 +115,14 @@ export class YamlConfigurator extends PluginConfigurator<NabuYaml, YamlConfig> {
     const cr = this.container.resolve(ContentReader);
     const cw = this.container.resolve(ContentWriter);
 
+    const aggFact = this.container.resolve(AggregatorFactory);
+
+    aggFact.addExpressionOperator('$yamlDump', $yamlDump);
+    aggFact.addExpressionOperator('$yamlParse', $yamlParse);
+
     for (const {match, ...opts} of this.config.rules || []) {
-      cr.register(match, async content => parseYaml(content, opts));
-      cw.register(match, async content => serializeYaml(content, opts));
+      cr.register(match, async content => parseYaml(content.toString('utf-8'), opts));
+      cw.register(match, async content => Buffer.from(serializeYaml(content, opts)));
     }
   }
 }
