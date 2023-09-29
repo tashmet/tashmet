@@ -1,6 +1,6 @@
 import Tashmet, { Collection } from '@tashmet/tashmet';
 import Nabu from '@tashmet/nabu';
-import Mingo from '@tashmet/mingo';
+import Mingo from '@tashmet/mingo-stream';
 import 'mingo/init/system';
 import 'mocha';
 import chai from 'chai';

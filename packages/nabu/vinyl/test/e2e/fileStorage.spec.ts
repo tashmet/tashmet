@@ -1,7 +1,6 @@
 import Tashmet, { Collection } from '@tashmet/tashmet';
 import Nabu from '@tashmet/nabu';
-import Mingo from '@tashmet/mingo';
-import 'mingo/init/system';
+import Mingo from '@tashmet/mingo-stream';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -24,6 +23,8 @@ function storedFiles(): string[] {
 
 describe('documentBundle', () => {
   let col: Collection<any>;
+  let orders: Collection<any>;
+  let inventory: Collection<any>;
 
   before(async () => {
     const client = Tashmet
@@ -31,15 +32,18 @@ describe('documentBundle', () => {
       .use(Mingo, {})
       .use(Nabu, {
         databases: {
-          e2e: {
-            documentBundle: (coll, id) => `test/e2e/${coll}/${id ? id : '*'}.json`,
-          }
+          e2e: coll => ({
+            scan: `test/e2e/${coll}/*.json`,
+            lookup: id => `test/e2e/${coll}/${id}.json`,
+          })
         }
       })
       .use(Vinyl, {watch: false})
       .bootstrap();
 
     col = client.db('e2e').collection('testCollection');
+    //orders = client.db('e2e').collection('orders');
+    //inventory = client.db('e2e').collection('inventory');
   });
 
   beforeEach(async () => {
@@ -246,6 +250,35 @@ describe('documentBundle', () => {
       expect(await cursor.next()).to.eql(null);
     });
   });
+
+  //describe.only('aggregate', () => {
+    //it('should lookup', async () => {
+      //await orders.insertMany( [
+        //{ "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
+        //{ "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 },
+        //{ "_id" : 3  }
+      //] )
+
+      //await inventory.insertMany( [
+        //{ "_id" : 1, "sku" : "almonds", "description": "product 1", "instock" : 120 },
+        //{ "_id" : 2, "sku" : "bread", "description": "product 2", "instock" : 80 },
+        //{ "_id" : 3, "sku" : "cashews", "description": "product 3", "instock" : 60 },
+        //{ "_id" : 4, "sku" : "pecans", "description": "product 4", "instock" : 70 },
+        //{ "_id" : 5, "sku": null, "description": "Incomplete" },
+        //{ "_id" : 6 }
+      //] )
+
+      //console.log(await orders.aggregate([
+        //{ $lookup:
+          //{
+            //from: "inventory",
+            //localField: "item",
+            //foreignField: "sku",
+            //as: "inventory_docs"
+          //}
+        //}]).toArray());
+    //});
+  //});
 
   describe('deleteOne', () => {
     it('should return zero deletedCount when no document match selector', () => {

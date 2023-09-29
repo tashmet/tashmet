@@ -18,7 +18,7 @@ export const $remarkProcess: ExpressionOperator<string> = (args, resolve) => {
     .use(remarkRehype)
     .use(rehypeSanitize)
     .use(rehypeStringify)
-    .processSync(resolve(args));
+    .processSync(resolve(args)).value;
 }
 
 @plugin<any>()
