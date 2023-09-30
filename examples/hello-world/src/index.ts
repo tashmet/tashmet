@@ -2,16 +2,18 @@ import Tashmet from '@tashmet/tashmet';
 import Mingo from '@tashmet/mingo-aggregation';
 import Memory from '@tashmet/memory';
 
-Tashmet
+async function helloWorld(tashmet: Tashmet) {
+  const db = tashmet.db('hello-world');
+  const posts = db.collection('posts');
+  await posts.insertOne({title: 'Hello World!'});
+  const doc = await posts.find().next();
+  console.log(doc);
+}
+
+const tashmet = Tashmet
   .configure()
   .use(Mingo, {})
   .use(Memory, {})
-  .connect()
-  .then(async tashmet => {
-    const db = tashmet.db('hello-world');
-    const posts = db.collection('posts');
-    await posts.insertOne({title: 'Hello World!'});
-    const doc = await posts.find().next();
+  .bootstrap();
 
-    console.log(doc);
-  });
+helloWorld(tashmet);
