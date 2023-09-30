@@ -105,10 +105,10 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
       if (this.outNs) {
         const step = this.pipeline[this.pipeline.length - 1];
 
-        if (qa.out) {
+        if (qa.out && typeof qa.out === 'string') {
           step.$out = `${step.$out.db}.${step.$out.coll}`;
         }
-        if (qa.merge) {
+        if (qa.merge && typeof qa.merge === 'string') {
           step.$merge.into = `${step.$merge.into.db}.${step.$merge.into.coll}`;
         }
 
