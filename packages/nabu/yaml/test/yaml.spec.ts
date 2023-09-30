@@ -16,7 +16,7 @@ describe('yaml', () => {
           - item1
           - item2
       `;
-      expect(parseYaml(Buffer.from(yaml, 'utf-8')))
+      expect(parseYaml(yaml))
         .to.eql({title: 'foo', list: ['item1', 'item2']});
     });
 
@@ -35,7 +35,7 @@ describe('yaml', () => {
         ---
         Content goes here
       `;
-      expect(parseYaml(Buffer.from(yaml, 'utf-8'), {frontMatter: true}))
+      expect(parseYaml(yaml, {frontMatter: true}))
         .to.eql({title: 'foo', _content: 'Content goes here'});
     });
 
@@ -46,7 +46,7 @@ describe('yaml', () => {
         ---
         Content goes here
       `;
-      expect(parseYaml(Buffer.from(yaml, 'utf-8'), {frontMatter: true, contentKey: 'text'}))
+      expect(parseYaml(yaml, {frontMatter: true, contentKey: 'text'}))
         .to.eql({title: 'foo', text: 'Content goes here'});
     });
   });
@@ -60,7 +60,7 @@ describe('yaml', () => {
           - item1
           - item2
       `;
-      expect(serializeYaml(plain).toString('utf-8').trim())
+      expect(serializeYaml(plain).trim())
         .to.eql(expected.trim());
     });
 
@@ -72,7 +72,7 @@ describe('yaml', () => {
         ---
         Content goes here
       `;
-      expect(serializeYaml(plain, {frontMatter: true}).toString('utf-8').trim())
+      expect(serializeYaml(plain, {frontMatter: true}).trim())
         .to.eql(expected.trim());
     });
 
@@ -84,7 +84,7 @@ describe('yaml', () => {
         ---
         Content goes here
       `;
-      expect(serializeYaml(plain, {frontMatter: true, contentKey: 'text'}).toString('utf-8').trim())
+      expect(serializeYaml(plain, {frontMatter: true, contentKey: 'text'}).trim())
         .to.eql(expected.trim());
     });
   });

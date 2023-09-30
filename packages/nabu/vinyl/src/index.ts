@@ -7,16 +7,14 @@ import minimatch from 'minimatch';
 export * from './interfaces.js';
 
 import {Container } from '@tashmet/tashmet';
-import {FileAccess, File, ReadableFile, FileReader, FileWriter, ContentWriter, ContentReader, fileExtension} from '@tashmet/nabu';
+import {FileAccess, File, ReadableFile, FileReader, FileWriter } from '@tashmet/nabu';
 import {Stream} from '@tashmet/nabu-stream';
 import {FileSystemConfig} from './interfaces.js';
-import { BootstrapConfig, Logger, plugin, PluginConfigurator } from '@tashmet/core';
+import { BootstrapConfig, plugin, PluginConfigurator } from '@tashmet/core';
 
 
 export class VinylFSReader implements FileReader {
   readonly pattern = /^((?!:).)*$/;
-
-  public constructor(private contentReader: ContentReader) {}
 
   public async *read(location: string | string[], options: any): AsyncGenerator<ReadableFile> {
     const files = Stream.toGenerator(vfs.src(location, {
@@ -24,14 +22,13 @@ export class VinylFSReader implements FileReader {
       read: options?.content !== false,
       allowEmpty: true
     }));
-    const cr = this.contentReader;
 
     for await (const vinyl of files()) {
-      yield await cr.read({
+      yield {
         path: vinyl.path,
-        content: vinyl.contents,
+        content: vinyl.contents ? vinyl.contents.toString('utf-8'): null,
         isDir: vinyl.isDirectory()
-      });
+      }
     }
   }
 }
@@ -39,35 +36,32 @@ export class VinylFSReader implements FileReader {
 export class VinylFSWriter implements FileWriter {
   readonly pattern = /^((?!:).)*$/;
 
-  public constructor(private contentWriter: ContentWriter) {}
-
   public async write(files: AsyncGenerator<File>): Promise<any> {
     const deletes: string[] = [];
     const writeErrors: any[] = [];
     let index = 0;
 
-    async function *writer(cw: ContentWriter) {
-      for await (const file of files) {
-        const {path, content} = await cw.write(file);
+    async function *writer() {
+      for await (const {path, content, overwrite} of files) {
 
-        if (!file.overwrite && fs.existsSync(path)) {
+        if (!overwrite && fs.existsSync(path)) {
           writeErrors.push({ errMsg: `Trying to overwrite file: ${path} with overwrite flag set to false`, index })
         }
 
-        if (file.content) {
+        if (content) {
           yield new Vinyl({
             path,
-            contents: content,
+            contents: Buffer.from(content),
           });
         } else {
-          deletes.push(file.path);
+          deletes.push(path);
         }
 
         index++;
       }
     }
 
-    await Stream.toSink(vfs.dest('.'))(writer(this.contentWriter));
+    await Stream.toSink(vfs.dest('.'))(writer());
 
     for (const path of deletes) {
       if (fs.existsSync(path)) {
@@ -181,10 +175,8 @@ export default class VinylFS extends FileAccess  {
 export class VinylConfigurator extends PluginConfigurator<VinylFS, FileSystemConfig> {
   public load() {
     const fa = this.container.resolve(FileAccess);
-    const cr = this.container.resolve(ContentReader);
-    const cw = this.container.resolve(ContentWriter);
 
-    fa.registerWriter(new VinylFSWriter(cw));
-    fa.registerReader(new VinylFSReader(cr));
+    fa.registerWriter(new VinylFSWriter());
+    fa.registerReader(new VinylFSReader());
   }
 }

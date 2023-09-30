@@ -1,44 +1,39 @@
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
-import { Document } from '@tashmet/engine';
-import { ContentReader, ContentWriter } from '@tashmet/nabu';
+import { AggregatorFactory, Document, ExpressionOperator } from '@tashmet/engine';
+import { ContentRule, NabuContentRules } from '@tashmet/nabu';
 import { YamlConfig, YamlOptions } from './interfaces.js';
 
 import jsYaml from 'js-yaml';
-//import * as yamlFront from 'yaml-front-matter';
 
 export {YamlConfig} from './interfaces.js';
 
-function parse(text: string, options: any) {
-    let contentKeyName = options && typeof options === 'string'
-        ? options
-        : options && options.contentKeyName 
-            ? options.contentKeyName 
-            : '__content';
-
-    let passThroughOptions = options && typeof options === 'object'
-        ? options
-        : undefined;
-
-    let re = /^(-{3}(?:\n|\r)([\w\W]+?)(?:\n|\r)-{3})?([\w\W]*)*/
-        , results = re.exec(text)
-        , conf: any = {}
-        , yamlOrJson;
-
-    if ((yamlOrJson = (results as any)[2])) {
-        if (yamlOrJson.charAt(0) === '{') {
-          conf = JSON.parse(yamlOrJson);
-        } else {
-          conf = jsYaml.load(yamlOrJson, passThroughOptions) as any;
-        }
-    }
-
-    conf[contentKeyName] = (results as any)[3] || '';
-
-    return conf;
-};
-
 export function loadFront (content: any, options?: any) {
-    return parse(content, options);
+  let contentKeyName = options && typeof options === 'string'
+      ? options
+      : options && options.contentKeyName
+          ? options.contentKeyName
+          : '__content';
+
+  let passThroughOptions = options && typeof options === 'object'
+      ? options
+      : undefined;
+
+  let re = /^(-{3}(?:\n|\r)([\w\W]+?)(?:\n|\r)-{3})?([\w\W]*)*/
+      , results = re.exec(content)
+      , conf: any = {}
+      , yamlOrJson;
+
+  if ((yamlOrJson = (results as any)[2])) {
+      if (yamlOrJson.charAt(0) === '{') {
+        conf = JSON.parse(yamlOrJson);
+      } else {
+        conf = jsYaml.load(yamlOrJson, passThroughOptions) as any;
+      }
+  }
+
+  conf[contentKeyName] = (results as any)[3] || '';
+
+  return conf;
 };
 
 const defaultOptions: YamlOptions = {
@@ -54,9 +49,8 @@ const defaultOptions: YamlOptions = {
   condenseFlow: false
 };
 
-export function parseYaml(buffer: Buffer, config: YamlOptions = {}): Document {
+export function parseYaml(data: string, config: YamlOptions = {}): Document {
   const {frontMatter, contentKey} = Object.assign({}, defaultOptions, config);
-  const data = buffer.toString('utf-8');
   if (frontMatter) {
     const doc = loadFront(data) as any;
     const content = doc.__content.trim();
@@ -77,7 +71,7 @@ export function parseYaml(buffer: Buffer, config: YamlOptions = {}): Document {
  *
  * @param buffer Buffer containing raw YAML data
  */
-export function serializeYaml(data: Document, config?: YamlOptions): Buffer {
+export function serializeYaml(data: Document, config?: YamlOptions): string {
   const {frontMatter, contentKey, ...cfg} = Object.assign({}, defaultOptions, config);
 
   if (frontMatter) {
@@ -88,10 +82,26 @@ export function serializeYaml(data: Document, config?: YamlOptions): Buffer {
     if (data[key]) {
       output += '\n' + data[key].replace(/^\s+|\s+$/g, '');
     }
-    return Buffer.from(output, 'utf-8');
+    return output;
   } else {
-    return Buffer.from(jsYaml.dump(data, cfg), 'utf-8');
+    return jsYaml.dump(data, cfg);
   }
+}
+
+export const $yamlDump: ExpressionOperator<string> = (args, resolve) => {
+  return serializeYaml(resolve(args));
+}
+
+export const $yamlParse: ExpressionOperator<string> = (args, resolve) => {
+  return parseYaml(resolve(args));
+}
+
+export const $yamlfmDump: ExpressionOperator<string> = (args, resolve) => {
+  return serializeYaml(resolve(args), { frontMatter: true });
+}
+
+export const $yamlfmParse: ExpressionOperator<string> = (args, resolve) => {
+  return parseYaml(resolve(args), { frontMatter: true });
 }
 
 @plugin<YamlConfig>()
@@ -103,12 +113,17 @@ export default class NabuYaml {
 
 export class YamlConfigurator extends PluginConfigurator<NabuYaml, YamlConfig> {
   public load() {
-    const cr = this.container.resolve(ContentReader);
-    const cw = this.container.resolve(ContentWriter);
+    const contentRules = this.container.resolve(NabuContentRules);
+    const aggFact = this.container.resolve(AggregatorFactory);
 
-    for (const {match, ...opts} of this.config.rules || []) {
-      cr.register(match, async content => parseYaml(content, opts));
-      cw.register(match, async content => serializeYaml(content, opts));
-    }
+    aggFact.addExpressionOperator('$yamlDump', $yamlDump);
+    aggFact.addExpressionOperator('$yamlParse', $yamlParse);
+    aggFact.addExpressionOperator('$yamlfmDump', $yamlfmDump);
+    aggFact.addExpressionOperator('$yamlfmParse', $yamlfmParse);
+
+    const yamlRule: ContentRule = { parse: { $yamlParse: '$content' }, serialize: { $yamlDump: '$content' } };
+
+    contentRules.rule('*.yaml', yamlRule);
+    contentRules.rule('*.yml', yamlRule);
   }
 }

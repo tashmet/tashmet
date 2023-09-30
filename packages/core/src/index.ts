@@ -28,7 +28,7 @@ export class PluginConfigurator<T, TConfig> {
   protected plugins: PluginConfigurator<any, any>[] = [];
   protected container: Container;
 
-  public constructor(private app: Newable<T>, protected config: Partial<BootstrapConfig> & TConfig, container?: Container) {
+  public constructor(protected app: Newable<T>, protected config: Partial<BootstrapConfig> & TConfig, container?: Container) {
     if (!container) {
       this.container = createContainer({
         logLevel: config.logLevel === undefined ? LogLevel.None : config.logLevel,

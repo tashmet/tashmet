@@ -40,16 +40,29 @@ export interface CollectionBundleConfig {
   dictionary: boolean;
 }
 
-export interface DocumentBundleConfig {
-  documentBundle: (collection: string, id?: string) => string;
+export interface FileStorageConfig {
+  scan: string;
 
-  id?: (file: File) => string;
+  lookup: (id: string) => string;
+
+  read?: Document[];
+
+  write?: Document[];
 }
 
-export type NabuDatabaseConfig = DatabaseBundleConfig | CollectionBundleConfig | DocumentBundleConfig;
+export interface ContentRule {
+  parse: Document;
+
+  serialize: Document;
+}
+
+
+export type NabuDatabaseConfig = (coll: string) => FileStorageConfig;
 
 export interface NabuConfig {
   databases: Record<string, NabuDatabaseConfig>;
+
+  contentRules?: Record<string, ContentRule>;
 }
 
 export abstract class NabuConfig implements NabuConfig {}
@@ -142,27 +155,4 @@ export class FileAccess {
   public watch(globs: string | string[], deletion?: boolean): AsyncGenerator<File> | null {
     throw new Error("watch not implemented");
   }
-}
-
-export abstract class ContentReader {
-  public abstract read(content: any): Promise<any>;
-
-  public abstract register(pattern: string, reader: ContentReaderFunction): void;
-}
-
-export abstract class ContentWriter {
-  public abstract write(content: any): Promise<any>;
-
-  public abstract register(pattern: string, writer: ContentWriterFunction): void;
-}
-
-export type ContentReaderFunction = (content: any) => Promise<any>;
-export type ContentWriterFunction = (content: any) => Promise<Buffer>;
-
-export function fileExtension(path: string) {
-  const matches = /(?:\.([^.]+))?$/.exec(path);
-  if (matches) {
-    return matches[1];
-  }
-  throw new Error(`Could not determine file extension from path: '${path}'`);
 }
