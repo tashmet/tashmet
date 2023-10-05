@@ -2,10 +2,11 @@ import 'mingo/init/system.js';
 import { Document, provider } from '@tashmet/tashmet';
 import MingoAggregatorFactory, { MingoConfig, MingoConfigurator, BufferAggregator } from '@tashmet/mingo';
 import { getOperator, OperatorType } from 'mingo/core.js';
+import * as mingo from 'mingo/core.js';
 import { Query } from 'mingo/query.js';
 import { assert, cloneDeep } from 'mingo/util.js';
 import { Iterator, Lazy } from 'mingo/lazy.js';
-import { AbstractAggregator, AggregatorFactory, DocumentAccess, Operator, operator } from '@tashmet/engine';
+import { AbstractAggregator, AggregatorFactory, DocumentAccess, Operator, operator, PipelineOperator } from '@tashmet/engine';
 import { BootstrapConfig, Container, Logger, plugin } from '@tashmet/core';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
@@ -24,7 +25,7 @@ export const defaultStreamOperators: string[] = [
 export class StreamAggregator<T extends Document = Document> extends BufferAggregator<T> {
   public constructor(
     pipeline: Document[],
-    private operators: Record<string, Operator<any>>,
+    private pipelineOperators: Record<string, PipelineOperator<any>>,
     documentAccess: DocumentAccess,
     options: any,
     logger: Logger,
@@ -41,18 +42,21 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
     for (const operator of this.pipeline) {
       const operatorKeys = Object.keys(operator);
       const op = operatorKeys[0];
-      const call = getOperator(OperatorType.PIPELINE, op);
-      assert(
-        operatorKeys.length === 1 && !!call,
-        `invalid aggregation operator ${op}`
-      );
 
-      if (op in this.operators) {
-        output = this.operators[op](output, operator[op]) as AsyncIterable<T>;
-      } else if (this.streamOperators.includes(op)) {
-        output = operatorStreamed(output, operator[op], call, this.mingoOptions);
+      if (op in this.pipelineOperators) {
+        output = this.pipelineOperators[op](output, operator[op], (doc, path) => mingo.computeValue(doc, path)) as AsyncIterable<T>;
       } else {
-        output = operatorBuffered(output, operator[op], call, this.mingoOptions);
+        const call = getOperator(OperatorType.PIPELINE, op);
+        assert(
+          operatorKeys.length === 1 && !!call,
+          `invalid aggregation operator ${op}`
+        );
+
+        if (this.streamOperators.includes(op)) {
+          output = operatorStreamed(output, operator[op], call, this.mingoOptions);
+        } else {
+          output = operatorBuffered(output, operator[op], call, this.mingoOptions);
+        }
       }
     }
 
@@ -90,6 +94,9 @@ async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp
 export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
   public constructor(documentAccess: DocumentAccess, logger: Logger) {
     super(documentAccess, logger);
+    this.addPipelineOperator('$match', this.$match);
+    this.addPipelineOperator('$skip', this.$skip);
+    this.addPipelineOperator('$limit', this.$limit);
   }
 
   public static configure(config: Partial<BootstrapConfig> & Partial<MingoConfig>, container?: Container) {
@@ -97,7 +104,7 @@ export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory
   }
 
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    return new StreamAggregator(pipeline, this.operators, this.documentAccess, options, this.logger);
+    return new StreamAggregator(pipeline, this.pipelineOps, this.documentAccess, options, this.logger);
   }
 
   @operator('$match')

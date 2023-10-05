@@ -11,6 +11,7 @@ import {FileAccess, File, ReadableFile, FileReader, FileWriter } from '@tashmet/
 import {Stream} from '@tashmet/nabu-stream';
 import {FileSystemConfig} from './interfaces.js';
 import { BootstrapConfig, plugin, PluginConfigurator } from '@tashmet/core';
+import { AggregatorFactory } from '@tashmet/engine';
 
 
 export class VinylFSReader implements FileReader {
@@ -175,8 +176,38 @@ export default class VinylFS extends FileAccess  {
 export class VinylConfigurator extends PluginConfigurator<VinylFS, FileSystemConfig> {
   public load() {
     const fa = this.container.resolve(FileAccess);
+    const aggFact = this.container.resolve(AggregatorFactory);
 
     fa.registerWriter(new VinylFSWriter());
     fa.registerReader(new VinylFSReader());
+
+    async function *$write(it: AsyncIterable<Document>, expr: any, resolve: any) {
+      let index = 0;
+
+      for await (const doc of it) {
+        const content = resolve(doc, expr.buffer);
+        const path = resolve(doc, expr.path);
+        const overwrite = resolve(doc, expr.overwrite);
+
+        if (!overwrite && fs.existsSync(path)) {
+          yield {
+            errMsg: `Trying to overwrite file: ${path} with overwrite flag set to false`,
+            index
+          };
+        }
+
+        if (content) {
+          fs.writeFileSync(path, content);
+        } else {
+          if (fs.existsSync(path)) {
+            fs.unlinkSync(path);
+          }
+        }
+
+        index++;
+      }
+    }
+
+    aggFact.addPipelineOperator('$write', $write);
   }
 }

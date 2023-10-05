@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@tashmet/tashmet';
 import { idSet, ChangeSet, Comparator } from '@tashmet/bridge';
-import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess, AggregatorOptions, ExpressionOperator } from '@tashmet/engine';
+import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess, AggregatorOptions, ExpressionOperator, PipelineOperator } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
@@ -19,10 +19,12 @@ export { BufferAggregator, CollectionBuffers } from './aggregator.js';
 
 
 function makeExpressionOperator(op: ExpressionOperator<any>): mingo.ExpressionOperator  {
-  return (obj, expr) => op(expr, ((e: string) => mingo.computeValue(obj, e)));
+  return (obj, expr) => op(expr, ((e: any) => mingo.computeValue(obj, e)));
 }
 
-
+//function makePipelineOperator(op: PipelineOperator<any>): mingo.PipelineOperator  {
+  //return (coll, expr) => op(coll, ((e: any) => mingo.computeValue(obj, e)));
+//}
 
 @provider({key: Comparator})
 export class MingoComparator implements Comparator {
@@ -41,6 +43,8 @@ export class MingoComparator implements Comparator {
 })
 @plugin<Partial<MingoConfig>>()
 export default class MingoAggregatorFactory extends AggregatorFactory {
+  protected pipelineOps: Record<string, PipelineOperator<any>> = {};
+
   public constructor(
     protected documentAccess: DocumentAccess,
     protected logger: Logger
@@ -58,6 +62,10 @@ export default class MingoAggregatorFactory extends AggregatorFactory {
     mingo.useOperators(mingo.OperatorType.EXPRESSION, {
       [name]: makeExpressionOperator(op),
     });
+  }
+
+  public addPipelineOperator(name: string, op: PipelineOperator<any>) {
+    this.pipelineOps[name] = op;
   }
 }
 

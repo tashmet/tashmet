@@ -30,6 +30,11 @@ export const operator = (name: string) =>
   methodDecorator<Operator<any>>(({propertyKey}) => new OperatorAnnotation(name, propertyKey));
 
 export type ExpressionOperator<T> = (args: T, resolve: (path: string) => any) => any;
+export type PipelineOperator<T> = (
+  it: AsyncIterable<Document>,
+  args: T,
+  resolve: (doc: Document, path: string) => any
+) => AsyncIterable<Document>;
 
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
 export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
@@ -161,6 +166,8 @@ export interface AggregatorFactory {
   createAggregator(pipeline: Document[], options?: AggregatorOptions): AbstractAggregator;
 
   addExpressionOperator(name: string, op: ExpressionOperator<any>): void;
+
+  addPipelineOperator(name: string, op: PipelineOperator<any>): void;
 }
 
 export interface OperatorConfig {
@@ -171,7 +178,8 @@ export type Operator<TExpr> = (it: AsyncIterable<Document>, expr: TExpr) => Asyn
 
 export abstract class AggregatorFactory implements AggregatorFactory {
   protected operators: Record<string, Operator<any>> = {};
-  protected exprOps: Record<string, ExpressionOperator<any>> = {};
+  //protected exprOps: Record<string, ExpressionOperator<any>> = {};
+  //protected pielineOps: Record<string, PipelineOperator<any>> = {};
 
   public addOperatorController(controller: any) {
     for (const op of OperatorAnnotation.onClass(controller.constructor, true)) {
