@@ -1,6 +1,5 @@
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
 import { AggregatorFactory, Document, ExpressionOperator } from '@tashmet/engine';
-import { ContentRule, NabuContentRules } from '@tashmet/nabu';
 import { YamlConfig, YamlOptions } from './interfaces.js';
 
 import jsYaml from 'js-yaml';
@@ -113,17 +112,11 @@ export default class NabuYaml {
 
 export class YamlConfigurator extends PluginConfigurator<NabuYaml, YamlConfig> {
   public load() {
-    const contentRules = this.container.resolve(NabuContentRules);
     const aggFact = this.container.resolve(AggregatorFactory);
 
     aggFact.addExpressionOperator('$yamlDump', $yamlDump);
     aggFact.addExpressionOperator('$yamlParse', $yamlParse);
     aggFact.addExpressionOperator('$yamlfmDump', $yamlfmDump);
     aggFact.addExpressionOperator('$yamlfmParse', $yamlfmParse);
-
-    const yamlRule: ContentRule = { parse: { $yamlParse: '$content' }, serialize: { $yamlDump: '$content' } };
-
-    contentRules.rule('*.yaml', yamlRule);
-    contentRules.rule('*.yml', yamlRule);
   }
 }

@@ -1,4 +1,5 @@
 import { AbstractCursor, Collection, Document } from '@tashmet/tashmet';
+import { ContentRule } from './content.js';
 import { Stream } from './stream.js';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -25,44 +26,18 @@ export type Encoding =
   'hex' |
   undefined;
 
-
-export interface DatabaseBundleConfig {
-  databaseBundle: string;
-
-  dictionary: boolean;
-}
-
-export interface CollectionBundleConfig {
-  collectionBundle: (collection: string) => string;
-
-  glob?: string;
-
-  dictionary: boolean;
-}
-
 export interface FileStorageConfig {
+  content: ContentRule;
+
   scan: string;
 
   lookup: (id: string) => string;
-
-  read?: Document[];
-
-  write?: Document[];
 }
-
-export interface ContentRule {
-  parse: Document;
-
-  serialize: Document;
-}
-
 
 export type NabuDatabaseConfig = (coll: string) => FileStorageConfig;
 
 export interface NabuConfig {
   databases: Record<string, NabuDatabaseConfig>;
-
-  contentRules?: Record<string, ContentRule>;
 }
 
 export abstract class NabuConfig implements NabuConfig {}

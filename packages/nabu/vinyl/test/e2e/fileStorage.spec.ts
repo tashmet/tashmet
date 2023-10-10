@@ -21,7 +21,7 @@ function storedFiles(): string[] {
   return fs.readdirSync('test/e2e/testCollection');
 }
 
-describe('documentBundle', () => {
+describe('fileStorage', () => {
   let col: Collection<any>;
   let orders: Collection<any>;
   let inventory: Collection<any>;
@@ -33,6 +33,9 @@ describe('documentBundle', () => {
       .use(Nabu, {
         databases: {
           e2e: coll => ({
+            content: Nabu.json({
+              merge: { _id: { $basename: ['$path', { $extname: '$path' }] } },
+            }),
             scan: `test/e2e/${coll}/*.json`,
             lookup: id => `test/e2e/${coll}/${id}.json`,
           })
@@ -48,11 +51,11 @@ describe('documentBundle', () => {
 
   beforeEach(async () => {
     await col.insertMany([
-      {_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 },
-      {_id: 2, item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 },
-      {_id: 3, item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 },
-      {_id: 4, item: { category: 'cake', type: 'lemon' }, amount: 30 },
-      {_id: 5, item: { category: 'cake', type: 'carrot' }, amount: 20 },
+      {_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 },
+      {_id: '2', item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 },
+      {_id: '3', item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 },
+      {_id: '4', item: { category: 'cake', type: 'lemon' }, amount: 30 },
+      {_id: '5', item: { category: 'cake', type: 'carrot' }, amount: 20 },
     ]);
   });
 
@@ -77,10 +80,10 @@ describe('documentBundle', () => {
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       expect(col.insertOne(
-        {_id: 1, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
+        {_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       )).to.eventually.be.rejected;
-      expect(storedDoc(1))
-        .to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+      expect(storedDoc('1'))
+        .to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
     });
     /*
     it('should emit a change event', (done) => {

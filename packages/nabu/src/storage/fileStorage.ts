@@ -5,8 +5,6 @@ import {
   NabuDatabaseConfig,
   StreamProvider,
 } from '../interfaces.js';
-import { clone } from '../operators/common.js';
-import { NabuContentRules } from '../index.js';
 
 
 export class FileStorage implements CollectionRegistry, Streamable, Writable {
@@ -16,9 +14,7 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
     public readonly databaseName: string,
     private streamProvider: StreamProvider,
     private config: NabuDatabaseConfig,
-    private contentRules: NabuContentRules
   ) {}
-
 
   public async create(collection: string, options: Document): Promise<void> {
     this.configs[collection] = options.storageEngine;
@@ -26,6 +22,25 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
 
   public async drop(collection: string): Promise<void> {
     delete this.configs[collection];
+  }
+
+  public async *stream(collection: string, options?: StreamOptions): AsyncIterable<Document> {
+    const { documentIds, projection } = options || {};
+    const config = this.config(collection);
+
+    const paths = documentIds
+      ? documentIds.map(id => config.lookup(id))
+      : [config.scan];
+
+    for (const path of paths) {
+      const stream = this.streamProvider
+        .source(path, { content: projection?._id !== 1})
+        .pipe(this.readPipeline(collection))
+
+      for await (const doc of stream) {
+        yield doc;
+      }
+    }
   }
 
   public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {
@@ -45,58 +60,62 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
     const writeErrors: any[] = [];
 
     for (const coll of collections.map(c => c._id)) {
-      const config = this.config(coll);
-      const path = (c: ChangeStreamDocument) => config.lookup(c.documentKey?._id as any);
-
-      const errors = await this.streamProvider.source(dbChanges)
-        .pipe([
-          { $match: { 'ns.coll': coll } }
-        ])
-        .pipe(clone())
-        .pipe([
-          {
-            $project: {
-              _id: 0,
-              overwrite: { $ne: [ "$operationType", "insert" ] },
-              path: { $function: { body: path, args: [ "$$ROOT" ], lang: "js" }},
-              isDir: { $literal: false },
-              content: {
-                $cond: {
-                  if: { $ne: ["$operationType", "delete"] },
-                  then: '$fullDocument',
-                  else: { $literal: undefined }
-                }
-              },
-            },
-          },
-        ])
-        .pipe(config.write || this.contentRules.writePipeline)
-        .write();
-
-      writeErrors.push(...errors);
+      writeErrors.push(...await this.streamProvider
+        .source(dbChanges)
+        .pipe(this.writePipeline(coll))
+        .toArray()
+      );
     }
 
     return writeErrors;
   }
 
-  public async *stream(collection: string, options?: StreamOptions): AsyncIterable<Document> {
-    const { documentIds, projection } = options || {};
+  public readPipeline(collection: string) {
+    return this.config(collection).content.read;
+  }
+
+  public writePipeline(collection: string) {
     const config = this.config(collection);
+    const path = (c: ChangeStreamDocument) => config.lookup(c.documentKey?._id as any);
 
-    const paths = documentIds
-      ? documentIds.map(id => config.lookup(id))
-      : [config.scan];
-
-    for (const path of paths) {
-      const stream = this.streamProvider.source(path, { content: projection?._id !== 1})
-        .pipe(config.read || this.contentRules.readPipeline)
-        .pipe(
-          { $replaceRoot: { newRoot: '$content' } }
-        )
-
-      for await (const doc of stream) {
-        yield doc;
+    return [
+      { $match: { 'ns.coll': collection } },
+      {
+        $project: {
+          _id: 0,
+          content: {
+            $cond: {
+              if: { $ne: ["$operationType", "delete"] },
+              then: "$fullDocument",
+              else: { $literal: undefined }
+            }
+          },
+          path: { $function: { body: path, args: [ "$$ROOT" ], lang: "js" }},
+          mode: {
+            $switch: {
+              branches: [
+                { case: { $eq: ['$operationType', 'insert'] }, then: 'create' },
+                { case: { $eq: ['$operationType', 'replace'] }, then: 'update' },
+                { case: { $eq: ['$operationType', 'delete'] }, then: 'delete' },
+              ]
+            }
+          },
+        },
+      },
+      ...config.content.write,
+      {
+        $write: {
+          content: {
+            $cond: {
+              if: { $ne: ['$mode', 'delete'] },
+              then: '$content',
+              else: null
+            }
+          },
+          to: '$path',
+          overwrite: { $ne: ['$mode', 'create'] },
+        }
       }
-    }
+    ]
   }
 }

@@ -18,52 +18,39 @@ import {
   DocumentAccess,
 } from '@tashmet/engine';
 import {
-  ContentRule,
   FileAccess,
   NabuConfig,
   NabuDatabaseConfig,
   StreamProvider
 } from './interfaces.js';
+import { ContentRule } from './content.js';
 import { Stream } from './stream.js';
 import { FileStorage } from './storage/fileStorage.js';
 import { $jsonDump, $jsonParse } from './operators/json.js';
 
 export * from './interfaces.js';
+export { ContentRule };
 
 import globToRegExp from 'glob-to-regexp';
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
 import * as nodePath from 'path';
 
-@provider()
-export class NabuContentRules {
-  private rules: Record<string, ContentRule> = {}
+export interface YamlContentRule {
+  frontMatter?: boolean;
 
-  public get readPipeline(): Document[] {
-    const branches = Object.entries(this.rules).map(([glob, rule]) => {
-      return { case: {$globMatch: { input: '$path', glob } }, then: rule.parse };
-    });
+  contentKey?: string;
 
-    return [
-      { $set: { content: { $switch: { branches, default: { text: '$content' } } } } },
-      { $set: { 'content._id': { $basename: ['$path', { $extname: '$path' } ] } } },
-    ];
-  }
+  merge?: Document;
 
-  public get writePipeline(): Document[] {
-    const branches = Object.entries(this.rules).map(([glob, rule]) => {
-      return { case: {$globMatch: { input: '$path', glob } }, then: rule.serialize };
-    });
-
-    return [
-      //{ $unset: 'content._id' },
-      { $set: { content: { $switch: { branches, default: { text: '$content' } } } } },
-    ];
-  }
-
-  public rule(glob: string, rule: ContentRule) {
-    this.rules[glob] = rule;
-  }
+  construct?: Document;
 }
+
+export interface JsonContentRule {
+  merge?: Document;
+
+  construct?: Document;
+}
+
 
 @provider()
 @plugin<Partial<NabuConfig>>()
@@ -72,12 +59,41 @@ export default class Nabu implements StreamProvider {
     return new NabuConfigurator(Nabu, config, container);
   }
 
+  public static json(config: JsonContentRule): ContentRule {
+    const def: Required<JsonContentRule> = {
+      merge: { _id: '$path' },
+      construct: {},
+    }
+    const { merge, construct } = { ...def, ...config };
+
+    return ContentRule
+      .fromRootReplace({ $jsonParse: '$content' }, { $jsonDump: '$content' }, merge)
+      .assign(construct);
+  }
+
+  public static yaml(config: YamlContentRule): ContentRule {
+    const def: Required<YamlContentRule> = {
+      frontMatter: false,
+      contentKey: '_content',
+      merge: { _id: '$path' },
+      construct: {},
+    }
+    const { frontMatter, contentKey, merge, construct } = { ...def, ...config };
+
+    const input = frontMatter ? { $yamlfmParse: '$content' } : { $yamlParse: '$content' };
+    const output = frontMatter ? { $yamlfmDump: '$content' } : { $yamlDump: '$content' };
+
+    return ContentRule
+      .fromRootReplace(input, output, merge)
+      .rename('_content', contentKey)
+      .assign(construct);
+  }
+
   public constructor(
     private aggFact: AggregatorFactory,
     private documentAccess: DocumentAccess,
     private fileAccess: FileAccess,
     private logger: Logger,
-    private contentRules: NabuContentRules,
   ) {}
 
   public source(
@@ -96,12 +112,7 @@ export default class Nabu implements StreamProvider {
       return new Stream(src.aggregate([]), this.fileAccess, this.aggFact);
     }
 
-    const stream = new Stream(src, this.fileAccess, this.aggFact);
-
-    if (options && options.content) {
-      return stream.pipe(this.contentRules.readPipeline);
-    }
-    return stream;
+    return new Stream(src, this.fileAccess, this.aggFact);
   }
 
   public generate(docs: Document[]): Stream {
@@ -109,7 +120,7 @@ export default class Nabu implements StreamProvider {
   }
 
   public createStorageEngine(dbName: string, config: NabuDatabaseConfig): StorageEngine {
-    const storage = new FileStorage(dbName, this, config, this.contentRules);
+    const storage = new FileStorage(dbName, this, config);
 
     const engine = new AggregationEngine(
       this.aggFact, new QueryPlanner(this.documentAccess, this.logger.inScope('QueryPlanner')), dbName);
@@ -125,24 +136,20 @@ export default class Nabu implements StreamProvider {
 
 export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfig>> {
   public register() {
-    this.container.register(NabuContentRules);
     this.container.register(FileAccess);
 
     if (!this.container.isRegistered(DocumentAccess)) {
       this.container.register(DocumentAccess);
     }
+    if (!this.container.isRegistered(Dispatcher)) {
+      this.container.register(Dispatcher);
+    }
   }
 
   public load() {
-    const contentRules = this.container.resolve(NabuContentRules);
     const aggFact = this.container.resolve(AggregatorFactory);
     const nabu = this.container.resolve(Nabu);
     const dispatcher = this.container.resolve(Dispatcher);
-
-    contentRules.rule('*.json', {
-      parse: { $jsonParse: '$content' },
-      serialize: { $jsonDump: '$content' }
-    });
 
     aggFact.addExpressionOperator('$jsonDump', $jsonDump);
     aggFact.addExpressionOperator('$jsonParse', $jsonParse);

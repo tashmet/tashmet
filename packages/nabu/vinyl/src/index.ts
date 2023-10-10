@@ -3,6 +3,7 @@ import Vinyl from 'vinyl';
 import * as stream from 'stream';
 import vfs from 'vinyl-fs';
 import fs from 'fs';
+import * as nodePath from 'path';
 import minimatch from 'minimatch';
 export * from './interfaces.js';
 
@@ -185,8 +186,8 @@ export class VinylConfigurator extends PluginConfigurator<VinylFS, FileSystemCon
       let index = 0;
 
       for await (const doc of it) {
-        const content = resolve(doc, expr.buffer);
-        const path = resolve(doc, expr.path);
+        const content = resolve(doc, expr.content);
+        const path = resolve(doc, expr.to);
         const overwrite = resolve(doc, expr.overwrite);
 
         if (!overwrite && fs.existsSync(path)) {
@@ -197,7 +198,13 @@ export class VinylConfigurator extends PluginConfigurator<VinylFS, FileSystemCon
         }
 
         if (content) {
-          fs.writeFileSync(path, content);
+          const dir = nodePath.dirname(path);
+
+          if (!fs.existsSync(dir))  {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+
+          fs.writeFileSync(path, Buffer.from(content));
         } else {
           if (fs.existsSync(path)) {
             fs.unlinkSync(path);
