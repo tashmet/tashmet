@@ -43,10 +43,10 @@ export const jsonWriter = async (content: any, options: JsonSerializerOptions = 
   return Buffer.from(JSON.stringify(content, replacer, space), encoding);
 }
 
-export const $jsonDump: ExpressionOperator<string> = (args, resolve) => {
+export const $objectToJson: ExpressionOperator<string> = (args, resolve) => {
   return JSON.stringify(resolve(args));
 }
 
-export const $jsonParse: ExpressionOperator<string> = (args, resolve) => {
+export const $jsonToObject: ExpressionOperator<string> = (args, resolve) => {
   return JSON.parse(resolve(args));
 }

@@ -87,11 +87,11 @@ export function serializeYaml(data: Document, config?: YamlOptions): string {
   }
 }
 
-export const $yamlDump: ExpressionOperator<string> = (args, resolve) => {
+export const $objectToYaml: ExpressionOperator<string> = (args, resolve) => {
   return serializeYaml(resolve(args));
 }
 
-export const $yamlParse: ExpressionOperator<string> = (args, resolve) => {
+export const $yamlToObject: ExpressionOperator<string> = (args, resolve) => {
   return parseYaml(resolve(args));
 }
 
@@ -114,8 +114,8 @@ export class YamlConfigurator extends PluginConfigurator<NabuYaml, YamlConfig> {
   public load() {
     const aggFact = this.container.resolve(AggregatorFactory);
 
-    aggFact.addExpressionOperator('$yamlDump', $yamlDump);
-    aggFact.addExpressionOperator('$yamlParse', $yamlParse);
+    aggFact.addExpressionOperator('$objectToYaml', $objectToYaml);
+    aggFact.addExpressionOperator('$yamlToObject', $yamlToObject);
     aggFact.addExpressionOperator('$yamlfmDump', $yamlfmDump);
     aggFact.addExpressionOperator('$yamlfmParse', $yamlfmParse);
   }

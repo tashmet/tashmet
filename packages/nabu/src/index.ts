@@ -26,7 +26,7 @@ import {
 import { ContentRule } from './content.js';
 import { Stream } from './stream.js';
 import { FileStorage } from './storage/fileStorage.js';
-import { $jsonDump, $jsonParse } from './operators/json.js';
+import { $objectToJson, $jsonToObject } from './operators/json.js';
 
 export * from './interfaces.js';
 export { ContentRule };
@@ -67,7 +67,7 @@ export default class Nabu implements StreamProvider {
     const { merge, construct } = { ...def, ...config };
 
     return ContentRule
-      .fromRootReplace({ $jsonParse: '$content' }, { $jsonDump: '$content' }, merge)
+      .fromRootReplace({ $jsonToObject: '$content' }, { $objectToJson: '$content' }, merge)
       .assign(construct);
   }
 
@@ -80,8 +80,8 @@ export default class Nabu implements StreamProvider {
     }
     const { frontMatter, contentKey, merge, construct } = { ...def, ...config };
 
-    const input = frontMatter ? { $yamlfmParse: '$content' } : { $yamlParse: '$content' };
-    const output = frontMatter ? { $yamlfmDump: '$content' } : { $yamlDump: '$content' };
+    const input = frontMatter ? { $yamlfmParse: '$content' } : { $yamlToObject: '$content' };
+    const output = frontMatter ? { $yamlfmDump: '$content' } : { $objectToYaml: '$content' };
 
     return ContentRule
       .fromRootReplace(input, output, merge)
@@ -151,8 +151,8 @@ export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfi
     const nabu = this.container.resolve(Nabu);
     const dispatcher = this.container.resolve(Dispatcher);
 
-    aggFact.addExpressionOperator('$jsonDump', $jsonDump);
-    aggFact.addExpressionOperator('$jsonParse', $jsonParse);
+    aggFact.addExpressionOperator('$objectToJson', $objectToJson);
+    aggFact.addExpressionOperator('$jsonToObject', $jsonToObject);
     aggFact.addExpressionOperator('$basename', (args, resolve) => {
       if (Array.isArray(args)) {
         return nodePath.basename(resolve(args[0]), resolve(args[1]));

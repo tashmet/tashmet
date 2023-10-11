@@ -6,13 +6,13 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import {unified} from 'unified'
 
-export const $remarkParse: ExpressionOperator<string> = (args, resolve) => {
+export const $markdownToObject: ExpressionOperator<string> = (args, resolve) => {
   return unified()
     .use(remarkParse)
     .parse(resolve(args));
 }
 
-export const $remarkProcess: ExpressionOperator<string> = (args, resolve) => {
+export const $markdownToHtml: ExpressionOperator<string> = (args, resolve) => {
   return unified()
     .use(remarkParse)
     .use(remarkRehype)
@@ -32,7 +32,7 @@ export class RemarkConfigurator extends PluginConfigurator<NabuRemark, any> {
   public load() {
     const aggFact = this.container.resolve(AggregatorFactory);
 
-    aggFact.addExpressionOperator('$remarkParse', $remarkParse);
-    aggFact.addExpressionOperator('$remarkProcess', $remarkProcess);
+    aggFact.addExpressionOperator('$markdownToObject', $markdownToObject);
+    aggFact.addExpressionOperator('$markdownToHtml', $markdownToHtml);
   }
 }
