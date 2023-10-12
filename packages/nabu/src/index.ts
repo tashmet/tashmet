@@ -31,7 +31,6 @@ import { $objectToJson, $jsonToObject } from './operators/json.js';
 export * from './interfaces.js';
 export { ContentRule };
 
-import { glob } from 'glob';
 import globToRegExp from 'glob-to-regexp';
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
 import * as nodePath from 'path';
@@ -166,19 +165,6 @@ export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfi
     aggFact.addExpressionOperator('$globMatch', (args, resolve) => {
       return globToRegExp(args.glob, {extended: true}).test(resolve(args.input));
     });
-
-    async function* $glob(it: AsyncIterable<Document>, args: any, resolve: (doc: Document, expr: any) => any) {
-      const {pattern} = args;
-
-      for await (const doc of it) {
-        const files = await glob(resolve(doc, pattern));
-        for (const file of files) {
-          yield { _id: file };
-        }
-      }
-    };
-
-    aggFact.addPipelineOperator('$glob', $glob);
 
     for (const [dbName, dbConfig] of Object.entries(this.config.databases || {})) {
       dispatcher.addBridge(dbName, new StorageEngineBridge(db => nabu.createStorageEngine(db, dbConfig)));

@@ -23,11 +23,30 @@ export class OperatorAnnotation extends Annotation {
     public readonly name: string,
     public readonly propertyKey: string
   ) { super(); }
+
+  public register(instance: any, aggFact: AggregatorFactory) {}
 }
 
+export class PipelineOperatorAnnotation extends OperatorAnnotation {
+  public register(instance: any, aggFact: AggregatorFactory): void {
+    aggFact.addPipelineOperator(this.name, instance[this.propertyKey]);
+  }
+}
 
-export const operator = (name: string) =>
-  methodDecorator<Operator<any>>(({propertyKey}) => new OperatorAnnotation(name, propertyKey));
+export class ExpressionOperatorAnnotation extends OperatorAnnotation {
+  public register(instance: any, aggFact: AggregatorFactory): void {
+    aggFact.addExpressionOperator(this.name, instance[this.propertyKey]);
+  }
+}
+
+export const op = {
+  pipeline: (name: string) =>
+    methodDecorator<PipelineOperator<any>>(({propertyKey}) => new PipelineOperatorAnnotation(name, propertyKey)),
+
+  expression: (name: string) =>
+    methodDecorator<ExpressionOperator<any>>(({propertyKey}) => new ExpressionOperatorAnnotation(name, propertyKey)),
+}
+
 
 export type ExpressionOperator<T> = (args: T, resolve: (path: string) => any) => any;
 export type PipelineOperator<T> = (
@@ -183,7 +202,8 @@ export abstract class AggregatorFactory implements AggregatorFactory {
 
   public addOperatorController(controller: any) {
     for (const op of OperatorAnnotation.onClass(controller.constructor, true)) {
-      this.operators[op.name] = (it, expr) => controller[op.propertyKey](it, expr);
+      //this.operators[op.name] = (it, expr) => controller[op.propertyKey](it, expr);
+      op.register(controller, this);
     }
   }
 
