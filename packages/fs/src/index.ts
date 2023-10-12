@@ -80,6 +80,19 @@ export default class FileSystem {
       }
     }
   }
+
+  @op.expression('$basename')
+  public basename(expr: any, resolve: (expr: any) => any) {
+    if (Array.isArray(expr)) {
+      return nodePath.basename(resolve(expr[0]), resolve(expr[1]));
+    }
+    return nodePath.basename(resolve(expr));
+  }
+
+  @op.expression('$extname')
+  public extname(expr: any, resolve: (expr: any) => any) {
+    return nodePath.extname(resolve(expr));
+  };
 }
 
 export class FileSystemConfigurator extends PluginConfigurator<FileSystem, FileSystemConfig> {

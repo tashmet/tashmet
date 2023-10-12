@@ -33,7 +33,6 @@ export { ContentRule };
 
 import globToRegExp from 'glob-to-regexp';
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
-import * as nodePath from 'path';
 
 export interface YamlContentRule {
   frontMatter?: boolean;
@@ -153,15 +152,6 @@ export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfi
 
     aggFact.addExpressionOperator('$objectToJson', $objectToJson);
     aggFact.addExpressionOperator('$jsonToObject', $jsonToObject);
-    aggFact.addExpressionOperator('$basename', (args, resolve) => {
-      if (Array.isArray(args)) {
-        return nodePath.basename(resolve(args[0]), resolve(args[1]));
-      }
-      return nodePath.basename(resolve(args));
-    });
-    aggFact.addExpressionOperator('$extname', (args, resolve) => {
-      return nodePath.extname(resolve(args));
-    });
     aggFact.addExpressionOperator('$globMatch', (args, resolve) => {
       return globToRegExp(args.glob, {extended: true}).test(resolve(args.input));
     });
