@@ -3,15 +3,13 @@ import { InsertCommand } from '../commands/insert.js';
 import { QueryUpdateCommand } from '../commands/update.js';
 import { command, Document, Writable } from '../interfaces.js';
 import { QueryEngine } from '../query.js';
-import { AbstractReadWriteController } from './common.js';
+import { AbstractReadController, AbstractWriteController } from './common.js';
 
-
-export class QueryController extends AbstractReadWriteController {
+export class QueryReadController extends AbstractReadController {
   public constructor(
     db: string,
-    writable: Writable,
     private engine: QueryEngine,
-  ) { super(db, engine, writable); }
+  ) { super(db, engine); }
 
   @command('getMore')
   public async getMore(cmd: Document) {
@@ -39,6 +37,14 @@ export class QueryController extends AbstractReadWriteController {
 
     return {n, ok: 1};
   }
+}
+
+export class QueryWriteController extends AbstractWriteController {
+  public constructor(
+    private db: string,
+    writable: Writable,
+    private engine: QueryEngine,
+  ) { super(writable); }
 
   @command('insert')
   public async insert({insert: coll, documents, ordered}: Document) {

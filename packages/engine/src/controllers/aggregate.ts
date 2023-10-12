@@ -3,18 +3,15 @@ import { AggregationDeleteCommand } from '../commands/delete.js';
 import { InsertCommand } from '../commands/insert.js';
 import { AggregationUpdateCommand } from '../commands/update.js';
 import { command, Document, ViewMap, Writable } from '../interfaces.js';
-import { AbstractReadWriteController } from './common.js';
+import { AbstractReadController, AbstractWriteController } from './common.js';
 
-/**
- * A database reader engine with support for aggregation and views
- */
-export class AggregationController extends AbstractReadWriteController {
+
+export class AggregationReadController extends AbstractReadController {
   public constructor(
     db: string,
-    writable: Writable,
     protected aggregation: AggregationEngine,
     protected views: ViewMap,
-  ) { super(db, aggregation, writable); }
+  ) { super(db, aggregation); }
 
   @command('getMore')
   public async getMore(cmd: Document) {
@@ -85,6 +82,17 @@ export class AggregationController extends AbstractReadWriteController {
 
     return {values, ok: 1};
   }
+}
+
+/**
+ * A database reader engine with support for aggregation and views
+ */
+export class AggregationWriteController extends AbstractWriteController {
+  public constructor(
+    protected db: string,
+    writable: Writable,
+    protected aggregation: AggregationEngine,
+  ) { super(writable); }
 
   @command('insert')
   public async insert({insert: coll, documents, ordered}: Document) {

@@ -3,12 +3,11 @@ import { CursorRegistry } from '../cursor.js';
 import { command, Document, EventEmitter, Writable } from '../interfaces.js';
 
 
-export abstract class AbstractReadWriteController extends EventEmitter {
+export abstract class AbstractReadController {
   public constructor(
     protected db: string,
     protected cursors: CursorRegistry,
-    protected writable: Writable
-  ) { super(); }
+  ) {}
 
   @command('getMore')
   public async getMore({getMore, collection, batchSize}: Document) {
@@ -24,6 +23,12 @@ export abstract class AbstractReadWriteController extends EventEmitter {
       ok: 1,
     }
   }
+}
+
+export abstract class AbstractWriteController extends EventEmitter {
+  public constructor(
+    protected writable: Writable
+  ) { super(); }
 
   protected async write(command: WriteCommand, ordered: boolean) {
     const changes = await command.execute();

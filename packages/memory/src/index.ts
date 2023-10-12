@@ -11,7 +11,8 @@ import {
 } from '@tashmet/core';
 import {
   AdminController,
-  AggregationController,
+  AggregationReadController,
+  AggregationWriteController,
   AggregationEngine,
   AggregatorFactory,
   AtomicWriteCollection,
@@ -178,7 +179,8 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
     this.documentAccess.addRegistry(dbName, storage);
     return StorageEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
-      new AggregationController(dbName, storage, engine, views)
+      new AggregationReadController(dbName, engine, views),
+      new AggregationWriteController(dbName, storage, engine)
     );
   }
 }

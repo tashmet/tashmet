@@ -74,21 +74,32 @@ import {
   ServiceRequest,
   PluginConfigurator,
 } from '@tashmet/core';
-import { Dispatcher } from '@tashmet/bridge';
+import { Dispatcher, Document } from '@tashmet/bridge';
 import { Database, DatabaseFactory } from './interfaces.js';
 import { DefaultDatabaseFactory } from './database.js';
+import { GlobalAggregationCursor } from './cursor/globalAggregationCursor.js';
+import { AggregateOptions } from './operations/aggregate.js';
 
 @provider({
-  inject: [Container, DatabaseFactory]
+  inject: [Container, DatabaseFactory, Dispatcher]
 })
 export default class Tashmet {
   public constructor(
     private container: Container,
     private databaseFactory: DatabaseFactory,
+    private dispatcher: Dispatcher,
   ) {}
 
   public db(name: string): Database {
     return this.databaseFactory.createDatabase(name);
+  }
+
+  public aggregate<TSchema extends Document = Document>(
+    collection: Document[],
+    pipeline: Document[],
+    options?: AggregateOptions
+  ): GlobalAggregationCursor<TSchema> {
+    return new GlobalAggregationCursor(collection, this.dispatcher, pipeline, options);
   }
 
   public resolve<T>(key: ServiceRequest<T>) {

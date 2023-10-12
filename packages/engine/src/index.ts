@@ -9,9 +9,9 @@ export { Cursor, CursorRegistry } from './cursor.js';
 export { QueryPlanner } from './aggregation.js';
 export { DocumentAccess } from './documentAccess.js';
 
-export { AggregationController } from './controllers/aggregate.js';
+export { AggregationReadController, AggregationWriteController } from './controllers/aggregate.js';
 export { AdminController } from './controllers/admin.js';
-export { QueryController } from './controllers/query.js';
+export { QueryReadController, QueryWriteController } from './controllers/query.js';
 
 export { makeWriteChange } from './commands/write.js';
 
