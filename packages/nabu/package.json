@@ -35,6 +35,7 @@
     "@types/glob-to-regexp": "^0.4.1",
     "eventemitter3": "^3.0.0",
     "glob-to-regexp": "^0.4.1",
+    "glob": "^10.3.10",
     "minimatch": "^3.0.4"
   },
   "devDependencies": {

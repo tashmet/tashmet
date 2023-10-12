@@ -215,6 +215,24 @@ export class VinylConfigurator extends PluginConfigurator<VinylFS, FileSystemCon
       }
     }
 
-    aggFact.addPipelineOperator('$write', $write);
+    aggFact.addPipelineOperator('$writeFile', $write);
+
+    aggFact.addExpressionOperator('$lstat', (args, resolve) => {
+      const res = fs.lstatSync(resolve(args));
+      return {
+        ...res,
+        isBlockDevice: res.isBlockDevice(),
+        isCharacterDevice: res.isCharacterDevice(),
+        isDirectory: res.isDirectory(),
+        isFIFO: res.isFIFO(),
+        isFile: res.isFile(),
+        isSocket: res.isSocket(),
+        isSymbolicLink: res.isSymbolicLink(),
+      };
+    });
+
+    aggFact.addExpressionOperator('$readFile', (args, resolve) => {
+      return fs.readFileSync(resolve(args), 'utf-8');
+    });
   }
 }

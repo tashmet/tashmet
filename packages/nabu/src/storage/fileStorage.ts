@@ -32,14 +32,12 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
       ? documentIds.map(id => config.lookup(id))
       : [config.scan];
 
-    for (const path of paths) {
-      const stream = this.streamProvider
-        .source(path, { content: projection?._id !== 1})
-        .pipe(this.readPipeline(collection))
+    const stream = this.streamProvider
+      .source(paths.map(p => ({ pattern: p})))
+      .pipe(this.readPipeline(collection))
 
-      for await (const doc of stream) {
-        yield doc;
-      }
+    for await (const doc of stream) {
+      yield doc;
     }
   }
 
@@ -71,7 +69,20 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
   }
 
   public readPipeline(collection: string) {
-    return this.config(collection).content.read;
+    const config = this.config(collection);
+
+    return [
+      { $glob: { pattern: '$pattern' } },
+      {
+        $project: {
+          _id: 0,
+          path: '$_id',
+          stats: { $lstat: '$_id' },
+          content: { $readFile: '$_id' },
+        }
+      },
+      ...config.content.read,
+    ]
   }
 
   public writePipeline(collection: string) {
@@ -104,7 +115,7 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
       },
       ...config.content.write,
       {
-        $write: {
+        $writeFile: {
           content: {
             $cond: {
               if: { $ne: ['$mode', 'delete'] },
