@@ -100,22 +100,22 @@ export default class Nabu implements StreamProvider {
     options?: Document
   ): Stream {
     if (typeof src === "string") {
-      return new Stream(this.fileAccess.read(src, options), this.fileAccess, this.aggFact);
+      return new Stream(this.fileAccess.read(src, options), this.aggFact);
     }
 
     if (Array.isArray(src)) {
-      return Stream.fromArray(src, this.fileAccess, this.aggFact);
+      return Stream.fromArray(src, this.aggFact);
     }
 
     if (src instanceof Collection) {
-      return new Stream(src.aggregate([]), this.fileAccess, this.aggFact);
+      return new Stream(src.aggregate([]), this.aggFact);
     }
 
-    return new Stream(src, this.fileAccess, this.aggFact);
+    return new Stream(src, this.aggFact);
   }
 
   public generate(docs: Document[]): Stream {
-    return Stream.fromArray(docs, this.fileAccess, this.aggFact);
+    return Stream.fromArray(docs, this.aggFact);
   }
 
   public createStorageEngine(dbName: string, config: NabuDatabaseConfig): StorageEngine {

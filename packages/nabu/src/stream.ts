@@ -1,6 +1,5 @@
 import { AggregatorFactory } from '@tashmet/engine';
 import { Document } from '@tashmet/tashmet';
-import { FileAccess } from "./interfaces.js";
 
 
 export type GeneratorPipe = (source: AsyncIterable<Document>) => AsyncGenerator<Document>;
@@ -25,11 +24,10 @@ export class Stream<T extends Document = Document>
 
   public constructor(
     protected source: AsyncIterable<T>,
-    protected fileAccess: FileAccess,
     protected aggFact: AggregatorFactory,
   ) {}
 
-  public static fromArray<T extends Document = Document>(arr: T[], fileAccess: FileAccess, aggFact: AggregatorFactory): Stream {
+  public static fromArray<T extends Document = Document>(arr: T[], aggFact: AggregatorFactory): Stream {
     let i=0;
 
     const it = {
@@ -45,15 +43,11 @@ export class Stream<T extends Document = Document>
         };
       }
     }
-    return new Stream(it, fileAccess, aggFact);
+    return new Stream(it, aggFact);
   }
 
   public async toArray(): Promise<Document[]> {
     return toArray(this);
-  }
-
-  public write(): Promise<any[]> {
-    return this.fileAccess.write(this);
   }
 
   public pipe(pipe: GeneratorPipe | Document[] | Document): Stream<Document> {
@@ -61,6 +55,6 @@ export class Stream<T extends Document = Document>
       ? pipe(this.source)
       : this.aggFact.createAggregator(Array.isArray(pipe) ? pipe : [pipe], {}).stream(this.source);
 
-    return new Stream(out, this.fileAccess, this.aggFact);
+    return new Stream(out, this.aggFact);
   }
 }
