@@ -1,5 +1,5 @@
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
-import { AggregatorFactory, Document, ExpressionOperator } from '@tashmet/engine';
+import { AggregatorFactory, Document, op } from '@tashmet/engine';
 import { YamlConfig, YamlOptions } from './interfaces.js';
 
 import jsYaml from 'js-yaml';
@@ -87,36 +87,34 @@ export function serializeYaml(data: Document, config?: YamlOptions): string {
   }
 }
 
-export const $objectToYaml: ExpressionOperator<string> = (args, resolve) => {
-  return serializeYaml(resolve(args));
-}
-
-export const $yamlToObject: ExpressionOperator<string> = (args, resolve) => {
-  return parseYaml(resolve(args));
-}
-
-export const $yamlfmDump: ExpressionOperator<string> = (args, resolve) => {
-  return serializeYaml(resolve(args), { frontMatter: true });
-}
-
-export const $yamlfmParse: ExpressionOperator<string> = (args, resolve) => {
-  return parseYaml(resolve(args), { frontMatter: true });
-}
-
 @plugin<YamlConfig>()
 export default class NabuYaml {
   public static configure(config: Partial<BootstrapConfig> & YamlConfig, container?: Container) {
     return new YamlConfigurator(NabuYaml, config, container);
   }
+  @op.expression('$objectToYaml')
+  public objectToYaml(expr: any, resolve: (expr: any) => any) {
+    return serializeYaml(resolve(expr));
+  }
+
+  @op.expression('$yamlToObject')
+  public yamlToObject(expr: any, resolve: (expr: any) => any) {
+    return parseYaml(resolve(expr));
+  }
+
+  @op.expression('$objectToYamlfm')
+  public objectToYamlfm(expr: any, resolve: (expr: any) => any) {
+    return serializeYaml(resolve(expr), { frontMatter: true });
+  }
+
+  @op.expression('$yamlfmToObject')
+  public yamlfmToObject(expr: any, resolve: (expr: any) => any) {
+    return parseYaml(resolve(expr), { frontMatter: true });
+  }
 }
 
 export class YamlConfigurator extends PluginConfigurator<NabuYaml, YamlConfig> {
   public load() {
-    const aggFact = this.container.resolve(AggregatorFactory);
-
-    aggFact.addExpressionOperator('$objectToYaml', $objectToYaml);
-    aggFact.addExpressionOperator('$yamlToObject', $yamlToObject);
-    aggFact.addExpressionOperator('$yamlfmDump', $yamlfmDump);
-    aggFact.addExpressionOperator('$yamlfmParse', $yamlfmParse);
+    this.container.resolve(AggregatorFactory).addOperatorController(new NabuYaml);
   }
 }
