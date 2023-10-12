@@ -1,6 +1,5 @@
-import { AbstractCursor, Collection, Document } from '@tashmet/tashmet';
+import { Document } from '@tashmet/tashmet';
 import { ContentRule } from './content.js';
-import { Stream } from './stream.js';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -41,19 +40,6 @@ export interface NabuConfig {
 }
 
 export abstract class NabuConfig implements NabuConfig {}
-
-
-export interface StreamProvider {
-  source(uri: string, options?: Document): Stream;
-
-  source<T extends Document>(docs: T[]): Stream<T>;
-  
-  source<T extends Document>(it: AsyncIterable<T>): Stream<T>;
-
-  source<T extends Document>(cursor: AbstractCursor<T>): Stream<T>;
-
-  source<T extends Document>(collection: Collection<T>): Stream<T>;
-}
 
 export interface UriPattern {
   readonly pattern: RegExp;

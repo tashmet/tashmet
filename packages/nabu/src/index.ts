@@ -1,6 +1,4 @@
-import {
-  AbstractCursor,
-  Collection,
+import Tashmet, {
   Document,
   Logger,
   provider,
@@ -11,7 +9,8 @@ import {
   AggregationEngine,
   ViewMap,
   AdminController,
-  AggregationController,
+  AggregationReadController,
+  AggregationWriteController,
   QueryPlanner,
   StorageEngine,
   StorageEngineBridge,
@@ -21,10 +20,8 @@ import {
   FileAccess,
   NabuConfig,
   NabuDatabaseConfig,
-  StreamProvider
 } from './interfaces.js';
 import { ContentRule } from './content.js';
-import { Stream } from './stream.js';
 import { FileStorage } from './storage/fileStorage.js';
 import { $objectToJson, $jsonToObject } from './operators/json.js';
 
@@ -53,7 +50,7 @@ export interface JsonContentRule {
 
 @provider()
 @plugin<Partial<NabuConfig>>()
-export default class Nabu implements StreamProvider {
+export default class Nabu {
   public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>, container?: Container) {
     return new NabuConfigurator(Nabu, config, container);
   }
@@ -91,35 +88,12 @@ export default class Nabu implements StreamProvider {
   public constructor(
     private aggFact: AggregatorFactory,
     private documentAccess: DocumentAccess,
-    private fileAccess: FileAccess,
+    private tashmet: Tashmet,
     private logger: Logger,
   ) {}
 
-  public source(
-    src: string | Document[] | AsyncIterable<Document> | AbstractCursor<Document> | Collection<Document>,
-    options?: Document
-  ): Stream {
-    if (typeof src === "string") {
-      return new Stream(this.fileAccess.read(src, options), this.aggFact);
-    }
-
-    if (Array.isArray(src)) {
-      return Stream.fromArray(src, this.aggFact);
-    }
-
-    if (src instanceof Collection) {
-      return new Stream(src.aggregate([]), this.aggFact);
-    }
-
-    return new Stream(src, this.aggFact);
-  }
-
-  public generate(docs: Document[]): Stream {
-    return Stream.fromArray(docs, this.aggFact);
-  }
-
   public createStorageEngine(dbName: string, config: NabuDatabaseConfig): StorageEngine {
-    const storage = new FileStorage(dbName, this, config);
+    const storage = new FileStorage(dbName, this.tashmet, config);
 
     const engine = new AggregationEngine(
       this.aggFact, new QueryPlanner(this.documentAccess, this.logger.inScope('QueryPlanner')), dbName);
@@ -128,7 +102,8 @@ export default class Nabu implements StreamProvider {
     this.documentAccess.addWritable(dbName, storage);
     return StorageEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
-      new AggregationController(dbName, storage, engine, views)
+      new AggregationReadController(dbName, engine, views),
+      new AggregationWriteController(dbName, storage, engine)
     );
   }
 }

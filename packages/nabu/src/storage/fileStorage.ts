@@ -3,8 +3,8 @@ import { ChangeStreamDocument } from '@tashmet/bridge';
 
 import {
   NabuDatabaseConfig,
-  StreamProvider,
 } from '../interfaces.js';
+import Tashmet from '@tashmet/tashmet';
 
 
 export class FileStorage implements CollectionRegistry, Streamable, Writable {
@@ -12,7 +12,7 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
 
   constructor(
     public readonly databaseName: string,
-    private streamProvider: StreamProvider,
+    private tashmet: Tashmet,
     private config: NabuDatabaseConfig,
   ) {}
 
@@ -32,11 +32,9 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
       ? documentIds.map(id => config.lookup(id))
       : [config.scan];
 
-    const stream = this.streamProvider
-      .source(paths.map(p => ({ pattern: p})))
-      .pipe(this.readPipeline(collection))
+    const input = paths.map(p => ({ pattern: p}));
 
-    for await (const doc of stream) {
+    for await (const doc of this.tashmet.aggregate(input, this.readPipeline(collection))) {
       yield doc;
     }
   }
@@ -48,19 +46,16 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
 
     const dbChanges = changes.filter(c => c.ns.db === this.databaseName);
 
-    const collections = await this.streamProvider.source(dbChanges)
-      .pipe([
-        {$unwind: '$ns.coll'},
-        {$group: {_id: '$ns.coll'}},
-      ])
-      .toArray()
+    const collections = await this.tashmet.aggregate(dbChanges, [
+      {$unwind: '$ns.coll'},
+      {$group: {_id: '$ns.coll'}},
+    ]).toArray();
 
     const writeErrors: any[] = [];
 
     for (const coll of collections.map(c => c._id)) {
-      writeErrors.push(...await this.streamProvider
-        .source(dbChanges)
-        .pipe(this.writePipeline(coll))
+      writeErrors.push(...await this.tashmet
+        .aggregate(dbChanges, this.writePipeline(coll))
         .toArray()
       );
     }
