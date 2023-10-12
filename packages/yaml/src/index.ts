@@ -1,10 +1,10 @@
 import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
 import { AggregatorFactory, Document, op } from '@tashmet/engine';
-import { YamlConfig, YamlOptions } from './interfaces.js';
+import { YamlOptions } from './interfaces.js';
 
 import jsYaml from 'js-yaml';
 
-export {YamlConfig} from './interfaces.js';
+export {YamlOptions} from './interfaces.js';
 
 export function loadFront (content: any, options?: any) {
   let contentKeyName = options && typeof options === 'string'
@@ -87,11 +87,12 @@ export function serializeYaml(data: Document, config?: YamlOptions): string {
   }
 }
 
-@plugin<YamlConfig>()
-export default class NabuYaml {
-  public static configure(config: Partial<BootstrapConfig> & YamlConfig, container?: Container) {
-    return new YamlConfigurator(NabuYaml, config, container);
+@plugin<YamlOptions>()
+export default class Yaml {
+  public static configure(config: Partial<BootstrapConfig> & YamlOptions, container?: Container) {
+    return new YamlConfigurator(Yaml, config, container);
   }
+
   @op.expression('$objectToYaml')
   public objectToYaml(expr: any, resolve: (expr: any) => any) {
     return serializeYaml(resolve(expr));
@@ -113,8 +114,8 @@ export default class NabuYaml {
   }
 }
 
-export class YamlConfigurator extends PluginConfigurator<NabuYaml, YamlConfig> {
+export class YamlConfigurator extends PluginConfigurator<Yaml, YamlOptions> {
   public load() {
-    this.container.resolve(AggregatorFactory).addOperatorController(new NabuYaml);
+    this.container.resolve(AggregatorFactory).addOperatorController(new Yaml());
   }
 }

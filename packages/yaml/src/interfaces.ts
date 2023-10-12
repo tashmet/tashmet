@@ -88,8 +88,3 @@ export interface YamlOptions {
    */
   condenseFlow?: boolean;
 }
-
-
-export interface YamlConfig {
-  rules: (YamlOptions & {match: string})[]
-}
