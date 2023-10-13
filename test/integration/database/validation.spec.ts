@@ -3,8 +3,8 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
 import Tashmet, {Collection} from '../../../packages/tashmet/dist/index.js';
-import Mingo from '../../../packages/mingo/dist/index.js';
-import Memory from '../../../packages/memory/dist/index.js';
+import mingo from '../../../packages/mingo/dist/index.js';
+import memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
@@ -17,8 +17,8 @@ describe('validation', () => {
   before(async () => {
     const tashmet = Tashmet
       .configure()
-      .use(Mingo, {})
-      .use(Memory, {})
+      .use(mingo())
+      .use(memory())
       .bootstrap();
 
     sales = tashmet.db('test').createCollection('sales', {

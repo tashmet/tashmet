@@ -4,7 +4,6 @@ import {
   Lookup,
   Optional,
   Logger,
-  plugin,
   BootstrapConfig,
   PluginConfigurator,
   Container
@@ -157,18 +156,13 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
 @provider({
   inject: [AggregatorFactory, DocumentAccess, Logger, Optional.of(ValidatorFactory)]
 })
-@plugin<any>()
-export default class MemoryStorageEngineFactory extends StorageEngineFactory {
+export class MemoryStorageEngineFactory extends StorageEngineFactory {
   public constructor(
     private aggFact: AggregatorFactory,
     private documentAccess: DocumentAccess,
     private logger: Logger,
     private validatorFact?: ValidatorFactory,
   ) { super(); }
-
-  public static configure(config: Partial<BootstrapConfig>, container?: Container) {
-    return new MemoryConfigurator(MemoryStorageEngineFactory, config, container);
-  }
 
   public createStorageEngine(dbName: string): StorageEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
@@ -185,7 +179,7 @@ export default class MemoryStorageEngineFactory extends StorageEngineFactory {
   }
 }
 
-export class MemoryConfigurator extends PluginConfigurator<StorageEngineFactory, any> {
+export class MemoryConfigurator extends PluginConfigurator<StorageEngineFactory> {
   public register() {
     this.container.register(Provider.ofResolver(StorageEngineFactory, Lookup.of(MemoryStorageEngineFactory)));
 
@@ -203,3 +197,5 @@ export class MemoryConfigurator extends PluginConfigurator<StorageEngineFactory,
     this.container.resolve(Dispatcher).addBridge('*', new StorageEngineBridge(fact));
   }
 }
+
+export default () => (container: Container) => new MemoryConfigurator(MemoryStorageEngineFactory, container);

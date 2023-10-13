@@ -5,14 +5,14 @@ import {
   Provider,
   Logger,
 } from '@tashmet/tashmet';
-import { idSet, ChangeSet, Comparator } from '@tashmet/bridge';
-import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess, AggregatorOptions, ExpressionOperator, PipelineOperator } from '@tashmet/engine';
+import { idSet, ChangeSet, Comparator, Dispatcher } from '@tashmet/bridge';
+import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess, AggregatorOptions, ExpressionOperator, PipelineOperator, StorageEngineBridge, AggregationEngine, QueryPlanner, ViewMap, StorageEngine, AggregationReadController } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
 import { Query } from 'mingo';
 import * as mingo from 'mingo/core.js';
-import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
+import { Container, Newable, PluginConfigurator } from '@tashmet/core';
 
 export * from './interfaces.js';
 export { BufferAggregator, CollectionBuffers } from './aggregator.js';
@@ -41,18 +41,13 @@ export class MingoComparator implements Comparator {
 @provider({
   key: AggregatorFactory,
 })
-@plugin<Partial<MingoConfig>>()
-export default class MingoAggregatorFactory extends AggregatorFactory {
+export class MingoAggregatorFactory extends AggregatorFactory {
   protected pipelineOps: Record<string, PipelineOperator<any>> = {};
 
   public constructor(
     protected documentAccess: DocumentAccess,
     protected logger: Logger
   ) { super(); }
-
-  public static configure(config: Partial<BootstrapConfig> & Partial<MingoConfig>, container?: Container) {
-    return new MingoConfigurator(MingoAggregatorFactory, config, container);
-  }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
     return new BufferAggregator(pipeline, this.documentAccess, options, this.logger);
@@ -86,7 +81,11 @@ export class FilterValidatorFactory extends ValidatorFactory {
   }
 }
 
-export class MingoConfigurator extends PluginConfigurator<AggregatorFactory, Partial<MingoConfig>> {
+export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
+  public constructor(protected app: Newable<AggregatorFactory>, container: Container, protected config: MingoConfig) {
+    super(app, container);
+  }
+
   public register() {
     const defaultConfig: MingoConfig = {
       useStrictMode: true,
@@ -101,6 +100,19 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory, Par
 
   public load() {
     const fact = this.container.resolve(AggregatorFactory);
+    const documentAccess = this.container.resolve(DocumentAccess);
+    const logger = this.container.resolve(Logger);
     fact.addOperatorController(fact);
+
+    const engine = new AggregationEngine(
+      fact, new QueryPlanner(documentAccess, logger.inScope('QueryPlanner')), '__tashmet');
+    const views: ViewMap = {};
+    const storageEngine = StorageEngine.fromControllers('__tashmet',
+      new AggregationReadController('__tashmet', engine, views),
+    );
+    this.container.resolve(Dispatcher).addBridge('__tashmet', new StorageEngineBridge(() => storageEngine));
   }
 }
+
+export default (config?: MingoConfig) => (container: Container) =>
+  new MingoConfigurator(MingoAggregatorFactory, container, config || {});

@@ -1,4 +1,4 @@
-import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core'
+import { Container, PluginConfigurator } from '@tashmet/core'
 import { AggregatorFactory, ExpressionOperator } from '@tashmet/engine'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
@@ -21,14 +21,10 @@ export const $markdownToHtml: ExpressionOperator<string> = (args, resolve) => {
     .processSync(resolve(args)).value;
 }
 
-@plugin<any>()
-export default class NabuRemark {
-  public static configure(config: Partial<BootstrapConfig>, container?: Container) {
-    return new RemarkConfigurator(NabuRemark, config, container);
-  }
+export class Remark {
 }
 
-export class RemarkConfigurator extends PluginConfigurator<NabuRemark, any> {
+export class RemarkConfigurator extends PluginConfigurator<Remark> {
   public load() {
     const aggFact = this.container.resolve(AggregatorFactory);
 
@@ -36,3 +32,5 @@ export class RemarkConfigurator extends PluginConfigurator<NabuRemark, any> {
     aggFact.addExpressionOperator('$markdownToHtml', $markdownToHtml);
   }
 }
+
+export default () => (container: Container) => new RemarkConfigurator(Remark, container);

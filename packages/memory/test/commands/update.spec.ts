@@ -1,9 +1,10 @@
 import 'mingo/init/system';
 import chai from 'chai';
 import 'mocha';
-import Memory from '../../src';
-import Mingo from '@tashmet/mingo';
+import memory from '../../src';
+import mingo from '@tashmet/mingo';
 import { StorageEngine } from '@tashmet/engine';
+import { createApp } from '@tashmet/core';
 
 const { expect } = chai;
 
@@ -11,11 +12,10 @@ describe('update', () => {
   let engine: StorageEngine;
 
   before(async () => {
-    engine = Memory
-      .configure({})
-      .use(Mingo, {})
+    engine = createApp(memory())
+      .use(mingo())
       .bootstrap()
-      .createStorageEngine('testdb');
+      .createStorageEngine('testdb')
 
     await engine.command({create: 'test'});
     await engine.command({insert: 'test', documents: [

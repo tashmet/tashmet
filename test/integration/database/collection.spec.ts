@@ -1,6 +1,6 @@
 import Tashmet, {Collection, SortingDirection} from '../../../packages/tashmet/dist/index.js';
-import Mingo from '../../../packages/mingo/dist/index.js';
-import Memory from '../../../packages/memory/dist/index.js';
+import mingo from '../../../packages/mingo/dist/index.js';
+import memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
 import 'mocha';
 import chai from 'chai';
@@ -29,8 +29,8 @@ describe('Collection', () => {
   before(async () => {
     tashmet = Tashmet
       .configure()
-      .use(Mingo, {})
-      .use(Memory, {})
+      .use(mingo())
+      .use(memory())
       .bootstrap();
   });
 

@@ -11,32 +11,16 @@ export * from './reflection/index.js';
 export type PluginConfig = (container: Container) => void | (() => void);
 export type StaticThis<T> = { new (...args: any[]): T };
 
-export interface Plugin<TConfig> {
-  configure(config: Partial<BootstrapConfig> & TConfig): PluginConfigurator<any, TConfig>
+export type Plugin<T> = (container: Container) => PluginConfigurator<T>;
 
-  configure(config: TConfig, container?: Container): PluginConfigurator<any, TConfig>;
+export function createApp<T>(plugin: Plugin<T>, config?: BootstrapConfig): PluginConfigurator<T> {
+  return plugin(createContainer(config || { logLevel: LogLevel.None }));
 }
 
-export function plugin<TConfig>() {
-  return <U extends Plugin<TConfig>>(constructor: U) => {constructor};
-}
+export class PluginConfigurator<T> {
+  protected plugins: PluginConfigurator<any>[] = [];
 
-//export type PluginLoader = (() => void) | void;
-//export type PluginSetup<T> = (container: Container, config: T, standalone: boolean) => PluginLoader;
-
-export class PluginConfigurator<T, TConfig> {
-  protected plugins: PluginConfigurator<any, any>[] = [];
-  protected container: Container;
-
-  public constructor(protected app: Newable<T>, protected config: Partial<BootstrapConfig> & TConfig, container?: Container) {
-    if (!container) {
-      this.container = createContainer({
-        logLevel: config.logLevel === undefined ? LogLevel.None : config.logLevel,
-        logFormat: config.logFormat,
-        container: config.container });
-    } else {
-      this.container = container;
-    }
+  public constructor(protected app: Newable<T>, protected container: Container) {
     this.container.register(app);
     this.register();
   }
@@ -52,8 +36,8 @@ export class PluginConfigurator<T, TConfig> {
     return this;
   }
 
-  public use<TConf>(plugin: Plugin<TConf>, config: TConf) {
-    this.plugins.push(plugin.configure(config, this.container));
+  public use(plugin: (container: Container) => PluginConfigurator<any>) {
+    this.plugins.push(plugin(this.container));
     return this;
   }
 

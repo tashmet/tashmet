@@ -3,8 +3,8 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
 import Tashmet, { Collection, Database } from '../../../packages/tashmet/dist/index.js';
-import Mingo from '../../../packages/mingo/dist/index.js';
-import Memory from '../../../packages/memory/dist/index.js';
+import mingo from '../../../packages/mingo/dist/index.js';
+import memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
@@ -21,8 +21,8 @@ describe('aggregation', () => {
     before(async () => {
       const client = Tashmet
         .configure()
-        .use(Mingo, {})
-        .use(Memory, {})
+        .use(mingo())
+        .use(memory())
         .bootstrap();
 
       db = client.db('testdb');
@@ -502,8 +502,8 @@ describe('aggregation', () => {
     before(async () => {
       const client = Tashmet
         .configure()
-        .use(Mingo, {})
-        .use(Memory, {})
+        .use(mingo())
+        .use(memory())
         .bootstrap();
 
       db = client.db('testdb');
@@ -552,8 +552,8 @@ describe('aggregation', () => {
     before(async () => {
       client = Tashmet
         .configure()
-        .use(Mingo, {})
-        .use(Memory, {})
+        .use(mingo())
+        .use(memory())
         .bootstrap();
     });
 

@@ -73,6 +73,8 @@ import {
   BootstrapConfig,
   ServiceRequest,
   PluginConfigurator,
+  createContainer,
+  LogLevel,
 } from '@tashmet/core';
 import { Dispatcher, Document } from '@tashmet/bridge';
 import { Database, DatabaseFactory } from './interfaces.js';
@@ -107,7 +109,7 @@ export default class Tashmet {
   }
 
   public static configure(config?: Partial<BootstrapConfig>) {
-    return new PluginConfigurator<Tashmet, any>(Tashmet, config || {})
+    return new PluginConfigurator<Tashmet>(Tashmet, createContainer({logLevel: LogLevel.None, ...config}))
       .provide(
         Dispatcher,
         DefaultDatabaseFactory,

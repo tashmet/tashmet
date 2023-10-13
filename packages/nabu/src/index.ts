@@ -29,62 +29,11 @@ export * from './interfaces.js';
 export { ContentRule };
 
 import globToRegExp from 'glob-to-regexp';
-import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
-
-export interface YamlContentRule {
-  frontMatter?: boolean;
-
-  contentKey?: string;
-
-  merge?: Document;
-
-  construct?: Document;
-}
-
-export interface JsonContentRule {
-  merge?: Document;
-
-  construct?: Document;
-}
+import { Container, Newable, PluginConfigurator } from '@tashmet/core';
 
 
 @provider()
-@plugin<Partial<NabuConfig>>()
-export default class Nabu {
-  public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>, container?: Container) {
-    return new NabuConfigurator(Nabu, config, container);
-  }
-
-  public static json(config: JsonContentRule): ContentRule {
-    const def: Required<JsonContentRule> = {
-      merge: { _id: '$path' },
-      construct: {},
-    }
-    const { merge, construct } = { ...def, ...config };
-
-    return ContentRule
-      .fromRootReplace({ $jsonToObject: '$content' }, { $objectToJson: '$content' }, merge)
-      .assign(construct);
-  }
-
-  public static yaml(config: YamlContentRule): ContentRule {
-    const def: Required<YamlContentRule> = {
-      frontMatter: false,
-      contentKey: '_content',
-      merge: { _id: '$path' },
-      construct: {},
-    }
-    const { frontMatter, contentKey, merge, construct } = { ...def, ...config };
-
-    const input = frontMatter ? { $yamlfmParse: '$content' } : { $yamlToObject: '$content' };
-    const output = frontMatter ? { $yamlfmDump: '$content' } : { $objectToYaml: '$content' };
-
-    return ContentRule
-      .fromRootReplace(input, output, merge)
-      .rename('_content', contentKey)
-      .assign(construct);
-  }
-
+export class Nabu {
   public constructor(
     private aggFact: AggregatorFactory,
     private documentAccess: DocumentAccess,
@@ -108,7 +57,11 @@ export default class Nabu {
   }
 }
 
-export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfig>> {
+export class NabuConfigurator extends PluginConfigurator<Nabu> {
+  public constructor(protected app: Newable<any>, container: Container, protected config: NabuConfig) {
+    super(app, container);
+  }
+
   public register() {
     this.container.register(FileAccess);
 
@@ -136,3 +89,5 @@ export class NabuConfigurator extends PluginConfigurator<Nabu, Partial<NabuConfi
     }
   }
 }
+
+export default (config: NabuConfig) => (container: Container) => new NabuConfigurator(Nabu, container, config);

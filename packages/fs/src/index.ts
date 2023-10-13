@@ -5,16 +5,10 @@ export * from './interfaces.js';
 
 import { Container } from '@tashmet/tashmet';
 import { FileSystemConfig } from './interfaces.js';
-import { BootstrapConfig, plugin, PluginConfigurator } from '@tashmet/core';
+import { PluginConfigurator } from '@tashmet/core';
 import { AggregatorFactory, op } from '@tashmet/engine';
 
-
-@plugin<FileSystemConfig>()
-export default class FileSystem {
-  public static configure(config: Partial<BootstrapConfig> & FileSystemConfig, container?: Container) {
-    return new FileSystemConfigurator(FileSystem, config, container);
-  }
-
+export class FileSystem {
   @op.expression('$lstat')
   public lstat(expr: any, resolve: (expr: any) => any) {
     const res: fs.Stats = fs.lstatSync(resolve(expr));
@@ -95,10 +89,12 @@ export default class FileSystem {
   };
 }
 
-export class FileSystemConfigurator extends PluginConfigurator<FileSystem, FileSystemConfig> {
+export class FileSystemConfigurator extends PluginConfigurator<FileSystem> {
   public load() {
     this.container
       .resolve(AggregatorFactory)
       .addOperatorController(new FileSystem());
   }
 }
+
+export default (config: FileSystemConfig) => (container: Container) => new FileSystemConfigurator(FileSystem, container);

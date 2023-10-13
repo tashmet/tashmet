@@ -1,13 +1,13 @@
 import 'mingo/init/system.js';
 import { Document, provider } from '@tashmet/tashmet';
-import MingoAggregatorFactory, { MingoConfig, MingoConfigurator, BufferAggregator } from '@tashmet/mingo';
+import { MingoAggregatorFactory, MingoConfig, MingoConfigurator, BufferAggregator } from '@tashmet/mingo';
 import { getOperator, OperatorType } from 'mingo/core.js';
 import * as mingo from 'mingo/core.js';
 import { Query } from 'mingo/query.js';
 import { assert, cloneDeep } from 'mingo/util.js';
 import { Iterator, Lazy } from 'mingo/lazy.js';
-import { AbstractAggregator, AggregatorFactory, DocumentAccess, Operator, operator, PipelineOperator } from '@tashmet/engine';
-import { BootstrapConfig, Container, Logger, plugin } from '@tashmet/core';
+import { AbstractAggregator, AggregatorFactory, DocumentAccess, op, PipelineOperator } from '@tashmet/engine';
+import { Container, Logger } from '@tashmet/core';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   const result: T[] = [];
@@ -90,8 +90,7 @@ async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp
 @provider({
   key: AggregatorFactory,
 })
-@plugin<Partial<MingoConfig>>()
-export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
+export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
   public constructor(documentAccess: DocumentAccess, logger: Logger) {
     super(documentAccess, logger);
     this.addPipelineOperator('$match', this.$match);
@@ -99,15 +98,11 @@ export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory
     this.addPipelineOperator('$limit', this.$limit);
   }
 
-  public static configure(config: Partial<BootstrapConfig> & Partial<MingoConfig>, container?: Container) {
-    return new MingoConfigurator(MingoStreamAggregatorFactory, config, container);
-  }
-
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
     return new StreamAggregator(pipeline, this.pipelineOps, this.documentAccess, options, this.logger);
   }
 
-  @operator('$match')
+  @op.pipeline('$match')
   async* $match(source: AsyncIterable<Document>, expr: Document) {
     const q = new Query(expr);
     for await (const item of source) {
@@ -117,7 +112,7 @@ export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory
     }
   }
 
-  @operator('$skip')
+  @op.pipeline('$skip')
   async* $skip(source: AsyncIterable<Document>, expr: number) {
     let n = 0;
     for await (const item of source) {
@@ -128,7 +123,7 @@ export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory
     }
   }
 
-  @operator('$limit')
+  @op.pipeline('$limit')
   async* $limit<T>(source: AsyncIterable<Document>, expr: number) {
     let n = 0;
     for await (const item of source) {
@@ -141,3 +136,6 @@ export default class MingoStreamAggregatorFactory extends MingoAggregatorFactory
     }
   }
 }
+
+export default (config?: MingoConfig) => (container: Container) =>
+  new MingoConfigurator(MingoStreamAggregatorFactory, container, config || {});

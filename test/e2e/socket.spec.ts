@@ -3,8 +3,8 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
 import Tashmet, {Collection, LogLevel} from '../../packages/tashmet/dist'
-import HttpClient from '../../packages/http-client/dist';
-import Mingo from '../../packages/mingo/dist';
+import client from '../../packages/client/dist';
+import mingo from '../../packages/mingo/dist';
 //import Caching from '../../packages/caching/dist';
 // import {socket} from '../../packages/socket/dist';
 import 'mingo/init/system';
@@ -18,20 +18,12 @@ describe('rest', () => {
   let col: Collection
 
   before(async () => {
-    const tashmet = await Tashmet
+    console.log('client');
+    const tashmet = Tashmet
       .configure({logLevel: LogLevel.None})
-      .use(Mingo, {})
-      .use(HttpClient, {
-        fetch,
-        basePath: 'http://localhost:8000/api/',
-        databases: {
-          'testdb': {
-            path: coll => coll,
-          }
-        }
-      })
-      //.use(Caching, {})
-      .connect();
+      //.use(Mingo, {})
+      .use(client({ url: 'http://localhost:8000' }))
+      .bootstrap();
 
     col = tashmet
       .db('testdb')

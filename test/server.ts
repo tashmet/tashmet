@@ -1,30 +1,10 @@
-import Tashmet, {provider} from '../packages/tashmet/dist'
-import Mingo from '../packages/mingo/dist'
-import Memory from '../packages/memory/dist'
-import HttpServer from '../packages/http-server/dist';
-import 'mingo/init/system';
+import TashmetServer from '../packages/server/dist/index.js'
+import mingo from '../packages/mingo/aggregation/dist/index.js'
+import memory from '../packages/memory/dist/index.js'
 
-@provider({
-  inject: [Tashmet, HttpServer]
-})
-class ServerApp {
-  public constructor(private tashmet: Tashmet, private server: HttpServer) {}
-
-  public run(port: number) {
-    const collection = this.tashmet
-      .db('serverdb')
-      .collection('test');
-
-    this.server
-      .resource('/api/test', {collection})
-      .listen(port);
-  }
-}
-
-Tashmet
-  .configure()
-  .use(Mingo, {})
-  .use(Memory, {})
-  .use(HttpServer, {})
-  .bootstrap(ServerApp)
-  .then(app => app.run(8000));
+TashmetServer
+  .configure({})
+  .use(mingo())
+  .use(memory())
+  .bootstrap()
+  .listen(8000);

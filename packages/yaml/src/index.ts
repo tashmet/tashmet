@@ -1,4 +1,4 @@
-import { BootstrapConfig, Container, plugin, PluginConfigurator } from '@tashmet/core';
+import { Container, PluginConfigurator } from '@tashmet/core';
 import { AggregatorFactory, Document, op } from '@tashmet/engine';
 import { YamlOptions } from './interfaces.js';
 
@@ -87,12 +87,7 @@ export function serializeYaml(data: Document, config?: YamlOptions): string {
   }
 }
 
-@plugin<YamlOptions>()
-export default class Yaml {
-  public static configure(config: Partial<BootstrapConfig> & YamlOptions, container?: Container) {
-    return new YamlConfigurator(Yaml, config, container);
-  }
-
+export class Yaml {
   @op.expression('$objectToYaml')
   public objectToYaml(expr: any, resolve: (expr: any) => any) {
     return serializeYaml(resolve(expr));
@@ -114,8 +109,11 @@ export default class Yaml {
   }
 }
 
-export class YamlConfigurator extends PluginConfigurator<Yaml, YamlOptions> {
+export class YamlConfigurator extends PluginConfigurator<Yaml> {
   public load() {
     this.container.resolve(AggregatorFactory).addOperatorController(new Yaml());
   }
 }
+
+export default (config: YamlOptions) => (container: Container) =>
+  new YamlConfigurator(Yaml, container);
