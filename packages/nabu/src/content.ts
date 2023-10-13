@@ -61,8 +61,8 @@ export class ContentRule implements ContentRule {
     }
     const { frontMatter, contentKey, merge, construct } = { ...def, ...config };
 
-    const input = frontMatter ? { $yamlfmParse: '$content' } : { $yamlToObject: '$content' };
-    const output = frontMatter ? { $yamlfmDump: '$content' } : { $objectToYaml: '$content' };
+    const input = frontMatter ? { $yamlfmToObject: '$content' } : { $yamlToObject: '$content' };
+    const output = frontMatter ? { $objectToYamlfm: '$content' } : { $objectToYaml: '$content' };
 
     return ContentRule
       .fromRootReplace(input, output, merge)

@@ -4,11 +4,11 @@ import { ChangeStreamDocument } from '@tashmet/bridge';
 import {
   NabuDatabaseConfig,
 } from '../interfaces.js';
-import Tashmet from '@tashmet/tashmet';
-
-
+import Tashmet, { AggregationCursor } from '@tashmet/tashmet';
+import { IO } from '../io.js';
 export class FileStorage implements CollectionRegistry, Streamable, Writable {
   protected configs: Record<string, Document> = {};
+  protected io: Record<string, IO> = {};
 
   constructor(
     public readonly databaseName: string,
@@ -17,24 +17,25 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
   ) {}
 
   public async create(collection: string, options: Document): Promise<void> {
-    this.configs[collection] = options.storageEngine;
+    this.io[collection] = this.config(collection)(this.tashmet);
   }
 
   public async drop(collection: string): Promise<void> {
-    delete this.configs[collection];
+    delete this.io[collection];
   }
 
   public async *stream(collection: string, options?: StreamOptions): AsyncIterable<Document> {
     const { documentIds, projection } = options || {};
-    const config = this.config(collection);
+    const io = this.io[collection];
+    let cursor: AggregationCursor<Document>;
 
-    const paths = documentIds
-      ? documentIds.map(id => config.lookup(id))
-      : [config.scan];
+    if (documentIds) {
+      cursor = io.lookup(documentIds);
+    } else {
+      cursor = io.scan();
+    }
 
-    const input = paths.map(p => ({ pattern: p}));
-
-    for await (const doc of this.tashmet.aggregate(input, this.readPipeline(collection))) {
+    for await (const doc of cursor) {
       yield doc;
     }
   }
@@ -54,74 +55,14 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
     const writeErrors: any[] = [];
 
     for (const coll of collections.map(c => c._id)) {
+      const io = this.io[coll];
+
       writeErrors.push(...await this.tashmet
-        .aggregate(dbChanges, this.writePipeline(coll))
+        .aggregate(dbChanges, [{ $match: { 'ns.coll': coll } }, ...io.outputPipeline])
         .toArray()
       );
     }
 
     return writeErrors;
-  }
-
-  public readPipeline(collection: string) {
-    const config = this.config(collection);
-
-    return [
-      { $glob: { pattern: '$pattern' } },
-      {
-        $project: {
-          _id: 0,
-          path: '$_id',
-          stats: { $lstat: '$_id' },
-          content: { $readFile: '$_id' },
-        }
-      },
-      ...config.content.read,
-    ]
-  }
-
-  public writePipeline(collection: string) {
-    const config = this.config(collection);
-    const path = (c: ChangeStreamDocument) => config.lookup(c.documentKey?._id as any);
-
-    return [
-      { $match: { 'ns.coll': collection } },
-      {
-        $project: {
-          _id: 0,
-          content: {
-            $cond: {
-              if: { $ne: ["$operationType", "delete"] },
-              then: "$fullDocument",
-              else: { $literal: undefined }
-            }
-          },
-          path: { $function: { body: path, args: [ "$$ROOT" ], lang: "js" }},
-          mode: {
-            $switch: {
-              branches: [
-                { case: { $eq: ['$operationType', 'insert'] }, then: 'create' },
-                { case: { $eq: ['$operationType', 'replace'] }, then: 'update' },
-                { case: { $eq: ['$operationType', 'delete'] }, then: 'delete' },
-              ]
-            }
-          },
-        },
-      },
-      ...config.content.write,
-      {
-        $writeFile: {
-          content: {
-            $cond: {
-              if: { $ne: ['$mode', 'delete'] },
-              then: '$content',
-              else: null
-            }
-          },
-          to: '$path',
-          overwrite: { $ne: ['$mode', 'create'] },
-        }
-      }
-    ]
   }
 }

@@ -1,5 +1,5 @@
 import Tashmet, { Collection } from '../../../packages/tashmet/dist/index.js';
-import nabu, { ContentRule } from '../../../packages/nabu/dist/index.js';
+import nabu, { ContentRule, IO } from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/stream/dist/index.js';
 import 'mocha';
 import chai from 'chai';
@@ -32,7 +32,7 @@ describe('fileStorage', () => {
       .use(mingo())
       .use(nabu({
         databases: {
-          e2e: coll => ({
+          e2e: coll => IO.fs({
             content: ContentRule.json({
               merge: { _id: { $basename: ['$path', { $extname: '$path' }] } },
             }),

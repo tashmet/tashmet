@@ -27,6 +27,7 @@ import { $objectToJson, $jsonToObject } from './operators/json.js';
 
 export * from './interfaces.js';
 export { ContentRule };
+export { IO } from './io.js';
 
 import globToRegExp from 'glob-to-regexp';
 import { Container, Newable, PluginConfigurator } from '@tashmet/core';
