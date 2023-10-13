@@ -24,6 +24,9 @@ import {
 import { ContentRule } from './content.js';
 import { FileStorage } from './storage/fileStorage.js';
 import { $objectToJson, $jsonToObject } from './operators/json.js';
+import { fs } from './io/fs.js';
+import { yaml } from './content/yaml.js';
+import { json } from './content/json.js';
 
 export * from './interfaces.js';
 export { ContentRule };
@@ -91,4 +94,9 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
   }
 }
 
-export default (config: NabuConfig) => (container: Container) => new NabuConfigurator(Nabu, container, config);
+export default {
+  engine: (config: NabuConfig) => (container: Container) => new NabuConfigurator(Nabu, container, config),
+  fs,
+  json,
+  yaml,
+}
