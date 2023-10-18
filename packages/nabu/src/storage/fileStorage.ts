@@ -4,20 +4,22 @@ import { ChangeStreamDocument } from '@tashmet/bridge';
 import {
   NabuDatabaseConfig,
 } from '../interfaces.js';
-import Tashmet, { AggregationCursor } from '@tashmet/tashmet';
+import { AggregationCursor } from '@tashmet/tashmet';
 import { IO } from '../io.js';
+import Nabu from '../index.js';
+
 export class FileStorage implements CollectionRegistry, Streamable, Writable {
   protected configs: Record<string, Document> = {};
   protected io: Record<string, IO> = {};
 
   constructor(
     public readonly databaseName: string,
-    private tashmet: Tashmet,
+    private nabu: Nabu,
     private config: NabuDatabaseConfig,
   ) {}
 
   public async create(collection: string, options: Document): Promise<void> {
-    this.io[collection] = this.config(collection)(this.tashmet);
+    this.io[collection] = this.config(collection)(this.nabu);
   }
 
   public async drop(collection: string): Promise<void> {
@@ -47,7 +49,7 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
 
     const dbChanges = changes.filter(c => c.ns.db === this.databaseName);
 
-    const collections = await this.tashmet.aggregate(dbChanges, [
+    const collections = await this.nabu.aggregate(dbChanges, [
       {$unwind: '$ns.coll'},
       {$group: {_id: '$ns.coll'}},
     ]).toArray();
@@ -57,7 +59,7 @@ export class FileStorage implements CollectionRegistry, Streamable, Writable {
     for (const coll of collections.map(c => c._id)) {
       const io = this.io[coll];
 
-      writeErrors.push(...await this.tashmet
+      writeErrors.push(...await this.nabu
         .aggregate(dbChanges, [{ $match: { 'ns.coll': coll } }, ...io.outputPipeline])
         .toArray()
       );

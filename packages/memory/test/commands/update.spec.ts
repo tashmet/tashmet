@@ -1,24 +1,25 @@
 import 'mingo/init/system';
 import chai from 'chai';
 import 'mocha';
-import memory from '../../src';
+import Memory from '../../src';
 import mingo from '@tashmet/mingo';
-import { StorageEngine } from '@tashmet/engine';
-import { createApp } from '@tashmet/core';
+import { Namespace, Store } from '@tashmet/bridge';
 
 const { expect } = chai;
 
 describe('update', () => {
-  let engine: StorageEngine;
+  let engine: Store;
+
+  const ns: Namespace = { db: 'testdb', coll: 'test' };
 
   before(async () => {
-    engine = createApp(memory())
+    engine = Memory
+      .configure({})
       .use(mingo())
-      .bootstrap()
-      .createStorageEngine('testdb')
+      .bootstrap();
 
-    await engine.command({create: 'test'});
-    await engine.command({insert: 'test', documents: [
+    await engine.command(ns, {create: 'test'});
+    await engine.command(ns, {insert: 'test', documents: [
       { _id: 1, category: "cake", type: "chocolate", qty: 10 },
       { _id: 2, category: "cake", type: "ice cream", qty: 25 },
       { _id: 3, category: "pie", type: "boston cream", qty: 20 },
@@ -27,7 +28,7 @@ describe('update', () => {
   });
 
   it('should update a single document', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       update: 'test',
       updates: [{q: {_id: 1}, u: {$set: {qty: 20}}}]
     });
@@ -35,12 +36,12 @@ describe('update', () => {
   });
 
   it('should have updated the document in the store', async () => {
-    const {cursor} = await engine.command({find: 'test', filter: {_id: 1}});
+    const {cursor} = await engine.command(ns, {find: 'test', filter: {_id: 1}});
     expect(cursor.firstBatch[0]).to.eql({_id: 1, category: "cake", type: "chocolate", qty: 20});
   });
 
   it('should fail to update when no document matches query', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       update: 'test',
       updates: [{q: {_id: 5}, u: {$set: {qty: 20}}}]
     });
@@ -48,7 +49,7 @@ describe('update', () => {
   });
 
   it('should upsert when specified', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       update: 'test',
       updates: [
         {q: {_id: 5}, u: {_id: 5, category: 'candy', type: 'chocolate'}, upsert: true}
@@ -64,7 +65,7 @@ describe('update', () => {
   });
 
   it('should update multiple documents', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       update: 'test',
       updates: [
         {q: {category: 'cake'}, u: {$set: {qty: 30}}, multi: true}
@@ -74,7 +75,7 @@ describe('update', () => {
   });
 
   it('should only update multiple documents when multi set to true', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       update: 'test',
       updates: [
         {q: {category: 'cake'}, u: {$set: {qty: 10}}}
@@ -84,7 +85,7 @@ describe('update', () => {
   });
 
   it('should update using pipeline', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       update: 'test',
       updates: [
         {q: {category: 'cake'}, u: [{$set: {qty: 10}}]}

@@ -1,7 +1,6 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { Document, Namespace } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
-import { Aspect, aspects } from "./operation.js";
 
 /** @public */
 export type DistinctOptions = CommandOperationOptions;
@@ -10,7 +9,6 @@ export type DistinctOptions = CommandOperationOptions;
  * Return a list of distinct values for the given key across a collection.
  * @internal
  */
-@aspects(Aspect.READ_OPERATION, Aspect.RETRYABLE, Aspect.EXPLAINABLE)
 export class DistinctOperation extends CommandOperation<any[]> {
   /**
    * Construct a Distinct operation.
@@ -29,14 +27,14 @@ export class DistinctOperation extends CommandOperation<any[]> {
     super(ns, options);
   }
 
-  async execute(dispatcher: Dispatcher): Promise<any[]> {
+  async execute(store: Store): Promise<any[]> {
     const cmd: Document = {
       distinct: this.ns.coll,
       key: this.key,
       query: this.query,
     };
 
-    const {values} = await this.executeCommand(dispatcher, cmd);
+    const {values} = await this.executeCommand(store, cmd);
     return values as unknown as any[];
   }
 }

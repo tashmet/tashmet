@@ -1,7 +1,6 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { Document, CollationOptions, Namespace } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
-import { Aspect, aspects } from './operation.js';
 
 
 /** @public */
@@ -40,16 +39,12 @@ export interface DeleteStatement {
 }
 
 /** @internal */
-@aspects(
-  Aspect.RETRYABLE,
-  Aspect.WRITE_OPERATION
-)
 export class DeleteOperation extends CommandOperation<Document> {
   constructor(ns: Namespace, protected statements: DeleteStatement[], public options: DeleteOptions) {
     super(ns, options);
   }
 
-  async execute(dispatcher: Dispatcher): Promise<DeleteResult> {
+  async execute(store: Store): Promise<DeleteResult> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
@@ -62,28 +57,17 @@ export class DeleteOperation extends CommandOperation<Document> {
       command.let = options.let;
     }
 
-    const res = await super.executeCommand(dispatcher, command);
+    const res = await super.executeCommand(store, command);
     return {acknowledged: true, deletedCount: res.n};
   }
 }
 
-@aspects(
-  Aspect.RETRYABLE,
-  Aspect.WRITE_OPERATION,
-  Aspect.EXPLAINABLE,
-  Aspect.SKIP_COLLATION
-)
 export class DeleteOneOperation extends DeleteOperation {
   constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
     super(ns, [makeDeleteStatement(filter, { ...options, limit: 1 })], options);
   }
 }
 
-@aspects(
-  Aspect.WRITE_OPERATION,
-  Aspect.EXPLAINABLE,
-  Aspect.SKIP_COLLATION
-)
 export class DeleteManyOperation extends DeleteOperation {
   constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
     super(ns, [makeDeleteStatement(filter, options)], options);

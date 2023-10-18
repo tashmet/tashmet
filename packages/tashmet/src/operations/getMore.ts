@@ -1,7 +1,6 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { Document, Namespace } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
-import { Aspect, aspects } from "./operation.js";
 
 /**
  * @public
@@ -21,7 +20,6 @@ export interface GetMoreOptions extends CommandOperationOptions {
 }
 
 /** @internal */
-@aspects(Aspect.READ_OPERATION, Aspect.CURSOR_ITERATING)
 export class GetMoreOperation extends CommandOperation<Document> {
   constructor(
     ns: Namespace,
@@ -29,8 +27,8 @@ export class GetMoreOperation extends CommandOperation<Document> {
     public options: GetMoreOptions = {}
   ) { super(ns, options); }
 
-  execute(dispatcher: Dispatcher): Promise<Document> {
-    return this.executeCommand(dispatcher, {
+  execute(store: Store): Promise<Document> {
+    return this.executeCommand(store, {
       getMore: this.cursorId,
       collection: this.ns.coll,
       batchSize: this.options.batchSize,

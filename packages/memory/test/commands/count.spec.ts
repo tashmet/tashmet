@@ -1,23 +1,24 @@
 import chai from 'chai';
 import 'mocha';
-import memory from '../../src';
+import Memory from '../../src';
 import mingo from '@tashmet/mingo';
-import { StorageEngine } from '@tashmet/engine';
-import { createApp } from '@tashmet/core';
+import { Namespace, Store } from '@tashmet/bridge';
 
 const { expect } = chai;
 
 describe('count', () => {
-  let engine: StorageEngine;
+  let engine: Store;
+
+  const ns: Namespace = { db: 'testdb', coll: 'test' };
 
   before(async () => {
-    engine = createApp(memory())
+    engine = Memory
+      .configure({})
       .use(mingo())
       .bootstrap()
-      .createStorageEngine('testdb')
 
-    await engine.command({create: 'test'});
-    await engine.command({insert: 'test', documents: [
+    await engine.command(ns, {create: 'test'});
+    await engine.command(ns, {insert: 'test', documents: [
       { _id: 1, category: "cake", type: "chocolate", qty: 10 },
       { _id: 2, category: "cake", type: "ice cream", qty: 25 },
       { _id: 3, category: "pie", type: "boston cream", qty: 20 },
@@ -27,7 +28,7 @@ describe('count', () => {
 
   describe('without query', () => {
     it('should return total document count', async () => {
-      const result = await engine.command({
+      const result = await engine.command(ns, {
         count: 'test',
       });
       expect(result).to.eql({n: 4, ok: 1});
@@ -36,7 +37,7 @@ describe('count', () => {
 
   describe('with query', () => {
     it('should return zero count when no document matches query', async () => {
-      const result = await engine.command({
+      const result = await engine.command(ns, {
         count: 'test',
         query: {category: 'candy'}
       });
@@ -44,7 +45,7 @@ describe('count', () => {
     });
 
     it('should return correct count when documents match query', async () => {
-      const result = await engine.command({
+      const result = await engine.command(ns, {
         count: 'test',
         query: {category: 'cake'}
       });
@@ -52,7 +53,7 @@ describe('count', () => {
     });
 
     it('should handle skip', async () => {
-      const result = await engine.command({
+      const result = await engine.command(ns, {
         count: 'test',
         query: {category: 'cake'},
         skip: 1
@@ -61,7 +62,7 @@ describe('count', () => {
     });
 
     it('should handle limit', async () => {
-      const result = await engine.command({
+      const result = await engine.command(ns, {
         count: 'test',
         query: {category: 'cake'},
         limit: 1

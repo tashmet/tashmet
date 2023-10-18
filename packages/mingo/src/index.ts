@@ -1,12 +1,15 @@
+import { Document, HashCode } from '@tashmet/tashmet';
+import { provider, Provider, Logger } from '@tashmet/core';
+import { idSet, ChangeSet, Comparator } from '@tashmet/bridge';
 import {
-  Document,
-  HashCode,
-  provider,
-  Provider,
-  Logger,
-} from '@tashmet/tashmet';
-import { idSet, ChangeSet, Comparator, Dispatcher } from '@tashmet/bridge';
-import { AggregatorFactory, AbstractAggregator, ValidatorFactory, DocumentAccess, AggregatorOptions, ExpressionOperator, PipelineOperator, StorageEngineBridge, AggregationEngine, QueryPlanner, ViewMap, StorageEngine, AggregationReadController } from '@tashmet/engine';
+  AggregatorFactory,
+  AbstractAggregator,
+  ValidatorFactory,
+  DocumentAccess,
+  AggregatorOptions,
+  ExpressionOperator,
+  PipelineOperator
+} from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
@@ -100,17 +103,7 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
 
   public load() {
     const fact = this.container.resolve(AggregatorFactory);
-    const documentAccess = this.container.resolve(DocumentAccess);
-    const logger = this.container.resolve(Logger);
     fact.addOperatorController(fact);
-
-    const engine = new AggregationEngine(
-      fact, new QueryPlanner(documentAccess, logger.inScope('QueryPlanner')), '__tashmet');
-    const views: ViewMap = {};
-    const storageEngine = StorageEngine.fromControllers('__tashmet',
-      new AggregationReadController('__tashmet', engine, views),
-    );
-    this.container.resolve(Dispatcher).addBridge('__tashmet', new StorageEngineBridge(() => storageEngine));
   }
 }
 

@@ -3,10 +3,25 @@ import * as nodePath from 'path';
 import { glob } from 'glob';
 export * from './interfaces.js';
 
-import { Container } from '@tashmet/tashmet';
+import Tashmet, { AggregationCursor, Document } from '@tashmet/tashmet';
 import { FileSystemConfig } from './interfaces.js';
-import { PluginConfigurator } from '@tashmet/core';
+import { Container, PluginConfigurator } from '@tashmet/core';
 import { AggregatorFactory, op } from '@tashmet/engine';
+
+//export class Glob {
+  //private patterns: string[];
+
+  //public constructor(pattern: string | string[]) {
+    //this.patterns = Array.isArray(pattern) ? pattern : [pattern];
+  //}
+
+  //public cursor<TSchema extends Document = Document>(tashmet: Tashmet, pipeline: Document[] = []): AggregationCursor<TSchema> {
+    //return tashmet.aggregate(this.patterns.map(p => ({_id: p})), [
+      //{ $glob: { pattern: '$_id' } },
+      //...pipeline
+    //]);
+  //}
+//}
 
 export class FileSystem {
   @op.expression('$lstat')

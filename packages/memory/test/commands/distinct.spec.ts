@@ -1,24 +1,25 @@
 import 'mingo/init/system';
 import chai from 'chai';
 import 'mocha';
-import memory from '../../src';
+import Memory from '../../src';
 import mingo from '@tashmet/mingo';
-import { StorageEngine } from '@tashmet/engine';
-import { createApp } from '@tashmet/core';
+import { Namespace, Store } from '@tashmet/bridge';
 
 const { expect } = chai;
 
 describe('distinct', () => {
-  let engine: StorageEngine;
+  let engine: Store;
+
+  const ns: Namespace = { db: 'testdb', coll: 'inventory' };
 
   before(async () => {
-    engine = createApp(memory())
+    engine = Memory
+      .configure({})
       .use(mingo())
       .bootstrap()
-      .createStorageEngine('testdb')
 
-    await engine.command({create: 'inventory'});
-    await engine.command({insert: 'inventory', documents: [
+    await engine.command(ns, {create: 'inventory'});
+    await engine.command(ns, {insert: 'inventory', documents: [
       { _id: 1, dept: "A", item: { sku: "111", color: "red" }, sizes: [ "S", "M" ] },
       { _id: 2, dept: "A", item: { sku: "111", color: "blue" }, sizes: [ "M", "L" ] },
       { _id: 3, dept: "B", item: { sku: "222", color: "blue" }, sizes: "S" },
@@ -27,7 +28,7 @@ describe('distinct', () => {
   });
 
   it('should return distinct values for a field', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       distinct: 'inventory',
       key: 'dept'
     });
@@ -35,7 +36,7 @@ describe('distinct', () => {
   });
 
   it('should return distinct values for embedded field', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       distinct: 'inventory',
       key: 'item.sku'
     });
@@ -43,7 +44,7 @@ describe('distinct', () => {
   });
 
   it('should return distinct values for array field', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       distinct: 'inventory',
       key: 'sizes'
     });
@@ -51,7 +52,7 @@ describe('distinct', () => {
   });
 
   it('should return distinct values with query', async () => {
-    const result = await engine.command({
+    const result = await engine.command(ns, {
       distinct: 'inventory',
       key: 'item.sku',
       query: { dept: "A"}

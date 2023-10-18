@@ -1,11 +1,7 @@
 import { ChangeSet, Namespace } from '@tashmet/bridge';
 import { AbstractAggregator, AggregatorOptions, DocumentAccess } from '@tashmet/engine';
-import {
-  Document,
-  Filter,
-  FindOptions,
-  Logger,
-} from '@tashmet/tashmet';
+import { Logger } from '@tashmet/core';
+import { Document, Filter, FindOptions } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
 import { initOptions, Options } from 'mingo/core.js';
 import { cloneDeep } from 'mingo/util.js';

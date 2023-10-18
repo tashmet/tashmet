@@ -1,5 +1,5 @@
 import { Document } from "@tashmet/tashmet";
-import { ContentRule } from "../content";
+import { ContentRule } from "../content.js";
 
 export interface JsonContentRule {
   merge?: Document;

@@ -171,8 +171,8 @@ export class StorageEngine extends EventEmitter implements StorageEngine {
   }
 }
 
-export abstract class StorageEngineFactory {
-  public abstract createStorageEngine(dbName: string): StorageEngine;
+export interface StorageEngineFactory {
+  createStorageEngine(dbName: string): StorageEngine;
 }
 
 export interface AggregatorOptions {

@@ -1,12 +1,11 @@
 import {
   provider,
-  Provider,
-  Lookup,
   Optional,
   Logger,
-  BootstrapConfig,
   PluginConfigurator,
-  Container
+  BootstrapConfig,
+  createContainer,
+  LogLevel
 } from '@tashmet/core';
 import {
   AdminController,
@@ -16,12 +15,9 @@ import {
   AggregatorFactory,
   AtomicWriteCollection,
   CollectionRegistry,
-  Document,
   QueryPlanner,
   sequentialWrite,
-  StorageEngineBridge,
   StorageEngine,
-  StorageEngineFactory,
   Streamable,
   ValidatorFactory,
   ViewMap,
@@ -31,8 +27,10 @@ import {
   DocumentAccess
 } from '@tashmet/engine';
 import {
-  Dispatcher,
   ChangeStreamDocument,
+  Store,
+  Document,
+  Namespace,
 } from '@tashmet/bridge';
 
 function hash(value: string | object): string {
@@ -156,13 +154,19 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
 @provider({
   inject: [AggregatorFactory, DocumentAccess, Logger, Optional.of(ValidatorFactory)]
 })
-export class MemoryStorageEngineFactory extends StorageEngineFactory {
+export default class Memory extends Store {
+  private engines: Record<string, StorageEngine> = {};
+
   public constructor(
     private aggFact: AggregatorFactory,
     private documentAccess: DocumentAccess,
     private logger: Logger,
     private validatorFact?: ValidatorFactory,
   ) { super(); }
+
+  public static configure(config: Partial<BootstrapConfig>) {
+    return new MemoryConfigurator(Memory, createContainer({logLevel: LogLevel.None, ...config}));
+  }
 
   public createStorageEngine(dbName: string): StorageEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
@@ -177,25 +181,23 @@ export class MemoryStorageEngineFactory extends StorageEngineFactory {
       new AggregationWriteController(dbName, storage, engine)
     );
   }
+
+  public command(ns: Namespace, command: Document): Promise<Document> {
+    if (!this.engines[ns.db]) {
+      const store = this.createStorageEngine(ns.db);
+      store.on('change', change => this.emit('change', change));
+      this.engines[ns.db] = store;
+    }
+    return this.engines[ns.db].command(command);
+  }
 }
 
-export class MemoryConfigurator extends PluginConfigurator<StorageEngineFactory> {
+export class MemoryConfigurator extends PluginConfigurator<Memory> {
   public register() {
-    this.container.register(Provider.ofResolver(StorageEngineFactory, Lookup.of(MemoryStorageEngineFactory)));
-
-    if (!this.container.isRegistered(Dispatcher)) {
-      this.container.register(Dispatcher);
-    }
+    this.container.register(Memory);
 
     if (!this.container.isRegistered(DocumentAccess)) {
       this.container.register(DocumentAccess);
     }
   }
-
-  public load() {
-    const fact = this.container.resolve(MemoryStorageEngineFactory);
-    this.container.resolve(Dispatcher).addBridge('*', new StorageEngineBridge(fact));
-  }
 }
-
-export default () => (container: Container) => new MemoryConfigurator(MemoryStorageEngineFactory, container);

@@ -1,4 +1,5 @@
-import { Container, Document } from '@tashmet/tashmet';
+import { Document } from '@tashmet/tashmet';
+import { Container } from '@tashmet/core';
 import { FileAccess, File, ReadableFile, FileReader } from '@tashmet/nabu';
 import fetch from 'isomorphic-fetch';
 

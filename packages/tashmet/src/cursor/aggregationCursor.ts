@@ -1,4 +1,4 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { Document, Namespace } from '../interfaces.js';
 import { AggregateOptions } from '../operations/aggregate.js';
 import { AbstractCursor } from './abstractCursor.js';
@@ -6,15 +6,15 @@ import { AbstractCursor } from './abstractCursor.js';
 export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
     namespace: Namespace,
-    dispatcher: Dispatcher,
+    store: Store,
     public readonly pipeline: Document[],
     options: AggregateOptions = {},
   ) {
-    super(namespace, dispatcher, options);
+    super(namespace, store, options);
   }
 
   protected async initialize(): Promise<Document> {
-    return this.dispatcher.dispatch(this.namespace, {
+    return this.store.command(this.namespace, {
       aggregate: this.namespace.coll,
       pipeline: this.pipeline,
       ...this.options
@@ -31,6 +31,10 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
 
   public match($match: Document): AggregationCursor<TSchema> {
     return this.pushStage({$match});
+  }
+
+  public project($project: Document): AggregationCursor<TSchema> {
+    return this.pushStage({$project});
   }
 
   public pushStage<T extends Document = TSchema>(stage: Document): AggregationCursor<T> {

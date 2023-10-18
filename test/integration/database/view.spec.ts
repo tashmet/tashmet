@@ -4,7 +4,7 @@ import 'mocha';
 
 import Tashmet, { Collection } from '../../../packages/tashmet/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
-import memory from '../../../packages/memory/dist/index.js';
+import Memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
@@ -16,11 +16,12 @@ describe('view', () => {
   let totals: Collection;
 
   before(async () => {
-    const client = Tashmet
-      .configure()
+    const store = Memory
+      .configure({})
       .use(mingo())
-      .use(memory())
       .bootstrap();
+
+    const client = new Tashmet(store);
 
     const db = client.db('testdb');
 

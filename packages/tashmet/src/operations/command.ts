@@ -1,6 +1,5 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { CollationOptions, Document, Namespace } from "../interfaces.js";
-import { AspectAnnotation } from "./operation.js";
 
 export interface CommandOperationOptions {
   /** Specify a read concern and level for the collection. (only MongoDB 3.2 or higher supported) */
@@ -29,14 +28,9 @@ export interface CommandOperationOptions {
 export abstract class CommandOperation<T> {
   constructor(public ns: Namespace, public options: CommandOperationOptions = {}) {}
 
-  abstract execute(dispatcher: Dispatcher): Promise<any>;
+  abstract execute(store: Store): Promise<any>;
 
-  async executeCommand(dispatcher: Dispatcher, cmd: Document): Promise<any> {
-    return dispatcher.dispatch(this.ns, cmd);
-  }
-
-  hasAspect(aspect: symbol): boolean {
-    const aspects = AspectAnnotation.onClass(this.constructor);
-    return aspects.length > 0 && aspects[0].has(aspect);
+  async executeCommand(store: Store, cmd: Document): Promise<any> {
+    return store.command(this.ns, cmd);
   }
 }

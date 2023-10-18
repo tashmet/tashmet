@@ -4,7 +4,7 @@ import 'mocha';
 
 import Tashmet, {Collection} from '../../../packages/tashmet/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
-import memory from '../../../packages/memory/dist/index.js';
+import Memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
@@ -15,11 +15,12 @@ describe('validation', () => {
   let sales: Collection;
 
   before(async () => {
-    const tashmet = Tashmet
-      .configure()
+    const store = Memory
+      .configure({})
       .use(mingo())
-      .use(memory())
       .bootstrap();
+
+    const tashmet = new Tashmet(store);
 
     sales = tashmet.db('test').createCollection('sales', {
       validator: {

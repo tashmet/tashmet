@@ -1,26 +1,43 @@
-import Tashmet, { AggregationCursor, ChangeStreamDocument, Document } from '@tashmet/tashmet';
+import { AggregationCursor, ChangeStreamDocument, Document } from '@tashmet/tashmet';
+import Nabu from '.';
+import { ContentRule } from './content';
+
+export interface ScanOptions {
+  filter?: Document;
+}
+
+export type ScanPath = string | ((options: ScanOptions) => string);
+
+export interface IOConfig {
+  scan: string | ((options: ScanOptions) => string);
+
+  lookup: (id: string) => string;
+
+  content: ContentRule;
+}
 
 export class IO {
-
   public constructor(
-    private tashmet: Tashmet,
+    private nabu: Nabu,
     public readonly inputPipeline: Document[],
     public readonly outputPipeline: Document[],
-    private scanPath: string,
+    private scanPath: ScanPath,
     private lookupPath: (id: string) => string
   ) {}
 
-  public scan(): AggregationCursor<Document> {
-    return this.tashmet.aggregate([{_id: this.scanPath}], this.inputPipeline);
+  public scan(options: ScanOptions = {}): AggregationCursor<Document> {
+    const scanPath = typeof this.scanPath === 'string' ? this.scanPath : this.scanPath(options);
+
+    return this.nabu.aggregate([{_id: scanPath}], this.inputPipeline);
   }
 
   public lookup(documentIds: string[]): AggregationCursor<Document> {
     const input = documentIds.map(id => ({ _id: this.lookupPath(id) }));
 
-    return this.tashmet.aggregate(input, this.inputPipeline);
+    return this.nabu.aggregate(input, this.inputPipeline);
   }
 
   public write(cs: ChangeStreamDocument[]) {
-    return this.tashmet.aggregate(cs, this.outputPipeline);
+    return this.nabu.aggregate(cs, this.outputPipeline);
   }
 }

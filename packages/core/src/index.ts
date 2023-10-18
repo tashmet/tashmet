@@ -18,16 +18,15 @@ export function createApp<T>(plugin: Plugin<T>, config?: BootstrapConfig): Plugi
 }
 
 export class PluginConfigurator<T> {
-  protected plugins: PluginConfigurator<any>[] = [];
+  protected readonly plugins: PluginConfigurator<any>[] = [];
 
   public constructor(protected app: Newable<T>, protected container: Container) {
     this.container.register(app);
-    this.register();
   }
 
-  public register(): void {}
+  protected register(): void {}
 
-  public load(): void {};
+  protected load(): void {};
 
   public provide(...providers: (Provider<any> | Newable<any>)[]) {
     for (const provider of providers) {
@@ -45,11 +44,11 @@ export class PluginConfigurator<T> {
     for (const plugin of this.plugins) {
       plugin.register();
     }
+    this.register();
 
     for (const plugin of this.plugins) {
       plugin.load();
     }
-
     this.load();
 
     return this.container.resolve(this.app);

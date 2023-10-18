@@ -1,4 +1,4 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { Document, Namespace } from '../interfaces.js';
 import { GetMoreOperation } from '../operations/getMore.js';
 
@@ -29,7 +29,7 @@ export abstract class AbstractCursor<TSchema> {
 
   public constructor(
     protected namespace: Namespace,
-    protected dispatcher: Dispatcher,
+    protected store: Store,
     protected options: AbstractCursorOptions = {}
   ) {}
 
@@ -140,7 +140,7 @@ export abstract class AbstractCursor<TSchema> {
       batchSize
     });
 
-    return await getMoreOperation.execute(this.dispatcher);
+    return await getMoreOperation.execute(this.store);
   }
 
   protected async _next(blocking: boolean): Promise<TSchema | null> {

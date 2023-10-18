@@ -1,9 +1,6 @@
-import Tashmet, {
-  Document,
-  Logger,
-  provider,
-} from '@tashmet/tashmet';
-import { Dispatcher } from '@tashmet/bridge';
+import { AggregationCursor } from '@tashmet/tashmet';
+import { Logger, provider } from '@tashmet/core';
+import { Dispatcher, Document, Namespace, Store } from '@tashmet/bridge';
 import {
   AggregatorFactory,
   AggregationEngine,
@@ -13,7 +10,6 @@ import {
   AggregationWriteController,
   QueryPlanner,
   StorageEngine,
-  StorageEngineBridge,
   DocumentAccess,
 } from '@tashmet/engine';
 import {
@@ -33,20 +29,55 @@ export { ContentRule };
 export { IO } from './io.js';
 
 import globToRegExp from 'glob-to-regexp';
-import { Container, Newable, PluginConfigurator } from '@tashmet/core';
+import { BootstrapConfig, Container, createContainer, LogLevel, PluginConfigurator, Provider } from '@tashmet/core';
+import { GlobalAggregationCursor } from '@tashmet/tashmet/dist/cursor/globalAggregationCursor.js';
+import Memory from '@tashmet/memory';
 
 
 @provider()
-export class Nabu {
+export default class Nabu extends Store {
+  private databases: Record<string, StorageEngine> = {};
+
   public constructor(
     private aggFact: AggregatorFactory,
     private documentAccess: DocumentAccess,
-    private tashmet: Tashmet,
     private logger: Logger,
-  ) {}
+    private config: NabuConfig,
+    private memory: Memory,
+  ) {
+    super();
+    const engine = new AggregationEngine(
+      aggFact, new QueryPlanner(documentAccess, logger.inScope('QueryPlanner')), '__tashmet');
+    const views: ViewMap = {};
+    this.databases['__tashmet'] = StorageEngine.fromControllers('__tashmet',
+      new AggregationReadController('__tashmet', engine, views),
+    );
+  }
 
-  public createStorageEngine(dbName: string, config: NabuDatabaseConfig): StorageEngine {
-    const storage = new FileStorage(dbName, this.tashmet, config);
+  public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
+    return new NabuConfigurator(createContainer({logLevel: LogLevel.None, ...config}), config)
+      .provide(Memory);
+  }
+
+  public command(ns: Namespace, command: Document): Promise<Document> {
+    if (!this.databases[ns.db]) {
+      let store: StorageEngine;
+
+      if (ns.db in this.config.databases) {
+        store = this.createStorageEngine(ns.db);
+      } else {
+        store = this.memory.createStorageEngine(ns.db);
+      }
+      store.on('change', change => this.emit('change', change));
+      this.databases[ns.db] = store;
+    }
+
+    return this.databases[ns.db].command(command);
+  }
+
+  public createStorageEngine(dbName: string): StorageEngine {
+    const config = this.config.databases[dbName];
+    const storage = new FileStorage(dbName, this, config);
 
     const engine = new AggregationEngine(
       this.aggFact, new QueryPlanner(this.documentAccess, this.logger.inScope('QueryPlanner')), dbName);
@@ -59,15 +90,42 @@ export class Nabu {
       new AggregationWriteController(dbName, storage, engine)
     );
   }
+
+  public aggregate(collection: Document[], pipeline: Document[]): AggregationCursor<Document> {
+    return new GlobalAggregationCursor(collection, this, pipeline);
+  }
+
+  public glob(pattern: string | string[], pipeline: Document[] = []): AggregationCursor<Document> {
+    const patterns = Array.isArray(pattern) ? pattern : [pattern];
+
+    return this.aggregate(patterns.map(p => ({_id: p})), [
+      { $glob: { pattern: '$_id' } },
+      ...pipeline
+    ]);
+  }
+
+  public static fs = fs;
+  public static json = json;
+  public static yaml = yaml;
 }
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
-  public constructor(protected app: Newable<any>, container: Container, protected config: NabuConfig) {
-    super(app, container);
+  public config: NabuConfig = { databases: {} };
+
+  public constructor(container: Container, config: Partial<NabuConfig>) {
+    super(Nabu, container);
+    this.config = {...this.config, ...config};
+  }
+
+  public database(name: string, config: NabuDatabaseConfig): this {
+    this.config.databases[name] = config;
+    return this;
   }
 
   public register() {
+    this.container.register(Nabu);
     this.container.register(FileAccess);
+    this.container.register(Provider.ofInstance(NabuConfig, this.config));
 
     if (!this.container.isRegistered(DocumentAccess)) {
       this.container.register(DocumentAccess);
@@ -79,24 +137,11 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
 
   public load() {
     const aggFact = this.container.resolve(AggregatorFactory);
-    const nabu = this.container.resolve(Nabu);
-    const dispatcher = this.container.resolve(Dispatcher);
 
     aggFact.addExpressionOperator('$objectToJson', $objectToJson);
     aggFact.addExpressionOperator('$jsonToObject', $jsonToObject);
     aggFact.addExpressionOperator('$globMatch', (args, resolve) => {
       return globToRegExp(args.glob, {extended: true}).test(resolve(args.input));
     });
-
-    for (const [dbName, dbConfig] of Object.entries(this.config.databases || {})) {
-      dispatcher.addBridge(dbName, new StorageEngineBridge(db => nabu.createStorageEngine(db, dbConfig)));
-    }
   }
-}
-
-export default {
-  engine: (config: NabuConfig) => (container: Container) => new NabuConfigurator(Nabu, container, config),
-  fs,
-  json,
-  yaml,
 }

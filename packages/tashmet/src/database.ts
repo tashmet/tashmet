@@ -1,24 +1,47 @@
 import {
   CreateCollectionOptions,
-  Database,
-  DatabaseFactory,
   Document,
   Namespace,
 } from './interfaces.js';
 import { Collection } from './collection.js';
-import { Logger, provider } from '@tashmet/core';
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { CommandOperation } from './operations/command.js';
 import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop.js';
 
+export interface Database {
+  readonly databaseName: string;
 
-export class DatabaseService implements Database {
+  /**
+   * Get an existing collection by name.
+   *
+   * @param name The name of the collection.
+   * @returns The instance of the collection.
+   */
+  collection<TSchema extends Document = any>(name: string): Collection<TSchema>;
+
+  createCollection<TSchema extends Document = any>(name: string, options?: CreateCollectionOptions): Collection<TSchema>;
+
+  /**
+   * Fetch all collections for the current db.
+   */
+  collections(): Collection[];
+
+  /**
+   * Drop a collection from the database, removing it permanently.
+   *
+   * @param name - Name of collection to drop
+   */
+  dropCollection(name: string): Promise<boolean>;
+
+  command(command: Document): Promise<Document>;
+}
+
+export class Database implements Database {
   protected collMap: {[name: string]: Collection} = {};
 
   public constructor(
     public readonly databaseName: string,
-    private logger: Logger,
-    private dispatcher: Dispatcher,
+    private store: Store,
   ) {}
 
   public collection(name: string): Collection {
@@ -41,15 +64,12 @@ export class DatabaseService implements Database {
       }
       const ns: Namespace = {db: this.databaseName, coll: name};
 
-      this.dispatcher.dispatch(ns, {create: name, ...options});
+      this.store.command(ns, {create: name, ...options});
 
-      const c = new Collection<T>(name, this.dispatcher, this);
+      const c = new Collection<T>(name, this.store, this);
       this.collMap[name] = c;
-
-      this.logger.inScope('createCollection').info(c.toString());
       return c;
     } catch (err) {
-      this.logger.error(err.message);
       throw err;
     }
   }
@@ -63,29 +83,11 @@ export class DatabaseService implements Database {
   }
 
   public async command(): Promise<Document> {
-    //this.dispatcher.dispatch()
+    //this.store.dispatch()
     throw Error('Not implemented');
   }
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
-    return operation.execute(this.dispatcher) as Promise<T>;
-  }
-}
-
-@provider({
-  key: DefaultDatabaseFactory,
-  inject: [
-    Logger,
-    Dispatcher,
-  ]
-})
-export class DefaultDatabaseFactory implements DatabaseFactory {
-  public constructor(
-    private logger: Logger,
-    private dispatcher: Dispatcher,
-  ) {}
-
-  createDatabase(name: string): Database {
-    return new DatabaseService(name, this.logger, this.dispatcher);
+    return operation.execute(this.store) as Promise<T>;
   }
 }

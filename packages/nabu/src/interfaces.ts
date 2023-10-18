@@ -1,5 +1,6 @@
-import Tashmet, { Document } from '@tashmet/tashmet';
+import { Document } from '@tashmet/engine';
 import { ContentRule } from './content.js';
+import Nabu from './index.js';
 import { IO } from './io.js';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -34,7 +35,7 @@ export interface FileStorageConfig {
   lookup: (id: string) => string;
 }
 
-export type NabuDatabaseConfig = (coll: string) => (tashmet: Tashmet) => IO;
+export type NabuDatabaseConfig = (coll: string) => (nabu: Nabu) => IO;
 
 export interface NabuConfig {
   databases: Record<string, NabuDatabaseConfig>;

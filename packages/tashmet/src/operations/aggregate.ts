@@ -1,7 +1,6 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { CollationOptions, Document, Namespace } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
-import { Aspect, aspects } from "./operation.js";
 
 /** @public */
 export interface AggregateOptions extends CommandOperationOptions {
@@ -28,7 +27,6 @@ export interface AggregateOptions extends CommandOperationOptions {
 }
 
 /** @internal */
-@aspects(Aspect.READ_OPERATION, Aspect.RETRYABLE, Aspect.EXPLAINABLE, Aspect.CURSOR_CREATING)
 export class AggregateOperation<T = Document> extends CommandOperation<T> {
   options: AggregateOptions;
   target: string | 1;
@@ -62,7 +60,7 @@ export class AggregateOperation<T = Document> extends CommandOperation<T> {
     this.pipeline.push(stage);
   }
 
-  execute(dispatcher: Dispatcher): Promise<T> {
+  execute(store: Store): Promise<T> {
     const options: AggregateOptions = this.options;
     const command: Document = { aggregate: this.target, pipeline: this.pipeline };
 
@@ -79,6 +77,6 @@ export class AggregateOperation<T = Document> extends CommandOperation<T> {
       command.cursor.batchSize = options.batchSize;
     }
 
-    return super.executeCommand(dispatcher, command);
+    return super.executeCommand(store, command);
   }
 }

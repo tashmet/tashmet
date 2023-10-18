@@ -1,4 +1,4 @@
-import {BasicContainer, provider, Provider} from '../../../packages/tashmet/dist/index.js';
+import {BasicContainer, provider, Provider} from '../../../packages/core/dist/index.js';
 import chai from 'chai';
 import 'mocha';
 

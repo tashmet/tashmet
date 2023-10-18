@@ -1,5 +1,4 @@
 import ObjectId from 'bson-objectid';
-import { Collection } from './collection.js';
 import { CommandOperationOptions } from './operations/command.js';
 
 export type Document = Record<string, any>;
@@ -199,40 +198,6 @@ export interface CreateCollectionOptions {
 
   storageEngine?: Document;
 }
-
-export interface Database {
-  readonly databaseName: string;
-
-  /**
-   * Get an existing collection by name.
-   *
-   * @param name The name of the collection.
-   * @returns The instance of the collection.
-   */
-  collection<TSchema extends Document = any>(name: string): Collection<TSchema>;
-
-  createCollection<TSchema extends Document = any>(name: string, options?: CreateCollectionOptions): Collection<TSchema>;
-
-  /**
-   * Fetch all collections for the current db.
-   */
-  collections(): Collection[];
-
-  /**
-   * Drop a collection from the database, removing it permanently.
-   *
-   * @param name - Name of collection to drop
-   */
-  dropCollection(name: string): Promise<boolean>;
-
-  command(command: Document): Promise<Document>;
-}
-
-export interface DatabaseFactory {
-  createDatabase(name: string): Database;
-}
-
-export abstract class DatabaseFactory implements DatabaseFactory {}
 
 
 /** Given an object shaped type, return the type of the _id field or default to ObjectId @public */

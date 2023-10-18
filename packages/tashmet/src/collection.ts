@@ -1,7 +1,6 @@
 import {
   AnyBulkWriteOperation,
   BulkWriteResult,
-  Database,
   Document,
   Filter,
   Flatten,
@@ -12,7 +11,8 @@ import {
   WithId,
   Namespace,
 } from "./interfaces.js";
-import { Dispatcher, ChangeStream } from "@tashmet/bridge";
+import { Database } from './database.js';
+import { Store, ChangeStream } from "@tashmet/bridge";
 import { AggregationCursor } from "./cursor/aggregationCursor.js";
 import { FindCursor } from "./cursor/findCursor.js";
 import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert.js";
@@ -32,10 +32,10 @@ export class Collection<TSchema extends Document = any> {
 
   public constructor(
     public readonly collectionName: string,
-    private dispatcher: Dispatcher,
+    private store: Store,
     private db: Database,
   ) {
-    this.dispatcher.on('change', change => {
+    this.store.on('change', change => {
       if (change.ns.db === this.dbName && change.ns.coll === this.collectionName) {
         for (const changeStream of this.changeStreams) {
           changeStream.emit('change', change);
@@ -59,7 +59,7 @@ export class Collection<TSchema extends Document = any> {
   }
 
   public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): AggregationCursor<T> {
-    return new AggregationCursor<T>(this.ns, this.dispatcher, pipeline, options);
+    return new AggregationCursor<T>(this.ns, this.store, pipeline, options);
   }
 
   public countDocuments(filter: Filter<TSchema> = {}, options: CountDocumentsOptions = {}): Promise<number> {
@@ -73,7 +73,7 @@ export class Collection<TSchema extends Document = any> {
    * @returns A cursor.
    */
   public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): FindCursor<TSchema> {
-    return new FindCursor<TSchema>(this.ns, this.dispatcher, filter, options);
+    return new FindCursor<TSchema>(this.ns, this.store, filter, options);
   }
 
   /**
@@ -221,7 +221,7 @@ export class Collection<TSchema extends Document = any> {
   }
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
-    return operation.execute(this.dispatcher) as Promise<T>;
+    return operation.execute(this.store) as Promise<T>;
   }
 
   private get ns(): Namespace {

@@ -1,4 +1,4 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap } from '../interfaces.js';
 import { AbstractCursor } from './abstractCursor.js';
 
@@ -15,15 +15,15 @@ export function sortingMap(key: SortingKey, direction?: SortingDirection): Sorti
 export class FindCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
     namespace: Namespace,
-    dispatcher: Dispatcher,
+    store: Store,
     private filter: Filter<TSchema>,
     options: FindOptions = {},
   ) {
-    super(namespace, dispatcher, options);
+    super(namespace, store, options);
   }
 
   protected async initialize(): Promise<Document> {
-    return this.dispatcher.dispatch(this.namespace, {
+    return this.store.command(this.namespace, {
       find: this.namespace.coll,
       filter: this.filter,
       ...this.options

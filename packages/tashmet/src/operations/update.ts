@@ -1,8 +1,7 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import ObjectId from 'bson-objectid';
 import { CollationOptions, Document, Namespace } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
-import { Aspect, aspects } from './operation.js';
 
 
 /** @public */
@@ -54,7 +53,6 @@ export interface UpdateStatement {
 }
 
 /** @internal */
-@aspects(Aspect.RETRYABLE, Aspect.WRITE_OPERATION, Aspect.SKIP_COLLATION)
 export class UpdateOperation extends CommandOperation<Document> {
   constructor(
     ns: Namespace,
@@ -65,7 +63,7 @@ export class UpdateOperation extends CommandOperation<Document> {
   }
 
   async execute(
-    dispatcher: Dispatcher,
+    store: Store,
   ): Promise<UpdateResult> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
@@ -83,7 +81,7 @@ export class UpdateOperation extends CommandOperation<Document> {
       command.let = options.let;
     }
 
-    const res = await super.executeCommand(dispatcher, command);
+    const res = await super.executeCommand(store, command);
     return {
       acknowledged: true,
       modifiedCount: res.nModified != null ? res.nModified : res.n,
@@ -96,12 +94,6 @@ export class UpdateOperation extends CommandOperation<Document> {
 }
 
 /** @internal */
-@aspects(
-  Aspect.RETRYABLE,
-  Aspect.WRITE_OPERATION,
-  Aspect.EXPLAINABLE,
-  Aspect.SKIP_COLLATION
-)
 export class UpdateOneOperation extends UpdateOperation {
   constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
@@ -113,11 +105,6 @@ export class UpdateOneOperation extends UpdateOperation {
 }
 
 /** @internal */
-@aspects(
-  Aspect.WRITE_OPERATION,
-  Aspect.EXPLAINABLE,
-  Aspect.SKIP_COLLATION
-)
 export class UpdateManyOperation extends UpdateOperation {
   constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
@@ -143,11 +130,6 @@ export interface ReplaceOptions extends CommandOperationOptions {
 }
 
 /** @internal */
-@aspects(
-  Aspect.RETRYABLE,
-  Aspect.WRITE_OPERATION,
-  Aspect.SKIP_COLLATION
-)
 export class ReplaceOneOperation extends UpdateOperation {
   constructor(
     ns: Namespace,

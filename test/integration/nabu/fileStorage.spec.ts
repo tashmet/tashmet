@@ -1,5 +1,5 @@
 import Tashmet, { Collection } from '../../../packages/tashmet/dist/index.js';
-import nabu from '../../../packages/nabu/dist/index.js';
+import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/stream/dist/index.js';
 import 'mocha';
 import chai from 'chai';
@@ -27,22 +27,20 @@ describe('fileStorage', () => {
   let inventory: Collection<any>;
 
   before(async () => {
-    const client = Tashmet
-      .configure({})
+    const store = Nabu
+      .configure({databases: {}})
       .use(mingo())
-      .use(nabu.engine({
-        databases: {
-          e2e: coll => nabu.fs({
-            scan: `test/e2e/${coll}/*.json`,
-            lookup: id => `test/e2e/${coll}/${id}.json`,
-            content: nabu.json({
-              merge: { _id: { $basename: ['$path', { $extname: '$path' }] } },
-            }),
-          })
-        }
-      }))
       .use(fs({watch: false}))
+      .database('e2e', coll => Nabu.fs({
+        scan: `test/e2e/${coll}/*.json`,
+        lookup: id => `test/e2e/${coll}/${id}.json`,
+        content: Nabu.json({
+          merge: { _id: { $basename: ['$path', { $extname: '$path' }] } },
+        }),
+      }))
       .bootstrap();
+
+    const client = new Tashmet(store);
 
     col = client.db('e2e').collection('testCollection');
     //orders = client.db('e2e').collection('orders');

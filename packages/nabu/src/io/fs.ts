@@ -1,16 +1,9 @@
 import Tashmet, { ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import { ContentRule } from '../content.js';
-import { IO } from '../io.js';
+import Nabu from '../index.js';
+import { IO, IOConfig } from '../io.js';
 
-export interface FSConfig {
-  scan: string;
 
-  lookup: (id: string) => string;
-
-  content: ContentRule;
-}
-
-export function fs(config: FSConfig): (tashmet: Tashmet) => IO {
+export function fs({lookup, scan, content}: IOConfig): (nabu: Nabu) => IO {
   const inputPipeline: Document[] = [
     { $glob: { pattern: '$_id' } },
     {
@@ -21,10 +14,10 @@ export function fs(config: FSConfig): (tashmet: Tashmet) => IO {
         content: { $readFile: '$_id' },
       }
     },
-    ...config.content.read,
+    ...content.read,
   ];
 
-  const path = (c: ChangeStreamDocument) => config.lookup(c.documentKey?._id as any);
+  const path = (c: ChangeStreamDocument) => lookup(c.documentKey?._id as any);
 
   const outputPipeline: Document[] = [
     {
@@ -49,7 +42,7 @@ export function fs(config: FSConfig): (tashmet: Tashmet) => IO {
         },
       },
     },
-    ...config.content.write,
+    ...content.write,
     {
       $writeFile: {
         content: {
@@ -65,5 +58,5 @@ export function fs(config: FSConfig): (tashmet: Tashmet) => IO {
     }
   ]
 
-  return (tashmet: Tashmet) => new IO(tashmet, inputPipeline, outputPipeline, config.scan, config.lookup);
+  return (nabu: Nabu) => new IO(nabu, inputPipeline, outputPipeline, scan, lookup);
 }

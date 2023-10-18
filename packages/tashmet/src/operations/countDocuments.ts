@@ -1,4 +1,4 @@
-import { Dispatcher } from '@tashmet/bridge';
+import { Store } from '@tashmet/bridge';
 import { Document, Namespace } from "../interfaces.js";
 import { AggregateOptions } from "./aggregate.js";
 import { CommandOperation } from "./command.js";
@@ -19,7 +19,7 @@ export class CountDocumentsOperation extends CommandOperation<number> {
     super(ns, options);
   }
 
-  async execute(dispatcher: Dispatcher): Promise<number> {
+  async execute(store: Store): Promise<number> {
     const cmd: Document = {count: this.ns.coll, query: this.query};
 
     if (this.options.skip) {
@@ -29,7 +29,7 @@ export class CountDocumentsOperation extends CommandOperation<number> {
       cmd.limit = this.options.limit;
     }
 
-    const {n} = await this.executeCommand(dispatcher, cmd);
+    const {n} = await this.executeCommand(store, cmd);
     return n;
   }
 }

@@ -4,7 +4,7 @@ import 'mocha';
 
 import Tashmet, { Collection, Database } from '../../../packages/tashmet/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
-import memory from '../../../packages/memory/dist/index.js';
+import Memory from '../../../packages/memory/dist/index.js';
 import 'mingo/init/system';
 
 chai.use(chaiAsPromised);
@@ -19,11 +19,12 @@ describe('aggregation', () => {
     let db: Database;
 
     before(async () => {
-      const client = Tashmet
-        .configure()
+      const store = Memory
+        .configure({})
         .use(mingo())
-        .use(memory())
         .bootstrap();
+
+      const client = new Tashmet(store);
 
       db = client.db('testdb');
 
@@ -500,11 +501,12 @@ describe('aggregation', () => {
     let db: Database;
 
     before(async () => {
-      const client = Tashmet
-        .configure()
+      const store = Memory
+        .configure({})
         .use(mingo())
-        .use(memory())
         .bootstrap();
+
+      const client = new Tashmet(store);
 
       db = client.db('testdb');
 
@@ -550,11 +552,12 @@ describe('aggregation', () => {
     let client: Tashmet;
 
     before(async () => {
-      client = Tashmet
-        .configure()
+      const store = Memory
+        .configure({})
         .use(mingo())
-        .use(memory())
         .bootstrap();
+
+      client = new Tashmet(store);
     });
 
     it("should perform a single equality join with", async () => {
