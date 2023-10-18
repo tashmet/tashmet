@@ -6,7 +6,6 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import fsExtra from 'fs-extra';
-import fs from '../../../packages/fs/dist';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -30,7 +29,6 @@ describe('fileStorage', () => {
     const store = Nabu
       .configure({databases: {}})
       .use(mingo())
-      .use(fs({watch: false}))
       .database('e2e', coll => Nabu.fs({
         scan: `test/e2e/${coll}/*.json`,
         lookup: id => `test/e2e/${coll}/${id}.json`,

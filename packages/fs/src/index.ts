@@ -3,25 +3,11 @@ import * as nodePath from 'path';
 import { glob } from 'glob';
 export * from './interfaces.js';
 
-import Tashmet, { AggregationCursor, Document } from '@tashmet/tashmet';
+import { Document } from '@tashmet/tashmet';
 import { FileSystemConfig } from './interfaces.js';
 import { Container, PluginConfigurator } from '@tashmet/core';
 import { AggregatorFactory, op } from '@tashmet/engine';
-
-//export class Glob {
-  //private patterns: string[];
-
-  //public constructor(pattern: string | string[]) {
-    //this.patterns = Array.isArray(pattern) ? pattern : [pattern];
-  //}
-
-  //public cursor<TSchema extends Document = Document>(tashmet: Tashmet, pipeline: Document[] = []): AggregationCursor<TSchema> {
-    //return tashmet.aggregate(this.patterns.map(p => ({_id: p})), [
-      //{ $glob: { pattern: '$_id' } },
-      //...pipeline
-    //]);
-  //}
-//}
+import globToRegExp from 'glob-to-regexp';
 
 export class FileSystem {
   @op.expression('$lstat')
@@ -88,6 +74,11 @@ export class FileSystem {
         yield { _id: file };
       }
     }
+  }
+
+  @op.expression('$globMatch')
+  public globMatch(expr: any, resolve: (expr: any) => any) {
+    return globToRegExp(expr.pattern, {extended: true}).test(resolve(expr.input));
   }
 
   @op.expression('$basename')

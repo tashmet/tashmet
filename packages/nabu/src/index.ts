@@ -12,6 +12,9 @@ import {
   StorageEngine,
   DocumentAccess,
 } from '@tashmet/engine';
+import Json from '@tashmet/json';
+import Yaml from '@tashmet/yaml';
+import Fs from '@tashmet/fs';
 import {
   FileAccess,
   NabuConfig,
@@ -19,7 +22,6 @@ import {
 } from './interfaces.js';
 import { ContentRule } from './content.js';
 import { FileStorage } from './storage/fileStorage.js';
-import { $objectToJson, $jsonToObject } from './operators/json.js';
 import { fs } from './io/fs.js';
 import { yaml } from './content/yaml.js';
 import { json } from './content/json.js';
@@ -28,7 +30,6 @@ export * from './interfaces.js';
 export { ContentRule };
 export { IO } from './io.js';
 
-import globToRegExp from 'glob-to-regexp';
 import { BootstrapConfig, Container, createContainer, LogLevel, PluginConfigurator, Provider } from '@tashmet/core';
 import { GlobalAggregationCursor } from '@tashmet/tashmet/dist/cursor/globalAggregationCursor.js';
 import Memory from '@tashmet/memory';
@@ -56,6 +57,9 @@ export default class Nabu extends Store {
 
   public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
     return new NabuConfigurator(createContainer({logLevel: LogLevel.None, ...config}), config)
+      .use(Fs({ watch: false }))
+      .use(Json())
+      .use(Yaml({}))
       .provide(Memory);
   }
 
@@ -133,15 +137,5 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
     if (!this.container.isRegistered(Dispatcher)) {
       this.container.register(Dispatcher);
     }
-  }
-
-  public load() {
-    const aggFact = this.container.resolve(AggregatorFactory);
-
-    aggFact.addExpressionOperator('$objectToJson', $objectToJson);
-    aggFact.addExpressionOperator('$jsonToObject', $jsonToObject);
-    aggFact.addExpressionOperator('$globMatch', (args, resolve) => {
-      return globToRegExp(args.glob, {extended: true}).test(resolve(args.input));
-    });
   }
 }

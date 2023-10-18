@@ -1,7 +1,7 @@
 {
-	"name": "@tashmet/fs",
-	"version": "0.2.0",
-	"description": "Node filesystem operators",
+	"name": "@tashmet/json",
+	"version": "0.1.0",
+	"description": "JSON operators",
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -20,20 +20,12 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmet/tashmet": "^1.4.0",
 		"@tashmet/core": "^1.0.2",
-		"@tashmet/engine": "^0.1.0",
-		"glob-to-regexp": "^0.4.1",
-		"fs-extra": "^11.1.1"
+		"@tashmet/engine": "^0.1.0"
 	},
 	"devDependencies": {
-		"@types/glob-to-regexp": "^0.4.1",
-		"@tashmet/mingo-stream": "^0.1.0",
-		"@types/fs-extra": "^8.0.0",
-		"@types/mock-fs": "^4.10.0",
-		"@types/node": "^20.5.3",
+		"@types/node": "20.5.3",
 		"@types/reflect-metadata": "^0.1.0",
-		"mock-fs": "^4.10.4",
 		"tslib": "^2.3.1"
 	}
 }
