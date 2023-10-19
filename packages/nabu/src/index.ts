@@ -1,5 +1,20 @@
-import { Logger, provider } from '@tashmet/core';
-import { AggregationCursor, Document, Namespace, Store } from '@tashmet/tashmet';
+import {
+  BootstrapConfig,
+  Container,
+  createContainer,
+  Logger,
+  LogLevel,
+  PluginConfigurator,
+  Provider,
+  provider
+} from '@tashmet/core';
+import {
+  AggregationCursor,
+  Document,
+  Namespace,
+  Store,
+  GlobalAggregationCursor
+} from '@tashmet/tashmet';
 import {
   AggregatorFactory,
   AggregationEngine,
@@ -14,6 +29,7 @@ import {
 import Json from '@tashmet/json';
 import Yaml from '@tashmet/yaml';
 import Fs from '@tashmet/fs';
+import Memory from '@tashmet/memory';
 import {
   FileAccess,
   NabuConfig,
@@ -29,13 +45,13 @@ export * from './interfaces.js';
 export { ContentRule };
 export { IO } from './io.js';
 
-import { BootstrapConfig, Container, createContainer, LogLevel, PluginConfigurator, Provider } from '@tashmet/core';
-import { GlobalAggregationCursor } from '@tashmet/tashmet/dist/cursor/globalAggregationCursor.js';
-import Memory from '@tashmet/memory';
-
 
 @provider()
 export default class Nabu extends Store {
+  public static fs = fs;
+  public static json = json;
+  public static yaml = yaml;
+
   private databases: Record<string, StorageEngine> = {};
 
   public constructor(
@@ -78,6 +94,19 @@ export default class Nabu extends Store {
     return this.databases[ns.db].command(command);
   }
 
+  public aggregate(collection: Document[], pipeline: Document[]): AggregationCursor<Document> {
+    return new GlobalAggregationCursor(collection, this, pipeline);
+  }
+
+  public glob(pattern: string | string[], pipeline: Document[] = []): AggregationCursor<Document> {
+    const patterns = Array.isArray(pattern) ? pattern : [pattern];
+
+    return this.aggregate(patterns.map(p => ({_id: p})), [
+      { $glob: { pattern: '$_id' } },
+      ...pipeline
+    ]);
+  }
+
   public createStorageEngine(dbName: string): StorageEngine {
     const config = this.config.databases[dbName];
     const storage = new FileStorage(dbName, this, config);
@@ -93,23 +122,6 @@ export default class Nabu extends Store {
       new AggregationWriteController(dbName, storage, engine)
     );
   }
-
-  public aggregate(collection: Document[], pipeline: Document[]): AggregationCursor<Document> {
-    return new GlobalAggregationCursor(collection, this, pipeline);
-  }
-
-  public glob(pattern: string | string[], pipeline: Document[] = []): AggregationCursor<Document> {
-    const patterns = Array.isArray(pattern) ? pattern : [pattern];
-
-    return this.aggregate(patterns.map(p => ({_id: p})), [
-      { $glob: { pattern: '$_id' } },
-      ...pipeline
-    ]);
-  }
-
-  public static fs = fs;
-  public static json = json;
-  public static yaml = yaml;
 }
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
@@ -126,7 +138,6 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
   }
 
   public register() {
-    this.container.register(Nabu);
     this.container.register(FileAccess);
     this.container.register(Provider.ofInstance(NabuConfig, this.config));
 

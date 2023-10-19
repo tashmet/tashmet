@@ -3,6 +3,7 @@ export { Collection } from './collection.js';
 export { Database } from './database.js';
 export { AbstractCursor } from './cursor/abstractCursor.js';
 export { AggregationCursor } from './cursor/aggregationCursor.js';
+export { GlobalAggregationCursor } from './cursor/globalAggregationCursor.js';
 export { FindCursor } from './cursor/findCursor.js';
 export * from './interfaces.js';
 export { AggregateOptions } from './operations/aggregate.js';
