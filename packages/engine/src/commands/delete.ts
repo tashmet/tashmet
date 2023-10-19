@@ -1,4 +1,4 @@
-import { ChangeStreamDocument } from "@tashmet/bridge";
+import { ChangeStreamDocument } from "@tashmet/tashmet";
 import { makeQueryPipeline } from "../aggregation.js";
 import { AggregationEngine } from "../aggregation.js";
 import { Document } from "../interfaces.js";

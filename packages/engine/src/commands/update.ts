@@ -1,4 +1,4 @@
-import { ChangeStreamDocument } from "@tashmet/bridge";
+import { ChangeStreamDocument } from "@tashmet/tashmet";
 import { AggregationEngine } from '../aggregation.js';
 import { CollationOptions, Document } from '../interfaces.js';
 import { InsertCommand } from './insert.js';

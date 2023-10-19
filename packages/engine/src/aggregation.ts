@@ -1,4 +1,4 @@
-import { Namespace } from "@tashmet/bridge";
+import { Namespace } from "@tashmet/tashmet";
 import { Logger } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
 import { DocumentAccess } from "./documentAccess.js";

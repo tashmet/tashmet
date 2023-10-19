@@ -1,5 +1,4 @@
-export { ChangeStream, ChangeStreamDocument } from '@tashmet/bridge';
-
+export { ChangeStream, ChangeStreamDocument } from './changeStream.js';
 export { Collection } from './collection.js';
 export { Database } from './database.js';
 export { AbstractCursor } from './cursor/abstractCursor.js';
@@ -8,7 +7,7 @@ export { FindCursor } from './cursor/findCursor.js';
 export * from './interfaces.js';
 export { AggregateOptions } from './operations/aggregate.js';
 
-import { Store, Document } from '@tashmet/bridge';
+import { Store, Document } from './interfaces.js';
 import { Database } from './database.js';
 import { GlobalAggregationCursor } from './cursor/globalAggregationCursor.js';
 import { AggregateOptions } from './operations/aggregate.js';

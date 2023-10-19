@@ -1,8 +1,9 @@
-import { ChangeStreamDocument } from '@tashmet/bridge';
-import { Annotation, methodDecorator, Newable } from '@tashmet/core';
+import { ChangeStreamDocument } from '@tashmet/tashmet';
+import { Annotation, methodDecorator } from '@tashmet/core';
 import ObjectId from 'bson-objectid';
 import ev from "eventemitter3";
 import { QueryAnalysis } from './aggregation';
+import { ChangeSet } from './changeSet';
 
 export const { EventEmitter } = ev;
 
@@ -233,3 +234,16 @@ export abstract class ValidatorFactory {
 }
 
 export type CollectionMap<T> = Record<string, T>;
+
+export interface Comparator {
+  /**
+   * Generate a change-set by comparing two collections
+   *
+   * @param a Collection before changes
+   * @param b Collection after changes
+   * @returns A change-set
+   */
+  difference<TSchema extends Document>(a: TSchema[], b: TSchema[]): ChangeSet<TSchema>;
+}
+
+export abstract class Comparator implements Comparator {}

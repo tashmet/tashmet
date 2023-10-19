@@ -1,9 +1,11 @@
 import { Document, HashCode } from '@tashmet/tashmet';
 import { provider, Provider, Logger } from '@tashmet/core';
-import { idSet, ChangeSet, Comparator } from '@tashmet/bridge';
 import {
   AggregatorFactory,
   AbstractAggregator,
+  idSet,
+  ChangeSet,
+  Comparator,
   ValidatorFactory,
   DocumentAccess,
   AggregatorOptions,

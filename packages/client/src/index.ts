@@ -1,4 +1,4 @@
-import { Document, Namespace, Store } from '@tashmet/bridge';
+import { Document, Namespace, Store } from '@tashmet/tashmet';
 import { io, Socket } from "socket.io-client";
 
 export interface ClientConfig {

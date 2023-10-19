@@ -10,9 +10,10 @@ import {
   UpdateFilter,
   WithId,
   Namespace,
+  Store
 } from "./interfaces.js";
 import { Database } from './database.js';
-import { Store, ChangeStream } from "@tashmet/bridge";
+import { ChangeStream } from "./changeStream.js";
 import { AggregationCursor } from "./cursor/aggregationCursor.js";
 import { FindCursor } from "./cursor/findCursor.js";
 import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert.js";

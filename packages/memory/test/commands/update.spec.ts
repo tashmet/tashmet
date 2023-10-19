@@ -3,7 +3,7 @@ import chai from 'chai';
 import 'mocha';
 import Memory from '../../src';
 import mingo from '@tashmet/mingo';
-import { Namespace, Store } from '@tashmet/bridge';
+import { Namespace, Store } from '@tashmet/tashmet';
 
 const { expect } = chai;
 

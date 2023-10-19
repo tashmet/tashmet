@@ -1,5 +1,4 @@
-import { Store } from '@tashmet/bridge';
-import { Document } from '../interfaces.js';
+import { Document, Store } from '../interfaces.js';
 import { AggregateOptions } from '../operations/aggregate.js';
 import { AggregationCursor } from './aggregationCursor.js';
 

@@ -1,4 +1,4 @@
-import { Document } from "@tashmet/bridge";
+import { Document } from "@tashmet/tashmet";
 
 export interface ContentRule {
   /**

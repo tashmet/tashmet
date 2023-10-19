@@ -1,6 +1,5 @@
-import { AggregationCursor } from '@tashmet/tashmet';
 import { Logger, provider } from '@tashmet/core';
-import { Dispatcher, Document, Namespace, Store } from '@tashmet/bridge';
+import { AggregationCursor, Document, Namespace, Store } from '@tashmet/tashmet';
 import {
   AggregatorFactory,
   AggregationEngine,
@@ -133,9 +132,6 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
 
     if (!this.container.isRegistered(DocumentAccess)) {
       this.container.register(DocumentAccess);
-    }
-    if (!this.container.isRegistered(Dispatcher)) {
-      this.container.register(Dispatcher);
     }
   }
 }

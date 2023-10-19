@@ -1,5 +1,14 @@
 import ObjectId from 'bson-objectid';
 import { CommandOperationOptions } from './operations/command.js';
+import ev from "eventemitter3";
+
+export const { EventEmitter } = ev;
+
+export const nsToString = (ns: Namespace): string => `${ns.db}.${ns.coll}`;
+
+export abstract class Store extends EventEmitter {
+  public abstract command(ns: Namespace, command: Document): Promise<Document>;
+}
 
 export type Document = Record<string, any>;
 

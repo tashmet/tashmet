@@ -1,5 +1,4 @@
-import { Store } from '@tashmet/bridge';
-import { Document, Namespace } from "../interfaces.js";
+import { Document, Namespace, Store } from "../interfaces.js";
 import { AggregateOptions } from "./aggregate.js";
 import { CommandOperation } from "./command.js";
 

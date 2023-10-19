@@ -1,9 +1,7 @@
 import { Server } from "socket.io";
 
-import {
-  provider,
-} from '@tashmet/core';
-import { Store } from "@tashmet/bridge";
+import { provider } from '@tashmet/core';
+import { Store } from "@tashmet/tashmet";
 
 
 @provider()

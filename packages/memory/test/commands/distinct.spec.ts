@@ -3,7 +3,7 @@ import chai from 'chai';
 import 'mocha';
 import Memory from '../../src';
 import mingo from '@tashmet/mingo';
-import { Namespace, Store } from '@tashmet/bridge';
+import { Namespace, Store } from '@tashmet/tashmet';
 
 const { expect } = chai;
 
@@ -16,7 +16,7 @@ describe('distinct', () => {
     engine = Memory
       .configure({})
       .use(mingo())
-      .bootstrap()
+      .bootstrap();
 
     await engine.command(ns, {create: 'inventory'});
     await engine.command(ns, {insert: 'inventory', documents: [

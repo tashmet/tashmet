@@ -31,7 +31,7 @@ import {
   Store,
   Document,
   Namespace,
-} from '@tashmet/bridge';
+} from '@tashmet/tashmet';
 
 function hash(value: string | object): string {
   return typeof value === "string" ? value : JSON.stringify(value);

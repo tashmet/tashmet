@@ -30,8 +30,8 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@tashmet/bridge": "^0.1.0",
 		"@tashmet/core": "^1.0.2",
+		"@tashmet/tashmet": "^1.4.0",
 		"socket.io-client": "^4.7.2"
 	},
 	"devDependencies": {

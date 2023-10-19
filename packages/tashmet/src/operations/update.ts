@@ -1,6 +1,5 @@
-import { Store } from '@tashmet/bridge';
 import ObjectId from 'bson-objectid';
-import { CollationOptions, Document, Namespace } from '../interfaces.js';
+import { CollationOptions, Document, Namespace, Store } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 
 

@@ -1,5 +1,5 @@
-import { ChangeSet, Namespace } from '@tashmet/bridge';
-import { AbstractAggregator, AggregatorOptions, DocumentAccess } from '@tashmet/engine';
+import { Namespace } from '@tashmet/tashmet';
+import { AbstractAggregator, AggregatorOptions, ChangeSet, DocumentAccess } from '@tashmet/engine';
 import { Logger } from '@tashmet/core';
 import { Document, Filter, FindOptions } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';

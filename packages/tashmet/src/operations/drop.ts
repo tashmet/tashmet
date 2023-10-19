@@ -1,5 +1,4 @@
-import { Store } from '@tashmet/bridge';
-import { Namespace } from "../interfaces.js";
+import { Namespace, Store } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */

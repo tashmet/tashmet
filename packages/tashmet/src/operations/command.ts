@@ -1,5 +1,4 @@
-import { Store } from '@tashmet/bridge';
-import { CollationOptions, Document, Namespace } from "../interfaces.js";
+import { CollationOptions, Document, Namespace, Store } from "../interfaces.js";
 
 export interface CommandOperationOptions {
   /** Specify a read concern and level for the collection. (only MongoDB 3.2 or higher supported) */

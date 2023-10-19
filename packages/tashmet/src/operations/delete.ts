@@ -1,5 +1,4 @@
-import { Store } from '@tashmet/bridge';
-import { Document, CollationOptions, Namespace } from '../interfaces.js';
+import { Document, CollationOptions, Namespace, Store } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 
 

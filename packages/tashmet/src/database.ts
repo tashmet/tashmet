@@ -2,9 +2,9 @@ import {
   CreateCollectionOptions,
   Document,
   Namespace,
+  Store,
 } from './interfaces.js';
 import { Collection } from './collection.js';
-import { Store } from '@tashmet/bridge';
 import { CommandOperation } from './operations/command.js';
 import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop.js';
 

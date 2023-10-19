@@ -1,4 +1,4 @@
-import { ChangeStreamDocument, Namespace } from "@tashmet/bridge";
+import { ChangeStreamDocument, Namespace } from "@tashmet/tashmet";
 import { CollectionRegistry, Document, Streamable, StreamOptions, Writable, WriteOptions } from "./interfaces";
 
 export class DocumentAccess {
