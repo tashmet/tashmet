@@ -1,43 +1,24 @@
-import Tashmet, {LogLevel, provider} from '@tashmet/tashmet';
-import Mingo from '@tashmet/mingo-stream';
+import { LogLevel } from '@tashmet/core';
+import mingo from '@tashmet/mingo-stream';
 import Nabu from '@tashmet/nabu';
-import NabuYaml from '@tashmet/nabu-yaml';
-import Vinyl from '@tashmet/nabu-vinyl';
-import HttpServer, {QueryParser} from '@tashmet/http-server';
-import {terminal} from '@tashmet/terminal';
+import TashmetServer from '@tashmet/server';
+import { terminal } from '@tashmet/terminal';
 
-@provider()
-class ServerBlogApp {
-  public constructor(private server: HttpServer, private tashmet: Tashmet) {}
-
-  public async run(port: number) {
-    const db = this.tashmet.db('blog');
-
-    this.server
-      .resource('/api/posts', {collection: db.collection('posts')})
-      .listen(port);
-  }
-}
-
-Tashmet
+const store = Nabu
   .configure({
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
   })
-  .use(Mingo, {})
-  .use(Nabu, {
-    databases: {
-      blog: {
-        documentBundle: (coll, id) => `./examples/blog/${coll}/${id ? id : '*'}.md`,
-      },
-    }
-  })
-  .use(NabuYaml, {
-    rules: [
-      { match: '*.md', frontMatter: true, contentKey: 'articleBody' },
-    ]
-  })
-  .use(Vinyl, {watch: false})
-  .use(HttpServer, {queryParser: QueryParser.flat()})
-  .bootstrap(ServerBlogApp)
-  .then(app => app.run(8000));
+  .use(mingo())
+  .database('blog', coll => Nabu.fs({
+    scan: `./${coll}/*.md`,
+    lookup: id => `./${coll}/${id}.md`,
+    content: Nabu.yaml({
+      frontMatter: true,
+      contentKey: 'articleBody',
+      merge: { _id: { $basename: ['$path', { $extname: '$path' } ] } },
+    }),
+  }))
+  .bootstrap()
+
+new TashmetServer(store).listen(8080);

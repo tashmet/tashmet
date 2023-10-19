@@ -1,31 +1,13 @@
-import Tashmet, {LogLevel} from '@tashmet/tashmet';
-import Mingo from '@tashmet/mingo-aggregation';
-//import Caching from '@tashmet/caching';
-import HttpClient, {QuerySerializer} from '@tashmet/http-client';
-import { terminal } from '@tashmet/terminal';
-import isomorphicFetch from 'isomorphic-fetch';
+import Tashmet from '@tashmet/tashmet';
+import Client from '@tashmet/client';
 
-Tashmet
-  .configure({
-    logLevel: LogLevel.Debug,
-    logFormat: terminal(),
-  })
-  .use(Mingo, {})
-  .use(HttpClient, {
-    querySerializer: QuerySerializer.flat(),
-    fetch: isomorphicFetch,
-    databases: {
-      'blog': {
-        path: coll => `http://localhost:8000/api/${coll}`,
-      }
-    }
-  })
-  //.use(Caching, {})
-  .connect()
-  .then(async tashmet => {
-    const db = tashmet.db('blog');
-    const posts = db.collection('posts');
-    await posts.find({}).toArray();
-    const doc = await posts.findOne({_id: 'helloworld'});
-    console.log(doc);
-  });
+async function runClient(tashmet: Tashmet) {
+  const db = tashmet.db('blog');
+  const posts = db.collection('posts');
+  const docs = await posts.find({}).toArray();
+  console.log(docs);
+}
+
+const tashmet = new Tashmet(new Client({ uri: 'http://localhost:8080' }));
+
+runClient(tashmet);
