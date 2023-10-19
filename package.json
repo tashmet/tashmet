@@ -15,7 +15,7 @@
     "test:integration": "mocha --config test/integration/.mocharc.json",
     "test:e2e": "start-server-and-test test:e2e-server http://localhost:8000/api/test test:e2e-client",
     "test:e2e-client": "mocha --config test/e2e/.mocharc.json",
-    "test:e2e-server": "ts-node ./test/server.ts"
+    "test:e2e-server": "ts-node --esm ./test/server.ts"
   },
   "author": "Björn Andersson",
   "license": "MIT",
