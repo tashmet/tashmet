@@ -1,10 +1,24 @@
 import { AggregatorFactory, op } from '@tashmet/engine';
-import { Container, PluginConfigurator } from '@tashmet/core';
+import { Container, PluginConfigurator, provider, Provider } from '@tashmet/core';
 
+export interface JsonOptions {
+  /**
+   * Indentation width to use (in spaces) when serializing.
+   *
+   * default: 2
+   */
+  indent?: number;
+}
+
+export abstract class JsonOptions implements JsonOptions {}
+
+@provider()
 export class Json {
+  public constructor(private options: JsonOptions) {}
+
   @op.expression('$objectToJson')
   public objectToJson(expr: any, resolve: (expr: any) => any) {
-    return JSON.stringify(resolve(expr));
+    return JSON.stringify(resolve(expr), undefined, this.options.indent);
   }
 
   @op.expression('$jsonToObject')
@@ -14,9 +28,20 @@ export class Json {
 }
 
 export class JsonConfigurator extends PluginConfigurator<Json> {
-  public load() {
-    this.container.resolve(AggregatorFactory).addOperatorController(new Json());
+  public constructor(container: Container, private options: JsonOptions) {
+    super(Json, container);
+  }
+
+  protected register(): void {
+    this.container.register(Provider.ofInstance(JsonOptions, this.options));
+  }
+
+  protected load() {
+    this.container
+      .resolve(AggregatorFactory)
+      .addOperatorController(this.container.resolve(Json));
   }
 }
 
-export default () => (container: Container) => new JsonConfigurator(Json, container);
+export default (options: JsonOptions = { indent: 2 }) => (container: Container) =>
+  new JsonConfigurator(container, options);

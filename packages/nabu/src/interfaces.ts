@@ -1,4 +1,6 @@
 import { Document } from '@tashmet/engine';
+import { JsonOptions } from '@tashmet/json';
+import { YamlOptions } from '@tashmet/yaml';
 import { ContentRule } from './content.js';
 import Nabu from './index.js';
 import { IO } from './io.js';
@@ -39,6 +41,10 @@ export type NabuDatabaseConfig = (coll: string) => (nabu: Nabu) => IO;
 
 export interface NabuConfig {
   databases: Record<string, NabuDatabaseConfig>;
+
+  json: JsonOptions;
+
+  yaml: YamlOptions;
 }
 
 export abstract class NabuConfig implements NabuConfig {}

@@ -29,13 +29,13 @@ export class OperatorAnnotation extends Annotation {
 
 export class PipelineOperatorAnnotation extends OperatorAnnotation {
   public register(instance: any, aggFact: AggregatorFactory): void {
-    aggFact.addPipelineOperator(this.name, instance[this.propertyKey]);
+    aggFact.addPipelineOperator(this.name, (...args: any[]) => instance[this.propertyKey](...args));
   }
 }
 
 export class ExpressionOperatorAnnotation extends OperatorAnnotation {
   public register(instance: any, aggFact: AggregatorFactory): void {
-    aggFact.addExpressionOperator(this.name, instance[this.propertyKey]);
+    aggFact.addExpressionOperator(this.name, (...args: any[]) => instance[this.propertyKey](...args));
   }
 }
 

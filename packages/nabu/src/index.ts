@@ -58,8 +58,8 @@ export default class Nabu extends Store {
   public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
     return new NabuConfigurator(createContainer({logLevel: LogLevel.None, ...config}), config)
       .use(Fs({ watch: false }))
-      .use(Json())
-      .use(Yaml({}))
+      .use(Json(config.json || {}))
+      .use(Yaml(config.yaml || {}))
       .provide(Memory);
   }
 
@@ -114,7 +114,7 @@ export default class Nabu extends Store {
 }
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
-  public config: NabuConfig = { databases: {} };
+  public config: NabuConfig = { databases: {}, json: {}, yaml: {} };
 
   public constructor(container: Container, config: Partial<NabuConfig>) {
     super(Nabu, container);
