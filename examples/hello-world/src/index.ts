@@ -1,5 +1,5 @@
 import Tashmet from '@tashmet/tashmet';
-import Mingo from '@tashmet/mingo-aggregation';
+import mingo from '@tashmet/mingo-aggregation';
 import Memory from '@tashmet/memory';
 
 async function helloWorld(tashmet: Tashmet) {
@@ -10,10 +10,11 @@ async function helloWorld(tashmet: Tashmet) {
   console.log(doc);
 }
 
-const tashmet = Tashmet
-  .configure()
-  .use(Mingo, {})
-  .use(Memory, {})
+const store = Memory
+  .configure({})
+  .use(mingo())
   .bootstrap();
+
+const tashmet = new Tashmet(store);
 
 helloWorld(tashmet);
