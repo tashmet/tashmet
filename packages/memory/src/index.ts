@@ -1,7 +1,6 @@
 import {
   provider,
   Optional,
-  Logger,
   PluginConfigurator,
   BootstrapConfig,
   createContainer,
@@ -12,7 +11,6 @@ import {
   AggregationReadController,
   AggregationWriteController,
   AggregationEngine,
-  AggregatorFactory,
   AtomicWriteCollection,
   CollectionRegistry,
   QueryPlanner,
@@ -152,15 +150,14 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
 
 
 @provider({
-  inject: [AggregatorFactory, DocumentAccess, Logger, Optional.of(ValidatorFactory)]
+  inject: [AggregationEngine, DocumentAccess, Optional.of(ValidatorFactory)]
 })
 export default class Memory extends Store {
   private engines: Record<string, StorageEngine> = {};
 
   public constructor(
-    private aggFact: AggregatorFactory,
+    private engine: AggregationEngine,
     private documentAccess: DocumentAccess,
-    private logger: Logger,
     private validatorFact?: ValidatorFactory,
   ) { super(); }
 
@@ -170,15 +167,14 @@ export default class Memory extends Store {
 
   public createStorageEngine(dbName: string): StorageEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
-    const engine = new AggregationEngine(this.aggFact, new QueryPlanner(this.documentAccess, this.logger), dbName);
     const views: ViewMap = {};
     this.documentAccess.addStreamable(dbName, storage);
     this.documentAccess.addWritable(dbName, storage);
     this.documentAccess.addRegistry(dbName, storage);
     return StorageEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
-      new AggregationReadController(dbName, engine, views),
-      new AggregationWriteController(dbName, storage, engine)
+      new AggregationReadController(dbName, this.engine, views),
+      new AggregationWriteController(dbName, storage, this.engine)
     );
   }
 
@@ -195,6 +191,8 @@ export default class Memory extends Store {
 export class MemoryConfigurator extends PluginConfigurator<Memory> {
   public register() {
     this.container.register(Memory);
+    this.container.register(AggregationEngine);
+    this.container.register(QueryPlanner);
 
     if (!this.container.isRegistered(DocumentAccess)) {
       this.container.register(DocumentAccess);

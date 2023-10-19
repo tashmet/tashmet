@@ -1,5 +1,5 @@
 import { Namespace } from "@tashmet/tashmet";
-import { Logger } from "@tashmet/core";
+import { Logger, provider } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
 import { DocumentAccess } from "./documentAccess.js";
 import { AggregatorFactory, CollationOptions, Document } from "./interfaces.js";
@@ -10,43 +10,9 @@ export async function *arrayToGenerator<T>(array: T[]) {
   }
 }
 
-export class AggregationEngine extends CursorRegistry {
-  public constructor(
-    private aggFact: AggregatorFactory,
-    private queryPlanner: QueryPlanner,
-    private db: string,
-    private options: Document = {},
-  ) { super(); }
-
-  public aggregate(
-    collection: string | Document[] | AsyncIterable<Document>,
-    pipeline: Document[],
-    collation: CollationOptions | undefined,
-  ): Cursor {
-    let input: AsyncIterable<Document>;
-    const qa = QueryAnalysis.fromPipeline({db: this.db, coll: typeof collection === 'string' ? collection : ''}, pipeline);
-
-    if (typeof collection === 'string') {
-      input = this.queryPlanner.resolveDocuments(qa);
-    } else if (Array.isArray(collection)) {
-      input = arrayToGenerator(collection);
-    } else {
-      input = collection;
-    }
-
-    const aggregator = this.aggFact.createAggregator(pipeline, {
-      collation,
-      queryAnalysis: qa,
-      ...this.options
-    });
-    const output = aggregator.stream<Document>(input);
-
-    return this.addCursor(
-      new IteratorCursor(output[Symbol.asyncIterator](), ++this.cursorCounter)
-    );
-  }
-}
-
+@provider({
+  inject: [DocumentAccess, Logger.inScope('QueryPlanner')]
+})
 export class QueryPlanner {
   public constructor(
     private documentAccess: DocumentAccess,
@@ -68,6 +34,42 @@ export class QueryPlanner {
       documentIds,
       projection: Object.keys(qa.filter).length === 0 || qa.filter._id !== undefined ? qa.projection : undefined,
     });
+  }
+}
+
+@provider()
+export class AggregationEngine extends CursorRegistry {
+  public constructor(
+    private aggFact: AggregatorFactory,
+    private queryPlanner: QueryPlanner,
+  ) { super(); }
+
+  public aggregate(
+    db: string,
+    collection: string | Document[] | AsyncIterable<Document>,
+    pipeline: Document[],
+    collation: CollationOptions | undefined,
+  ): Cursor {
+    let input: AsyncIterable<Document>;
+    const qa = QueryAnalysis.fromPipeline({db, coll: typeof collection === 'string' ? collection : ''}, pipeline);
+
+    if (typeof collection === 'string') {
+      input = this.queryPlanner.resolveDocuments(qa);
+    } else if (Array.isArray(collection)) {
+      input = arrayToGenerator(collection);
+    } else {
+      input = collection;
+    }
+
+    const aggregator = this.aggFact.createAggregator(pipeline, {
+      collation,
+      queryAnalysis: qa,
+    });
+    const output = aggregator.stream<Document>(input);
+
+    return this.addCursor(
+      new IteratorCursor(output[Symbol.asyncIterator](), ++this.cursorCounter)
+    );
   }
 }
 

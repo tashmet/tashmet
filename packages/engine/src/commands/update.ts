@@ -107,7 +107,7 @@ export class AggregationUpdateCommand extends UpdateCommand {
   }
 
   private aggregate = (pipeline: Document[], coll: string | AsyncIterable<Document>, collation?: CollationOptions): Promise<Document[]> => {
-    const c = this.engine.aggregate(coll, pipeline, collation);
+    const c = this.engine.aggregate(this.ns.db, coll, pipeline, collation);
     return c.toArray();
   }
 

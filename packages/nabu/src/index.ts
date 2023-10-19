@@ -55,15 +55,12 @@ export default class Nabu extends Store {
   private databases: Record<string, StorageEngine> = {};
 
   public constructor(
-    private aggFact: AggregatorFactory,
+    private engine: AggregationEngine,
     private documentAccess: DocumentAccess,
-    private logger: Logger,
     private config: NabuConfig,
     private memory: Memory,
   ) {
     super();
-    const engine = new AggregationEngine(
-      aggFact, new QueryPlanner(documentAccess, logger.inScope('QueryPlanner')), '__tashmet');
     const views: ViewMap = {};
     this.databases['__tashmet'] = StorageEngine.fromControllers('__tashmet',
       new AggregationReadController('__tashmet', engine, views),
@@ -111,15 +108,13 @@ export default class Nabu extends Store {
     const config = this.config.databases[dbName];
     const storage = new FileStorage(dbName, this, config);
 
-    const engine = new AggregationEngine(
-      this.aggFact, new QueryPlanner(this.documentAccess, this.logger.inScope('QueryPlanner')), dbName);
     const views: ViewMap = {};
     this.documentAccess.addStreamable(dbName, storage);
     this.documentAccess.addWritable(dbName, storage);
     return StorageEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
-      new AggregationReadController(dbName, engine, views),
-      new AggregationWriteController(dbName, storage, engine)
+      new AggregationReadController(dbName, this.engine, views),
+      new AggregationWriteController(dbName, storage, this.engine)
     );
   }
 }
@@ -139,6 +134,8 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
 
   public register() {
     this.container.register(FileAccess);
+    this.container.register(AggregationEngine);
+    this.container.register(QueryPlanner);
     this.container.register(Provider.ofInstance(NabuConfig, this.config));
 
     if (!this.container.isRegistered(DocumentAccess)) {

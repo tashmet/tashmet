@@ -28,7 +28,7 @@ export class AggregationDeleteCommand extends DeleteCommand {
 
   protected async onDelete({q, limit, collation}: Document) {
     const pipeline = makeQueryPipeline({filter: q, limit, projection: {_id: 1}});
-    return this.aggregation.aggregate(this.ns.coll, pipeline, collation).toArray();
+    return this.aggregation.aggregate(this.ns.db, this.ns.coll, pipeline, collation).toArray();
   }
 }
 

@@ -30,7 +30,7 @@ export class AggregationReadController extends AbstractReadController {
       });
     }
 
-    const c = this.aggregation.aggregate(aggregate, pipeline, collation);
+    const c = this.aggregation.aggregate(this.db, aggregate, pipeline, collation);
 
     return {
       cursor: {
