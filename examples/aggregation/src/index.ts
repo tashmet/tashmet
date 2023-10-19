@@ -1,5 +1,5 @@
 import Tashmet from '@tashmet/tashmet';
-import Mingo from '@tashmet/mingo-aggregation';
+import mingo from '@tashmet/mingo-aggregation';
 import Memory from '@tashmet/memory';
 
 async function aggregation(tashmet: Tashmet) {
@@ -27,8 +27,9 @@ async function aggregation(tashmet: Tashmet) {
   }
 }
 
-aggregation(Tashmet
+const store = Memory
   .configure({})
-  .use(Mingo, {})
-  .use(Memory, {})
-  .bootstrap());
+  .use(mingo())
+  .bootstrap();
+
+aggregation(new Tashmet(store));
