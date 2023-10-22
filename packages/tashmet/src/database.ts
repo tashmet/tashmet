@@ -2,7 +2,7 @@ import {
   CreateCollectionOptions,
   Document,
   Namespace,
-  Store,
+  TashmetProxy,
 } from './interfaces.js';
 import { Collection } from './collection.js';
 import { CommandOperation } from './operations/command.js';
@@ -41,7 +41,7 @@ export class Database implements Database {
 
   public constructor(
     public readonly databaseName: string,
-    private store: Store,
+    private proxy: TashmetProxy,
   ) {}
 
   public collection(name: string): Collection {
@@ -64,9 +64,9 @@ export class Database implements Database {
       }
       const ns: Namespace = {db: this.databaseName, coll: name};
 
-      this.store.command(ns, {create: name, ...options});
+      this.proxy.command(ns, {create: name, ...options});
 
-      const c = new Collection<T>(name, this.store, this);
+      const c = new Collection<T>(name, this.proxy, this);
       this.collMap[name] = c;
       return c;
     } catch (err) {
@@ -82,12 +82,11 @@ export class Database implements Database {
     return this.executeOperation(new DropDatabaseOperation({db: this.databaseName, coll: ''}, {})); 
   }
 
-  public async command(): Promise<Document> {
-    //this.store.dispatch()
-    throw Error('Not implemented');
+  public async command(command: Document): Promise<Document> {
+    return this.proxy.command({ db: this.databaseName, coll: ''}, command);
   }
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
-    return operation.execute(this.store) as Promise<T>;
+    return operation.execute(this.proxy) as Promise<T>;
   }
 }

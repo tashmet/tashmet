@@ -1,4 +1,4 @@
-import Tashmet, { ChangeStreamDocument, Document } from '@tashmet/tashmet';
+import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import Nabu from '../index.js';
 import { IO, IOConfig } from '../io.js';
 

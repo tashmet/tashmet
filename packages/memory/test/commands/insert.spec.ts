@@ -2,12 +2,13 @@ import chai from 'chai';
 import 'mocha';
 import Memory from '../../src';
 import mingo from '@tashmet/mingo';
-import { Namespace, Store } from '@tashmet/tashmet';
+import { Namespace } from '@tashmet/tashmet';
+import { StorageEngine } from '@tashmet/engine';
 
 const { expect } = chai;
 
 describe('insert', () => {
-  let engine: Store;
+  let engine: StorageEngine;
 
   const ns: Namespace = { db: 'testdb', coll: 'test' };
 

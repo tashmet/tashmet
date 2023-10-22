@@ -1,9 +1,9 @@
-import { CollationOptions, Document, Namespace, Store } from "../interfaces.js";
+import { CollationOptions, Document, Namespace, TashmetProxy } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */
 export interface AggregateOptions extends CommandOperationOptions {
-  /** allowDiskUse lets the server know if it can use disk to store temporary results for the aggregation (requires mongodb 2.6 \>). */
+  /** allowDiskUse lets the proxy know if it can use disk to proxy temporary results for the aggregation (requires mongodb 2.6 \>). */
   allowDiskUse?: boolean;
   /** The number of documents to return per batch. See [aggregation documentation](https://docs.mongodb.com/manual/reference/command/aggregate). */
   batchSize?: number;
@@ -13,7 +13,7 @@ export interface AggregateOptions extends CommandOperationOptions {
   cursor?: Document;
   /** specifies a cumulative time limit in milliseconds for processing operations on the cursor. MongoDB interrupts the operation at the earliest following interrupt point. */
   maxTimeMS?: number;
-  /** The maximum amount of time for the server to wait on new documents to satisfy a tailable cursor query. */
+  /** The maximum amount of time for the proxy to wait on new documents to satisfy a tailable cursor query. */
   maxAwaitTimeMS?: number;
   /** Specify collation. */
   collation?: CollationOptions;
@@ -59,7 +59,7 @@ export class AggregateOperation<T = Document> extends CommandOperation<T> {
     this.pipeline.push(stage);
   }
 
-  execute(store: Store): Promise<T> {
+  execute(proxy: TashmetProxy): Promise<T> {
     const options: AggregateOptions = this.options;
     const command: Document = { aggregate: this.target, pipeline: this.pipeline };
 
@@ -76,6 +76,6 @@ export class AggregateOperation<T = Document> extends CommandOperation<T> {
       command.cursor.batchSize = options.batchSize;
     }
 
-    return super.executeCommand(store, command);
+    return super.executeCommand(proxy, command);
   }
 }

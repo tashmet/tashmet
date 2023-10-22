@@ -1,4 +1,4 @@
-import { CollationOptions, Document, Namespace, Store } from "../interfaces.js";
+import { CollationOptions, Document, Namespace, TashmetProxy } from "../interfaces.js";
 
 export interface CommandOperationOptions {
   /** Specify a read concern and level for the collection. (only MongoDB 3.2 or higher supported) */
@@ -9,10 +9,10 @@ export interface CommandOperationOptions {
   /**
    * Comment to apply to the operation.
    *
-   * In server versions pre-4.4, 'comment' must be string.  A server
+   * In proxy versions pre-4.4, 'comment' must be string.  A proxy
    * error will be thrown if any other type is provided.
    *
-   * In server versions 4.4 and above, 'comment' can be any valid BSON type.
+   * In proxy versions 4.4 and above, 'comment' can be any valid BSON type.
    */
   //comment?: unknown;
   /** Should retry failed writes */
@@ -27,9 +27,9 @@ export interface CommandOperationOptions {
 export abstract class CommandOperation<T> {
   constructor(public ns: Namespace, public options: CommandOperationOptions = {}) {}
 
-  abstract execute(store: Store): Promise<any>;
+  abstract execute(proxy: TashmetProxy): Promise<any>;
 
-  async executeCommand(store: Store, cmd: Document): Promise<any> {
-    return store.command(this.ns, cmd);
+  async executeCommand(proxy: TashmetProxy, cmd: Document): Promise<any> {
+    return proxy.command(this.ns, cmd);
   }
 }

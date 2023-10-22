@@ -1,4 +1,5 @@
-import { command, Document, EventEmitter, ViewMap, CollectionRegistry } from '../interfaces.js';
+import { Document } from '@tashmet/tashmet';
+import { command, EventEmitter, ViewMap, CollectionRegistry } from '../interfaces.js';
 
 export class AdminController extends EventEmitter {
   public constructor(

@@ -2,7 +2,6 @@ import {
   BootstrapConfig,
   Container,
   createContainer,
-  Logger,
   LogLevel,
   PluginConfigurator,
   Provider,
@@ -12,19 +11,18 @@ import {
   AggregationCursor,
   Document,
   Namespace,
-  Store,
   GlobalAggregationCursor
 } from '@tashmet/tashmet';
 import {
-  AggregatorFactory,
   AggregationEngine,
   ViewMap,
   AdminController,
   AggregationReadController,
   AggregationWriteController,
   QueryPlanner,
-  StorageEngine,
+  DatabaseEngine,
   DocumentAccess,
+  StorageEngine,
 } from '@tashmet/engine';
 import Json from '@tashmet/json';
 import Yaml from '@tashmet/yaml';
@@ -47,12 +45,12 @@ export { IO } from './io.js';
 
 
 @provider()
-export default class Nabu extends Store {
+export default class Nabu extends StorageEngine {
   public static fs = fs;
   public static json = json;
   public static yaml = yaml;
 
-  private databases: Record<string, StorageEngine> = {};
+  private databases: Record<string, DatabaseEngine> = {};
 
   public constructor(
     private engine: AggregationEngine,
@@ -62,7 +60,7 @@ export default class Nabu extends Store {
   ) {
     super();
     const views: ViewMap = {};
-    this.databases['__tashmet'] = StorageEngine.fromControllers('__tashmet',
+    this.databases['__tashmet'] = DatabaseEngine.fromControllers('__tashmet',
       new AggregationReadController('__tashmet', engine, views),
     );
   }
@@ -77,12 +75,12 @@ export default class Nabu extends Store {
 
   public command(ns: Namespace, command: Document): Promise<Document> {
     if (!this.databases[ns.db]) {
-      let store: StorageEngine;
+      let store: DatabaseEngine;
 
       if (ns.db in this.config.databases) {
-        store = this.createStorageEngine(ns.db);
+        store = this.createDatabaseEngine(ns.db);
       } else {
-        store = this.memory.createStorageEngine(ns.db);
+        store = this.memory.createDatabaseEngine(ns.db);
       }
       store.on('change', change => this.emit('change', change));
       this.databases[ns.db] = store;
@@ -104,14 +102,14 @@ export default class Nabu extends Store {
     ]);
   }
 
-  public createStorageEngine(dbName: string): StorageEngine {
+  public createDatabaseEngine(dbName: string): DatabaseEngine {
     const config = this.config.databases[dbName];
     const storage = new FileStorage(dbName, this, config);
 
     const views: ViewMap = {};
     this.documentAccess.addStreamable(dbName, storage);
     this.documentAccess.addWritable(dbName, storage);
-    return StorageEngine.fromControllers(dbName,
+    return DatabaseEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
       new AggregationReadController(dbName, this.engine, views),
       new AggregationWriteController(dbName, storage, this.engine)

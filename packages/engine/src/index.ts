@@ -1,5 +1,5 @@
-import { ChangeStreamDocument } from '@tashmet/tashmet';
-import { Document, WriteError } from './interfaces.js';
+import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
+import { WriteError } from './interfaces.js';
 
 export * from './interfaces.js';
 

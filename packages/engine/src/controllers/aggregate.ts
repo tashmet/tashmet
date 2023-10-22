@@ -1,8 +1,9 @@
+import { Document } from '@tashmet/tashmet';
 import { AggregationEngine, makeQueryPipeline } from '../aggregation.js';
 import { AggregationDeleteCommand } from '../commands/delete.js';
 import { InsertCommand } from '../commands/insert.js';
 import { AggregationUpdateCommand } from '../commands/update.js';
-import { command, Document, ViewMap, Writable } from '../interfaces.js';
+import { command, ViewMap, Writable } from '../interfaces.js';
 import { AbstractReadController, AbstractWriteController } from './common.js';
 
 

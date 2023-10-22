@@ -1,5 +1,5 @@
 {
-	"name": "@tashmet/client",
+	"name": "@tashmet/proxy",
 	"version": "0.1.0",
 	"description": "",
 	"type": "module",
@@ -12,7 +12,7 @@
 	},
 	"keywords": [
 		"tashmet",
-		"client"
+		"proxy"
 	],
 	"author": "Björn Andersson",
 	"license": "MIT",

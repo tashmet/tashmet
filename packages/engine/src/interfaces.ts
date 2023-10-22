@@ -1,4 +1,4 @@
-import { ChangeStreamDocument } from '@tashmet/tashmet';
+import { ChangeStreamDocument, Document, Namespace, TashmetProxy } from '@tashmet/tashmet';
 import { Annotation, methodDecorator } from '@tashmet/core';
 import ObjectId from 'bson-objectid';
 import ev from "eventemitter3";
@@ -78,8 +78,6 @@ export interface CollationOptions {
   readonly backwards?: boolean;
 }
 
-export type Document = Record<string, any>;
-
 export type DatabaseCommandHandler = (command: Document) => Promise<Document>;
 
 export interface WriteError {
@@ -119,6 +117,28 @@ export interface CollectionRegistry {
 }
 
 export interface StorageEngine {
+  command(ns: Namespace, command: Document): Promise<Document>;
+
+  on(event: 'change', listener: (change: Document) => void): this;
+
+  client(): TashmetProxy;
+}
+
+export class StorageEngine extends EventEmitter implements StorageEngine {
+  public proxy(): TashmetProxy {
+    return new StorageEngineProxy(this);
+  }
+}
+
+export class StorageEngineProxy extends TashmetProxy {
+  public constructor(private engine: StorageEngine) { super(); }
+
+  public command(ns: Namespace, command: Document): Promise<Document> {
+    return this.engine.command(ns, command);
+  }
+}
+
+export interface DatabaseEngine {
   readonly databaseName: string;
 
   command(command: Document): Promise<Document>;
@@ -128,7 +148,7 @@ export interface StorageEngine {
   emit(event: 'change', change: Document): boolean;
 }
 
-export class StorageEngine extends EventEmitter implements StorageEngine {
+export class DatabaseEngine extends EventEmitter implements DatabaseEngine {
   private commandNames = new Set<string>();
 
   public static fromControllers(databaseName: string, ...controllers: any[]) {
@@ -140,7 +160,7 @@ export class StorageEngine extends EventEmitter implements StorageEngine {
       }
     }
 
-    const engine = new StorageEngine(databaseName, commands);
+    const engine = new DatabaseEngine(databaseName, commands);
 
     for (const c of controllers) {
       if (c instanceof EventEmitter) {
@@ -160,7 +180,7 @@ export class StorageEngine extends EventEmitter implements StorageEngine {
   }
 
   public command(command: Document): Promise<Document> {
-    const op = StorageEngine.operation(command);
+    const op = DatabaseEngine.operation(command);
     if (!this.commandNames.has(op)) {
       throw new Error(`Command ${op} is not supported`);
     }
@@ -172,8 +192,8 @@ export class StorageEngine extends EventEmitter implements StorageEngine {
   }
 }
 
-export interface StorageEngineFactory {
-  createStorageEngine(dbName: string): StorageEngine;
+export interface DatabaseEngineFactory {
+  createDatabaseEngine(dbName: string): DatabaseEngine;
 }
 
 export interface AggregatorOptions {

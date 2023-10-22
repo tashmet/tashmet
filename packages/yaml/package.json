@@ -22,6 +22,7 @@
 	"dependencies": {
 		"@tashmet/core": "^1.0.2",
 		"@tashmet/engine": "^0.1.0",
+		"@tashmet/tashmet": "^1.4.0",
 		"js-yaml": "^4.1.0"
 	},
 	"devDependencies": {

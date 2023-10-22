@@ -1,5 +1,6 @@
 import { Container, PluginConfigurator } from '@tashmet/core';
-import { AggregatorFactory, Document, op } from '@tashmet/engine';
+import { AggregatorFactory, op } from '@tashmet/engine';
+import { Document } from '@tashmet/tashmet';
 import { YamlOptions } from './interfaces.js';
 
 import jsYaml from 'js-yaml';

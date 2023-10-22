@@ -1,4 +1,4 @@
-import { Document, Namespace, Store } from "../interfaces.js";
+import { Document, Namespace, TashmetProxy } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */
@@ -26,14 +26,14 @@ export class DistinctOperation extends CommandOperation<any[]> {
     super(ns, options);
   }
 
-  async execute(store: Store): Promise<any[]> {
+  async execute(proxy: TashmetProxy): Promise<any[]> {
     const cmd: Document = {
       distinct: this.ns.coll,
       key: this.key,
       query: this.query,
     };
 
-    const {values} = await this.executeCommand(store, cmd);
+    const {values} = await this.executeCommand(proxy, cmd);
     return values as unknown as any[];
   }
 }

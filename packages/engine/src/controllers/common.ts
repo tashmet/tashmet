@@ -1,6 +1,7 @@
+import { Document } from '@tashmet/tashmet';
 import { WriteCommand } from '../commands/write.js';
 import { CursorRegistry } from '../cursor.js';
-import { command, Document, EventEmitter, Writable } from '../interfaces.js';
+import { command, EventEmitter, Writable } from '../interfaces.js';
 
 
 export abstract class AbstractReadController {

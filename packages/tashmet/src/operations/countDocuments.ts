@@ -1,4 +1,4 @@
-import { Document, Namespace, Store } from "../interfaces.js";
+import { Document, Namespace, TashmetProxy } from "../interfaces.js";
 import { AggregateOptions } from "./aggregate.js";
 import { CommandOperation } from "./command.js";
 
@@ -18,7 +18,7 @@ export class CountDocumentsOperation extends CommandOperation<number> {
     super(ns, options);
   }
 
-  async execute(store: Store): Promise<number> {
+  async execute(proxy: TashmetProxy): Promise<number> {
     const cmd: Document = {count: this.ns.coll, query: this.query};
 
     if (this.options.skip) {
@@ -28,7 +28,7 @@ export class CountDocumentsOperation extends CommandOperation<number> {
       cmd.limit = this.options.limit;
     }
 
-    const {n} = await this.executeCommand(store, cmd);
+    const {n} = await this.executeCommand(proxy, cmd);
     return n;
   }
 }

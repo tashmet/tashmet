@@ -1,4 +1,4 @@
-import { Namespace, Store } from "../interfaces.js";
+import { Namespace, TashmetProxy } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */
@@ -11,8 +11,8 @@ export class DropCollectionOperation extends CommandOperation<boolean> {
     super(namespace, options);
   }
 
-  async execute(store: Store): Promise<boolean> {
-    const {ok} = await super.executeCommand(store, { drop: this.ns.coll });
+  async execute(proxy: TashmetProxy): Promise<boolean> {
+    const {ok} = await super.executeCommand(proxy, { drop: this.ns.coll });
     return ok === 1;
   }
 }
@@ -25,8 +25,8 @@ export class DropDatabaseOperation extends CommandOperation<boolean> {
   constructor(namespace: Namespace, public options: DropDatabaseOptions) {
     super(namespace, options);
   }
-  async execute(store: Store): Promise<boolean> {
-    const {ok} = await this.executeCommand(store, { dropDatabase: 1 });
+  async execute(proxy: TashmetProxy): Promise<boolean> {
+    const {ok} = await this.executeCommand(proxy, { dropDatabase: 1 });
     return ok === 1;
   }
 }

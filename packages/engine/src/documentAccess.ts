@@ -1,5 +1,5 @@
-import { ChangeStreamDocument, Namespace } from "@tashmet/tashmet";
-import { CollectionRegistry, Document, Streamable, StreamOptions, Writable, WriteOptions } from "./interfaces";
+import { ChangeStreamDocument, Document, Namespace } from "@tashmet/tashmet";
+import { CollectionRegistry, Streamable, StreamOptions, Writable, WriteOptions } from "./interfaces";
 
 export class DocumentAccess {
   private readables: Map<string, Streamable> = new Map();

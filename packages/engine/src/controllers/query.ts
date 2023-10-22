@@ -1,7 +1,8 @@
+import { Document } from '@tashmet/tashmet';
 import { QueryDeleteCommand } from '../commands/delete.js';
 import { InsertCommand } from '../commands/insert.js';
 import { QueryUpdateCommand } from '../commands/update.js';
-import { command, Document, Writable } from '../interfaces.js';
+import { command, Writable } from '../interfaces.js';
 import { QueryEngine } from '../query.js';
 import { AbstractReadController, AbstractWriteController } from './common.js';
 

@@ -1,4 +1,4 @@
-import { Document, CollationOptions, Namespace, Store } from '../interfaces.js';
+import { Document, CollationOptions, Namespace, TashmetProxy } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 
 
@@ -43,7 +43,7 @@ export class DeleteOperation extends CommandOperation<Document> {
     super(ns, options);
   }
 
-  async execute(store: Store): Promise<DeleteResult> {
+  async execute(proxy: TashmetProxy): Promise<DeleteResult> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
@@ -56,7 +56,7 @@ export class DeleteOperation extends CommandOperation<Document> {
       command.let = options.let;
     }
 
-    const res = await super.executeCommand(store, command);
+    const res = await super.executeCommand(proxy, command);
     return {acknowledged: true, deletedCount: res.n};
   }
 }

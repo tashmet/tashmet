@@ -1,4 +1,4 @@
-import { Document } from "./interfaces.js";
+import { Document } from "@tashmet/tashmet";
 
 export abstract class CursorRegistry {
   protected cursorCounter = 0;

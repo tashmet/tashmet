@@ -1,5 +1,5 @@
 import ObjectId from 'bson-objectid';
-import { CollationOptions, Document, Namespace, Store } from '../interfaces.js';
+import { CollationOptions, Document, Namespace, TashmetProxy } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 
 
@@ -62,7 +62,7 @@ export class UpdateOperation extends CommandOperation<Document> {
   }
 
   async execute(
-    store: Store,
+    proxy: TashmetProxy,
   ): Promise<UpdateResult> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
@@ -80,7 +80,7 @@ export class UpdateOperation extends CommandOperation<Document> {
       command.let = options.let;
     }
 
-    const res = await super.executeCommand(store, command);
+    const res = await super.executeCommand(proxy, command);
     return {
       acknowledged: true,
       modifiedCount: res.nModified != null ? res.nModified : res.n,

@@ -15,18 +15,18 @@ import {
   CollectionRegistry,
   QueryPlanner,
   sequentialWrite,
-  StorageEngine,
+  DatabaseEngine,
   Streamable,
   ValidatorFactory,
   ViewMap,
   Writable,
   WriteOptions,
   StreamOptions,
-  DocumentAccess
+  DocumentAccess,
+  StorageEngine
 } from '@tashmet/engine';
 import {
   ChangeStreamDocument,
-  Store,
   Document,
   Namespace,
 } from '@tashmet/tashmet';
@@ -152,8 +152,8 @@ export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
 @provider({
   inject: [AggregationEngine, DocumentAccess, Optional.of(ValidatorFactory)]
 })
-export default class Memory extends Store {
-  private engines: Record<string, StorageEngine> = {};
+export default class Memory extends StorageEngine {
+  private engines: Record<string, DatabaseEngine> = {};
 
   public constructor(
     private engine: AggregationEngine,
@@ -165,13 +165,13 @@ export default class Memory extends Store {
     return new MemoryConfigurator(Memory, createContainer({logLevel: LogLevel.None, ...config}));
   }
 
-  public createStorageEngine(dbName: string): StorageEngine {
+  public createDatabaseEngine(dbName: string): DatabaseEngine {
     const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
     const views: ViewMap = {};
     this.documentAccess.addStreamable(dbName, storage);
     this.documentAccess.addWritable(dbName, storage);
     this.documentAccess.addRegistry(dbName, storage);
-    return StorageEngine.fromControllers(dbName,
+    return DatabaseEngine.fromControllers(dbName,
       new AdminController(dbName, storage, views),
       new AggregationReadController(dbName, this.engine, views),
       new AggregationWriteController(dbName, storage, this.engine)
@@ -180,7 +180,7 @@ export default class Memory extends Store {
 
   public command(ns: Namespace, command: Document): Promise<Document> {
     if (!this.engines[ns.db]) {
-      const store = this.createStorageEngine(ns.db);
+      const store = this.createDatabaseEngine(ns.db);
       store.on('change', change => this.emit('change', change));
       this.engines[ns.db] = store;
     }

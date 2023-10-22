@@ -1,5 +1,5 @@
 import Tashmet from '@tashmet/tashmet';
-import Client from '@tashmet/client';
+import ServerProxy from '@tashmet/proxy';
 
 async function runClient(tashmet: Tashmet) {
   const db = tashmet.db('blog');
@@ -8,6 +8,6 @@ async function runClient(tashmet: Tashmet) {
   console.log(docs);
 }
 
-const tashmet = new Tashmet(new Client({ uri: 'http://localhost:8080' }));
+const tashmet = new Tashmet(new ServerProxy({ uri: 'http://localhost:8080' }));
 
 runClient(tashmet);

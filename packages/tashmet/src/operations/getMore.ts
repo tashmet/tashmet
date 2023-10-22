@@ -1,4 +1,4 @@
-import { Document, Namespace, Store } from "../interfaces.js";
+import { Document, Namespace, TashmetProxy } from "../interfaces.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /**
@@ -11,7 +11,7 @@ export interface GetMoreOptions extends CommandOperationOptions {
   /**
    * Comment to apply to the operation.
    *
-   * getMore only supports 'comment' in server versions 4.4 and above.
+   * getMore only supports 'comment' in proxy versions 4.4 and above.
    */
   comment?: unknown;
   /** Number of milliseconds to wait before aborting the query. */
@@ -26,8 +26,8 @@ export class GetMoreOperation extends CommandOperation<Document> {
     public options: GetMoreOptions = {}
   ) { super(ns, options); }
 
-  execute(store: Store): Promise<Document> {
-    return this.executeCommand(store, {
+  execute(proxy: TashmetProxy): Promise<Document> {
+    return this.executeCommand(proxy, {
       getMore: this.cursorId,
       collection: this.ns.coll,
       batchSize: this.options.batchSize,

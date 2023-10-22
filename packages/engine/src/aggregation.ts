@@ -1,8 +1,8 @@
-import { Namespace } from "@tashmet/tashmet";
+import { Document, Namespace } from "@tashmet/tashmet";
 import { Logger, provider } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
 import { DocumentAccess } from "./documentAccess.js";
-import { AggregatorFactory, CollationOptions, Document } from "./interfaces.js";
+import { AggregatorFactory, CollationOptions } from "./interfaces.js";
 
 export async function *arrayToGenerator<T>(array: T[]) {
   for (const item of array) {

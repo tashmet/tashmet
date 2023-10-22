@@ -1,4 +1,4 @@
-import { Document } from '@tashmet/engine';
+import { Document } from '@tashmet/tashmet';
 import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { ContentRule } from './content.js';

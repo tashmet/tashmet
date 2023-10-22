@@ -1,6 +1,5 @@
-import { ChangeStreamDocument } from "@tashmet/tashmet";
+import { ChangeStreamDocument, Document } from "@tashmet/tashmet";
 import ObjectID from "bson-objectid";
-import { Document } from "../interfaces.js";
 import { WriteCommand } from "./write.js";
 
 export class InsertCommand extends WriteCommand {

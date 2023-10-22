@@ -26,7 +26,7 @@
     "@tashmet/engine": "^0.1.0",
     "@tashmet/nabu": "^2.0.0",
     "@tashmet/core": "^1.0.2",
-    "@tashmet/client": "^0.1.0",
+    "@tashmet/proxy": "^0.1.0",
     "@tashmet/server": "^0.1.0",
     "@tashmet/memory": "^0.1.0",
     "@tashmet/mingo-aggregation": "^0.1.0",

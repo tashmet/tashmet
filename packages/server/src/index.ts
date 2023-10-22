@@ -1,23 +1,24 @@
-import { Server } from "socket.io";
+import { Server as SocketIOServer} from "socket.io";
+import { StorageEngine } from "@tashmet/engine";
 
-import { provider } from '@tashmet/core';
-import { Store } from "@tashmet/tashmet";
+export default class Server {
+  private io: SocketIOServer;
 
-
-@provider()
-export default class TashmetServer {
-  public constructor(private store: Store) {}
+  public constructor(private storageEngine: StorageEngine) {}
 
   public listen(port: number) {
-    const io = new Server(port, { });
+    this.io = new SocketIOServer(port, { });
 
-    console.log('listen on port: ' + port);
-
-    io.on('connection', socket => {
+    this.io.on('connection', socket => {
       socket.onAny((event: string, cmd: Document, callback) => {
         const ns = event.split('.');
-        this.store.command({db: ns[0], coll: ns[1]}, cmd).then(callback);
+        this.storageEngine.command({db: ns[0], coll: ns[1]}, cmd).then(callback);
       });
     });
+  }
+
+  public close() {
+    this.io.disconnectSockets()
+    this.io.close();
   }
 }

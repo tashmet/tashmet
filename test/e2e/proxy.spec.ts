@@ -2,28 +2,31 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmet, {Collection, LogLevel} from '../../packages/tashmet/dist'
-import client from '../../packages/client/dist';
-import mingo from '../../packages/mingo/dist';
-//import Caching from '../../packages/caching/dist';
-// import {socket} from '../../packages/socket/dist';
-import 'mingo/init/system';
-import fetch from 'isomorphic-fetch';
+import Tashmet, { Collection } from '../../packages/tashmet/dist'
+import Proxy from '../../packages/proxy/dist';
+import TashmetServer from '../../packages/server/dist/index.js'
+import mingo from '../../packages/mingo/aggregation/dist/index.js'
+import Memory from '../../packages/memory/dist/index.js'
+
 
 chai.use(chaiAsPromised);
 
 const { expect } = chai;
 
-describe('rest', () => {
+describe('proxy', () => {
   let col: Collection
+  let socketServer: TashmetServer;
 
   before(async () => {
-    console.log('client');
-    const tashmet = Tashmet
-      .configure({logLevel: LogLevel.None})
-      //.use(Mingo, {})
-      .use(client({ url: 'http://localhost:8000' }))
-      .bootstrap();
+    const server = Memory
+      .configure({})
+      .use(mingo())
+      .bootstrap()
+
+    socketServer = new TashmetServer(server)
+    socketServer.listen(8000);
+
+    const tashmet = new Tashmet(new Proxy({ uri: 'http://localhost:8000' }));
 
     col = tashmet
       .db('testdb')
@@ -40,6 +43,10 @@ describe('rest', () => {
     ]);
   });
 
+  after(async () => {
+    socketServer.close();
+  });
+
   afterEach(async () => {
     // col.removeAllListeners();
     await col.deleteMany({});
@@ -48,11 +55,12 @@ describe('rest', () => {
   describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
       let doc = {item: { category: 'brownies', type: 'blondie' }, amount: 10 };
-      const result = await col.insertOne(doc)
+      const result = await col.insertOne(doc);
       expect(result.acknowledged).to.be.true;
       expect(doc).to.haveOwnProperty('_id');
       expect((doc as any)._id).to.eql(result.insertedId);
     });
+
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertOne(
         {_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
@@ -82,6 +90,7 @@ describe('rest', () => {
       expect(result.acknowledged).to.be.true;
       expect(result.insertedCount).to.eql(2);
     });
+
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertMany([
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
@@ -116,6 +125,7 @@ describe('rest', () => {
         upsertedId: null,
       });
     });
+
     it('should have zero matchedCount and modifiedCount if no document matched selector', async () => {
       const result = await col.replaceOne(
         {_id: '6'}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
@@ -128,6 +138,7 @@ describe('rest', () => {
         upsertedId: null,
       });
     });
+
     it('should completely replace document', async () => {
       await col.replaceOne(
         {_id: '1'}, { amount: 20 }
@@ -135,6 +146,7 @@ describe('rest', () => {
       const doc = await col.findOne({_id: '1'});
       expect(doc.item).to.eql(undefined);
     });
+
     it('should upsert when specified', async () => {
       const result = await col.replaceOne(
         {_id: '6'}, { amount: 20 }, {upsert: true}
@@ -142,6 +154,7 @@ describe('rest', () => {
       expect(result.upsertedCount).to.eql(1);
       expect(result.upsertedId).to.not.eql(null);
     });
+
     /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
@@ -161,12 +174,13 @@ describe('rest', () => {
     it('should return 0 when no documents are matching', () => {
       expect(col.countDocuments({'item.category': 'candy'})).to.eventually.eql(0);
     });
+
     it('should be a positive number when items are matched', async () => {
       expect(col.countDocuments({'item.category': 'cake'})).to.eventually.eql(3);
     });
   });
 
-  describe.skip('aggregate', () => {
+  describe('aggregate', () => {
     it('should group by category', async () => {
       const pipeline = [
         {$group: {_id: "$item.category", count: { $sum: 1 } } }
@@ -176,6 +190,7 @@ describe('rest', () => {
         {_id: 'cookies', count: 2 }
       ]);
     });
+
     it('should do filtering, sorting and projection', async () => {
       const pipeline = [
         {$match: {'item.category': 'cake'}},
@@ -194,6 +209,7 @@ describe('rest', () => {
     it('should return null when document is not found', () => {
       return expect(col.findOne({_id: '7'})).to.eventually.eql(null);
     });
+
     it('should return the document when found', async () => {
       const doc = await col.findOne({_id: '1'});
       expect(doc).to.haveOwnProperty('amount').equals(10);

@@ -1,5 +1,5 @@
-import { CollectionRegistry, Document, Streamable, StreamOptions, Writable, WriteOptions } from '@tashmet/engine';
-import { AggregationCursor, ChangeStreamDocument } from '@tashmet/tashmet';
+import { CollectionRegistry, Streamable, StreamOptions, Writable, WriteOptions } from '@tashmet/engine';
+import { AggregationCursor, ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import { NabuDatabaseConfig } from '../interfaces.js';
 import { IO } from '../io.js';
 import Nabu from '../index.js';

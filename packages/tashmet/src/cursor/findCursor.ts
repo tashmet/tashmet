@@ -1,4 +1,4 @@
-import { Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap, Store } from '../interfaces.js';
+import { Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap, TashmetProxy } from '../interfaces.js';
 import { AbstractCursor } from './abstractCursor.js';
 
 export function sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {
@@ -14,15 +14,15 @@ export function sortingMap(key: SortingKey, direction?: SortingDirection): Sorti
 export class FindCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
     namespace: Namespace,
-    store: Store,
+    proxy: TashmetProxy,
     private filter: Filter<TSchema>,
     options: FindOptions = {},
   ) {
-    super(namespace, store, options);
+    super(namespace, proxy, options);
   }
 
   protected async initialize(): Promise<Document> {
-    return this.store.command(this.namespace, {
+    return this.proxy.command(this.namespace, {
       find: this.namespace.coll,
       filter: this.filter,
       ...this.options

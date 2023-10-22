@@ -1,4 +1,4 @@
-import { Document, Namespace, Store } from '../interfaces.js';
+import { Document, Namespace, TashmetProxy } from '../interfaces.js';
 import { GetMoreOperation } from '../operations/getMore.js';
 
 /** @public */
@@ -8,10 +8,10 @@ export interface AbstractCursorOptions {
   /**
    * Comment to apply to the operation.
    *
-   * In server versions pre-4.4, 'comment' must be string.  A server
+   * In proxy versions pre-4.4, 'comment' must be string.  A proxy
    * error will be thrown if any other type is provided.
    *
-   * In server versions 4.4 and above, 'comment' can be any valid BSON type.
+   * In proxy versions 4.4 and above, 'comment' can be any valid BSON type.
    */
   comment?: unknown;
   tailable?: boolean;
@@ -28,7 +28,7 @@ export abstract class AbstractCursor<TSchema> {
 
   public constructor(
     protected namespace: Namespace,
-    protected store: Store,
+    protected proxy: TashmetProxy,
     protected options: AbstractCursorOptions = {}
   ) {}
 
@@ -139,7 +139,7 @@ export abstract class AbstractCursor<TSchema> {
       batchSize
     });
 
-    return await getMoreOperation.execute(this.store);
+    return await getMoreOperation.execute(this.proxy);
   }
 
   protected async _next(blocking: boolean): Promise<TSchema | null> {
