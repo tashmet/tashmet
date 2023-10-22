@@ -21,7 +21,7 @@ describe('view', () => {
       .use(mingo())
       .bootstrap();
 
-    const client = new Tashmet(store);
+    const client = await Tashmet.connect(store.proxy());
 
     const db = client.db('testdb');
 

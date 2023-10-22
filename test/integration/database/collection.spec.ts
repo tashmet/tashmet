@@ -32,7 +32,7 @@ describe('Collection', () => {
       .use(mingo())
       .bootstrap();
 
-    tashmet = new Tashmet(store);
+    tashmet = await Tashmet.connect(store.proxy());
   });
 
   beforeEach(async () => {

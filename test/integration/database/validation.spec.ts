@@ -20,7 +20,7 @@ describe('validation', () => {
       .use(mingo())
       .bootstrap();
 
-    const tashmet = new Tashmet(store);
+    const tashmet = await Tashmet.connect(store.proxy());
 
     sales = tashmet.db('test').createCollection('sales', {
       validator: {

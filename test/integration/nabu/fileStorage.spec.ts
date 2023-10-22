@@ -38,7 +38,7 @@ describe('fileStorage', () => {
       }))
       .bootstrap();
 
-    const client = new Tashmet(store);
+    const client = await Tashmet.connect(store.proxy());
 
     col = client.db('e2e').collection('testCollection');
     //orders = client.db('e2e').collection('orders');

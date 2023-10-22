@@ -131,7 +131,14 @@ export class StorageEngine extends EventEmitter implements StorageEngine {
 }
 
 export class StorageEngineProxy extends TashmetProxy {
-  public constructor(private engine: StorageEngine) { super(); }
+  public constructor(private engine: StorageEngine) {
+    super();
+  }
+
+  public connect() {
+    this.engine.on('change', doc => this.emit('change', doc));
+    this.emit('connected');
+  }
 
   public command(ns: Namespace, command: Document): Promise<Document> {
     return this.engine.command(ns, command);

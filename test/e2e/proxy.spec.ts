@@ -26,7 +26,7 @@ describe('proxy', () => {
     socketServer = new TashmetServer(server)
     socketServer.listen(8000);
 
-    const tashmet = new Tashmet(new Proxy({ uri: 'http://localhost:8000' }));
+    const tashmet = await Tashmet.connect(new Proxy({ uri: 'http://localhost:8000' }));
 
     col = tashmet
       .db('testdb')
@@ -66,19 +66,19 @@ describe('proxy', () => {
         {_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       )).to.eventually.be.rejected;
     });
-    /*
+  
     it('should emit a change event', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('insert');
-        expect(data.length).to.eql(1);
-        expect(data[0]).to.eql({_id: '6', item: { category: 'brownies', type: 'blondie' }, amount: 10 });
+      const cs = col.watch();
+      cs.on('change', ({operationType, fullDocument}) => {
+        expect(operationType).to.eql('insert');
+        expect(fullDocument).to.eql({_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 });
+        cs.close();
         done();
       });
       col.insertOne(
-        {_id: '6', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
+        {_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
     });
-    */
   });
 
   describe('insertMany', () => {

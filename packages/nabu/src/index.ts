@@ -90,7 +90,7 @@ export default class Nabu extends StorageEngine {
   }
 
   public aggregate(collection: Document[], pipeline: Document[]): AggregationCursor<Document> {
-    return new GlobalAggregationCursor(collection, this, pipeline);
+    return new GlobalAggregationCursor(collection, this.proxy(), pipeline);
   }
 
   public glob(pattern: string | string[], pipeline: Document[] = []): AggregationCursor<Document> {

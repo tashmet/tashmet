@@ -14,6 +14,8 @@ export default class Server {
         const ns = event.split('.');
         this.storageEngine.command({db: ns[0], coll: ns[1]}, cmd).then(callback);
       });
+
+      this.storageEngine.on('change', doc => socket.emit('change', doc));
     });
   }
 

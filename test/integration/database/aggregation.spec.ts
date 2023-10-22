@@ -24,7 +24,7 @@ describe('aggregation', () => {
         .use(mingo())
         .bootstrap();
 
-      const client = new Tashmet(store);
+      const client = await Tashmet.connect(store.proxy());
 
       db = client.db('testdb');
 
@@ -506,7 +506,7 @@ describe('aggregation', () => {
         .use(mingo())
         .bootstrap();
 
-      const client = new Tashmet(store);
+      const client = await Tashmet.connect(store.proxy());
 
       db = client.db('testdb');
 
@@ -557,7 +557,7 @@ describe('aggregation', () => {
         .use(mingo())
         .bootstrap();
 
-      client = new Tashmet(store);
+      client = await Tashmet.connect(store.proxy());
     });
 
     it("should perform a single equality join with", async () => {

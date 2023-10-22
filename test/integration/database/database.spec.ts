@@ -21,7 +21,7 @@ describe('database', () => {
       .use(mingo())
       .bootstrap();
 
-    const tashmet = new Tashmet(store);
+    const tashmet = await Tashmet.connect(store.proxy());
 
     db = tashmet.db('testdb');
     db.collection('test');

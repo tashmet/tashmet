@@ -13,9 +13,17 @@ export abstract class ServerProxyConfig implements ServerProxyConfig {}
 export default class ServerProxy extends TashmetProxy {
   private socket: Socket;
 
-  public constructor(config: ServerProxyConfig) {
+  public constructor(private config: ServerProxyConfig) {
     super();
-    this.socket = io(config.uri);
+  }
+
+  public connect() {
+    this.socket = io(this.config.uri);
+    this.socket.on('connect', () => {
+      this.emit('connected');
+      this.socket.on('change', doc => this.emit('change', doc));
+    });
+    return this;
   }
 
   public async command(ns: Namespace, command: Document): Promise<Document> {
