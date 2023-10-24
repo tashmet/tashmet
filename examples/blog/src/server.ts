@@ -8,11 +8,12 @@ const store = Nabu
   .configure({
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
+    options: { io: 'blog' }
   })
   .use(mingo())
-  .database('blog', coll => Nabu.fs({
-    scan: `./${coll}/*.md`,
-    lookup: id => `./${coll}/${id}.md`,
+  .io('markdown', ns => Nabu.fs({
+    scan: `./${ns.db}/${ns.collection}/*.md`,
+    lookup: id => `./${ns.db}/${ns.collection}/${id}.md`,
     content: Nabu.yaml({
       frontMatter: true,
       contentKey: 'articleBody',

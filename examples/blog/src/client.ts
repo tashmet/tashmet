@@ -1,13 +1,15 @@
 import Tashmet from '@tashmet/tashmet';
 import ServerProxy from '@tashmet/proxy';
 
-async function runClient(tashmet: Tashmet) {
-  const db = tashmet.db('blog');
-  const posts = db.collection('posts');
-  const docs = await posts.find({}).toArray();
-  console.log(docs);
-}
+Tashmet
+  .connect(new ServerProxy({ uri: 'http://localhost:8080' }))
+  .then(async tashmet =>  {
+    const db = tashmet.db('content');
+    const posts = db.createCollection('posts', { storageEngine: { io: 'markdown' } });
 
-const tashmet = new Tashmet(new ServerProxy({ uri: 'http://localhost:8080' }));
+    for await (const doc of posts.find({})) {
+      console.log(doc);
+    }
 
-runClient(tashmet);
+    tashmet.close();
+  });
