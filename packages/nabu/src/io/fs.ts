@@ -1,9 +1,9 @@
+import { AggregatorFactory } from '@tashmet/engine';
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import Nabu from '../index.js';
 import { IO, IOConfig } from '../io.js';
 
 
-export function fs({lookup, scan, content}: IOConfig): (nabu: Nabu) => IO {
+export function fs({lookup, scan, content}: IOConfig): (aggregatorFactory: AggregatorFactory) => IO {
   const inputPipeline: Document[] = [
     { $glob: { pattern: '$_id' } },
     {
@@ -58,5 +58,5 @@ export function fs({lookup, scan, content}: IOConfig): (nabu: Nabu) => IO {
     }
   ]
 
-  return (nabu: Nabu) => new IO(nabu, inputPipeline, outputPipeline, scan, lookup);
+  return (aggregatorFactory: AggregatorFactory) => new IO(aggregatorFactory, inputPipeline, outputPipeline, scan, lookup);
 }

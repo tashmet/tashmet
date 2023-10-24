@@ -1,36 +1,40 @@
-import { Document } from '@tashmet/tashmet';
-import { command, EventEmitter, ViewMap, CollectionRegistry } from '../interfaces.js';
+import { Document, TashmetNamespace } from '@tashmet/tashmet';
+import { CollectionFactory, command, EventEmitter, ViewMap } from '../interfaces.js';
+import { Store } from '../store.js';
 
 export class AdminController extends EventEmitter {
   public constructor(
-    protected db: string,
-    protected collections: CollectionRegistry,
+    protected store: Store,
+    protected collectionFactory: CollectionFactory,
     protected views: ViewMap | undefined,
   ) { super(); }
 
   @command('create')
-  public async create({create: name, viewOn, pipeline, ...options}: Document) {
+  public async create(ns: TashmetNamespace, {create: name, viewOn, pipeline, ...options}: Document) {
+    const fullNs = ns.withCollection(name);
+
     if (viewOn) {
       if (this.views) {
-        this.views[name] = {viewOn, pipeline};
+        this.views[fullNs.toString()] = {viewOn, pipeline};
       } else {
         throw new Error('views are not supported by the storage engine');
       }
     } else {
-      await this.collections.create(name, options);
+      const coll = this.collectionFactory.createCollection(fullNs, options);
+      this.store.addCollection(coll);
     }
 
     return {ok: 1};
   }
 
   @command('drop')
-  public async drop({drop: name}: Document) {
+  public async drop(ns: TashmetNamespace, {drop: name}: Document) {
     if (this.views && this.views[name]) {
       delete this.views[name];
     } else {
-      await this.collections.drop(name);
+      this.store.dropCollection(ns.withCollection(name));
     }
-    this.emit('change', { operationType: 'drop', ns: { db: this.db, coll: name } });
+    this.store.emit('change', { operationType: 'drop', ns: { db: ns.db, coll: name } });
     return {ok: 1};
   }
 }

@@ -2,8 +2,8 @@ import { Document } from '@tashmet/tashmet';
 import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { ContentRule } from './content.js';
-import Nabu from './index.js';
 import { IO } from './io.js';
+import { AggregatorFactory } from '@tashmet/engine';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -37,7 +37,7 @@ export interface FileStorageConfig {
   lookup: (id: string) => string;
 }
 
-export type NabuDatabaseConfig = (coll: string) => (nabu: Nabu) => IO;
+export type NabuDatabaseConfig = (coll: string) => (aggregatorFactory: AggregatorFactory) => IO;
 
 export interface NabuConfig {
   databases: Record<string, NabuDatabaseConfig>;

@@ -1,7 +1,7 @@
-import { Document, Namespace } from "@tashmet/tashmet";
+import { Document, Namespace, TashmetCollectionNamespace } from "@tashmet/tashmet";
 import { Logger, provider } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
-import { DocumentAccess } from "./documentAccess.js";
+import { Store } from "./store.js";
 import { AggregatorFactory, CollationOptions } from "./interfaces.js";
 
 export async function *arrayToGenerator<T>(array: T[]) {
@@ -11,11 +11,11 @@ export async function *arrayToGenerator<T>(array: T[]) {
 }
 
 @provider({
-  inject: [DocumentAccess, Logger.inScope('QueryPlanner')]
+  inject: [Store, Logger.inScope('QueryPlanner')]
 })
 export class QueryPlanner {
   public constructor(
-    private documentAccess: DocumentAccess,
+    private store: Store,
     private logger: Logger,
   ) {}
 
@@ -30,10 +30,12 @@ export class QueryPlanner {
       documentIds = id;
     }
     this.logger.debug(`stream collection '${qa.ns.db}.${qa.ns.coll}' on ids: '${documentIds}'`)
-    return this.documentAccess.stream(qa.ns, {
-      documentIds,
-      projection: Object.keys(qa.filter).length === 0 || qa.filter._id !== undefined ? qa.projection : undefined,
-    });
+    return this.store
+      .getCollection(new TashmetCollectionNamespace(qa.ns.db, qa.ns.coll))
+      .read({
+        documentIds,
+        projection: Object.keys(qa.filter).length === 0 || qa.filter._id !== undefined ? qa.projection : undefined,
+      });
   }
 }
 

@@ -1,64 +1,56 @@
-import { CollectionRegistry, Streamable, StreamOptions, Writable, WriteOptions } from '@tashmet/engine';
-import { AggregationCursor, ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import { NabuDatabaseConfig } from '../interfaces.js';
+import { provider } from '@tashmet/core';
+import {
+  AggregatorFactory,
+  CollectionFactory,
+  ReadWriteCollection,
+  StreamOptions,
+  WriteError,
+  WriteOptions
+} from '@tashmet/engine';
+import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
+import { NabuConfig } from '../interfaces.js';
 import { IO } from '../io.js';
-import Nabu from '../index.js';
 
-export class FileStorage implements CollectionRegistry, Streamable, Writable {
-  protected configs: Record<string, Document> = {};
-  protected io: Record<string, IO> = {};
+@provider()
+export class FileCollectionFactory extends CollectionFactory {
+  public constructor(
+    private aggregatorFactory: AggregatorFactory,
+    private config: NabuConfig,
+  ) { super(); }
 
-  constructor(
-    public readonly databaseName: string,
-    private nabu: Nabu,
-    private config: NabuDatabaseConfig,
-  ) {}
+  public createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection {
+    return new FileCollection(ns, this.config.databases[ns.db](ns.collection)(this.aggregatorFactory));
+  }
+}
 
-  public async create(collection: string, options: Document): Promise<void> {
-    this.io[collection] = this.config(collection)(this.nabu);
+
+export class FileCollection extends ReadWriteCollection {
+  public constructor(
+    ns: TashmetCollectionNamespace,
+    private io: IO,
+  ) {
+    super(ns);
   }
 
-  public async drop(collection: string): Promise<void> {
-    delete this.io[collection];
-  }
-
-  public async *stream(collection: string, options?: StreamOptions): AsyncIterable<Document> {
+  public read(options: StreamOptions): AsyncIterable<Document> {
     const { documentIds, projection } = options || {};
-    const io = this.io[collection];
-    let cursor: AggregationCursor<Document>;
 
     if (documentIds) {
-      cursor = io.lookup(documentIds);
+      return this.io.lookup(documentIds);
     } else {
-      cursor = io.scan();
-    }
-
-    for await (const doc of cursor) {
-      yield doc;
+      return this.io.scan();
     }
   }
 
-  public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions) {
+  public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
     if (changes.length === 0) {
       return [];
     }
 
-    const dbChanges = changes.filter(c => c.ns.db === this.databaseName);
-
-    const collections = await this.nabu.aggregate(dbChanges, [
-      {$unwind: '$ns.coll'},
-      {$group: {_id: '$ns.coll'}},
-    ]).toArray();
-
-    const writeErrors: any[] = [];
-
-    for (const coll of collections.map(c => c._id)) {
-      const io = this.io[coll];
-
-      writeErrors.push(...await this.nabu
-        .aggregate(dbChanges, [{ $match: { 'ns.coll': coll } }, ...io.outputPipeline])
-        .toArray()
-      );
+    const stream = this.io.write(changes.filter(cs => cs.ns.db === this.ns.db && cs.ns.coll === this.ns.collection));
+    const writeErrors: WriteError[] = [];
+    for await (const doc of stream) {
+      writeErrors.push(doc);
     }
 
     return writeErrors;

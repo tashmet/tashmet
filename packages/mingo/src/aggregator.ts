@@ -1,5 +1,5 @@
-import { Namespace } from '@tashmet/tashmet';
-import { AbstractAggregator, AggregatorOptions, ChangeSet, DocumentAccess } from '@tashmet/engine';
+import { Namespace, TashmetCollectionNamespace } from '@tashmet/tashmet';
+import { AbstractAggregator, AggregatorOptions, ChangeSet, Store } from '@tashmet/engine';
 import { Logger } from '@tashmet/core';
 import { Document, Filter, FindOptions } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
@@ -21,7 +21,7 @@ export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
 }
 
 export class CollectionBuffers {
-  public constructor(private documentAccess: DocumentAccess) {}
+  public constructor(private store: Store) {}
   private buffers: Record<string, Document[]> = {};
 
   public async load(ns: Namespace, create: boolean = false): Promise<Document[]> {
@@ -29,7 +29,9 @@ export class CollectionBuffers {
       //await this.documentAccess.create(ns, {});
     //}
 
-    return this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.documentAccess.stream(ns, {}));
+    return this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.store
+      .getCollection(new TashmetCollectionNamespace(ns.db, ns.coll))
+      .read({}));
   }
 
   public get(ns: Namespace): Document[] {
@@ -44,12 +46,12 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
 
   public constructor(
     pipeline: Document[],
-    private documentAccess: DocumentAccess,
+    private store: Store,
     private options: AggregatorOptions,
     private logger: Logger)
   {
     super(cloneDeep(pipeline) as Document[]);
-    this.foreignBuffers = new CollectionBuffers(documentAccess);
+    this.foreignBuffers = new CollectionBuffers(store);
     this.aggregator = new Aggregator(this.pipeline, this.mingoOptions);
   }
 
@@ -116,7 +118,7 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
   protected async writeBuffers() {
     if (this.outNs) {
       const cs = new ChangeSet(this.foreignBuffers.get(this.outNs), this.outInit);
-      await this.documentAccess.write(cs.toChanges(this.outNs), {ordered: true});
+      await this.store.write(cs.toChanges(this.outNs), {ordered: true});
     }
   }
 }

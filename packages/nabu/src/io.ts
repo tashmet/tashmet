@@ -1,5 +1,6 @@
-import { AggregationCursor, ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import Nabu from '.';
+import { AggregatorFactory, WriteError } from '@tashmet/engine';
+import { arrayToGenerator } from '@tashmet/engine/dist/aggregation';
+import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import { ContentRule } from './content';
 
 export interface ScanOptions {
@@ -18,26 +19,32 @@ export interface IOConfig {
 
 export class IO {
   public constructor(
-    private nabu: Nabu,
+    private aggregatorFactory: AggregatorFactory,
     public readonly inputPipeline: Document[],
     public readonly outputPipeline: Document[],
     private scanPath: ScanPath,
     private lookupPath: (id: string) => string
   ) {}
 
-  public scan(options: ScanOptions = {}): AggregationCursor<Document> {
+  public scan(options: ScanOptions = {}): AsyncIterable<Document> {
     const scanPath = typeof this.scanPath === 'string' ? this.scanPath : this.scanPath(options);
 
-    return this.nabu.aggregate([{_id: scanPath}], this.inputPipeline);
+    return this.aggregate([{ _id: scanPath }], this.inputPipeline);
   }
 
-  public lookup(documentIds: string[]): AggregationCursor<Document> {
+  public lookup(documentIds: string[]): AsyncIterable<Document> {
     const input = documentIds.map(id => ({ _id: this.lookupPath(id) }));
 
-    return this.nabu.aggregate(input, this.inputPipeline);
+    return this.aggregate(input, this.inputPipeline);
   }
 
   public write(cs: ChangeStreamDocument[]) {
-    return this.nabu.aggregate(cs, this.outputPipeline);
+    return this.aggregate(cs, this.outputPipeline) as AsyncIterable<WriteError>;
+  }
+
+  private aggregate(input: Document[], pipeline: Document[]) {
+    return this.aggregatorFactory
+      .createAggregator(pipeline, {})
+      .stream<Document>(arrayToGenerator(input));
   }
 }

@@ -6,7 +6,7 @@ import * as mingo from 'mingo/core.js';
 import { Query } from 'mingo/query.js';
 import { assert, cloneDeep } from 'mingo/util.js';
 import { Iterator, Lazy } from 'mingo/lazy.js';
-import { AbstractAggregator, AggregatorFactory, DocumentAccess, op, PipelineOperator } from '@tashmet/engine';
+import { AbstractAggregator, AggregatorFactory, Store, op, PipelineOperator } from '@tashmet/engine';
 import { Container, Logger, provider } from '@tashmet/core';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
@@ -26,12 +26,12 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
   public constructor(
     pipeline: Document[],
     private pipelineOperators: Record<string, PipelineOperator<any>>,
-    documentAccess: DocumentAccess,
+    store: Store,
     options: any,
     logger: Logger,
     private streamOperators: string[] = defaultStreamOperators,
   ) {
-    super(pipeline, documentAccess, options, logger);
+    super(pipeline, store, options, logger);
   }
 
   public async *stream<TResult>(input: AsyncIterable<T>): AsyncGenerator<TResult> {
@@ -91,15 +91,15 @@ async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp
   key: AggregatorFactory,
 })
 export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
-  public constructor(documentAccess: DocumentAccess, logger: Logger) {
-    super(documentAccess, logger);
+  public constructor(store: Store, logger: Logger) {
+    super(store, logger);
     this.addPipelineOperator('$match', this.$match);
     this.addPipelineOperator('$skip', this.$skip);
     this.addPipelineOperator('$limit', this.$limit);
   }
 
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    return new StreamAggregator(pipeline, this.pipelineOps, this.documentAccess, options, this.logger);
+    return new StreamAggregator(pipeline, this.pipelineOps, this.store, options, this.logger);
   }
 
   @op.pipeline('$match')

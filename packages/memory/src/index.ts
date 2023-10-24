@@ -4,48 +4,63 @@ import {
   PluginConfigurator,
   BootstrapConfig,
   createContainer,
-  LogLevel
+  LogLevel,
+  Lookup,
+  Provider
 } from '@tashmet/core';
 import {
   AdminController,
   AggregationReadController,
   AggregationWriteController,
   AggregationEngine,
-  AtomicWriteCollection,
-  CollectionRegistry,
   QueryPlanner,
-  sequentialWrite,
-  DatabaseEngine,
-  Streamable,
   ValidatorFactory,
   ViewMap,
-  Writable,
-  WriteOptions,
   StreamOptions,
-  DocumentAccess,
-  StorageEngine
+  StorageEngine,
+  CommandRunner,
+  ReadWriteCollection,
+  CollectionFactory,
+  Store,
+  AtomicWriteCollection
 } from '@tashmet/engine';
 import {
-  ChangeStreamDocument,
   Document,
   Namespace,
+  TashmetCollectionNamespace,
 } from '@tashmet/tashmet';
 
 function hash(value: string | object): string {
   return typeof value === "string" ? value : JSON.stringify(value);
 }
 
-export class MemoryCollection implements AtomicWriteCollection {
+
+export class MemoryCollection extends AtomicWriteCollection {
   public indexes: Map<string, number> = new Map();
 
   public constructor(
-    public readonly name: string,
+    ns: TashmetCollectionNamespace,
     public documents: Document[] = [],
     public readonly rules: Document = {},
     private readonly validatorFact: ValidatorFactory | undefined,
   ) {
+    super(ns);
     for (let i = 0; i < documents.length; i++) {
       this.indexes.set(documents[i]._id, i);
+    }
+  }
+
+  public async* read(options: StreamOptions) {
+    if (options?.documentIds) {
+      for (const id of options.documentIds) {
+        if (this.exists(id)) {
+          yield this.documents[this.indexes.get(hash(id)) || 0];
+        }
+      }
+    } else {
+      for (const doc of this.documents) {
+        yield doc;
+      }
     }
   }
 
@@ -91,100 +106,43 @@ export class MemoryCollection implements AtomicWriteCollection {
   }
 }
 
-export class MemoryStorage implements CollectionRegistry, Streamable, Writable {
-  private collections: Record<string, MemoryCollection> = {};
+@provider({
+  inject: [Optional.of(ValidatorFactory)]
+})
+export class MemoryCollectionFactory extends CollectionFactory {
+  public constructor(public validatorFactory?: ValidatorFactory) { super(); }
 
-  public constructor(
-    public readonly databaseName: string,
-    collections: {[coll: string]: Document[]} = {},
-    private validatorFact: ValidatorFactory | undefined = undefined,
-  ) {
-    for (const collName in collections) {
-      this.collections[collName] = new MemoryCollection(collName, collections[collName], {}, validatorFact)
-    }
-  }
-
-  public async create(collection: string, {validator}: Document) {
-    if (!this.collections[collection]) {
-      this.collections[collection] = new MemoryCollection(collection, [], validator, this.validatorFact);
-    }
-  }
-
-  public async drop(collection: string): Promise<void> {
-    delete this.collections[collection];
-  }
-
-  public async *stream(collection: string, options?: StreamOptions): AsyncGenerator<Document> {
-    const coll = this.collections[collection];
-    if (coll) {
-      if (options?.documentIds) {
-        for (const id of options.documentIds) {
-          if (coll.exists(id)) {
-            yield coll.documents[coll.indexes.get(hash(id)) || 0];
-          }
-        }
-      } else {
-        for (const doc of coll.documents) {
-          yield doc;
-        }
-      }
-    } else {
-      throw Error(`Collection ${collection} does not exist`);
-    }
-  }
-
-  public async exists(collection: string, id: string): Promise<boolean> {
-    const coll = this.collections[collection];
-    return coll && coll.exists(id);
-  }
-
-  public async write(changes: ChangeStreamDocument[], {ordered}: WriteOptions) {
-    return sequentialWrite(this.collections, changes, ordered);
-  }
-
-  public resolve(collection: string): Document[] {
-    return this.collections[collection].documents;
+  public createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection {
+    return new MemoryCollection(ns, [], {}, this.validatorFactory);
   }
 }
 
 
-
-@provider({
-  inject: [AggregationEngine, DocumentAccess, Optional.of(ValidatorFactory)]
-})
+@provider()
 export default class Memory extends StorageEngine {
-  private engines: Record<string, DatabaseEngine> = {};
+  private commandRunner: CommandRunner;
 
   public constructor(
     private engine: AggregationEngine,
-    private documentAccess: DocumentAccess,
-    private validatorFact?: ValidatorFactory,
-  ) { super(); }
+    private store: Store,
+    collectionFactory: CollectionFactory,
+  ) {
+    super();
+    const views: ViewMap = {};
+    this.commandRunner = CommandRunner.fromControllers(
+      new AdminController(store, collectionFactory, views),
+      new AggregationReadController(this.engine, views),
+      new AggregationWriteController(store, this.engine)
+    );
+    this.store.on('change', doc => this.emit('change', doc));
+  }
 
   public static configure(config: Partial<BootstrapConfig>) {
     return new MemoryConfigurator(Memory, createContainer({logLevel: LogLevel.None, ...config}));
   }
 
-  public createDatabaseEngine(dbName: string): DatabaseEngine {
-    const storage = new MemoryStorage(dbName, undefined, this.validatorFact);
-    const views: ViewMap = {};
-    this.documentAccess.addStreamable(dbName, storage);
-    this.documentAccess.addWritable(dbName, storage);
-    this.documentAccess.addRegistry(dbName, storage);
-    return DatabaseEngine.fromControllers(dbName,
-      new AdminController(dbName, storage, views),
-      new AggregationReadController(dbName, this.engine, views),
-      new AggregationWriteController(dbName, storage, this.engine)
-    );
-  }
-
   public command(ns: Namespace, command: Document): Promise<Document> {
-    if (!this.engines[ns.db]) {
-      const store = this.createDatabaseEngine(ns.db);
-      store.on('change', change => this.emit('change', change));
-      this.engines[ns.db] = store;
-    }
-    return this.engines[ns.db].command(command);
+    return this.commandRunner.command(new TashmetCollectionNamespace(ns.db, ns.coll), command);
   }
 }
 
@@ -193,9 +151,11 @@ export class MemoryConfigurator extends PluginConfigurator<Memory> {
     this.container.register(Memory);
     this.container.register(AggregationEngine);
     this.container.register(QueryPlanner);
+    this.container.register(MemoryCollectionFactory);
+    this.container.register(Provider.ofResolver(CollectionFactory, Lookup.of(MemoryCollectionFactory)));
 
-    if (!this.container.isRegistered(DocumentAccess)) {
-      this.container.register(DocumentAccess);
+    if (!this.container.isRegistered(Store)) {
+      this.container.register(Store);
     }
   }
 }

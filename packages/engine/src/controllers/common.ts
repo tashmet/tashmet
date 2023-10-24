@@ -1,17 +1,17 @@
-import { Document } from '@tashmet/tashmet';
+import { Document, TashmetNamespace } from '@tashmet/tashmet';
 import { WriteCommand } from '../commands/write.js';
 import { CursorRegistry } from '../cursor.js';
-import { command, EventEmitter, Writable } from '../interfaces.js';
+import { command, EventEmitter } from '../interfaces.js';
+import { Store } from '../store.js';
 
 
 export abstract class AbstractReadController {
   public constructor(
-    protected db: string,
     protected cursors: CursorRegistry,
   ) {}
 
   @command('getMore')
-  public async getMore({getMore, collection, batchSize}: Document) {
+  public async getMore(ns: TashmetNamespace, {getMore, collection, batchSize}: Document) {
     const c = this.cursors.getCursor(getMore);
     if (!c) throw new Error('Invalid cursor');
 
@@ -19,7 +19,7 @@ export abstract class AbstractReadController {
       cursor: {
         nextBatch: await c.getBatch(batchSize) ,
         id: c.id,
-        ns: {db: this.db, coll: collection},
+        ns: {db: ns.db, coll: collection},
       },
       ok: 1,
     }
@@ -28,13 +28,13 @@ export abstract class AbstractReadController {
 
 export abstract class AbstractWriteController extends EventEmitter {
   public constructor(
-    protected writable: Writable
+    protected store: Store
   ) { super(); }
 
   protected async write(command: WriteCommand, ordered: boolean) {
     const changes = await command.execute();
 
-    const writeErrors = await this.writable.write(changes, {ordered});
+    const writeErrors = await this.store.write(changes, {ordered});
     const successfulChanges = changes.filter((c, i) => !writeErrors.find(
       err => ordered ? i >= err.index : i === err.index)
     );
@@ -56,7 +56,7 @@ export abstract class AbstractWriteController extends EventEmitter {
     }
   
     for (const c of successfulChanges) {
-      this.emit('change', c);
+      this.store.emit('change', c);
     }
 
     return res;

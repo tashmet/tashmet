@@ -3,6 +3,7 @@ import {
   Container,
   createContainer,
   LogLevel,
+  Lookup,
   PluginConfigurator,
   Provider,
   provider
@@ -11,7 +12,8 @@ import {
   AggregationCursor,
   Document,
   Namespace,
-  GlobalAggregationCursor
+  GlobalAggregationCursor,
+  TashmetCollectionNamespace
 } from '@tashmet/tashmet';
 import {
   AggregationEngine,
@@ -20,21 +22,23 @@ import {
   AggregationReadController,
   AggregationWriteController,
   QueryPlanner,
-  DatabaseEngine,
-  DocumentAccess,
+  Store,
   StorageEngine,
+  CollectionFactory,
+  ReadWriteCollection,
+  CommandRunner,
 } from '@tashmet/engine';
 import Json from '@tashmet/json';
 import Yaml from '@tashmet/yaml';
 import Fs from '@tashmet/fs';
-import Memory from '@tashmet/memory';
+import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
   FileAccess,
   NabuConfig,
   NabuDatabaseConfig,
 } from './interfaces.js';
 import { ContentRule } from './content.js';
-import { FileStorage } from './storage/fileStorage.js';
+import { FileCollectionFactory } from './storage/fileStorage.js';
 import { fs } from './io/fs.js';
 import { yaml } from './content/yaml.js';
 import { json } from './content/json.js';
@@ -43,26 +47,30 @@ export * from './interfaces.js';
 export { ContentRule };
 export { IO } from './io.js';
 
-
 @provider()
 export default class Nabu extends StorageEngine {
   public static fs = fs;
   public static json = json;
   public static yaml = yaml;
 
-  private databases: Record<string, DatabaseEngine> = {};
+  private commandRunner: CommandRunner;
 
   public constructor(
     private engine: AggregationEngine,
-    private documentAccess: DocumentAccess,
-    private config: NabuConfig,
-    private memory: Memory,
+    private store: Store,
+    collectionFactory: CollectionFactory,
   ) {
     super();
     const views: ViewMap = {};
-    this.databases['__tashmet'] = DatabaseEngine.fromControllers('__tashmet',
-      new AggregationReadController('__tashmet', engine, views),
+    this.commandRunner = CommandRunner.fromControllers(
+      new AdminController(store, collectionFactory, views),
+      new AggregationReadController(this.engine, views),
+      new AggregationWriteController(store, this.engine)
     );
+    this.store.on('change', doc => this.emit('change', doc));
+    //this.databases['__tashmet'] = DatabaseEngine.fromControllers('__tashmet',
+      //new AggregationReadController('__tashmet', engine, views),
+    //);
   }
 
   public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
@@ -70,23 +78,10 @@ export default class Nabu extends StorageEngine {
       .use(Fs({ watch: false }))
       .use(Json(config.json || {}))
       .use(Yaml(config.yaml || {}))
-      .provide(Memory);
   }
 
   public command(ns: Namespace, command: Document): Promise<Document> {
-    if (!this.databases[ns.db]) {
-      let store: DatabaseEngine;
-
-      if (ns.db in this.config.databases) {
-        store = this.createDatabaseEngine(ns.db);
-      } else {
-        store = this.memory.createDatabaseEngine(ns.db);
-      }
-      store.on('change', change => this.emit('change', change));
-      this.databases[ns.db] = store;
-    }
-
-    return this.databases[ns.db].command(command);
+    return this.commandRunner.command(new TashmetCollectionNamespace(ns.db, ns.coll), command);
   }
 
   public aggregate(collection: Document[], pipeline: Document[]): AggregationCursor<Document> {
@@ -101,21 +96,26 @@ export default class Nabu extends StorageEngine {
       ...pipeline
     ]);
   }
+}
 
-  public createDatabaseEngine(dbName: string): DatabaseEngine {
-    const config = this.config.databases[dbName];
-    const storage = new FileStorage(dbName, this, config);
+@provider({
+  inject: [FileCollectionFactory, MemoryCollectionFactory, NabuConfig]
+})
+export class NabuCollectionFactory extends CollectionFactory {
+  public constructor(
+    private file: FileCollectionFactory,
+    private memory: MemoryCollectionFactory,
+    private config: NabuConfig,
+  ) { super(); }
 
-    const views: ViewMap = {};
-    this.documentAccess.addStreamable(dbName, storage);
-    this.documentAccess.addWritable(dbName, storage);
-    return DatabaseEngine.fromControllers(dbName,
-      new AdminController(dbName, storage, views),
-      new AggregationReadController(dbName, this.engine, views),
-      new AggregationWriteController(dbName, storage, this.engine)
-    );
+  public createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection {
+    if (ns.db in this.config.databases) {
+      return this.file.createCollection(ns, options);
+    }
+    return this.memory.createCollection(ns, options);
   }
 }
+
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
   public config: NabuConfig = { databases: {}, json: {}, yaml: {} };
@@ -135,9 +135,13 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
     this.container.register(AggregationEngine);
     this.container.register(QueryPlanner);
     this.container.register(Provider.ofInstance(NabuConfig, this.config));
+    this.container.register(MemoryCollectionFactory);
+    this.container.register(FileCollectionFactory);
+    this.container.register(NabuCollectionFactory);
+    this.container.register(Provider.ofResolver(CollectionFactory, Lookup.of(NabuCollectionFactory)));
 
-    if (!this.container.isRegistered(DocumentAccess)) {
-      this.container.register(DocumentAccess);
+    if (!this.container.isRegistered(Store)) {
+      this.container.register(Store);
     }
   }
 }

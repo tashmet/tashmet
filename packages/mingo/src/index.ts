@@ -7,10 +7,11 @@ import {
   ChangeSet,
   Comparator,
   ValidatorFactory,
-  DocumentAccess,
+  //DocumentAccess,
   AggregatorOptions,
   ExpressionOperator,
-  PipelineOperator
+  PipelineOperator,
+  Store
 } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator } from './aggregator.js';
@@ -50,12 +51,12 @@ export class MingoAggregatorFactory extends AggregatorFactory {
   protected pipelineOps: Record<string, PipelineOperator<any>> = {};
 
   public constructor(
-    protected documentAccess: DocumentAccess,
+    protected store: Store,
     protected logger: Logger
   ) { super(); }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
-    return new BufferAggregator(pipeline, this.documentAccess, options, this.logger);
+    return new BufferAggregator(pipeline, this.store, options, this.logger);
   }
 
   public addExpressionOperator(name: string, op: ExpressionOperator<any>) {

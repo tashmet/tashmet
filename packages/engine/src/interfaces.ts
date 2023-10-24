@@ -1,4 +1,4 @@
-import { ChangeStreamDocument, Document, Namespace, TashmetProxy } from '@tashmet/tashmet';
+import { ChangeStreamDocument, Document, Namespace, TashmetCollectionNamespace, TashmetNamespace, TashmetProxy } from '@tashmet/tashmet';
 import { Annotation, methodDecorator } from '@tashmet/core';
 import ObjectId from 'bson-objectid';
 import ev from "eventemitter3";
@@ -17,7 +17,7 @@ export class CommandAnnotation extends Annotation {
 
 
 export const command = (name: string) =>
-  methodDecorator(({propertyKey}) => new CommandAnnotation(name, propertyKey));
+  methodDecorator<CommandHandler>(({propertyKey}) => new CommandAnnotation(name, propertyKey));
 
 export class OperatorAnnotation extends Annotation {
   public constructor(
@@ -79,6 +79,7 @@ export interface CollationOptions {
 }
 
 export type DatabaseCommandHandler = (command: Document) => Promise<Document>;
+export type CommandHandler = (ns: TashmetNamespace, command: Document) => Promise<Document>;
 
 export interface WriteError {
   errMsg: string;
@@ -110,12 +111,6 @@ export interface View {
 
 export type ViewMap = Record<string, View>;
 
-export interface CollectionRegistry {
-  create(name: string, options: Document): Promise<void>;
-
-  drop(name: string): Promise<void>;
-}
-
 export interface StorageEngine {
   command(ns: Namespace, command: Document): Promise<Document>;
 
@@ -145,29 +140,19 @@ export class StorageEngineProxy extends TashmetProxy {
   }
 }
 
-export interface DatabaseEngine {
-  readonly databaseName: string;
-
-  command(command: Document): Promise<Document>;
-
-  on(event: 'change', listener: (change: Document) => void): this;
-
-  emit(event: 'change', change: Document): boolean;
-}
-
-export class DatabaseEngine extends EventEmitter implements DatabaseEngine {
+export class CommandRunner extends EventEmitter {
   private commandNames = new Set<string>();
 
-  public static fromControllers(databaseName: string, ...controllers: any[]) {
-    const commands: Record<string, DatabaseCommandHandler> = {};
+  public static fromControllers(...controllers: any[]) {
+    const commands: Record<string, CommandHandler> = {};
 
     for (const c of controllers) {
       for (const anno of CommandAnnotation.onClass(c.constructor, true)) {
-        commands[anno.name] = cmd => c[anno.propertyKey](cmd);
+        commands[anno.name] = (ns, cmd) => c[anno.propertyKey](ns, cmd);
       }
     }
 
-    const engine = new DatabaseEngine(databaseName, commands);
+    const engine = new CommandRunner(commands);
 
     for (const c of controllers) {
       if (c instanceof EventEmitter) {
@@ -179,19 +164,18 @@ export class DatabaseEngine extends EventEmitter implements DatabaseEngine {
   }
 
   public constructor(
-    public readonly databaseName: string,
-    private commands: Record<string, DatabaseCommandHandler> = {}
+    private commands: Record<string, CommandHandler> = {}
   ) {
     super();
     this.commandNames = new Set(Object.keys(commands));
   }
 
-  public command(command: Document): Promise<Document> {
-    const op = DatabaseEngine.operation(command);
+  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
+    const op = CommandRunner.operation(command);
     if (!this.commandNames.has(op)) {
       throw new Error(`Command ${op} is not supported`);
     }
-    return this.commands[`${op}`](command);
+    return this.commands[`${op}`](ns, command);
   }
 
   public static operation(command: Document): string {
@@ -199,8 +183,22 @@ export class DatabaseEngine extends EventEmitter implements DatabaseEngine {
   }
 }
 
-export interface DatabaseEngineFactory {
-  createDatabaseEngine(dbName: string): DatabaseEngine;
+export interface Readable {
+  read(options: StreamOptions): AsyncIterable<Document>;
+}
+
+export abstract class ReadWriteCollection implements Readable, Writable {
+  public constructor(
+    public readonly ns: TashmetCollectionNamespace
+  ) {}
+
+  public abstract read(options: StreamOptions): AsyncIterable<Document>;
+
+  public abstract write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]>;
+}
+
+export abstract class CollectionFactory {
+  public abstract createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection;
 }
 
 export interface AggregatorOptions {
@@ -259,8 +257,6 @@ export type Validator = (doc: Document) => Promise<Document>;
 export abstract class ValidatorFactory {
   public abstract createValidator(rules: Document): Validator;
 }
-
-export type CollectionMap<T> = Record<string, T>;
 
 export interface Comparator {
   /**
