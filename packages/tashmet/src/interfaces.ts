@@ -9,6 +9,8 @@ export const nsToString = (ns: Namespace): string => `${ns.db}.${ns.coll}`;
 export abstract class TashmetProxy extends EventEmitter {
   public abstract connect(): void;
 
+  public destroy() {}
+
   public abstract command(ns: Namespace, command: Document): Promise<Document>;
 }
 

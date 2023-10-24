@@ -26,6 +26,10 @@ export default class ServerProxy extends TashmetProxy {
     return this;
   }
 
+  public destroy(): void {
+    this.socket.disconnect();
+  }
+
   public async command(ns: Namespace, command: Document): Promise<Document> {
     return new Promise<Document>(resolve => {
       this.socket.emit(`${ns.db}.${ns.coll}`, command, (res: Document) => {

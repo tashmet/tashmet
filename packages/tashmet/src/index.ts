@@ -36,6 +36,10 @@ export default class Tashmet {
     return this;
   }
 
+  public close() {
+    this.proxy.destroy();
+  }
+
   public db(name: string): Database {
     return new Database(name, this.proxy);
   }
