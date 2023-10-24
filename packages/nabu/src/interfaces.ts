@@ -1,4 +1,4 @@
-import { Document } from '@tashmet/tashmet';
+import { Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { ContentRule } from './content.js';
@@ -37,10 +37,12 @@ export interface FileStorageConfig {
   lookup: (id: string) => string;
 }
 
-export type NabuDatabaseConfig = (coll: string) => (aggregatorFactory: AggregatorFactory) => IO;
+export type NabuIOConfig = (ns: TashmetCollectionNamespace) => (aggregatorFactory: AggregatorFactory) => IO;
 
 export interface NabuConfig {
-  databases: Record<string, NabuDatabaseConfig>;
+  io: Record<string, NabuIOConfig>;
+
+  options: Document;
 
   json: JsonOptions;
 

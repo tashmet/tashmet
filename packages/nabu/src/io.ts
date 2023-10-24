@@ -1,5 +1,4 @@
-import { AggregatorFactory, WriteError } from '@tashmet/engine';
-import { arrayToGenerator } from '@tashmet/engine/dist/aggregation';
+import { AggregatorFactory, WriteError, arrayToGenerator } from '@tashmet/engine';
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import { ContentRule } from './content';
 

@@ -7,7 +7,7 @@ import {
   WriteError,
   WriteOptions
 } from '@tashmet/engine';
-import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
+import { ChangeStreamDocument, CreateCollectionOptions, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { NabuConfig } from '../interfaces.js';
 import { IO } from '../io.js';
 
@@ -18,8 +18,10 @@ export class FileCollectionFactory extends CollectionFactory {
     private config: NabuConfig,
   ) { super(); }
 
-  public createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection {
-    return new FileCollection(ns, this.config.databases[ns.db](ns.collection)(this.aggregatorFactory));
+  public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
+    const io = options.storageEngine?.io;
+
+    return new FileCollection(ns, this.config.io[io](ns)(this.aggregatorFactory));
   }
 }
 

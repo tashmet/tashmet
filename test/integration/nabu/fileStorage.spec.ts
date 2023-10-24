@@ -27,20 +27,16 @@ describe.only('fileStorage', () => {
 
   before(async () => {
     const store = Nabu
-      .configure({databases: {}})
+      .configure({
+        options: { io: 'json'}
+      })
+      .io('json', ns => Nabu.jsonInDirectory(`test/${ns.db}/${ns.collection}`))
       .use(mingo())
-      .database('e2e', coll => Nabu.fs({
-        scan: `test/e2e/${coll}/*.json`,
-        lookup: id => `test/e2e/${coll}/${id}.json`,
-        content: Nabu.json({
-          merge: { _id: { $basename: ['$path', { $extname: '$path' }] } },
-        }),
-      }))
       .bootstrap();
 
     const client = await Tashmet.connect(store.proxy());
 
-    col = client.db('e2e').collection('testCollection');
+    col = client.db('e2e').createCollection('testCollection', { storageEngine: { io: 'json' } });
     //orders = client.db('e2e').collection('orders');
     //inventory = client.db('e2e').collection('inventory');
   });

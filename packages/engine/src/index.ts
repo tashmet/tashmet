@@ -3,10 +3,9 @@ import { ReadWriteCollection, WriteError, WriteOptions } from './interfaces.js';
 
 export * from './interfaces.js';
 
-export { AggregationEngine } from './aggregation.js';
+export { AggregationEngine, QueryPlanner, arrayToGenerator } from './aggregation.js';
 export { QueryEngine, Queryable } from './query.js';
 export { Cursor, CursorRegistry } from './cursor.js';
-export { QueryPlanner } from './aggregation.js';
 export { Store } from './store.js';
 export { ChangeSet, idSet } from './changeSet.js';
 
