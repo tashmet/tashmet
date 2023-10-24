@@ -37,7 +37,7 @@ export interface FileStorageConfig {
   lookup: (id: string) => string;
 }
 
-export type NabuIOConfig = (ns: TashmetCollectionNamespace) => (aggregatorFactory: AggregatorFactory) => IO;
+export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => (aggregatorFactory: AggregatorFactory) => IO;
 
 export interface NabuConfig {
   io: Record<string, NabuIOConfig>;

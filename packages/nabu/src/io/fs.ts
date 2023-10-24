@@ -1,5 +1,6 @@
 import { AggregatorFactory } from '@tashmet/engine';
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
+import { ContentRule } from '../content.js';
 import { IO, IOConfig } from '../io.js';
 
 
@@ -59,4 +60,12 @@ export function fs({lookup, scan, content}: IOConfig): (aggregatorFactory: Aggre
   ]
 
   return (aggregatorFactory: AggregatorFactory) => new IO(aggregatorFactory, inputPipeline, outputPipeline, scan, lookup);
+}
+
+export function contentInDirectory(path: string, extension: string, content: ContentRule) {
+  return fs({
+    scan: `${path}/*${extension}`,
+    lookup: id => `${path}/${id}${extension}`,
+    content,
+  });
 }

@@ -8,17 +8,12 @@ const store = Nabu
   .configure({
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
-    options: { io: 'blog' }
   })
   .use(mingo())
-  .io('markdown', ns => Nabu.fs({
-    scan: `./${ns.db}/${ns.collection}/*.md`,
-    lookup: id => `./${ns.db}/${ns.collection}/${id}.md`,
-    content: Nabu.yaml({
-      frontMatter: true,
-      contentKey: 'articleBody',
-      merge: { _id: { $basename: ['$path', { $extname: '$path' } ] } },
-    }),
+  .io('md+yaml', (ns, options) => Nabu.yamlInDirectory(`./${ns.db}/${ns.collection}`, {
+    extension: '.md',
+    frontMatter: true,
+    contentKey: options.contentKey || 'content',
   }))
   .bootstrap()
 

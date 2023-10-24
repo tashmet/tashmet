@@ -1,6 +1,6 @@
 import { Document } from "@tashmet/tashmet";
 import { ContentRule } from "../content.js";
-
+import { contentInDirectory, fs } from '../io/fs.js';
 
 export interface YamlContentRule {
   frontMatter?: boolean;
@@ -30,3 +30,13 @@ export function yaml(config: YamlContentRule): ContentRule {
     .assign(construct);
 }
 
+export interface YamlInDirectoryOptions extends YamlContentRule {
+  extension?: string;
+}
+
+export function yamlInDirectory(path: string, options?: YamlInDirectoryOptions) {
+  const merge = { _id: { $basename: ['$path', { $extname: '$path' }] } };
+  const { extension, ...yamlConfig } = { merge, ...options };
+
+  return contentInDirectory(path, options?.extension || '.yaml', yaml(yamlConfig));
+}

@@ -36,7 +36,7 @@ describe.only('fileStorage', () => {
 
     const client = await Tashmet.connect(store.proxy());
 
-    col = client.db('e2e').createCollection('testCollection', { storageEngine: { io: 'json' } });
+    col = client.db('e2e').createCollection('testCollection');
     //orders = client.db('e2e').collection('orders');
     //inventory = client.db('e2e').collection('inventory');
   });
