@@ -1,85 +1,17 @@
-import { ChangeStreamDocument, Document, Namespace, TashmetCollectionNamespace, TashmetNamespace, TashmetProxy } from '@tashmet/tashmet';
-import { Annotation, methodDecorator } from '@tashmet/core';
-import ObjectId from 'bson-objectid';
+import {
+  ChangeStreamDocument,
+  CollationOptions,
+  Document,
+  Namespace,
+  TashmetCollectionNamespace,
+  TashmetProxy,
+} from '@tashmet/tashmet';
 import ev from "eventemitter3";
 import { QueryAnalysis } from './aggregation';
 import { ChangeSet } from './changeSet';
+import { ExpressionOperator, OperatorAnnotation, PipelineOperator } from './operator';
 
 export const { EventEmitter } = ev;
-
-
-export class CommandAnnotation extends Annotation {
-  public constructor(
-    public readonly name: string,
-    public readonly propertyKey: string
-  ) { super(); }
-}
-
-
-export const command = (name: string) =>
-  methodDecorator<CommandHandler>(({propertyKey}) => new CommandAnnotation(name, propertyKey));
-
-export class OperatorAnnotation extends Annotation {
-  public constructor(
-    public readonly name: string,
-    public readonly propertyKey: string
-  ) { super(); }
-
-  public register(instance: any, aggFact: AggregatorFactory) {}
-}
-
-export class PipelineOperatorAnnotation extends OperatorAnnotation {
-  public register(instance: any, aggFact: AggregatorFactory): void {
-    aggFact.addPipelineOperator(this.name, (...args: any[]) => instance[this.propertyKey](...args));
-  }
-}
-
-export class ExpressionOperatorAnnotation extends OperatorAnnotation {
-  public register(instance: any, aggFact: AggregatorFactory): void {
-    aggFact.addExpressionOperator(this.name, (...args: any[]) => instance[this.propertyKey](...args));
-  }
-}
-
-export const op = {
-  pipeline: (name: string) =>
-    methodDecorator<PipelineOperator<any>>(({propertyKey}) => new PipelineOperatorAnnotation(name, propertyKey)),
-
-  expression: (name: string) =>
-    methodDecorator<ExpressionOperator<any>>(({propertyKey}) => new ExpressionOperatorAnnotation(name, propertyKey)),
-}
-
-
-export type ExpressionOperator<T> = (args: T, resolve: (path: string) => any) => any;
-export type PipelineOperator<T> = (
-  it: AsyncIterable<Document>,
-  args: T,
-  resolve: (doc: Document, path: string) => any
-) => AsyncIterable<Document>;
-
-/** Given an object shaped type, return the type of the _id field or default to ObjectId @public */
-export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user has defined a type for _id
-  ? // eslint-disable-next-line @typescript-eslint/ban-types
-    {} extends IdType // TODO(NODE-3285): Improve type readability
-    ? // eslint-disable-next-line @typescript-eslint/ban-types
-      Exclude<IdType, {}>
-    : unknown extends IdType
-    ? ObjectId
-    : IdType
-  : ObjectId; // user has not defined _id on schema
-
-export interface CollationOptions {
-  readonly locale: string;
-  readonly caseLevel?: boolean;
-  readonly caseFirst?: string;
-  readonly strength?: number;
-  readonly numericOrdering?: boolean;
-  readonly alternate?: string;
-  readonly maxVariable?: string;
-  readonly backwards?: boolean;
-}
-
-export type DatabaseCommandHandler = (command: Document) => Promise<Document>;
-export type CommandHandler = (ns: TashmetNamespace, command: Document) => Promise<Document>;
 
 export interface WriteError {
   errMsg: string;
@@ -90,14 +22,14 @@ export interface WriteOptions {
   ordered: boolean;
 }
 
-export interface StreamOptions {
+export interface ReadOptions {
   documentIds?: string[];
 
   projection?: Document;
 }
 
-export interface Streamable {
-  stream(collection: string, options?: StreamOptions): AsyncIterable<Document>;
+export interface Readable {
+  read(options?: ReadOptions): AsyncIterable<Document>;
 }
 
 export interface Writable {
@@ -140,59 +72,12 @@ export class StorageEngineProxy extends TashmetProxy {
   }
 }
 
-export class CommandRunner extends EventEmitter {
-  private commandNames = new Set<string>();
-
-  public static fromControllers(...controllers: any[]) {
-    const commands: Record<string, CommandHandler> = {};
-
-    for (const c of controllers) {
-      for (const anno of CommandAnnotation.onClass(c.constructor, true)) {
-        commands[anno.name] = (ns, cmd) => c[anno.propertyKey](ns, cmd);
-      }
-    }
-
-    const engine = new CommandRunner(commands);
-
-    for (const c of controllers) {
-      if (c instanceof EventEmitter) {
-        c.on('change', change => engine.emit('change', change))
-      }
-    }
-
-    return engine;
-  }
-
-  public constructor(
-    private commands: Record<string, CommandHandler> = {}
-  ) {
-    super();
-    this.commandNames = new Set(Object.keys(commands));
-  }
-
-  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
-    const op = CommandRunner.operation(command);
-    if (!this.commandNames.has(op)) {
-      throw new Error(`Command ${op} is not supported`);
-    }
-    return this.commands[`${op}`](ns, command);
-  }
-
-  public static operation(command: Document): string {
-    return Object.keys(command)[0];
-  }
-}
-
-export interface Readable {
-  read(options: StreamOptions): AsyncIterable<Document>;
-}
-
 export abstract class ReadWriteCollection implements Readable, Writable {
   public constructor(
     public readonly ns: TashmetCollectionNamespace
   ) {}
 
-  public abstract read(options: StreamOptions): AsyncIterable<Document>;
+  public abstract read(options?: ReadOptions): AsyncIterable<Document>;
 
   public abstract write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]>;
 }
@@ -215,27 +100,13 @@ export interface AggregatorFactory {
   addPipelineOperator(name: string, op: PipelineOperator<any>): void;
 }
 
-export interface OperatorConfig {
-  name: string;
-}
-
-export type Operator<TExpr> = (it: AsyncIterable<Document>, expr: TExpr) => AsyncIterable<Document>;
 
 export abstract class AggregatorFactory implements AggregatorFactory {
-  protected operators: Record<string, Operator<any>> = {};
-  //protected exprOps: Record<string, ExpressionOperator<any>> = {};
-  //protected pielineOps: Record<string, PipelineOperator<any>> = {};
-
   public addOperatorController(controller: any) {
     for (const op of OperatorAnnotation.onClass(controller.constructor, true)) {
-      //this.operators[op.name] = (it, expr) => controller[op.propertyKey](it, expr);
       op.register(controller, this);
     }
   }
-
-  //public addExpressionOperator(name: string, op: ExpressionOperator<any>) {
-    //this.exprOps[name] = op;
-  //}
 };
 
 export abstract class AbstractAggregator<T extends Document = Document> {

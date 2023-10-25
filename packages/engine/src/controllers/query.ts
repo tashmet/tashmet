@@ -2,7 +2,7 @@ import { Document, TashmetNamespace } from '@tashmet/tashmet';
 import { QueryDeleteCommand } from '../commands/delete.js';
 import { InsertCommand } from '../commands/insert.js';
 import { QueryUpdateCommand } from '../commands/update.js';
-import { command } from '../interfaces.js';
+import { command } from '../command.js';
 import { QueryEngine } from '../query.js';
 import { Store } from '../store.js';
 import { AbstractReadController, AbstractWriteController } from './common.js';

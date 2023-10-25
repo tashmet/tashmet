@@ -1,6 +1,5 @@
-import { Document } from "@tashmet/tashmet";
+import { CollationOptions, Document } from "@tashmet/tashmet";
 import { Cursor, CursorRegistry } from "./cursor.js";
-import { CollationOptions } from "./interfaces.js";
 
 export class QueryEngine extends CursorRegistry {
   public constructor(private queryable: Queryable) { super(); }

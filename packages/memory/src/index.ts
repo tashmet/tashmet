@@ -16,7 +16,7 @@ import {
   QueryPlanner,
   ValidatorFactory,
   ViewMap,
-  StreamOptions,
+  ReadOptions,
   StorageEngine,
   CommandRunner,
   ReadWriteCollection,
@@ -50,7 +50,7 @@ export class MemoryCollection extends AtomicWriteCollection {
     }
   }
 
-  public async* read(options: StreamOptions) {
+  public async* read(options: ReadOptions) {
     if (options?.documentIds) {
       for (const id of options.documentIds) {
         if (this.exists(id)) {

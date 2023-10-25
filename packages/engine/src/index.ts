@@ -4,10 +4,12 @@ import { ReadWriteCollection, WriteError, WriteOptions } from './interfaces.js';
 export * from './interfaces.js';
 
 export { AggregationEngine, QueryPlanner, arrayToGenerator } from './aggregation.js';
+export { command, CommandRunner } from './command.js';
 export { QueryEngine, Queryable } from './query.js';
 export { Cursor, CursorRegistry } from './cursor.js';
 export { Store } from './store.js';
 export { ChangeSet, idSet } from './changeSet.js';
+export { op, ExpressionOperator, PipelineOperator } from './operator.js';
 
 export { AggregationReadController, AggregationWriteController } from './controllers/aggregate.js';
 export { AdminController } from './controllers/admin.js';

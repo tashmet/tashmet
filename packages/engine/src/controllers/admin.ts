@@ -1,13 +1,14 @@
 import { Document, TashmetNamespace } from '@tashmet/tashmet';
-import { CollectionFactory, command, EventEmitter, ViewMap } from '../interfaces.js';
+import { command } from '../command.js';
+import { CollectionFactory, ViewMap } from '../interfaces.js';
 import { Store } from '../store.js';
 
-export class AdminController extends EventEmitter {
+export class AdminController {
   public constructor(
     protected store: Store,
     protected collectionFactory: CollectionFactory,
     protected views: ViewMap | undefined,
-  ) { super(); }
+  ) {}
 
   @command('create')
   public async create(ns: TashmetNamespace, {create: name, viewOn, pipeline, ...options}: Document) {

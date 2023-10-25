@@ -3,7 +3,7 @@ import {
   AggregatorFactory,
   CollectionFactory,
   ReadWriteCollection,
-  StreamOptions,
+  ReadOptions,
   WriteError,
   WriteOptions
 } from '@tashmet/engine';
@@ -35,7 +35,7 @@ export class FileCollection extends ReadWriteCollection {
     super(ns);
   }
 
-  public read(options: StreamOptions): AsyncIterable<Document> {
+  public read(options: ReadOptions = {}): AsyncIterable<Document> {
     const { documentIds, projection } = options || {};
 
     if (documentIds) {

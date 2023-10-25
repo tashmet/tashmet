@@ -1,6 +1,5 @@
-import { ChangeStreamDocument, Document } from "@tashmet/tashmet";
+import { ChangeStreamDocument, CollationOptions, Document } from "@tashmet/tashmet";
 import { AggregationEngine } from '../aggregation.js';
-import { CollationOptions } from '../interfaces.js';
 import { InsertCommand } from './insert.js';
 import { WriteCommand, makeWriteChange } from './write.js';
 import { QueryEngine } from '../query.js';

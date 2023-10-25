@@ -44,7 +44,7 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
       const op = operatorKeys[0];
 
       if (op in this.pipelineOperators) {
-        output = this.pipelineOperators[op](output, operator[op], (doc, path) => mingo.computeValue(doc, path)) as AsyncIterable<T>;
+        output = this.pipelineOperators[op](output as AsyncIterable<T>, operator[op], (doc, path) => mingo.computeValue(doc, path)) as AsyncIterable<any>;
       } else {
         const call = getOperator(OperatorType.PIPELINE, op);
         assert(
@@ -93,9 +93,7 @@ async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp
 export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
   public constructor(store: Store, logger: Logger) {
     super(store, logger);
-    this.addPipelineOperator('$match', this.$match);
-    this.addPipelineOperator('$skip', this.$skip);
-    this.addPipelineOperator('$limit', this.$limit);
+    this.addOperatorController(this);
   }
 
   public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
