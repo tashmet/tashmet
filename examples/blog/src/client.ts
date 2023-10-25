@@ -12,7 +12,11 @@ Tashmet
       }
     });
 
-    for await (const doc of posts.find({})) {
+    const cursor = posts.aggregate([
+      { $set: { html: { $markdownToHtml: '$articleBody' } } }
+    ]);
+
+    for await (const doc of cursor) {
       console.log(doc);
     }
 
