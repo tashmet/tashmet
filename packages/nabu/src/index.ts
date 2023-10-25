@@ -40,9 +40,8 @@ import {
 } from './interfaces.js';
 import { ContentRule } from './content.js';
 import { FileCollectionFactory } from './storage/fileStorage.js';
-import { fs } from './io/fs.js';
-import { yaml, yamlInDirectory } from './io/yaml.js';
-import { json, jsonInDirectory } from './io/json.js';
+import { YamlContentRule, YamlIORule } from './io/yaml.js';
+import { JsonContentRule, JsonIORule } from './io/json.js';
 
 export * from './interfaces.js';
 export { ContentRule };
@@ -51,11 +50,13 @@ export { IO } from './io.js';
 
 @provider()
 export default class Nabu extends StorageEngine {
-  public static fs = fs;
-  public static json = json;
-  public static jsonInDirectory = jsonInDirectory;
-  public static yaml = yaml;
-  public static yamlInDirectory = yamlInDirectory;
+  public static json(config: JsonContentRule = {}) {
+    return new JsonIORule(config);
+  }
+
+  public static yaml(config: YamlContentRule = {}) {
+    return new YamlIORule(config);
+  }
 
   private commandRunner: CommandRunner;
 
@@ -113,7 +114,7 @@ export class NabuCollectionFactory extends CollectionFactory {
   ) { super(); }
 
   public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
-    const mergedOptions = {...options, storageEngine: options.storageEngine || this.config.options };
+    const mergedOptions = {...options, storageEngine: options.storageEngine || { io: this.config.defaultIO } };
 
     if (mergedOptions.storageEngine.io === 'memory') {
       return this.memory.createCollection(ns, mergedOptions);
@@ -124,7 +125,7 @@ export class NabuCollectionFactory extends CollectionFactory {
 
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
-  public config: NabuConfig = { io: {}, options: { io: 'memory' }, json: {}, yaml: {} };
+  public config: NabuConfig = { io: {}, defaultIO: 'memory', json: {}, yaml: {} };
 
   public constructor(container: Container, config: Partial<NabuConfig>) {
     super(Nabu, container);

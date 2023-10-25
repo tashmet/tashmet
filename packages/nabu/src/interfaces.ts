@@ -2,7 +2,7 @@ import { Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { ContentRule } from './content.js';
-import { IO } from './io.js';
+import { IO, IOFactory } from './io.js';
 import { AggregatorFactory } from '@tashmet/engine';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -37,12 +37,12 @@ export interface FileStorageConfig {
   lookup: (id: string) => string;
 }
 
-export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => (aggregatorFactory: AggregatorFactory) => IO;
+export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => IOFactory;
 
 export interface NabuConfig {
   io: Record<string, NabuIOConfig>;
 
-  options: Document;
+  defaultIO: string;
 
   json: JsonOptions;
 

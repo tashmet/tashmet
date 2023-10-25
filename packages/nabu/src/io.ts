@@ -47,3 +47,9 @@ export class IO {
       .stream<Document>(arrayToGenerator(input));
   }
 }
+
+export abstract class IOFactory {
+  public constructor(protected config: IOConfig) {}
+
+  public abstract createIO(aggregatorFactory: AggregatorFactory): IO;
+}

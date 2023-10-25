@@ -1,32 +1,29 @@
 import { Document } from "@tashmet/tashmet";
 import { ContentRule } from "../content.js";
-import { contentInDirectory } from './fs.js';
+import { ContentRuleOptions, IORule } from "./content.js";
 
-export interface JsonContentRule {
+export interface JsonContentRule extends ContentRuleOptions {
   merge?: Document;
 
   construct?: Document;
 }
 
-export function json(config: JsonContentRule): ContentRule {
-  const def: Required<JsonContentRule> = {
-    merge: { _id: '$path' },
-    construct: {},
+export class JsonIORule extends IORule<JsonContentRule> {
+  public constructor(config: JsonContentRule = {}) { super(config); }
+
+  public directory(path: string, extension: string = '.json') {
+    return super.directory(path, extension);
   }
-  const { merge, construct } = { ...def, ...config };
 
-  return ContentRule
-    .fromRootReplace({ $jsonToObject: '$content' }, { $objectToJson: '$content' }, merge)
-    .assign(construct);
-}
+  protected contentRule(config: JsonContentRule): ContentRule {
+    const def: Required<JsonContentRule> = {
+      merge: { _id: '$path' },
+      construct: {},
+    }
+    const { merge, construct } = { ...def, ...config };
 
-export interface JsonInDirectoryOptions extends JsonContentRule {
-  extension?: string;
-}
-
-export function jsonInDirectory(path: string, options: JsonInDirectoryOptions = {}) {
-  const merge = { _id: { $basename: ['$path', { $extname: '$path' }] } };
-  const { extension, ...jsonConfig } = { merge, ...options };
-
-  return contentInDirectory(path, options?.extension || '.json', json(jsonConfig));
+    return ContentRule
+      .fromRootReplace({ $jsonToObject: '$content' }, { $objectToJson: '$content' }, merge)
+      .assign(construct);
+  }
 }

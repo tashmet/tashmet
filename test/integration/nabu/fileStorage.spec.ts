@@ -28,9 +28,12 @@ describe.only('fileStorage', () => {
   before(async () => {
     const store = Nabu
       .configure({
-        options: { io: 'json'}
+        defaultIO: 'json'
       })
-      .io('json', ns => Nabu.jsonInDirectory(`test/${ns.db}/${ns.collection}`))
+      .io('json', ns => Nabu
+        .json()
+        .directory(`test/${ns.db}/${ns.collection}`)
+      )
       .use(mingo())
       .bootstrap();
 

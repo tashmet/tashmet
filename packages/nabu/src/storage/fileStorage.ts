@@ -19,9 +19,10 @@ export class FileCollectionFactory extends CollectionFactory {
   ) { super(); }
 
   public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
-    const io = options.storageEngine?.io;
+    const ioName = options.storageEngine?.io;
+    const ioFactory = this.config.io[ioName](ns, options.storageEngine || {});
 
-    return new FileCollection(ns, this.config.io[io](ns, options.storageEngine || {})(this.aggregatorFactory));
+    return new FileCollection(ns, ioFactory.createIO(this.aggregatorFactory));
   }
 }
 
