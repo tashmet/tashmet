@@ -1,35 +1,36 @@
-import { Container, PluginConfigurator } from '@tashmet/core'
-import { AggregatorFactory, ExpressionOperator } from '@tashmet/engine'
+import { Container, PluginConfigurator, provider } from '@tashmet/core'
+import { AggregatorFactory, op } from '@tashmet/engine'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import {unified} from 'unified'
 
-export const $markdownToObject: ExpressionOperator<string> = (args, resolve) => {
-  return unified()
-    .use(remarkParse)
-    .parse(resolve(args));
-}
-
-export const $markdownToHtml: ExpressionOperator<string> = (args, resolve) => {
-  return unified()
-    .use(remarkParse)
-    .use(remarkRehype)
-    .use(rehypeSanitize)
-    .use(rehypeStringify)
-    .processSync(resolve(args)).value;
-}
-
+@provider()
 export class Remark {
+  @op.expression('$markdownToObject')
+  public markdownToObject(expr: string, resolve: (expr: any) => any) {
+    return unified()
+      .use(remarkParse)
+      .parse(resolve(expr));
+  }
+
+  @op.expression('$markdownToHtml')
+  public markdownToHtml(expr: string, resolve: (expr: any) => any) {
+    return unified()
+      .use(remarkParse)
+      .use(remarkRehype)
+      .use(rehypeSanitize)
+      .use(rehypeStringify)
+      .processSync(resolve(expr)).value;
+  }
 }
 
 export class RemarkConfigurator extends PluginConfigurator<Remark> {
-  public load() {
-    const aggFact = this.container.resolve(AggregatorFactory);
-
-    aggFact.addExpressionOperator('$markdownToObject', $markdownToObject);
-    aggFact.addExpressionOperator('$markdownToHtml', $markdownToHtml);
+  protected load() {
+    this.container
+      .resolve(AggregatorFactory)
+      .addOperatorController(this.container.resolve(Remark));
   }
 }
 

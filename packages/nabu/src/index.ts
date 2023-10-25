@@ -32,6 +32,7 @@ import {
 import Json from '@tashmet/json';
 import Yaml from '@tashmet/yaml';
 import Fs from '@tashmet/fs';
+import Markdown from '@tashmet/markdown';
 import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
   FileAccess,
@@ -83,6 +84,7 @@ export default class Nabu extends StorageEngine {
       .use(Fs({ watch: false }))
       .use(Json(config.json || {}))
       .use(Yaml(config.yaml || {}))
+      .use(Markdown())
   }
 
   public command(ns: Namespace, command: Document): Promise<Document> {

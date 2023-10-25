@@ -7,9 +7,9 @@ import {
   TashmetProxy,
 } from '@tashmet/tashmet';
 import ev from "eventemitter3";
-import { QueryAnalysis } from './aggregation';
-import { ChangeSet } from './changeSet';
-import { ExpressionOperator, OperatorAnnotation, PipelineOperator } from './operator';
+import { QueryAnalysis } from './aggregation.js';
+import { ChangeSet } from './changeSet.js';
+import { ExpressionOperator, OperatorAnnotation, PipelineOperator } from './operator.js';
 
 export const { EventEmitter } = ev;
 

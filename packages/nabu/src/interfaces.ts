@@ -2,8 +2,7 @@ import { Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { ContentRule } from './content.js';
-import { IO, IOFactory } from './io.js';
-import { AggregatorFactory } from '@tashmet/engine';
+import { IOFactory } from './io.js';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
