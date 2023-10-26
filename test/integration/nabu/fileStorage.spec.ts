@@ -20,7 +20,7 @@ function storedFiles(): string[] {
   return fsExtra.readdirSync('test/e2e/testCollection');
 }
 
-describe.only('fileStorage', () => {
+describe('fileStorage', () => {
   let col: Collection<any>;
 
   before(async () => {
