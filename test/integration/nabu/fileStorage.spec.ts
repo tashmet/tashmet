@@ -22,8 +22,6 @@ function storedFiles(): string[] {
 
 describe.only('fileStorage', () => {
   let col: Collection<any>;
-  let orders: Collection<any>;
-  let inventory: Collection<any>;
 
   before(async () => {
     const store = Nabu
@@ -40,8 +38,6 @@ describe.only('fileStorage', () => {
     const client = await Tashmet.connect(store.proxy());
 
     col = client.db('e2e').createCollection('testCollection');
-    //orders = client.db('e2e').collection('orders');
-    //inventory = client.db('e2e').collection('inventory');
   });
 
   beforeEach(async () => {
@@ -183,16 +179,14 @@ describe.only('fileStorage', () => {
     */
   });
 
-  /*
   describe('count', () => {
     it('should return 0 when no documents are matching', () => {
-      expect(col.find({'item.category': 'candy'}).count()).to.eventually.eql(0);
+      expect(col.countDocuments({'item.category': 'candy'})).to.eventually.eql(0);
     });
     it('should be a positive number when items are matched', async () => {
-      expect(col.find({'item.category': 'cake'}).count()).to.eventually.eql(3);
+      expect(col.countDocuments({'item.category': 'cake'})).to.eventually.eql(3);
     });
   });
-  */
 
   describe('findOne', () => {
     it('should return null when document is not found', () => {
@@ -230,7 +224,7 @@ describe.only('fileStorage', () => {
       const docs = await col.find().sort(['item.category', 'item.type'], 1).toArray();
       expect(docs[0].item.type).to.eql('carrot');
     });
-    it('should do offsExtraet and limiting', async () => {
+    it('should do offset and limiting', async () => {
       const docs = await col.find().sort('amount', -1).skip(1).limit(1).toArray();
       expect(docs).to.have.length(1);
       expect(docs[0].item.type).to.eql('lemon');
@@ -249,34 +243,30 @@ describe.only('fileStorage', () => {
     });
   });
 
-  //describe.only('aggregate', () => {
-    //it('should lookup', async () => {
-      //await orders.insertMany( [
-        //{ "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
-        //{ "_id" : 2, "item" : "pecans", "price" : 20, "quantity" : 1 },
-        //{ "_id" : 3  }
-      //] )
+  describe('aggregate', () => {
+    it('should group by category', async () => {
+      const pipeline = [
+        {$group: {_id: "$item.category", count: { $sum: 1 } } }
+      ];
+      expect(await col.aggregate(pipeline).toArray()).to.eql([
+        {_id: 'cake', count: 3},
+        {_id: 'cookies', count: 2 }
+      ]);
+    });
 
-      //await inventory.insertMany( [
-        //{ "_id" : 1, "sku" : "almonds", "description": "product 1", "instock" : 120 },
-        //{ "_id" : 2, "sku" : "bread", "description": "product 2", "instock" : 80 },
-        //{ "_id" : 3, "sku" : "cashews", "description": "product 3", "instock" : 60 },
-        //{ "_id" : 4, "sku" : "pecans", "description": "product 4", "instock" : 70 },
-        //{ "_id" : 5, "sku": null, "description": "Incomplete" },
-        //{ "_id" : 6 }
-      //] )
-
-      //console.log(await orders.aggregate([
-        //{ $lookup:
-          //{
-            //from: "inventory",
-            //localField: "item",
-            //foreignField: "sku",
-            //as: "inventory_docs"
-          //}
-        //}]).toArray());
-    //});
-  //});
+    it('should do filtering, sorting and projection', async () => {
+      const pipeline = [
+        {$match: {'item.category': 'cake'}},
+        {$sort: {amount: -1}},
+        {$project: {_id: 0, 'item.type': 1}},
+      ];
+      expect(await col.aggregate(pipeline).toArray()).to.eql([
+        {item: {type: 'lemon' }},
+        {item: {type: 'carrot' }},
+        {item: {type: 'chiffon' }},
+      ]);
+    });
+  });
 
   describe('deleteOne', () => {
     it('should return zero deletedCount when no document match selector', () => {
@@ -318,15 +308,15 @@ describe.only('fileStorage', () => {
       expect(result.deletedCount).to.eql(2);
       expect(storedFiles().length).to.eql(storedCount - 2);
     });
-    /*
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
-      return expect(col.find({'item.category': 'cookies'}).count()).to.eventually.eql(0);
+      return expect(col.countDocuments({'item.category': 'cookies'})).to.eventually.eql(0);
     });
     it('should not remove other documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
-      return expect(col.find().count()).to.eventually.eql(3);
+      return expect(col.countDocuments()).to.eventually.eql(3);
     });
+    /*
     it('should emit a change event', (done) => {
       col.on('change', ({action, data}) => {
         expect(action).to.eql('delete');
