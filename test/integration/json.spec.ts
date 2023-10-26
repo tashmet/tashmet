@@ -38,4 +38,18 @@ describe('json', () => {
     expect(doc).to.not.be.undefined;
     expect((doc as Document).json).to.eql('{\n  "foo": "bar"\n}');
   });
+
+  it('should convert json to object', async () => {
+    const input = [
+      { json: '{ "foo": "bar" }' }
+    ];
+    const pipeline: Document[] = [
+      { $set: { object: { $jsonToObject: '$json' } } }
+    ];
+
+    const doc = await tashmet.aggregate(input, pipeline).next();
+
+    expect(doc).to.not.be.undefined;
+    expect((doc as Document).object).to.eql({ foo: 'bar' });
+  });
 });
