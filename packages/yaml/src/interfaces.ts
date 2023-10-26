@@ -88,3 +88,5 @@ export interface YamlOptions {
    */
   condenseFlow?: boolean;
 }
+
+export abstract class YamlOptions implements YamlOptions {};

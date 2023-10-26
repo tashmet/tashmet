@@ -81,10 +81,10 @@ export default class Nabu extends StorageEngine {
 
   public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
     return new NabuConfigurator(createContainer({logLevel: LogLevel.None, ...config}), config)
-      .use(Fs({ watch: false }))
-      .use(Json(config.json || {}))
-      .use(Yaml(config.yaml || {}))
-      .use(Markdown())
+      .use(Fs(config.fs))
+      .use(Json(config.json))
+      .use(Yaml(config.yaml))
+      .use(Markdown(config.markdown))
   }
 
   public command(ns: TashmetNamespace, command: Document): Promise<Document> {
@@ -127,7 +127,7 @@ export class NabuCollectionFactory extends CollectionFactory {
 
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
-  public config: NabuConfig = { io: {}, defaultIO: 'memory', json: {}, yaml: {} };
+  public config: NabuConfig = { io: {}, defaultIO: 'memory', json: {}, yaml: {}, fs: {}, markdown: {} };
 
   public constructor(container: Container, config: Partial<NabuConfig>) {
     super(Nabu, container);

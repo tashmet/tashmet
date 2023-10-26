@@ -1,5 +1,5 @@
-import { AggregatorFactory, op } from '@tashmet/engine';
-import { Container, PluginConfigurator, provider, Provider } from '@tashmet/core';
+import { op, OperatorPluginConfigurator } from '@tashmet/engine';
+import { Container, provider, Provider } from '@tashmet/core';
 
 export interface JsonOptions {
   /**
@@ -27,21 +27,6 @@ export class Json {
   }
 }
 
-export class JsonConfigurator extends PluginConfigurator<Json> {
-  public constructor(container: Container, private options: JsonOptions) {
-    super(Json, container);
-  }
-
-  protected register(): void {
-    this.container.register(Provider.ofInstance(JsonOptions, this.options));
-  }
-
-  protected load() {
-    this.container
-      .resolve(AggregatorFactory)
-      .addOperatorController(this.container.resolve(Json));
-  }
-}
-
 export default (options: JsonOptions = { indent: 2 }) => (container: Container) =>
-  new JsonConfigurator(container, options);
+  new OperatorPluginConfigurator(Json, container)
+    .provide(Provider.ofInstance(JsonOptions, options));

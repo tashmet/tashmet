@@ -1,13 +1,22 @@
-import { Container, PluginConfigurator, provider } from '@tashmet/core'
-import { AggregatorFactory, op } from '@tashmet/engine'
+import { Container, Provider, provider } from '@tashmet/core'
+import { op, OperatorPluginConfigurator } from '@tashmet/engine'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import {unified} from 'unified'
 
+export interface MarkdownOptions {
+
+}
+
+export abstract class MarkdownOptions implements MarkdownOptions {};
+
+
 @provider()
-export class Remark {
+export class Markdown {
+  public constructor(public options: MarkdownOptions) {}
+
   @op.expression('$markdownToObject')
   public markdownToObject(expr: string, resolve: (expr: any) => any) {
     return unified()
@@ -26,12 +35,6 @@ export class Remark {
   }
 }
 
-export class RemarkConfigurator extends PluginConfigurator<Remark> {
-  protected load() {
-    this.container
-      .resolve(AggregatorFactory)
-      .addOperatorController(this.container.resolve(Remark));
-  }
-}
-
-export default () => (container: Container) => new RemarkConfigurator(Remark, container);
+export default (options: MarkdownOptions = {}) => (container: Container) =>
+  new OperatorPluginConfigurator(Markdown, container)
+    .provide(Provider.ofInstance(MarkdownOptions, options));

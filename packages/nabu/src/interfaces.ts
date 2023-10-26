@@ -3,6 +3,8 @@ import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { ContentRule } from './content.js';
 import { IOFactory } from './io.js';
+import { FileSystemOptions } from '@tashmet/fs';
+import { MarkdownOptions } from '@tashmet/markdown';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
@@ -46,6 +48,10 @@ export interface NabuConfig {
   json: JsonOptions;
 
   yaml: YamlOptions;
+
+  markdown: MarkdownOptions;
+
+  fs: FileSystemOptions;
 }
 
 export abstract class NabuConfig implements NabuConfig {}

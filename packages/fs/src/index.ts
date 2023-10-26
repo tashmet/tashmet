@@ -4,12 +4,15 @@ import { glob } from 'glob';
 export * from './interfaces.js';
 
 import { Document } from '@tashmet/tashmet';
-import { FileSystemConfig } from './interfaces.js';
-import { Container, PluginConfigurator } from '@tashmet/core';
-import { AggregatorFactory, op } from '@tashmet/engine';
+import { FileSystemOptions } from './interfaces.js';
+import { Container, provider, Provider } from '@tashmet/core';
+import { op, OperatorPluginConfigurator } from '@tashmet/engine';
 import globToRegExp from 'glob-to-regexp';
 
+@provider()
 export class FileSystem {
+  public constructor(public options: FileSystemOptions) {}
+
   @op.expression('$lstat')
   public lstat(expr: any, resolve: (expr: any) => any) {
     const res: fs.Stats = fs.lstatSync(resolve(expr));
@@ -95,12 +98,6 @@ export class FileSystem {
   };
 }
 
-export class FileSystemConfigurator extends PluginConfigurator<FileSystem> {
-  public load() {
-    this.container
-      .resolve(AggregatorFactory)
-      .addOperatorController(new FileSystem());
-  }
-}
-
-export default (config: FileSystemConfig) => (container: Container) => new FileSystemConfigurator(FileSystem, container);
+export default (options: FileSystemOptions = {}) => (container: Container) =>
+  new OperatorPluginConfigurator(FileSystem, container)
+    .provide(Provider.ofInstance(FileSystemOptions, options));

@@ -1,5 +1,5 @@
-import { Container, PluginConfigurator } from '@tashmet/core';
-import { AggregatorFactory, op } from '@tashmet/engine';
+import { Container, provider, Provider } from '@tashmet/core';
+import { op, OperatorPluginConfigurator } from '@tashmet/engine';
 import { Document } from '@tashmet/tashmet';
 import { YamlOptions } from './interfaces.js';
 
@@ -88,33 +88,31 @@ export function serializeYaml(data: Document, config?: YamlOptions): string {
   }
 }
 
+@provider()
 export class Yaml {
+  public constructor(public options: YamlOptions) {}
+
   @op.expression('$objectToYaml')
   public objectToYaml(expr: any, resolve: (expr: any) => any) {
-    return serializeYaml(resolve(expr));
+    return serializeYaml(resolve(expr), this.options);
   }
 
   @op.expression('$yamlToObject')
   public yamlToObject(expr: any, resolve: (expr: any) => any) {
-    return parseYaml(resolve(expr));
+    return parseYaml(resolve(expr), this.options);
   }
 
   @op.expression('$objectToYamlfm')
   public objectToYamlfm(expr: any, resolve: (expr: any) => any) {
-    return serializeYaml(resolve(expr), { frontMatter: true });
+    return serializeYaml(resolve(expr), { ...this.options, frontMatter: true });
   }
 
   @op.expression('$yamlfmToObject')
   public yamlfmToObject(expr: any, resolve: (expr: any) => any) {
-    return parseYaml(resolve(expr), { frontMatter: true });
+    return parseYaml(resolve(expr), { ...this.options, frontMatter: true });
   }
 }
 
-export class YamlConfigurator extends PluginConfigurator<Yaml> {
-  public load() {
-    this.container.resolve(AggregatorFactory).addOperatorController(new Yaml());
-  }
-}
-
-export default (config: YamlOptions) => (container: Container) =>
-  new YamlConfigurator(Yaml, container);
+export default (options: YamlOptions = {}) => (container: Container) =>
+  new OperatorPluginConfigurator(Yaml, container)
+    .provide(Provider.ofInstance(YamlOptions, options));

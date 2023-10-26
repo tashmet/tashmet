@@ -1,8 +1,4 @@
-export interface FileSystemConfig {
-  /**
-   * Monitor file system for changes to files and update sources accordingly.
-   *
-   * @default false
-   */
-  watch: boolean;
+export interface FileSystemOptions {
 }
+
+export abstract class FileSystemOptions implements FileSystemOptions {};

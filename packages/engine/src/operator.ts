@@ -1,4 +1,4 @@
-import { Annotation, methodDecorator } from "@tashmet/core";
+import { Annotation, methodDecorator, PluginConfigurator } from "@tashmet/core";
 import { Document } from "@tashmet/tashmet";
 import { AggregatorFactory } from "./interfaces";
 
@@ -40,3 +40,11 @@ export type PipelineOperator<T> = (
   args: T,
   resolve: (doc: Document, path: string) => any
 ) => AsyncIterable<Document>;
+
+export class OperatorPluginConfigurator<T> extends PluginConfigurator<T> {
+  protected load() {
+    this.container
+      .resolve(AggregatorFactory)
+      .addOperatorController(this.container.resolve(this.app));
+  }
+}
