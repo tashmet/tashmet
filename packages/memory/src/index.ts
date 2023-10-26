@@ -25,6 +25,7 @@ import {
   AtomicWriteCollection
 } from '@tashmet/engine';
 import {
+  CreateCollectionOptions,
   Document,
   TashmetCollectionNamespace,
   TashmetNamespace,
@@ -71,9 +72,7 @@ export class MemoryCollection extends AtomicWriteCollection {
   public async insert(document: Document): Promise<void> {
     if (this.rules && this.validatorFact) {
       const validator = this.validatorFact.createValidator(this.rules);
-      if (!validator(document)) {
-        throw new Error('validation failed');
-      }
+      validator(document);
     }
     if (await this.exists(document._id)) {
       throw new Error('Duplicate id');
@@ -112,8 +111,8 @@ export class MemoryCollection extends AtomicWriteCollection {
 export class MemoryCollectionFactory extends CollectionFactory {
   public constructor(public validatorFactory?: ValidatorFactory) { super(); }
 
-  public createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection {
-    return new MemoryCollection(ns, [], {}, this.validatorFactory);
+  public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
+    return new MemoryCollection(ns, [], options.validator || {}, this.validatorFactory);
   }
 }
 
