@@ -141,3 +141,7 @@ export interface Comparator {
 }
 
 export abstract class Comparator implements Comparator {}
+
+export const HashCode = Symbol('HashCode');
+
+export type HashCode = (value: any) => string | null;

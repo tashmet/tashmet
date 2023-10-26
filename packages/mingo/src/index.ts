@@ -1,4 +1,4 @@
-import { Document, HashCode } from '@tashmet/tashmet';
+import { Document } from '@tashmet/tashmet';
 import { provider, Provider, Logger } from '@tashmet/core';
 import {
   AggregatorFactory,
@@ -7,11 +7,11 @@ import {
   ChangeSet,
   Comparator,
   ValidatorFactory,
-  //DocumentAccess,
   AggregatorOptions,
   ExpressionOperator,
   PipelineOperator,
-  Store
+  Store,
+  HashCode
 } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator } from './aggregator.js';

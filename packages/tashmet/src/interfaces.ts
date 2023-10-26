@@ -414,8 +414,3 @@ export interface BulkWriteResult {
 export type RequireKeys<T extends object, K extends keyof T> =
   Required<Pick<T, K>> & Omit<T, K>;
 
-
-export const HashCode = Symbol('HashCode');
-
-export type HashCode = (value: any) => string | null;
-
