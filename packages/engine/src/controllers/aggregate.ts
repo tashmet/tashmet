@@ -22,7 +22,7 @@ export class AggregationReadController extends AbstractReadController {
 
   @command('aggregate')
   public async aggregate(ns: TashmetNamespace, {aggregate, pipeline, collation, cursor}: Document): Promise<Document> {
-    const view = this.views[aggregate];
+    const view = this.views[ns.withCollection(aggregate).toString()];
     if (view) {
       return this.aggregate(ns, {
         aggregate: view.viewOn,
