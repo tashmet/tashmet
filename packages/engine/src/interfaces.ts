@@ -2,8 +2,8 @@ import {
   ChangeStreamDocument,
   CollationOptions,
   Document,
-  Namespace,
   TashmetCollectionNamespace,
+  TashmetNamespace,
   TashmetProxy,
 } from '@tashmet/tashmet';
 import ev from "eventemitter3";
@@ -44,7 +44,7 @@ export interface View {
 export type ViewMap = Record<string, View>;
 
 export interface StorageEngine {
-  command(ns: Namespace, command: Document): Promise<Document>;
+  command(ns: TashmetNamespace, command: Document): Promise<Document>;
 
   on(event: 'change', listener: (change: Document) => void): this;
 
@@ -67,7 +67,7 @@ export class StorageEngineProxy extends TashmetProxy {
     this.emit('connected');
   }
 
-  public command(ns: Namespace, command: Document): Promise<Document> {
+  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
     return this.engine.command(ns, command);
   }
 }

@@ -3,7 +3,7 @@ import chai from 'chai';
 import 'mocha';
 import Memory from '../../src';
 import mingo from '@tashmet/mingo';
-import { Namespace } from '@tashmet/tashmet';
+import { TashmetNamespace } from '@tashmet/tashmet';
 import { StorageEngine } from '@tashmet/engine';
 
 const { expect } = chai;
@@ -11,7 +11,7 @@ const { expect } = chai;
 describe('distinct', () => {
   let engine: StorageEngine;
 
-  const ns: Namespace = { db: 'testdb', coll: 'inventory' };
+  const ns = new TashmetNamespace('testdb');
 
   before(async () => {
     engine = Memory

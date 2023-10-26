@@ -1,4 +1,5 @@
-import { Document, Filter, FindOptions, Namespace, SortingDirection, SortingKey, SortingMap, TashmetProxy } from '../interfaces.js';
+import { Document, Filter, FindOptions, SortingDirection, SortingKey, SortingMap, TashmetProxy } from '../interfaces.js';
+import { TashmetCollectionNamespace } from '../utils.js';
 import { AbstractCursor } from './abstractCursor.js';
 
 export function sortingMap(key: SortingKey, direction?: SortingDirection): SortingMap {
@@ -13,7 +14,7 @@ export function sortingMap(key: SortingKey, direction?: SortingDirection): Sorti
 
 export class FindCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    namespace: Namespace,
+    namespace: TashmetCollectionNamespace,
     proxy: TashmetProxy,
     private filter: Filter<TSchema>,
     options: FindOptions = {},
@@ -23,7 +24,7 @@ export class FindCursor<TSchema extends Document = Document> extends AbstractCur
 
   protected async initialize(): Promise<Document> {
     return this.proxy.command(this.namespace, {
-      find: this.namespace.coll,
+      find: this.namespace.collection,
       filter: this.filter,
       ...this.options
     });

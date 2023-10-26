@@ -1,4 +1,5 @@
-import { Document, Namespace, TashmetProxy } from "../interfaces.js";
+import { Document, TashmetProxy } from "../interfaces.js";
+import { TashmetCollectionNamespace } from "../utils.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */
@@ -18,7 +19,7 @@ export class DistinctOperation extends CommandOperation<any[]> {
    * @param options - Optional settings. See Collection.prototype.distinct for a list of options.
    */
   constructor(
-    public ns: Namespace,
+    public ns: TashmetCollectionNamespace,
     public key: string,
     public query: Document,
     public options: DistinctOptions = {}
@@ -28,7 +29,7 @@ export class DistinctOperation extends CommandOperation<any[]> {
 
   async execute(proxy: TashmetProxy): Promise<any[]> {
     const cmd: Document = {
-      distinct: this.ns.coll,
+      distinct: this.ns.collection,
       key: this.key,
       query: this.query,
     };

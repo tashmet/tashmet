@@ -1,4 +1,5 @@
-import { Document, CollationOptions, Namespace, TashmetProxy } from '../interfaces.js';
+import { Document, CollationOptions, TashmetProxy } from '../interfaces.js';
+import { TashmetCollectionNamespace } from '../utils.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 
 
@@ -39,7 +40,7 @@ export interface DeleteStatement {
 
 /** @internal */
 export class DeleteOperation extends CommandOperation<Document> {
-  constructor(ns: Namespace, protected statements: DeleteStatement[], public options: DeleteOptions) {
+  constructor(ns: TashmetCollectionNamespace, protected statements: DeleteStatement[], public options: DeleteOptions) {
     super(ns, options);
   }
 
@@ -47,7 +48,7 @@ export class DeleteOperation extends CommandOperation<Document> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
-      delete: this.ns.coll,
+      delete: this.ns.collection,
       deletes: this.statements,
       ordered
     };
@@ -62,13 +63,13 @@ export class DeleteOperation extends CommandOperation<Document> {
 }
 
 export class DeleteOneOperation extends DeleteOperation {
-  constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
+  constructor(ns: TashmetCollectionNamespace, filter: Document, options: DeleteOptions) {
     super(ns, [makeDeleteStatement(filter, { ...options, limit: 1 })], options);
   }
 }
 
 export class DeleteManyOperation extends DeleteOperation {
-  constructor(ns: Namespace, filter: Document, options: DeleteOptions) {
+  constructor(ns: TashmetCollectionNamespace, filter: Document, options: DeleteOptions) {
     super(ns, [makeDeleteStatement(filter, options)], options);
   }
 }

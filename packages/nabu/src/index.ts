@@ -11,10 +11,10 @@ import {
 import {
   AggregationCursor,
   Document,
-  Namespace,
   GlobalAggregationCursor,
   TashmetCollectionNamespace,
-  CreateCollectionOptions
+  CreateCollectionOptions,
+  TashmetNamespace
 } from '@tashmet/tashmet';
 import {
   AggregationEngine,
@@ -87,8 +87,8 @@ export default class Nabu extends StorageEngine {
       .use(Markdown())
   }
 
-  public command(ns: Namespace, command: Document): Promise<Document> {
-    return this.commandRunner.command(new TashmetCollectionNamespace(ns.db, ns.coll), command);
+  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
+    return this.commandRunner.command(ns, command);
   }
 
   public aggregate(collection: Document[], pipeline: Document[]): AggregationCursor<Document> {

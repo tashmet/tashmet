@@ -1,10 +1,11 @@
-import { Document, Namespace, TashmetProxy } from '../interfaces.js';
+import { Document, TashmetProxy } from '../interfaces.js';
 import { AggregateOptions } from '../operations/aggregate.js';
+import { TashmetCollectionNamespace } from '../utils.js';
 import { AbstractCursor } from './abstractCursor.js';
 
 export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    namespace: Namespace,
+    namespace: TashmetCollectionNamespace,
     proxy: TashmetProxy,
     public readonly pipeline: Document[],
     options: AggregateOptions = {},
@@ -14,7 +15,7 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
 
   protected async initialize(): Promise<Document> {
     return this.proxy.command(this.namespace, {
-      aggregate: this.namespace.coll,
+      aggregate: this.namespace.collection,
       pipeline: this.pipeline,
       ...this.options
     });

@@ -1,17 +1,16 @@
 import ObjectId from 'bson-objectid';
 import { CommandOperationOptions } from './operations/command.js';
 import ev from "eventemitter3";
+import { TashmetNamespace } from './utils.js';
 
 export const { EventEmitter } = ev;
-
-export const nsToString = (ns: Namespace): string => `${ns.db}.${ns.coll}`;
 
 export abstract class TashmetProxy extends EventEmitter {
   public abstract connect(): void;
 
   public destroy() {}
 
-  public abstract command(ns: Namespace, command: Document): Promise<Document>;
+  public abstract command(ns: TashmetNamespace, command: Document): Promise<Document>;
 }
 
 export type Document = Record<string, any>;
@@ -411,8 +410,6 @@ export interface BulkWriteResult {
   upsertedIds: { [key: number]: any };
   insertedIds: { [key: number]: any };
 }
-
-export type Namespace = {db: string, coll: string};
 
 export type RequireKeys<T extends object, K extends keyof T> =
   Required<Pick<T, K>> & Omit<T, K>;

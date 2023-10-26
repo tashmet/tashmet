@@ -1,5 +1,6 @@
-import { Document, Namespace, TashmetProxy } from '../interfaces.js';
+import { Document, TashmetProxy } from '../interfaces.js';
 import { GetMoreOperation } from '../operations/getMore.js';
+import { TashmetCollectionNamespace } from '../utils.js';
 
 /** @public */
 export interface AbstractCursorOptions {
@@ -27,7 +28,7 @@ export abstract class AbstractCursor<TSchema> {
   protected transform: ((doc: TSchema) => any) | undefined;
 
   public constructor(
-    protected namespace: Namespace,
+    protected namespace: TashmetCollectionNamespace,
     protected proxy: TashmetProxy,
     protected options: AbstractCursorOptions = {}
   ) {}

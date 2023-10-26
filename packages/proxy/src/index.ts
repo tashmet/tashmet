@@ -1,4 +1,4 @@
-import { Document, Namespace, TashmetProxy } from '@tashmet/tashmet';
+import { Document, TashmetNamespace, TashmetProxy } from '@tashmet/tashmet';
 import { io, Socket } from "socket.io-client";
 
 export interface ServerProxyConfig {
@@ -30,9 +30,9 @@ export default class ServerProxy extends TashmetProxy {
     this.socket.disconnect();
   }
 
-  public async command(ns: Namespace, command: Document): Promise<Document> {
+  public async command(ns: TashmetNamespace, command: Document): Promise<Document> {
     return new Promise<Document>(resolve => {
-      this.socket.emit(`${ns.db}.${ns.coll}`, command, (res: Document) => {
+      this.socket.emit(ns.db, command, (res: Document) => {
         resolve(res);
       });
     });

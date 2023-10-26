@@ -1,4 +1,5 @@
-import { CollationOptions, Document, Namespace, TashmetProxy } from "../interfaces.js";
+import { CollationOptions, Document, TashmetProxy } from "../interfaces.js";
+import { TashmetNamespace } from "../utils.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */
@@ -32,13 +33,13 @@ export class AggregateOperation<T = Document> extends CommandOperation<T> {
   pipeline: Document[];
   hasWriteStage: boolean;
 
-  constructor(ns: Namespace, pipeline: Document[], options?: AggregateOptions) {
+  constructor(ns: TashmetNamespace, pipeline: Document[], options?: AggregateOptions) {
     super(ns, { ...options, dbName: ns.db });
 
     this.options = options ?? {};
 
     // Covers when ns.collection is null, undefined or the empty string, use DB_AGGREGATE_COLLECTION
-    this.target = ns.coll || 1;
+    this.target = ns.collection || 1;
 
     this.pipeline = pipeline;
 

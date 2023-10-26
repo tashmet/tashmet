@@ -1,4 +1,4 @@
-import { Namespace, TashmetCollectionNamespace } from '@tashmet/tashmet';
+import { TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { AbstractAggregator, AggregatorOptions, ChangeSet, Store } from '@tashmet/engine';
 import { Logger } from '@tashmet/core';
 import { Document, Filter, FindOptions } from '@tashmet/tashmet';
@@ -24,18 +24,18 @@ export class CollectionBuffers {
   public constructor(private store: Store) {}
   private buffers: Record<string, Document[]> = {};
 
-  public async load(ns: Namespace, create: boolean = false): Promise<Document[]> {
+  public async load(ns: TashmetCollectionNamespace, create: boolean = false): Promise<Document[]> {
     //if (create) {
       //await this.documentAccess.create(ns, {});
     //}
 
-    return this.buffers[`${ns.db}.${ns.coll}`] = await toArray(this.store
-      .getCollection(new TashmetCollectionNamespace(ns.db, ns.coll))
+    return this.buffers[ns.toString()] = await toArray(this.store
+      .getCollection(ns)
       .read({}));
   }
 
-  public get(ns: Namespace): Document[] {
-    return this.buffers[`${ns.db}.${ns.coll}`];
+  public get(ns: TashmetCollectionNamespace): Document[] {
+    return this.buffers[ns.toString()];
   }
 }
 
@@ -77,18 +77,18 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
     return initOptions({
       collectionResolver: coll => {
         if (coll.includes('.')) {
-          const ns = coll.split('.');
-          return this.foreignBuffers.get({db: ns[0], coll: ns[1]});
+          const ns = TashmetCollectionNamespace.fromString(coll);
+          return this.foreignBuffers.get(ns);
         }
         if (this.options.queryAnalysis) {
-          return this.foreignBuffers.get({db: this.options.queryAnalysis.ns.db, coll});
+          return this.foreignBuffers.get(new TashmetCollectionNamespace(this.options.queryAnalysis.ns.db, coll));
         }
         throw Error('cound not resolve collection');
       }
     });
   }
 
-  protected get outNs(): Namespace | undefined {
+  protected get outNs(): TashmetCollectionNamespace | undefined {
     return this.options.queryAnalysis?.out || this.options.queryAnalysis?.merge;
   }
 
@@ -118,7 +118,7 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
   protected async writeBuffers() {
     if (this.outNs) {
       const cs = new ChangeSet(this.foreignBuffers.get(this.outNs), this.outInit);
-      await this.store.write(cs.toChanges(this.outNs), {ordered: true});
+      await this.store.write(cs.toChanges({db: this.outNs.db, coll: this.outNs.collection}), {ordered: true});
     }
   }
 }

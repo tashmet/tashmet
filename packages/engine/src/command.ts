@@ -25,16 +25,7 @@ export class CommandRunner {
         commands[anno.name] = (ns, cmd) => c[anno.propertyKey](ns, cmd);
       }
     }
-
     return new CommandRunner(commands);
-
-    //for (const c of controllers) {
-      //if (c instanceof EventEmitter) {
-        //c.on('change', change => engine.emit('change', change))
-      //}
-    //}
-
-    //return engine;
   }
 
   public constructor(

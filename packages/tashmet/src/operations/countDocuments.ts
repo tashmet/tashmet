@@ -1,4 +1,5 @@
-import { Document, Namespace, TashmetProxy } from "../interfaces.js";
+import { Document, TashmetProxy } from "../interfaces.js";
+import { TashmetCollectionNamespace, TashmetNamespace } from "../utils.js";
 import { AggregateOptions } from "./aggregate.js";
 import { CommandOperation } from "./command.js";
 
@@ -14,12 +15,12 @@ export interface CountDocumentsOptions extends AggregateOptions {
 export class CountDocumentsOperation extends CommandOperation<number> {
   public options: CountDocumentsOptions;
 
-  constructor(ns: Namespace, private query: Document, options: CountDocumentsOptions) {
+  constructor(ns: TashmetCollectionNamespace, private query: Document, options: CountDocumentsOptions) {
     super(ns, options);
   }
 
   async execute(proxy: TashmetProxy): Promise<number> {
-    const cmd: Document = {count: this.ns.coll, query: this.query};
+    const cmd: Document = {count: this.ns.collection, query: this.query};
 
     if (this.options.skip) {
       cmd.skip = this.options.skip;

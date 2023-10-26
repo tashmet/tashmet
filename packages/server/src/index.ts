@@ -1,5 +1,6 @@
 import { Server as SocketIOServer} from "socket.io";
 import { StorageEngine } from "@tashmet/engine";
+import { TashmetNamespace } from "@tashmet/tashmet";
 
 export default class Server {
   private io: SocketIOServer;
@@ -11,8 +12,7 @@ export default class Server {
 
     this.io.on('connection', socket => {
       socket.onAny((event: string, cmd: Document, callback) => {
-        const ns = event.split('.');
-        this.storageEngine.command({db: ns[0], coll: ns[1]}, cmd).then(callback);
+        this.storageEngine.command(new TashmetNamespace(event), cmd).then(callback);
       });
 
       this.storageEngine.on('change', doc => socket.emit('change', doc));

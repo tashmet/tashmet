@@ -9,7 +9,6 @@ import {
   ReplaceOneOptions,
   UpdateFilter,
   WithId,
-  Namespace,
   TashmetProxy
 } from "./interfaces.js";
 import { Database } from './database.js';
@@ -24,18 +23,21 @@ import { CommandOperation } from "./operations/command.js";
 import { AggregateOptions } from "./operations/aggregate.js";
 import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments.js";
 import { DropCollectionOperation } from "./operations/drop.js";
+import { TashmetCollectionNamespace } from "./utils.js";
 
 /**
  * A collection of documents.
  */
 export class Collection<TSchema extends Document = any> {
   private changeStreams: ChangeStream[] = [];
+  private ns: TashmetCollectionNamespace;
 
   public constructor(
     public readonly collectionName: string,
     private proxy: TashmetProxy,
     private db: Database,
   ) {
+    this.ns = new TashmetCollectionNamespace(db.databaseName, collectionName);
     this.proxy.on('change', change => {
       if (change.ns.db === this.dbName && change.ns.coll === this.collectionName) {
         for (const changeStream of this.changeStreams) {
@@ -56,7 +58,11 @@ export class Collection<TSchema extends Document = any> {
    * The namespace of this collection, in the format `${this.dbName}.${this.collectionName}`
    */
   public get namespace(): string {
-    return `${this.dbName}.${this.collectionName}`;
+    return this.ns.toString();
+  }
+
+  public get fullNamespace(): TashmetCollectionNamespace {
+    return this.ns;
   }
 
   public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): AggregationCursor<T> {
@@ -223,9 +229,5 @@ export class Collection<TSchema extends Document = any> {
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
     return operation.execute(this.proxy) as Promise<T>;
-  }
-
-  private get ns(): Namespace {
-    return {db: this.db.databaseName, coll: this.collectionName};
   }
 }

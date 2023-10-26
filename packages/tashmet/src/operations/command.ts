@@ -1,4 +1,5 @@
-import { CollationOptions, Document, Namespace, TashmetProxy } from "../interfaces.js";
+import { CollationOptions, Document, TashmetProxy } from "../interfaces.js";
+import { TashmetNamespace } from "../utils.js";
 
 export interface CommandOperationOptions {
   /** Specify a read concern and level for the collection. (only MongoDB 3.2 or higher supported) */
@@ -25,7 +26,7 @@ export interface CommandOperationOptions {
 }
 
 export abstract class CommandOperation<T> {
-  constructor(public ns: Namespace, public options: CommandOperationOptions = {}) {}
+  constructor(public ns: TashmetNamespace, public options: CommandOperationOptions = {}) {}
 
   abstract execute(proxy: TashmetProxy): Promise<any>;
 

@@ -1,5 +1,6 @@
 import { Document, TashmetProxy } from '../interfaces.js';
 import { AggregateOptions } from '../operations/aggregate.js';
+import { TashmetCollectionNamespace } from '../utils.js';
 import { AggregationCursor } from './aggregationCursor.js';
 
 export class GlobalAggregationCursor<TSchema extends Document = Document> extends AggregationCursor<TSchema> {
@@ -9,7 +10,7 @@ export class GlobalAggregationCursor<TSchema extends Document = Document> extend
     pipeline: Document[],
     options: AggregateOptions = {},
   ) {
-    super({db: '__tashmet', coll: ''}, proxy, pipeline, options);
+    super(new TashmetCollectionNamespace('', ''), proxy, pipeline, options);
   }
 
   protected async initialize(): Promise<Document> {

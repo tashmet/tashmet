@@ -26,8 +26,8 @@ import {
 } from '@tashmet/engine';
 import {
   Document,
-  Namespace,
   TashmetCollectionNamespace,
+  TashmetNamespace,
 } from '@tashmet/tashmet';
 
 function hash(value: string | object): string {
@@ -141,8 +141,8 @@ export default class Memory extends StorageEngine {
     return new MemoryConfigurator(Memory, createContainer({logLevel: LogLevel.None, ...config}));
   }
 
-  public command(ns: Namespace, command: Document): Promise<Document> {
-    return this.commandRunner.command(new TashmetCollectionNamespace(ns.db, ns.coll), command);
+  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
+    return this.commandRunner.command(ns, command);
   }
 }
 

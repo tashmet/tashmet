@@ -1,5 +1,6 @@
 import ObjectId from 'bson-objectid';
-import { CollationOptions, Document, Namespace, TashmetProxy } from '../interfaces.js';
+import { CollationOptions, Document, TashmetProxy } from '../interfaces.js';
+import { TashmetCollectionNamespace } from '../utils.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 
 
@@ -54,7 +55,7 @@ export interface UpdateStatement {
 /** @internal */
 export class UpdateOperation extends CommandOperation<Document> {
   constructor(
-    ns: Namespace,
+    ns: TashmetCollectionNamespace,
     public statements: UpdateStatement[],
     public options: UpdateOptions & { ordered?: boolean }
   ) {
@@ -67,7 +68,7 @@ export class UpdateOperation extends CommandOperation<Document> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
-      update: this.ns.coll,
+      update: this.ns.collection,
       updates: this.statements,
       ordered
     };
@@ -94,7 +95,7 @@ export class UpdateOperation extends CommandOperation<Document> {
 
 /** @internal */
 export class UpdateOneOperation extends UpdateOperation {
-  constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
+  constructor(ns: TashmetCollectionNamespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
       ns,
       [makeUpdateStatement(filter, update, { ...options, multi: false })],
@@ -105,7 +106,7 @@ export class UpdateOneOperation extends UpdateOperation {
 
 /** @internal */
 export class UpdateManyOperation extends UpdateOperation {
-  constructor(ns: Namespace, filter: Document, update: Document, options: UpdateOptions) {
+  constructor(ns: TashmetCollectionNamespace, filter: Document, update: Document, options: UpdateOptions) {
     super(
       ns,
       [makeUpdateStatement(filter, update, { ...options, multi: true })],
@@ -131,7 +132,7 @@ export interface ReplaceOptions extends CommandOperationOptions {
 /** @internal */
 export class ReplaceOneOperation extends UpdateOperation {
   constructor(
-    ns: Namespace,
+    ns: TashmetCollectionNamespace,
     filter: Document,
     replacement: Document,
     options: ReplaceOptions

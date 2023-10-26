@@ -1,12 +1,12 @@
 import {
   CreateCollectionOptions,
   Document,
-  Namespace,
   TashmetProxy,
 } from './interfaces.js';
 import { Collection } from './collection.js';
 import { CommandOperation } from './operations/command.js';
 import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop.js';
+import { TashmetNamespace } from './utils.js';
 
 export interface Database {
   readonly databaseName: string;
@@ -38,11 +38,14 @@ export interface Database {
 
 export class Database implements Database {
   protected collMap: {[name: string]: Collection} = {};
+  private ns: TashmetNamespace;
 
   public constructor(
     public readonly databaseName: string,
     private proxy: TashmetProxy,
-  ) {}
+  ) {
+    this.ns = new TashmetNamespace(databaseName);
+  }
 
   public collection(name: string): Collection {
     if (name in this.collMap) {
@@ -62,9 +65,8 @@ export class Database implements Database {
       if (name in this.collMap) {
         throw new Error(`a collection named '${name}' already exists in database`);
       }
-      const ns: Namespace = {db: this.databaseName, coll: name};
 
-      this.proxy.command(ns, {create: name, ...options});
+      this.proxy.command(this.ns, {create: name, ...options});
 
       const c = new Collection<T>(name, this.proxy, this);
       this.collMap[name] = c;
@@ -75,15 +77,15 @@ export class Database implements Database {
   }
 
   public async dropCollection(name: string): Promise<boolean> {
-    return this.executeOperation(new DropCollectionOperation({db: this.databaseName, coll: name}, {}));
+    return this.executeOperation(new DropCollectionOperation(this.ns.withCollection(name), {}));
   }
 
   public async dropDatabase(): Promise<boolean> {
-    return this.executeOperation(new DropDatabaseOperation({db: this.databaseName, coll: ''}, {})); 
+    return this.executeOperation(new DropDatabaseOperation(this.ns, {})); 
   }
 
   public async command(command: Document): Promise<Document> {
-    return this.proxy.command({ db: this.databaseName, coll: ''}, command);
+    return this.proxy.command(this.ns, command);
   }
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {

@@ -1,4 +1,5 @@
-import { Namespace, TashmetProxy } from "../interfaces.js";
+import { TashmetProxy } from "../interfaces.js";
+import { TashmetCollectionNamespace, TashmetNamespace } from "../utils.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */
@@ -7,12 +8,12 @@ export type DropCollectionOptions = CommandOperationOptions;
 /** @internal */
 export class DropCollectionOperation extends CommandOperation<boolean> {
 
-  constructor(namespace: Namespace, public options: DropCollectionOptions) {
+  constructor(namespace: TashmetCollectionNamespace, public options: DropCollectionOptions) {
     super(namespace, options);
   }
 
   async execute(proxy: TashmetProxy): Promise<boolean> {
-    const {ok} = await super.executeCommand(proxy, { drop: this.ns.coll });
+    const {ok} = await super.executeCommand(proxy, { drop: this.ns.collection });
     return ok === 1;
   }
 }
@@ -22,7 +23,7 @@ export type DropDatabaseOptions = CommandOperationOptions;
 
 /** @internal */
 export class DropDatabaseOperation extends CommandOperation<boolean> {
-  constructor(namespace: Namespace, public options: DropDatabaseOptions) {
+  constructor(namespace: TashmetNamespace, public options: DropDatabaseOptions) {
     super(namespace, options);
   }
   async execute(proxy: TashmetProxy): Promise<boolean> {

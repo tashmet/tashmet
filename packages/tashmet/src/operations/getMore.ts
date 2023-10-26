@@ -1,4 +1,5 @@
-import { Document, Namespace, TashmetProxy } from "../interfaces.js";
+import { Document, TashmetProxy } from "../interfaces.js";
+import { TashmetCollectionNamespace } from "../utils.js";
 import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /**
@@ -21,7 +22,7 @@ export interface GetMoreOptions extends CommandOperationOptions {
 /** @internal */
 export class GetMoreOperation extends CommandOperation<Document> {
   constructor(
-    ns: Namespace,
+    ns: TashmetCollectionNamespace,
     public cursorId: number,
     public options: GetMoreOptions = {}
   ) { super(ns, options); }
@@ -29,7 +30,7 @@ export class GetMoreOperation extends CommandOperation<Document> {
   execute(proxy: TashmetProxy): Promise<Document> {
     return this.executeCommand(proxy, {
       getMore: this.cursorId,
-      collection: this.ns.coll,
+      collection: this.ns.collection,
       batchSize: this.options.batchSize,
     });
   }

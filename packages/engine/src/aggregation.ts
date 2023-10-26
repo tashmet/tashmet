@@ -1,4 +1,4 @@
-import { CollationOptions, Document, Namespace, TashmetCollectionNamespace } from "@tashmet/tashmet";
+import { CollationOptions, Document, TashmetCollectionNamespace } from "@tashmet/tashmet";
 import { Logger, provider } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
 import { Store } from "./store.js";
@@ -29,9 +29,9 @@ export class QueryPlanner {
     } else if (Array.isArray(id)) {
       documentIds = id;
     }
-    this.logger.debug(`stream collection '${qa.ns.db}.${qa.ns.coll}' on ids: '${documentIds}'`)
+    this.logger.debug(`stream collection '${qa.ns.db}.${qa.ns.collection}' on ids: '${documentIds}'`)
     return this.store
-      .getCollection(new TashmetCollectionNamespace(qa.ns.db, qa.ns.coll))
+      .getCollection(qa.ns)
       .read({
         documentIds,
         projection: Object.keys(qa.filter).length === 0 || qa.filter._id !== undefined ? qa.projection : undefined,
@@ -53,7 +53,10 @@ export class AggregationEngine extends CursorRegistry {
     collation: CollationOptions | undefined,
   ): Cursor {
     let input: AsyncIterable<Document>;
-    const qa = QueryAnalysis.fromPipeline({db, coll: typeof collection === 'string' ? collection : ''}, pipeline);
+    const qa = QueryAnalysis.fromPipeline(
+      new TashmetCollectionNamespace(db, typeof collection === 'string' ? collection : ''),
+      pipeline
+    );
 
     if (typeof collection === 'string') {
       input = this.queryPlanner.resolveDocuments(qa);
@@ -76,7 +79,7 @@ export class AggregationEngine extends CursorRegistry {
 }
 
 export class QueryAnalysis {
-  public static fromPipeline(ns: Namespace, pipeline: Document[]): QueryAnalysis {
+  public static fromPipeline(ns: TashmetCollectionNamespace, pipeline: Document[]): QueryAnalysis {
     let filter: Document = {};
     let options: Document = {};
 
@@ -118,14 +121,14 @@ export class QueryAnalysis {
   }
 
   public constructor(
-    public readonly ns: Namespace,
+    public readonly ns: TashmetCollectionNamespace,
     public readonly pipeline: Document[],
     public readonly filter: Document,
     public readonly projection: Document,
   ) {}
 
-  public get foreignInputs(): Namespace[] {
-    const output: Namespace[] = [];
+  public get foreignInputs(): TashmetCollectionNamespace[] {
+    const output: TashmetCollectionNamespace[] = [];
     for (let i = 0; i < this.pipeline.length; i++) {
       const step = this.pipeline[i];
       const op = Object.keys(step)[0];
@@ -145,7 +148,7 @@ export class QueryAnalysis {
     return output;
   }
 
-  public get out(): Namespace | undefined {
+  public get out(): TashmetCollectionNamespace | undefined {
     const lastStep = this.lastStep();
 
     if (lastStep && Object.keys(lastStep)[0] === '$out') {
@@ -154,7 +157,7 @@ export class QueryAnalysis {
     return undefined;
   }
 
-  public get merge(): Namespace | undefined {
+  public get merge(): TashmetCollectionNamespace | undefined {
     const lastStep = this.lastStep();
 
     if (lastStep && Object.keys(lastStep)[0] === '$merge') {
@@ -169,9 +172,9 @@ export class QueryAnalysis {
       : undefined;
   }
 
-  public toNamespace(source: string | Namespace) {
+  public toNamespace(source: string | TashmetCollectionNamespace) {
     return typeof source === 'string'
-      ? { db: this.ns.db, coll: source }
+      ? new TashmetCollectionNamespace(this.ns.db, source)
       : source;
   }
 }
