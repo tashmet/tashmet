@@ -22,6 +22,7 @@ function storedFiles(): string[] {
 
 describe('fileStorage', () => {
   let col: Collection<any>;
+  let client: Tashmet;
 
   before(async () => {
     const store = Nabu
@@ -35,7 +36,7 @@ describe('fileStorage', () => {
       .use(mingo())
       .bootstrap();
 
-    const client = await Tashmet.connect(store.proxy());
+    client = await Tashmet.connect(store.proxy());
 
     col = await client.db('e2e').createCollection('testCollection');
   });
@@ -327,4 +328,31 @@ describe('fileStorage', () => {
     });
     */
   });
+
+  describe('validation', () => {
+    let sales: Collection;
+
+    before(async () => {
+      sales = await client.db('e2e').createCollection('sales', {
+        validator: {
+          item: { $type: 'string' }
+        }
+      });
+    });
+
+    it('should insert a valid document', async () => {
+      const doc = await sales.insertOne({item : 'abc', price : 10,  quantity: 2});
+      return expect(doc.acknowledged).to.eql(true);
+    });
+
+    it('should fail to insert an invalid document', () => {
+      return expect(sales.insertOne({item : 3, price : 10,  quantity: 2}))
+        .to.eventually.be.rejected;
+    });
+
+    after(async () => {
+      await sales.deleteMany({});
+      fsExtra.rmdirSync('test/e2e/sales');
+    });
+  })
 });
