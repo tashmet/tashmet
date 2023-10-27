@@ -4,24 +4,20 @@ import { CommandOperation, CommandOperationOptions } from "./command.js";
 
 /** @public */
 export interface AggregateOptions extends CommandOperationOptions {
-  /** allowDiskUse lets the proxy know if it can use disk to proxy temporary results for the aggregation (requires mongodb 2.6 \>). */
+  /** allowDiskUse lets the server know if it can use disk to store temporary results for the aggregation. */
   allowDiskUse?: boolean;
   /** The number of documents to return per batch. See [aggregation documentation](https://docs.mongodb.com/manual/reference/command/aggregate). */
   batchSize?: number;
-  /** Allow driver to bypass schema validation in MongoDB 3.2 or higher. */
+  /** Allow driver to bypass schema validation */
   bypassDocumentValidation?: boolean;
   /** Return the query as cursor, on 2.6 \> it returns as a real cursor on pre 2.6 it returns as an emulated cursor. */
   cursor?: Document;
   /** specifies a cumulative time limit in milliseconds for processing operations on the cursor. MongoDB interrupts the operation at the earliest following interrupt point. */
   maxTimeMS?: number;
-  /** The maximum amount of time for the proxy to wait on new documents to satisfy a tailable cursor query. */
+  /** The maximum amount of time for the server to wait on new documents to satisfy a tailable cursor query. */
   maxAwaitTimeMS?: number;
   /** Specify collation. */
   collation?: CollationOptions;
-  /** Add an index selection hint to an aggregation command */
-  //hint?: Hint;
-  /** Map of parameter names and values that can be accessed using $$var (requires MongoDB 5.0). */
-  //let?: Document;
 
   out?: string;
 }

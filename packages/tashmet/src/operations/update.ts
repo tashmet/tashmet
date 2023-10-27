@@ -12,12 +12,8 @@ export interface UpdateOptions extends CommandOperationOptions {
   bypassDocumentValidation?: boolean;
   /** Specifies a collation */
   collation?: CollationOptions;
-  /** Specify that the update query should only consider plans using the hinted index */
-  hint?: string | Document;
   /** When true, creates a new document if no document matches the query */
   upsert?: boolean;
-  /** Map of parameter names and values that can be accessed using $$var (requires MongoDB 5.0). */
-  let?: Document;
 }
 
 /** @public */
@@ -48,8 +44,6 @@ export interface UpdateStatement {
   collation?: CollationOptions;
   /** An array of filter documents that determines which array elements to modify for an update operation on an array field. */
   arrayFilters?: Document[];
-  /** A document or string that specifies the index to use to support the query predicate. */
-  //hint?: Hint;
 }
 
 /** @internal */
@@ -62,9 +56,7 @@ export class UpdateOperation extends CommandOperation<Document> {
     super(ns, options);
   }
 
-  async execute(
-    proxy: TashmetProxy,
-  ): Promise<UpdateResult> {
+  async execute(proxy: TashmetProxy): Promise<UpdateResult> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
@@ -75,10 +67,6 @@ export class UpdateOperation extends CommandOperation<Document> {
 
     if (typeof options.bypassDocumentValidation === 'boolean') {
       command.bypassDocumentValidation = options.bypassDocumentValidation;
-    }
-
-    if (options.let) {
-      command.let = options.let;
     }
 
     const res = await super.executeCommand(proxy, command);
@@ -121,12 +109,8 @@ export interface ReplaceOptions extends CommandOperationOptions {
   bypassDocumentValidation?: boolean;
   /** Specifies a collation */
   collation?: CollationOptions;
-  /** Specify that the update query should only consider plans using the hinted index */
-  hint?: string | Document;
   /** When true, creates a new document if no document matches the query */
   upsert?: boolean;
-  /** Map of parameter names and values that can be accessed using $$var (requires MongoDB 5.0). */
-  let?: Document;
 }
 
 /** @internal */
@@ -165,10 +149,6 @@ export function makeUpdateStatement(
 
   if (options.multi) {
     op.multi = options.multi;
-  }
-
-  if (options.hint) {
-    //op.hint = options.hint;
   }
 
   if (options.arrayFilters) {

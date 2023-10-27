@@ -1,5 +1,5 @@
 import { Collection } from '../collection.js';
-import { Document, InferIdType } from '../interfaces.js';
+import { Document, InferIdType, TashmetProxy } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 import { prepareDocs } from './common.js';
 
@@ -9,7 +9,7 @@ export class InsertOperation extends CommandOperation<Document> {
     super(collection.fullNamespace, options);
   }
 
-  execute(engine: any): Promise<Document> {
+  execute(proxy: TashmetProxy): Promise<Document> {
     const options = this.options ?? {};
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
@@ -22,19 +22,13 @@ export class InsertOperation extends CommandOperation<Document> {
       command.bypassDocumentValidation = options.bypassDocumentValidation;
     }
 
-    // we check for undefined specifically here to allow falsy values
-    // eslint-disable-next-line no-restricted-syntax
-    if (options.comment !== undefined) {
-      command.comment = options.comment;
-    }
-
-    return super.executeCommand(engine, command);
+    return super.executeCommand(proxy, command);
   }
 }
 
 /** @public */
 export interface InsertOneOptions extends CommandOperationOptions {
-  /** Allow driver to bypass schema validation in MongoDB 3.2 or higher. */
+  /** Allow driver to bypass schema validation. */
   bypassDocumentValidation?: boolean;
   /** Force server to assign _id values instead of driver. */
   forceServerObjectId?: boolean;
@@ -53,8 +47,8 @@ export class InsertOneOperation extends InsertOperation {
     super(collection, [doc], options);
   }
 
-  async execute(engine: any): Promise<InsertOneResult> {
-    const {writeErrors} = await super.execute(engine);
+  async execute(proxy: TashmetProxy): Promise<InsertOneResult> {
+    const {writeErrors} = await super.execute(proxy);
     if (!writeErrors) {
       return {acknowledged: true, insertedId: this.documents[0]._id};
     } else {
@@ -79,8 +73,8 @@ export class InsertManyOperation extends InsertOperation {
     super(collection, docs, options);
   }
 
-  async execute(engine: any): Promise<InsertManyResult> {
-    const {n, ok, writeErrors} = await super.execute(engine);
+  async execute(proxy: TashmetProxy): Promise<InsertManyResult> {
+    const {n, ok, writeErrors} = await super.execute(proxy);
     if (!writeErrors) {
       return {
         acknowledged: true,
