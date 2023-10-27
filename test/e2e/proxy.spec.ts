@@ -97,19 +97,20 @@ describe('proxy', () => {
         {_id: '1', item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
-    /*
-    it('should emit a change event for each document', async () => {
-      const docs: any[] = [];
-      col.on('change', ({data}) => {
-        docs.push(data[0]);
-      });
+
+    it('should emit multiple change events', async () => {
+      const cs = col.watch();
       await col.insertMany([
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
-      return expect(docs.length).to.eql(2);
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('insert');
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('insert');
+      expect(cs.hasNext()).to.be.false;
+      cs.close();
     });
-    */
   });
 
   describe('replaceOne', () => {
@@ -155,19 +156,19 @@ describe('proxy', () => {
       expect(result.upsertedId).to.not.eql(null);
     });
 
-    /*
     it('should emit a change event', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('replace');
-        expect(data[0]).to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
-        expect(data[1]).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
+      const cs = col.watch();
+      cs.on('change', ({operationType, documentKey, fullDocument}) => {
+        expect(operationType).to.eql('replace');
+        expect(documentKey).to.eql({_id: '1'})
+        expect(fullDocument).to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 20, _id: '1'});
+        cs.close();
         done();
       });
       col.replaceOne(
         {_id: '1'}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
     });
-    */
   });
 
   describe('count', () => {
@@ -273,17 +274,16 @@ describe('proxy', () => {
       await col.deleteOne({_id: '1'});
       return expect(col.findOne({_id: '1'})).to.eventually.be.null;
     });
-    /*
     it('should emit a change event if a document was removed', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('delete');
-        expect(data.length).to.eql(1);
-        expect(data[0]).to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+      const cs = col.watch();
+      cs.on('change', ({operationType, documentKey}) => {
+        expect(operationType).to.eql('delete');
+        expect(documentKey).to.eql({_id: '1'});
+        cs.close();
         done();
       });
       col.deleteOne({_id: '1'});
     });
-    */
   });
 
   describe('deleteMany', () => {
@@ -303,15 +303,15 @@ describe('proxy', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.countDocuments()).to.eventually.eql(3);
     });
-    /*
-    it('should emit a change event for each removed document', async () => {
-      const docs: any[] = [];
-      col.on('change', ({data}) => {
-        docs.push(data[0]);
-      });
-      const res = await col.deleteMany({'item.category': 'cookies'});
-      return expect(res.deletedCount).to.eql(docs.length);
+    it('should emit a change event', async () => {
+      const cs = col.watch();
+      await col.deleteMany({'item.category': 'cookies'});
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('delete');
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('delete');
+      expect(cs.hasNext()).to.be.false;
+      cs.close();
     });
-    */
   });
 });
