@@ -9,13 +9,6 @@ export interface DeleteOptions extends CommandOperationOptions {
   ordered?: boolean;
   /** Specifies the collation to use for the operation */
   collation?: CollationOptions;
-  /** Specify that the update query should only consider plans using the hinted index */
-  hint?: string | Document;
-  /** Map of parameter names and values that can be accessed using $$var (requires MongoDB 5.0). */
-  let?: Document;
-
-  /** @deprecated use `removeOne` or `removeMany` to implicitly specify the limit */
-  single?: boolean;
 }
 
 /** @public */
@@ -34,8 +27,6 @@ export interface DeleteStatement {
   limit: number;
   /** Specifies the collation to use for the operation. */
   collation?: CollationOptions;
-  /** A document or string that specifies the index to use to support the query predicate. */
-  //hint?: Hint;
 }
 
 /** @internal */
@@ -52,10 +43,6 @@ export class DeleteOperation extends CommandOperation<Document> {
       deletes: this.statements,
       ordered
     };
-
-    if (options.let) {
-      command.let = options.let;
-    }
 
     const res = await super.executeCommand(proxy, command);
     return {acknowledged: true, deletedCount: res.n};
@@ -82,10 +69,6 @@ export function makeDeleteStatement(
     q: filter,
     limit: typeof options.limit === 'number' ? options.limit : 0
   };
-
-  if (options.single === true) {
-    op.limit = 1;
-  }
 
   if (options.collation) {
     op.collation = options.collation;
