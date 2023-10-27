@@ -17,7 +17,7 @@ import { ChangeStream } from "./changeStream.js";
 import { AggregationCursor } from "./cursor/aggregationCursor.js";
 import { FindCursor } from "./cursor/findCursor.js";
 import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert.js";
-import { DistinctOperation } from "./operations/distinct.js";
+import { DistinctOperation, DistinctOptions } from "./operations/distinct.js";
 import { DeleteManyOperation, DeleteOneOperation, DeleteResult } from "./operations/delete.js";
 import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateResult } from "./operations/update.js";
 import { CommandOperation } from "./operations/command.js";
@@ -210,12 +210,32 @@ export class Collection<TSchema extends Document = any> {
    *
    * @param key - Field of the document to find distinct values for
    * @param filter - The filter for filtering the set of documents to which we apply the distinct filter.
+   * @param options - Optional settings for the command
    */
+  distinct<Key extends keyof WithId<TSchema>>(
+    key: Key
+  ): Promise<Array<Flatten<WithId<TSchema>[Key]>>>;
+  distinct<Key extends keyof WithId<TSchema>>(
+    key: Key,
+    filter: Filter<TSchema>
+  ): Promise<Array<Flatten<WithId<TSchema>[Key]>>>;
+  distinct<Key extends keyof WithId<TSchema>>(
+    key: Key,
+    filter: Filter<TSchema>,
+    options: DistinctOptions
+  ): Promise<Array<Flatten<WithId<TSchema>[Key]>>>;
+
+  // Embedded documents overload
+  distinct(key: string): Promise<any[]>;
+  distinct(key: string, filter: Filter<TSchema>): Promise<any[]>;
+  distinct(key: string, filter: Filter<TSchema>, options: DistinctOptions): Promise<any[]>;
+
   public async distinct<Key extends keyof WithId<TSchema>>(
-    key: /*Key | */string,
-    filter: Filter<TSchema> = {}
+    key: Key | string,
+    filter: Filter<TSchema> = {},
+    options: DistinctOptions = {}
   ): Promise<Array<Flatten<WithId<TSchema>[Key]>>> {
-    return this.executeOperation(new DistinctOperation(this.ns, key, filter));
+    return this.executeOperation(new DistinctOperation(this.ns, key as any, filter, options));
   }
 
   /**
