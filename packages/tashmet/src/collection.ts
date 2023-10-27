@@ -77,22 +77,28 @@ export class Collection<TSchema extends Document = any> {
   }
 
   /**
-   * Find documents in the collection.
+   * Creates a cursor for a filter that can be used to iterate over results from the collection
    *
-   * @param filter The filter which documents are matched against.
-   * @returns A cursor.
+   * @param filter - The filter predicate. If unspecified, then all documents in the collection will match the predicate
    */
-  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): FindCursor<TSchema> {
-    return new FindCursor<TSchema>(this.ns, this.proxy, filter, options);
+  find(): FindCursor<WithId<TSchema>>;
+  find(filter: Filter<TSchema>, options?: FindOptions): FindCursor<WithId<TSchema>>;
+
+  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): FindCursor<WithId<TSchema>> {
+    return new FindCursor<WithId<TSchema>>(this.ns, this.proxy, filter, options);
   }
 
   /**
-   * Find a single document in the collection.
+   * Fetches the first document that matches the filter
    *
-   * @param selector The selector which documents are matched against.
-   * @returns A promise for the first matching document if one was found, null otherwise
+   * @param filter - Query for find Operation
+   * @param options - Optional settings for the command
    */
-  public findOne(filter: Filter<TSchema>, options: FindOptions<TSchema> = {}): Promise<TSchema | null> {
+  async findOne(): Promise<WithId<TSchema> | null>;
+  async findOne(filter: Filter<TSchema>): Promise<WithId<TSchema> | null>;
+  async findOne(filter: Filter<TSchema>, options: FindOptions): Promise<WithId<TSchema> | null>;
+
+  public findOne(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Promise<WithId<TSchema> | null> {
     return this.find(filter, options).limit(1).next();
   }
 

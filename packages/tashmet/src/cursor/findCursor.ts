@@ -1,4 +1,4 @@
-import { Document, Filter, FindOptions, SortingDirection, SortingKey, SortingMap, TashmetProxy } from '../interfaces.js';
+import { Document, FindOptions, SortingDirection, SortingKey, SortingMap, TashmetProxy } from '../interfaces.js';
 import { TashmetCollectionNamespace } from '../utils.js';
 import { AbstractCursor } from './abstractCursor.js';
 
@@ -16,7 +16,7 @@ export class FindCursor<TSchema extends Document = Document> extends AbstractCur
   public constructor(
     namespace: TashmetCollectionNamespace,
     proxy: TashmetProxy,
-    private filter: Filter<TSchema>,
+    private filter: Document = {},
     options: FindOptions = {},
   ) {
     super(namespace, proxy, options);
