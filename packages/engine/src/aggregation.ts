@@ -2,7 +2,7 @@ import { CollationOptions, Document, TashmetCollectionNamespace } from "@tashmet
 import { Logger, provider } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
 import { Store } from "./store.js";
-import { AggregatorFactory } from "./interfaces.js";
+import { AggregatorFactory, CollectionFactory } from "./interfaces.js";
 
 export async function *arrayToGenerator<T>(array: T[]) {
   for (const item of array) {
@@ -44,6 +44,8 @@ export class AggregationEngine extends CursorRegistry {
   public constructor(
     private aggFact: AggregatorFactory,
     private queryPlanner: QueryPlanner,
+    private store: Store,
+    private collFactory: CollectionFactory,
   ) { super(); }
 
   public aggregate(
@@ -57,6 +59,13 @@ export class AggregationEngine extends CursorRegistry {
       new TashmetCollectionNamespace(db, typeof collection === 'string' ? collection : ''),
       pipeline
     );
+
+    if (qa.merge && !this.store.hasCollection(qa.merge)) {
+      this.store.addCollection(this.collFactory.createCollection(qa.merge, {}));
+    }
+    if (qa.out && !this.store.hasCollection(qa.out)) {
+      this.store.addCollection(this.collFactory.createCollection(qa.out, {}));
+    }
 
     if (typeof collection === 'string') {
       input = this.queryPlanner.resolveDocuments(qa);

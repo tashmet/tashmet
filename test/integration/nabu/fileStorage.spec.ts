@@ -37,7 +37,7 @@ describe('fileStorage', () => {
 
     const client = await Tashmet.connect(store.proxy());
 
-    col = client.db('e2e').createCollection('testCollection');
+    col = await client.db('e2e').createCollection('testCollection');
   });
 
   beforeEach(async () => {

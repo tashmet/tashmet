@@ -25,8 +25,8 @@ describe('view', () => {
 
     const db = client.db('testdb');
 
-    sales = db.collection('sales');
-    totals = db.createCollection('totals', {
+    sales = await db.createCollection('sales');
+    totals = await db.createCollection('totals', {
       viewOn: 'sales',
       pipeline: [
         {$group: {

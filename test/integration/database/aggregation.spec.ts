@@ -28,8 +28,8 @@ describe('aggregation', () => {
 
       db = client.db('testdb');
 
-      budgets = db.collection('budgets');
-      salaries = db.collection('salaries')
+      budgets = await db.createCollection('budgets');
+      salaries = await db.createCollection('salaries')
     })
 
     beforeEach(async () => {
@@ -202,6 +202,7 @@ describe('aggregation', () => {
     });
 
     it("only insert new data", async () => {
+      await db.createCollection('orgArchive');
       await db.collection('orgArchive').insertMany([
         {
           employees: ["Ant", "Gecko"],
@@ -277,9 +278,9 @@ describe('aggregation', () => {
       ]);
     });
 
-    it("sould merge results from multiple collections", async () => {
+    it("should merge results from multiple collections", async () => {
       const qr = db.collection('quarterlyreport');
-      const po = db.collection('purchaseorders');
+      const po = await db.createCollection('purchaseorders');
 
       await po.insertMany([
         {
@@ -343,7 +344,7 @@ describe('aggregation', () => {
         { _id: "2019Q2", purchased: 1700 },
       ]);
 
-      const rs = db.collection('reportedsales');
+      const rs = await db.createCollection('reportedsales');
       await rs.insertMany([
         {
           _id: 1,
@@ -394,8 +395,8 @@ describe('aggregation', () => {
     });
 
     it("should use the pipeline to customize the merge", async () => {
-      const votes = db.collection('votes');
-      const mt = db.collection('monthlytotals');
+      const votes = await db.createCollection('votes');
+      const mt = await db.createCollection('monthlytotals');
 
       await votes.insertMany([
         { date: new Date("2019-05-01"), thumbsup: 1, thumbsdown: 1 },
@@ -474,7 +475,7 @@ describe('aggregation', () => {
     });
 
     it("should fail 'whenMatched' with 'fail' option", async () => {
-      const people = db.collection('people');
+      const people = await db.createCollection('people');
       await people.insertMany([
         { name: "Alice", age: 10 },
         { name: "Bob", age: 15 },
@@ -510,7 +511,7 @@ describe('aggregation', () => {
 
       db = client.db('testdb');
 
-      books = db.collection('books');
+      books = await db.createCollection('books');
       authors = db.collection('authors');
     });
 
@@ -562,8 +563,8 @@ describe('aggregation', () => {
 
     it("should perform a single equality join with", async () => {
       let db = client.db('testdb1');
-      let orders = db.collection('orders');
-      let inventory = db.collection('inventory');
+      let orders = await db.createCollection('orders');
+      let inventory = await db.createCollection('inventory');
 
       await orders.insertMany( [
         { _id : 1, item : "almonds", price : 12, quantity : 2 },
@@ -621,8 +622,8 @@ describe('aggregation', () => {
 
     it.skip("should work an array", async () => {
       const db = client.db('testdb2');
-      const classes = db.collection('classes');
-      const members = db.collection('members');
+      const classes = await db.createCollection('classes');
+      const members = await db.createCollection('members');
 
       await classes.insertMany( [
         { _id: 1, title: "Reading is ...", enrollmentlist: [ "giraffe2", "pandabear", "artie" ], days: ["M", "W", "F"] },

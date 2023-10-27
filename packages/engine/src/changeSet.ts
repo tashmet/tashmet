@@ -6,7 +6,7 @@ export function idSet(collection: any[]) {
 }
 
 export const makeWriteChange = (operationType: 'insert' | 'update' | 'replace' | 'delete', fullDocument: Document, ns: {db: string, coll: string}) => ({
-  _id: new ObjectID(),
+  _id: new ObjectID().toHexString(),
   operationType,
   ns,
   documentKey: {_id: fullDocument._id},

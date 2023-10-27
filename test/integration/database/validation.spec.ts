@@ -22,7 +22,7 @@ describe('validation', () => {
 
     const tashmet = await Tashmet.connect(store.proxy());
 
-    sales = tashmet.db('test').createCollection('sales', {
+    sales = await tashmet.db('test').createCollection('sales', {
       validator: {
         item: {$type: 'string'}
       }

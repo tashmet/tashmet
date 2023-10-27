@@ -15,11 +15,15 @@ export class Store extends EventEmitter {
   }
 
   public getCollection(ns: TashmetCollectionNamespace) {
-    if (ns.toString() in this.collections) {
+    if (this.hasCollection(ns)) {
       return this.collections[ns.toString()];
     } else {
       throw Error(`No collection for namespace: ${ns.toString()}`)
     }
+  }
+
+  public hasCollection(ns: TashmetCollectionNamespace) {
+    return ns.toString() in this.collections;
   }
 
   public async write(changes: ChangeStreamDocument[], options: WriteOptions) {

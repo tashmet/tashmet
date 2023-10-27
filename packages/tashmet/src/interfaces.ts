@@ -219,9 +219,9 @@ export type InferIdType<TSchema> = TSchema extends { _id: infer IdType } // user
     ? // eslint-disable-next-line @typescript-eslint/ban-types
       Exclude<IdType, {}>
     : unknown extends IdType
-    ? ObjectId
+    ? string | number
     : IdType
-  : ObjectId; // user has not defined _id on schema
+  : string | number; // user has not defined _id on schema
 
 
 export type EnhancedOmit<TRecordOrUnion, KeyUnion> = string extends keyof TRecordOrUnion
@@ -232,7 +232,7 @@ export type EnhancedOmit<TRecordOrUnion, KeyUnion> = string extends keyof TRecor
 
 export type WithId<TSchema> = EnhancedOmit<TSchema, '_id'> & { _id: InferIdType<TSchema> };
 
-export type OptionalId<TSchema extends { _id?: any }> = ObjectId extends TSchema['_id'] // a Schema with ObjectId _id type or "any" or "indexed type" provided
+export type OptionalId<TSchema extends { _id?: any }> = { _id: string } extends TSchema['_id'] // a Schema with ObjectId _id type or "any" or "indexed type" provided
   ? EnhancedOmit<TSchema, '_id'> & { _id?: InferIdType<TSchema> } // a Schema provided but _id type is not ObjectId
   : WithId<TSchema>;
 

@@ -19,36 +19,7 @@ export interface DatabaseOptions {
   retryWrites?: boolean;
 }
 
-export interface Database {
-  readonly databaseName: string;
-
-  /**
-   * Get an existing collection by name.
-   *
-   * @param name The name of the collection.
-   * @returns The instance of the collection.
-   */
-  collection<TSchema extends Document = any>(name: string): Collection<TSchema>;
-
-  createCollection<TSchema extends Document = any>(name: string, options?: CreateCollectionOptions): Collection<TSchema>;
-
-  /**
-   * Fetch all collections for the current db.
-   */
-  collections(): Collection[];
-
-  /**
-   * Drop a collection from the database, removing it permanently.
-   *
-   * @param name - Name of collection to drop
-   */
-  dropCollection(name: string): Promise<boolean>;
-
-  command(command: Document): Promise<Document>;
-}
-
-export class Database implements Database {
-  protected collMap: {[name: string]: Collection} = {};
+export class Database {
   private ns: TashmetNamespace;
 
   public constructor(
@@ -59,39 +30,50 @@ export class Database implements Database {
     this.ns = new TashmetNamespace(databaseName);
   }
 
-  public collection(name: string): Collection {
-    if (name in this.collMap) {
-      return this.collMap[name];
-    }
-    return this.createCollection(name);
+  get namespace(): string {
+    return this.ns.toString();
   }
 
-  public collections() {
-    return Object.values(this.collMap);
+
+  /**
+   * Returns a reference to a Tashmet Collection. If it does not exist it will be created implicitly.
+   *
+   * Collection namespace validation is performed server-side.
+   *
+   * @param name - the collection name we wish to access.
+   * @returns return the new Collection instance
+   */
+  public collection<TSchema extends Document>(name: string): Collection<TSchema> {
+    return new Collection<TSchema>(name, this.proxy, this);
   }
 
-  public createCollection<T extends Document = any>(
-    name: string, options: CreateCollectionOptions = {}): Collection<T>
+  /**
+   * Create a new collection on a server with the specified options. Use this to create capped collections.
+   *
+   * Collection namespace validation is performed server-side.
+   *
+   * @param name - The name of the collection to create
+   * @param options - Optional settings for the command
+   */
+  public async createCollection<TSchema extends Document = Document>(
+    name: string, options: CreateCollectionOptions = {}): Promise<Collection<TSchema>>
   {
-    try {
-      if (name in this.collMap) {
-        throw new Error(`a collection named '${name}' already exists in database`);
-      }
-
-      this.proxy.command(this.ns, {create: name, ...options});
-
-      const c = new Collection<T>(name, this.proxy, this);
-      this.collMap[name] = c;
-      return c;
-    } catch (err) {
-      throw err;
-    }
+      await this.command({create: name, ...options});
+      return new Collection<TSchema>(name, this.proxy, this);
   }
 
+  /**
+   * Drop a collection from the database, removing it permanently.
+   *
+   * @param name - Name of collection to drop
+   */
   public async dropCollection(name: string): Promise<boolean> {
     return this.executeOperation(new DropCollectionOperation(this.ns.withCollection(name), {}));
   }
 
+  /**
+   * Drop a database, removing it permanently from the server.
+   */
   public async dropDatabase(): Promise<boolean> {
     return this.executeOperation(new DropDatabaseOperation(this.ns, {})); 
   }

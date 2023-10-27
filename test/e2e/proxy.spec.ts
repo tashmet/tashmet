@@ -28,9 +28,9 @@ describe('proxy', () => {
 
     const tashmet = await Tashmet.connect(new Proxy({ uri: 'http://localhost:8000' }));
 
-    col = tashmet
+    col = await tashmet
       .db('testdb')
-      .collection('test');
+      .createCollection('test');
   });
 
   beforeEach(async () => {

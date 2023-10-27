@@ -20,7 +20,7 @@ export const makeWriteChange = (
   fullDocument: Document,
   ns: {db: string, coll: string
 }): ChangeStreamDocument => ({
-  _id: new ObjectID(),
+  _id: new ObjectID().toHexString(),
   operationType,
   ns,
   documentKey: {_id: fullDocument._id},
