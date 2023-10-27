@@ -9,7 +9,8 @@ import {
   ReplaceOneOptions,
   UpdateFilter,
   WithId,
-  TashmetProxy
+  TashmetProxy,
+  PkFactory
 } from "./interfaces.js";
 import { Database } from './database.js';
 import { ChangeStream } from "./changeStream.js";
@@ -23,7 +24,7 @@ import { CommandOperation } from "./operations/command.js";
 import { AggregateOptions } from "./operations/aggregate.js";
 import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments.js";
 import { DropCollectionOperation } from "./operations/drop.js";
-import { TashmetCollectionNamespace } from "./utils.js";
+import { DEFAULT_PK_FACTORY, TashmetCollectionNamespace } from "./utils.js";
 
 /**
  * A collection of documents.
@@ -31,12 +32,14 @@ import { TashmetCollectionNamespace } from "./utils.js";
 export class Collection<TSchema extends Document = any> {
   private changeStreams: ChangeStream[] = [];
   private ns: TashmetCollectionNamespace;
+  public readonly pkFactory: PkFactory;
 
   public constructor(
     public readonly collectionName: string,
     private proxy: TashmetProxy,
-    private db: Database,
+    public readonly db: Database,
   ) {
+    this.pkFactory = DEFAULT_PK_FACTORY;
     this.ns = new TashmetCollectionNamespace(db.databaseName, collectionName);
     this.proxy.on('change', change => {
       if (change.ns.db === this.dbName && change.ns.coll === this.collectionName) {
@@ -102,7 +105,7 @@ export class Collection<TSchema extends Document = any> {
    * @throws Error if a document with the same ID already exists
    */
   public async insertOne(document: OptionalId<TSchema>): Promise<InsertOneResult> {
-    return this.executeOperation(new InsertOneOperation(this.ns, document, {}));
+    return this.executeOperation(new InsertOneOperation(this, document, {}));
   }
 
   /**
@@ -115,7 +118,7 @@ export class Collection<TSchema extends Document = any> {
    * @throws Error if a document with the same ID already exists
    */
   public async insertMany(documents: OptionalId<TSchema>[]): Promise<InsertManyResult> {
-    return this.executeOperation(new InsertManyOperation(this.ns, documents, {}));
+    return this.executeOperation(new InsertManyOperation(this, documents, {}));
   }
 
   /**

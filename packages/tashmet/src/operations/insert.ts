@@ -1,11 +1,12 @@
+import { Collection } from '../collection.js';
 import { Document, InferIdType } from '../interfaces.js';
-import { TashmetCollectionNamespace } from '../utils.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
+import { prepareDocs } from './common.js';
 
 
 export class InsertOperation extends CommandOperation<Document> {
-  constructor(ns: TashmetCollectionNamespace, public readonly documents: Document[], public readonly options: any) {
-    super(ns, options);
+  constructor(private collection: Collection, public readonly documents: Document[], public readonly options: any) {
+    super(collection.fullNamespace, options);
   }
 
   execute(engine: any): Promise<Document> {
@@ -13,7 +14,7 @@ export class InsertOperation extends CommandOperation<Document> {
     const ordered = typeof options.ordered === 'boolean' ? options.ordered : true;
     const command: Document = {
       insert: this.ns.collection,
-      documents: this.documents,
+      documents: prepareDocs(this.collection, this.documents, this.options),
       ordered
     };
 
@@ -35,21 +36,21 @@ export class InsertOperation extends CommandOperation<Document> {
 export interface InsertOneOptions extends CommandOperationOptions {
   /** Allow driver to bypass schema validation in MongoDB 3.2 or higher. */
   bypassDocumentValidation?: boolean;
-  /** Force proxy to assign _id values instead of driver. */
-  forceTashmetProxyObjectId?: boolean;
+  /** Force server to assign _id values instead of driver. */
+  forceServerObjectId?: boolean;
 }
 
 /** @public */
 export interface InsertOneResult<TSchema = Document> {
   /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
   acknowledged: boolean;
-  /** The identifier that was inserted. If the proxy generated the identifier, this value will be null as the driver does not have access to that data */
+  /** The identifier that was inserted. If the server generated the identifier, this value will be null as the driver does not have access to that data */
   insertedId: InferIdType<TSchema>;
 }
 
 export class InsertOneOperation extends InsertOperation {
-  constructor(ns: TashmetCollectionNamespace, doc: Document, options: InsertOneOptions) {
-    super(ns, [doc], options);
+  constructor(collection: Collection, doc: Document, options: InsertOneOptions) {
+    super(collection, [doc], options);
   }
 
   async execute(engine: any): Promise<InsertOneResult> {
@@ -74,8 +75,8 @@ export interface InsertManyResult<TSchema = Document> {
 
 /** @internal */
 export class InsertManyOperation extends InsertOperation {
-  constructor(ns: TashmetCollectionNamespace, docs: Document[], options: any) {
-    super(ns, docs, options);
+  constructor(collection: Collection, docs: Document[], options: any) {
+    super(collection, docs, options);
   }
 
   async execute(engine: any): Promise<InsertManyResult> {

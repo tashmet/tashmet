@@ -10,7 +10,7 @@ export * from './interfaces.js';
 export { AggregateOptions } from './operations/aggregate.js';
 
 import { TashmetProxy, Document } from './interfaces.js';
-import { Database } from './database.js';
+import { Database, DatabaseOptions } from './database.js';
 import { GlobalAggregationCursor } from './cursor/globalAggregationCursor.js';
 import { AggregateOptions } from './operations/aggregate.js';
 
@@ -40,8 +40,8 @@ export default class Tashmet {
     this.proxy.destroy();
   }
 
-  public db(name: string): Database {
-    return new Database(name, this.proxy);
+  public db(name: string, options: DatabaseOptions = {}): Database {
+    return new Database(name, this.proxy, options);
   }
 
   public aggregate<TSchema extends Document = Document>(

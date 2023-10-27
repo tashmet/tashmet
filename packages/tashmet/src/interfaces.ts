@@ -414,3 +414,7 @@ export interface BulkWriteResult {
 export type RequireKeys<T extends object, K extends keyof T> =
   Required<Pick<T, K>> & Omit<T, K>;
 
+/** @public */
+export interface PkFactory {
+  createPk(): any; // TODO: when js-bson is typed, function should return some BSON type
+}

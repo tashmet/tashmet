@@ -1,3 +1,5 @@
+import ObjectId from 'bson-objectid';
+
 /** @public */
 export class TashmetNamespace {
   /**
@@ -45,3 +47,10 @@ export class TashmetCollectionNamespace extends TashmetNamespace {
     return super.fromString(namespace) as TashmetCollectionNamespace;
   }
 }
+
+export const DEFAULT_PK_FACTORY = {
+  // We prefer not to rely on ObjectId having a createPk method
+  createPk(): string {
+    return new ObjectId().toHexString();
+  }
+};

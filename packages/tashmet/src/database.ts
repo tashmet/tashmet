@@ -1,12 +1,23 @@
 import {
   CreateCollectionOptions,
   Document,
+  PkFactory,
   TashmetProxy,
 } from './interfaces.js';
 import { Collection } from './collection.js';
 import { CommandOperation } from './operations/command.js';
 import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop.js';
 import { TashmetNamespace } from './utils.js';
+
+/** @public */
+export interface DatabaseOptions {
+  /** Force server to assign _id values instead of driver. */
+  forceServerObjectId?: boolean;
+  /** A primary key factory object for generation of custom _id keys. */
+  pkFactory?: PkFactory;
+  /** Should retry failed writes */
+  retryWrites?: boolean;
+}
 
 export interface Database {
   readonly databaseName: string;
@@ -43,6 +54,7 @@ export class Database implements Database {
   public constructor(
     public readonly databaseName: string,
     private proxy: TashmetProxy,
+    public readonly options: DatabaseOptions = {},
   ) {
     this.ns = new TashmetNamespace(databaseName);
   }
