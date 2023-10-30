@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/qs-builder",
-	"version": "0.1.0",
+	"version": "1.0.0-alpha.0",
 	"description": "MongoDB query to HTTP query string",
 	"type": "module",
 	"main": "dist/index.js",
@@ -20,8 +20,8 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmet/tashmet": "^1.4.0",
-    	"qs-stringify": "^1.2.1"
+		"@tashmet/tashmet": "^1.0.0-alpha.0",
+		"qs-stringify": "^1.2.1"
 	},
 	"devDependencies": {
 		"tslib": "^2.3.1"

@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/qs-parser",
-	"version": "0.1.0",
+	"version": "1.0.0-alpha.0",
 	"description": "Http query string to MongoDB query parser",
 	"type": "module",
 	"main": "dist/index.js",
@@ -20,7 +20,7 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmet/tashmet": "^1.4.0",
+		"@tashmet/tashmet": "^1.0.0-alpha.0",
 		"qs": "^6.10.1",
 		"query-types": "0.1.4"
 	},

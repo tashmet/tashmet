@@ -1,6 +1,6 @@
 {
   "name": "@tashmet/mingo-stream",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha.0",
   "description": "",
   "type": "module",
   "main": "dist/index.js",
@@ -31,10 +31,10 @@
     "README.md"
   ],
   "dependencies": {
-    "@tashmet/mingo": "^1.0.0",
-		"@tashmet/tashmet": "^1.4.0",
-		"@tashmet/engine": "^0.1.0",
-		"mingo": "6.0.5"
+    "@tashmet/engine": "^1.0.0-alpha.0",
+    "@tashmet/mingo": "^1.0.0-alpha.0",
+    "@tashmet/tashmet": "^1.0.0-alpha.0",
+    "mingo": "6.0.5"
   },
   "devDependencies": {
     "@types/node": "^13.1.8",

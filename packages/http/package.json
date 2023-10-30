@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/http",
-	"version": "0.1.0",
+	"version": "1.0.0-alpha.0",
 	"description": "Http operators",
 	"type": "module",
 	"main": "dist/index.js",
@@ -20,15 +20,15 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmet/tashmet": "^1.4.0",
-		"@tashmet/core": "^1.0.2",
-		"@tashmet/engine": "^0.1.0",
+		"@tashmet/core": "^1.0.0-alpha.0",
+		"@tashmet/engine": "^1.0.0-alpha.0",
+		"@tashmet/tashmet": "^1.0.0-alpha.0",
 		"isomorphic-fetch": "^3.0.0"
 	},
 	"devDependencies": {
+		"@types/isomorphic-fetch": "0.0.38",
 		"@types/node": "^20.5.3",
 		"@types/reflect-metadata": "^0.1.0",
-		"@types/isomorphic-fetch": "0.0.38",
 		"tslib": "^2.3.1"
 	}
 }

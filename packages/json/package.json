@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/json",
-	"version": "0.1.0",
+	"version": "1.0.0-alpha.0",
 	"description": "JSON operators",
 	"type": "module",
 	"main": "dist/index.js",
@@ -20,8 +20,8 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmet/core": "^1.0.2",
-		"@tashmet/engine": "^0.1.0"
+		"@tashmet/core": "^1.0.0-alpha.0",
+		"@tashmet/engine": "^1.0.0-alpha.0"
 	},
 	"devDependencies": {
 		"@types/node": "20.5.3",

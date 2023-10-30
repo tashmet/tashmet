@@ -1,6 +1,6 @@
 {
   "name": "@tashmet/example-blog",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha.0",
   "private": true,
   "description": "Tashmet Blog example application",
   "type": "module",
@@ -23,20 +23,20 @@
     "access": "public"
   },
   "dependencies": {
-    "@tashmet/engine": "^0.1.0",
-    "@tashmet/nabu": "^2.0.0",
-    "@tashmet/core": "^1.0.2",
-    "@tashmet/proxy": "^0.1.0",
-    "@tashmet/server": "^0.1.0",
-    "@tashmet/memory": "^0.1.0",
-    "@tashmet/mingo-aggregation": "^0.1.0",
-    "@tashmet/mingo-stream": "^0.1.0",
-    "@tashmet/qs-builder": "^0.1.0",
-    "@tashmet/qs-parser": "^0.1.0",
-    "@tashmet/terminal": "^1.0.2",
-    "@tashmet/fs": "^0.2.0",
-    "@tashmet/yaml": "^0.1.0",
-    "@tashmet/tashmet": "^1.4.0",
+    "@tashmet/core": "^1.0.0-alpha.0",
+    "@tashmet/engine": "^1.0.0-alpha.0",
+    "@tashmet/fs": "^1.0.0-alpha.0",
+    "@tashmet/memory": "^1.0.0-alpha.0",
+    "@tashmet/mingo-aggregation": "^1.0.0-alpha.0",
+    "@tashmet/mingo-stream": "^1.0.0-alpha.0",
+    "@tashmet/nabu": "^1.0.0-alpha.0",
+    "@tashmet/proxy": "^1.0.0-alpha.0",
+    "@tashmet/qs-builder": "^1.0.0-alpha.0",
+    "@tashmet/qs-parser": "^1.0.0-alpha.0",
+    "@tashmet/server": "^1.0.0-alpha.0",
+    "@tashmet/tashmet": "^1.0.0-alpha.0",
+    "@tashmet/terminal": "^1.0.0-alpha.0",
+    "@tashmet/yaml": "^1.0.0-alpha.0",
     "socket.io-client": "4.7.2"
   }
 }
