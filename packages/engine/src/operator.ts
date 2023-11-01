@@ -1,6 +1,6 @@
 import { Annotation, methodDecorator, PluginConfigurator } from "@tashmet/core";
 import { Document } from "@tashmet/tashmet";
-import { AggregatorFactory } from "./interfaces";
+import { AggregatorFactory } from "./interfaces.js";
 
 
 export class OperatorAnnotation extends Annotation {
