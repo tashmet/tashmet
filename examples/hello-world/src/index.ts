@@ -11,7 +11,7 @@ Tashmet
   .connect(store.proxy())
   .then(async tashmet => {
     const db = tashmet.db('hello-world');
-    const posts = db.collection('posts');
+    const posts = await db.createCollection('posts');
     await posts.insertOne({title: 'Hello World!'});
     const doc = await posts.find().next();
     console.log(doc);

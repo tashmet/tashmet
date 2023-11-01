@@ -11,7 +11,7 @@ Tashmet
   .connect(store.proxy())
   .then(async tashmet => {
     const db = tashmet.db('aggregation');
-    const coll = db.collection('restaurants');
+    const coll = await db.createCollection('restaurants');
 
     const docs = [
       { stars: 3, categories: ["Bakery", "Sandwiches"], name: "Rising Sun Bakery" },
