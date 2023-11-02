@@ -27,7 +27,7 @@
 		"glob-to-regexp": "^0.4.1"
 	},
 	"devDependencies": {
-		"@tashmet/mingo-stream": "^1.0.0-alpha.0",
+		"@tashmet/mingo": "^1.0.0-alpha.0",
 		"@types/fs-extra": "^8.0.0",
 		"@types/glob-to-regexp": "^0.4.1",
 		"@types/mock-fs": "^4.10.0",

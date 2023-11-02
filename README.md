@@ -41,7 +41,7 @@ Note that no network connection is made in this example.
 
 ```ts
 import Tashmet from '@tashmet/tashmet';
-import mingo from '@tashmet/mingo-aggregation';
+import mingo from '@tashmet/mingo';
 import Memory from '@tashmet/memory';
 
 const store = Memory
@@ -75,7 +75,7 @@ comes straight from the MongoDB docs on [aggregation](https://www.mongodb.com/do
 
 ```ts
 import Tashmet from '@tashmet/tashmet';
-import mingo from '@tashmet/mingo-aggregation';
+import mingo from '@tashmet/mingo';
 import Memory from '@tashmet/memory';
 
 const store = Memory

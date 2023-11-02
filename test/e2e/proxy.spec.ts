@@ -5,7 +5,7 @@ import 'mocha';
 import Tashmet, { Collection } from '../../packages/tashmet/dist'
 import Proxy from '../../packages/proxy/dist';
 import TashmetServer from '../../packages/server/dist/index.js'
-import mingo from '../../packages/mingo/aggregation/dist/index.js'
+import mingo from '../../packages/mingo/dist/index.js'
 import Memory from '../../packages/memory/dist/index.js'
 
 

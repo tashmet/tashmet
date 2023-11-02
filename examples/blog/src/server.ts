@@ -1,5 +1,5 @@
 import { LogLevel } from '@tashmet/core';
-import mingo from '@tashmet/mingo-stream';
+import mingo from '@tashmet/mingo';
 import Nabu from '@tashmet/nabu';
 import TashmetServer from '@tashmet/server';
 import { terminal } from '@tashmet/terminal';

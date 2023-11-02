@@ -1,5 +1,5 @@
 {
-  "name": "@tashmet/mingo-stream",
+  "name": "@tashmet/mingo-base",
   "version": "1.0.0-alpha.0",
   "description": "",
   "type": "module",
@@ -13,7 +13,7 @@
   "keywords": [
     "tashmet",
     "mingo",
-    "stream"
+    "aggregation"
   ],
   "author": "",
   "license": "MIT",
@@ -32,7 +32,6 @@
   ],
   "dependencies": {
     "@tashmet/engine": "^1.0.0-alpha.0",
-    "@tashmet/mingo": "^1.0.0-alpha.0",
     "@tashmet/tashmet": "^1.0.0-alpha.0",
     "mingo": "6.0.5"
   },

@@ -25,10 +25,6 @@ export class CollectionBuffers {
   private buffers: Record<string, Document[]> = {};
 
   public async load(ns: TashmetCollectionNamespace, create: boolean = false): Promise<Document[]> {
-    //if (create) {
-      //await this.documentAccess.create(ns, {});
-    //}
-
     return this.buffers[ns.toString()] = await toArray(this.store
       .getCollection(ns)
       .read({}));

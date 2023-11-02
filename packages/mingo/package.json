@@ -33,10 +33,8 @@
 	"dependencies": {
 		"@tashmet/core": "^1.0.0-alpha.0",
 		"@tashmet/engine": "^1.0.0-alpha.0",
-		"@tashmet/tashmet": "^1.0.0-alpha.0",
-		"bson-objectid": "^1.3.0",
-		"eventemitter3": "^3.0.0",
-		"mingo": "6.0.5"
+		"@tashmet/mingo-base": "^1.0.0-alpha.0",
+		"@tashmet/tashmet": "^1.0.0-alpha.0"
 	},
 	"devDependencies": {
 		"@types/node": "^13.1.8",

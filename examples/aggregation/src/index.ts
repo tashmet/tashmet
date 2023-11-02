@@ -1,5 +1,5 @@
 import Tashmet from '@tashmet/tashmet';
-import mingo from '@tashmet/mingo-aggregation';
+import mingo from '@tashmet/mingo';
 import Memory from '@tashmet/memory';
 
 const store = Memory

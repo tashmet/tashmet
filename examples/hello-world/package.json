@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@tashmet/memory": "^1.0.0-alpha.0",
-    "@tashmet/mingo-aggregation": "^1.0.0-alpha.0",
+    "@tashmet/mingo": "^1.0.0-alpha.0",
     "@tashmet/tashmet": "^1.0.0-alpha.0"
   }
 }

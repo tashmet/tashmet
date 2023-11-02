@@ -1,5 +1,5 @@
 import TashmetServer from '../packages/server/dist/index.js'
-import mingo from '../packages/mingo/aggregation/dist/index.js'
+import mingo from '../packages/mingo/dist/index.js'
 import Memory from '../packages/memory/dist/index.js'
 
 const store = Memory

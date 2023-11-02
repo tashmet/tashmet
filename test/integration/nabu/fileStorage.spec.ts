@@ -1,6 +1,6 @@
 import Tashmet, { Collection } from '../../../packages/tashmet/dist/index.js';
 import Nabu from '../../../packages/nabu/dist/index.js';
-import mingo from '../../../packages/mingo/stream/dist/index.js';
+import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
