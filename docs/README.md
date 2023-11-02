@@ -13,7 +13,7 @@ Tashmet is a lightweight open-source database written in typescript that impleme
 
 * Can run both in Node.js and in a web browser
 * Can store documents in [memory](storage-engines/mingo.md)
-* Can write and read documents to files on the [file system](storage-engines/nabu.md)
+* Can write and read documents to files on the [file system](storage-engines/nabu/)
 
 
 {% endhint %}
@@ -54,7 +54,7 @@ The memory storage engine is trivial to set up and can be used to store document
 
 Nabu is a storage engine that reads from and writes to the file system where documents are stored in files. Built in file formats includes JSON and YAML. Nabu also gives you the ability to fall back to memory storage for any collection when that is perferred.
 
-{% content-ref url="storage-engines/nabu.md" %}
-[nabu.md](storage-engines/nabu.md)
+{% content-ref url="storage-engines/nabu/" %}
+[nabu](storage-engines/nabu/)
 {% endcontent-ref %}
 

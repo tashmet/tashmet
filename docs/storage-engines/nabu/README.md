@@ -1,12 +1,12 @@
 ---
-description: Reading and writing content stored on disk
+description: A storage engine for persistent file system storage
 ---
 
 # Nabu
 
 ## Introduction
 
-File is a set of tools for reading and writing Tashmet content on disk. It allows us to store collections in files with support for common formats like JSON, YAML or Markdown.
+Nabu is the primary storage engine for Tashmet. It allows us to store collections in files with support for common formats like JSON, YAML and Markdown.
 
 ### Installation
 

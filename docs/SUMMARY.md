@@ -11,23 +11,13 @@
 * [Operations](concepts/operations.md)
 * [Aggregation](concepts/aggregation.md)
 * [Storage engines](concepts/storage-engines.md)
-* [Dependency injection](concepts/ioc.md)
-* [Reflection](concepts/reflection.md)
-* [Server](concepts/server.md)
-* [Legacy](concepts/examples/README.md)
-  * [Blog](concepts/examples/blog.md)
-  * [Aurelia](concepts/examples/aurelia.md)
-  * [MongoDB](concepts/examples/mongodb.md)
-  * [Webpack](concepts/examples/webpack.md)
-  * [View](concepts/examples/view/README.md)
-    * [Aggregation](concepts/examples/view/aggregation.md)
-    * [Queries](concepts/examples/view/queries.md)
-    * [Views](concepts/examples/view/views.md)
-    * [Filtering](concepts/examples/view/filtering.md)
-    * [Sorting](concepts/examples/view/sorting.md)
-  * [Markdown](concepts/examples/markdown.md)
 
 ## Storage engines
 
+* [Nabu](storage-engines/nabu/README.md)
 * [Memory](storage-engines/mingo.md)
-* [Nabu](storage-engines/nabu.md)
+
+## Internals
+
+* [Dependency injection](internals/ioc.md)
+* [Reflection](internals/reflection.md)
