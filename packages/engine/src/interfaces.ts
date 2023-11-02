@@ -48,7 +48,7 @@ export interface StorageEngine {
 
   on(event: 'change', listener: (change: Document) => void): this;
 
-  client(): TashmetProxy;
+  proxy(): TashmetProxy;
 }
 
 export class StorageEngine extends EventEmitter implements StorageEngine {
