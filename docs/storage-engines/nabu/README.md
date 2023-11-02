@@ -11,87 +11,62 @@ File is a set of tools for reading and writing Tashmet content on disk. It allow
 ### Installation
 
 ```
-$ npm install @tashmet/file
+$ npm install @tashmet/nabu
 ```
-
-### Usage
-
-The package exports a component that should be imported as a dependency in your application. It can also optionally be configured to watch for changes to files on disk.
-
-```typescript
-@component({
-  dependencies: [
-    import('@tashmet/file')
-  ],
-  providers: [
-    Provider.ofInstance<FileSystemConfig>('file.FileSystemConfig', {
-      watch: true
-    })
-  ]
-})
-class Application {}
-```
-
-## Collections
-
-### File
-
-This is a collection of documents stored in a single file on disk. The file will contain an object with key-value pairs where the key is the ID of the document and the value its content.
-
-#### Usage
-
-A file-based collection can be created using its factory.
-
-```typescript
-database.createCollection('authors', file({
-  path: 'content/authors.yaml',
-  serializer: yaml()
-});
-```
-
-The function takes two arguments, a path to the file and a [serializer](./) used for reading and writing the content.
-
-#### Operation
-
-The collection will be populated and and cached in memory as soon as it is created and can be queried like any other collection.
-
-If File was configured to watch for file changes, events will be triggered whenever a user edits the file, adding, removing or updating a document.
-
-### Directory
-
-This is a collection of documents stored in a directory on disk. Each document in the collection will be stored in its own file inside the directory. The name of each file will correspond to the ID of the document it contains.
-
-#### Usage
-
-A directory-based collection can be created using its factory.
-
-```typescript
-database.createCollection('posts', directory({
-  path: 'content/posts',
-  extension: 'md',
-  serializer: yaml({
-    frontMatter: true,
-    contentKey: 'text'
-  })
-});
-```
-
-Like the file-based collection, this configuration needs a path and a serializer. The path should point to a valid directory. A file extension also needs to be provided so that the collection knows how to name new documents that it writes.
-
-In the example above we create a collection of posts written in markdown with YAML front-matter. The markdown content will be stored in a key called **text** when parsed.
-
-#### Operation
-
-The collection will be populated and cached in memory as soon as it is created and can be queried like any other collection.
-
-If File was configured to watch for file changes, events will be triggered whenever a user adds, removes or edits a document in this directory.
-
-## Serializers
 
 ### JSON
 
-### YAML
+Lets start with the most simple example where we choose to store our documents as JSON-files in directories unique to each collection.
 
-## Converters
+We start by configuring our storage engine with an input/output adapter called 'json' that works with JSONN files in a subdirectories of the current working directory where the relative path is given by the database name and collection name of the namespace of the collection created.
 
-### Markdown
+```typescript
+import mingo from '@tashmet/mingo';
+import Nabu from '@tashmet/nabu';
+import Tashmet from '@tashmet/tashmet';
+import { terminal } from '@tashmet/terminal';
+
+const store = Nabu
+  .configure({})
+  .use(mingo())
+  .io('json', ns => Nabu
+    .json()
+    .directory(`${ns.db}/${ns.collection}`)
+  )
+  .bootstrap()  
+```
+
+Next step is to connect to our storage engine proxy and create a collection.
+
+```typescript
+const tashmet = Tashmet
+  .connect(store.proxy())
+  .then(async tashmet => {
+    const inventory = await client.db('mydb').createCollection('inventory', {
+      storageEngine: { io: 'json' }
+    });
+  });
+```
+
+Notice that we pass a storageEngine option here to let Nabu know that the io-adapter that should be used is the one we created earlier. If we were to omit this directive then Nabu would fallback to memory storage which is the default option. If we always want to use the 'json'-adapter by default we could instead configure the default fallback on Nabu:
+
+```typescript
+const store = Nabu
+  .configure({
+    defaultIO: 'json'
+  })
+  ...
+```
+
+Now let's add some documents to our collection:
+
+```typescript
+await inventory.insertMany([
+  {_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 },
+  {_id: '2', item: { category: 'cookies', type: 'chocolate chip'}, amount: 50 },
+  {_id: '3', item: { category: 'cookies', type: 'chocolate chip'}, amount: 15 },
+  {_id: '4', item: { category: 'cake', type: 'lemon' }, amount: 30 },
+  {_id: '5', item: { category: 'cake', type: 'carrot' }, amount: 20 },
+]);
+```
+

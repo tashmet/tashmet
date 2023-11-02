@@ -29,11 +29,7 @@
 
 ## Storage engines
 
-* [Mingo](storage-engines/mingo.md)
-* [HTTP](storage-engines/http/README.md)
-  * [Query Serialization](storage-engines/http/query-serialization.md)
-  * [Caching](storage-engines/http/caching.md)
-  * [Socket](storage-engines/http/socket.md)
+* [Memory](storage-engines/mingo.md)
 * [Nabu](storage-engines/nabu/README.md)
   * [IPFS](storage-engines/nabu/ipfs.md)
   * [Vinyl](storage-engines/nabu/vinyl.md)
