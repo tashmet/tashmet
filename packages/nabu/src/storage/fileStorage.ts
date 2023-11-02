@@ -65,7 +65,7 @@ export class FileCollection extends ReadWriteCollection {
         continue;
       }
 
-      if (this.validator && ['insert', 'update', 'replace'].includes(doc.operationType)) {
+      if (this.validator && !options.bypassDocumentValidation && ['insert', 'update', 'replace'].includes(doc.operationType)) {
         try {
           this.validator(doc.fullDocument as Document);
         } catch (err) {
