@@ -30,6 +30,4 @@
 ## Storage engines
 
 * [Memory](storage-engines/mingo.md)
-* [Nabu](storage-engines/nabu/README.md)
-  * [IPFS](storage-engines/nabu/ipfs.md)
-  * [Vinyl](storage-engines/nabu/vinyl.md)
+* [Nabu](storage-engines/nabu.md)
