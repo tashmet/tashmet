@@ -5,6 +5,7 @@ import { Document, Filter, FindOptions } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
 import { initOptions, Options } from 'mingo/core.js';
 import { cloneDeep } from 'mingo/util.js';
+import { MingoConfig } from './interfaces';
 
 export interface PrefetchAggregation {
   filter: Filter<any>;
@@ -44,6 +45,7 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
     pipeline: Document[],
     private store: Store,
     private options: AggregatorOptions,
+    private mingoConfig: MingoConfig,
     private logger: Logger)
   {
     super(cloneDeep(pipeline) as Document[]);
@@ -71,6 +73,7 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
 
   protected get mingoOptions(): Options {
     return initOptions({
+      ...this.mingoConfig,
       collectionResolver: coll => {
         if (coll.includes('.')) {
           const ns = TashmetCollectionNamespace.fromString(coll);

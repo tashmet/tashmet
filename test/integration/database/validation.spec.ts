@@ -104,3 +104,91 @@ describe('json schema validation', () => {
     })).to.eventually.be.rejected;
   });
 });
+
+describe('query for valid documents', () => {
+  let inventory: Collection;
+
+  const myschema = {
+    $jsonSchema: {
+      required: [ "item", "qty", "instock" ],
+      properties: {
+        item: { type: "string" },
+        qty: { type: "integer" },
+        size: {
+          type: "object",
+          required: [ "uom" ],
+          properties: {
+            uom: { type: "string" },
+            h: { type: "number" },
+            w: { type: "number" }
+          }
+        },
+        instock: { type: "boolean" }
+      }
+    }
+  }
+
+  before(async () => {
+    const store = Memory
+      .configure({})
+      .use(mingo())
+      .bootstrap();
+
+    const tashmet = await Tashmet.connect(store.proxy());
+
+    inventory = await tashmet.db('test').createCollection('inventory');
+
+    await inventory.insertMany([
+      { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" } },
+      { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" } },
+      { item: "paper", qty: 100, size: { h: 8.5, w: '11', uom: "in" }, instock: 1 },
+      { item: "planner", qty: 75, size: { h: 22.85, w: '30', uom: "cm" }, instock: 1 },
+      { item: "postcard", qty: 45, size: { h: '10', w: 15.25, uom: "cm" }, instock: true },
+      { item: "apple", qty: 45, status: "A", instock: true },
+      { item: "pears", qty: 50, status: "A", instock: true }
+    ]);
+  });
+
+  it('should return valid documents using find', async () => {
+    const result = await inventory.find(myschema).toArray();
+
+    expect(result.map(doc => doc.item))
+      .to.eql(['apple', 'pears']);
+  });
+
+  it('should return valid documents using aggregation', async () => {
+    const result = await inventory.aggregate([{ $match: myschema }]).toArray();
+
+    expect(result.map(doc => doc.item))
+      .to.eql(['apple', 'pears']);
+  });
+
+  it('should return invalid documents using find', async () => {
+    const result = await inventory.find({ $nor: [ myschema ] }).toArray();
+
+    expect(result.map(doc => doc.item))
+      .to.eql(['journal', 'notebook', 'paper', 'planner', 'postcard']);
+  });
+
+  it('should return invalid documents using aggregation', async () => {
+    const result = await inventory.aggregate([{ $match: { $nor: [ myschema ] } }]).toArray();
+
+    expect(result.map(doc => doc.item))
+      .to.eql(['journal', 'notebook', 'paper', 'planner', 'postcard']);
+  });
+
+  it('should update documents that dont match schema', async () => {
+    await inventory.updateMany(
+      {
+          $nor: [ myschema ]
+      },
+      {
+          $set: { isValid: false }
+      }
+    );
+    const result = await inventory.find({ isValid: false }).toArray();
+
+    expect(result.map(doc => doc.item))
+      .to.eql(['journal', 'notebook', 'paper', 'planner', 'postcard']);
+  });
+});

@@ -49,11 +49,12 @@ export class MingoAggregatorFactory extends AggregatorFactory {
 
   public constructor(
     protected store: Store,
-    protected logger: Logger
+    protected logger: Logger,
+    protected config: MingoConfig
   ) { super(); }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
-    return new BufferAggregator(pipeline, this.store, options, this.logger);
+    return new BufferAggregator(pipeline, this.store, options, this.config, this.logger);
   }
 
   public addExpressionOperator(name: string, op: ExpressionOperator<any>) {

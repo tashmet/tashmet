@@ -5,7 +5,7 @@ import { getOperator, OperatorType } from 'mingo/core.js';
 import * as mingo from 'mingo/core.js';
 import { assert, cloneDeep } from 'mingo/util.js';
 import { Iterator, Lazy } from 'mingo/lazy.js';
-import { AbstractAggregator, AggregatorFactory, Store, PipelineOperator } from '@tashmet/engine';
+import { AbstractAggregator, AggregatorFactory, Store, PipelineOperator, AggregatorOptions } from '@tashmet/engine';
 import { Container, Logger, provider } from '@tashmet/core';
 import jsonSchema from '@tashmet/schema';
 import streamOperators from './operators.js';
@@ -28,11 +28,12 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
     pipeline: Document[],
     private pipelineOperators: Record<string, PipelineOperator<any>>,
     store: Store,
-    options: any,
+    options: AggregatorOptions,
+    config: MingoConfig,
     logger: Logger,
     private streamOperators: string[] = defaultStreamOperators,
   ) {
-    super(pipeline, store, options, logger);
+    super(pipeline, store, options, config, logger);
   }
 
   public async *stream<TResult>(input: AsyncIterable<T>): AsyncGenerator<TResult> {
@@ -95,15 +96,13 @@ export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
   public constructor(
     store: Store,
     logger: Logger,
-    private config: MingoConfig
+    config: MingoConfig
   ) {
-    super(store, logger);
+    super(store, logger, config);
   }
 
-  public createAggregator(pipeline: Document[], options: any): AbstractAggregator<Document> {
-    const opts = { ...this.config, ...options };
-
-    return new StreamAggregator(pipeline, this.pipelineOps, this.store, opts, this.logger);
+  public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
+    return new StreamAggregator(pipeline, this.pipelineOps, this.store, options, this.config, this.logger);
   }
 }
 
