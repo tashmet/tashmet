@@ -69,8 +69,8 @@ export class MemoryCollection extends AtomicWriteCollection {
     return this.indexes.has(hash(id));
   }
 
-  public async insert(document: Document): Promise<void> {
-    if (this.rules && this.validatorFact) {
+  public async insert(document: Document, validate: boolean): Promise<void> {
+    if (this.rules && this.validatorFact && validate) {
       const validator = this.validatorFact.createValidator(this.rules);
       validator(document);
     }

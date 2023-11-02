@@ -16,7 +16,7 @@ import { Database } from './database.js';
 import { ChangeStream } from "./changeStream.js";
 import { AggregationCursor } from "./cursor/aggregationCursor.js";
 import { FindCursor } from "./cursor/findCursor.js";
-import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneResult } from "./operations/insert.js";
+import { InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneOptions, InsertOneResult } from "./operations/insert.js";
 import { DistinctOperation, DistinctOptions } from "./operations/distinct.js";
 import { DeleteManyOperation, DeleteOneOperation, DeleteResult } from "./operations/delete.js";
 import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateResult } from "./operations/update.js";
@@ -103,15 +103,15 @@ export class Collection<TSchema extends Document = any> {
   }
 
   /**
-   * Insert a document into the collection.
+   * Inserts a single document into the collection. If documents passed in do not contain the **_id** field,
+   * one will be added to each of the documents missing it by the driver, mutating the document. This behavior
+   * can be overridden by setting the **forceServerObjectId** flag.
    *
-   * If the document passed in do not contain the _id field, one will be added to it
-   *
-   * @param document The document to insert.
-   * @throws Error if a document with the same ID already exists
+   * @param doc - The document to insert
+   * @param options - Optional settings for the command
    */
-  public async insertOne(document: OptionalId<TSchema>): Promise<InsertOneResult> {
-    return this.executeOperation(new InsertOneOperation(this, document, {}));
+  public async insertOne(document: OptionalId<TSchema>, options?: InsertOneOptions): Promise<InsertOneResult> {
+    return this.executeOperation(new InsertOneOperation(this, document, options || {}));
   }
 
   /**

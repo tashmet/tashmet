@@ -19,7 +19,7 @@ export { makeWriteChange } from './commands/write.js';
 
 
 export abstract class AtomicWriteCollection extends ReadWriteCollection {
-  public abstract insert(document: Document): Promise<void>;
+  public abstract insert(document: Document, validate: boolean): Promise<void>;
   public abstract replace(id: string, document: Document): Promise<void>;
   public abstract delete(id: string): Promise<void>;
 
@@ -32,7 +32,7 @@ export abstract class AtomicWriteCollection extends ReadWriteCollection {
         switch (c.operationType) {
           case 'insert':
             if (c.fullDocument) {
-              await this.insert(c.fullDocument);
+              await this.insert(c.fullDocument, options.bypassDocumentValidation !== true);
             }
             break;
           case 'update':

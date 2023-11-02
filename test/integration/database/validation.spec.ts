@@ -88,7 +88,7 @@ describe('json schema validation', () => {
         street: "33rd Street"
       }
     });
-    return expect(result.acknowledged).to.eql(true);
+    expect(result.acknowledged).to.eql(true);
   });
 
   it('should fail to insert an invalid document', () => {
@@ -102,6 +102,20 @@ describe('json schema validation', () => {
         street: "33rd Street"
       }
     })).to.eventually.be.rejected;
+  });
+
+  it('should bypass validation on invalid document', async () => {
+    const result = await students.insertOne({
+      name: "Alice",
+      year: 2016,
+      major: "History",
+      gpa: 3.0,
+      address: {
+        city: "NYC",
+        street: "33rd Street"
+      }
+    }, { bypassDocumentValidation: true });
+    expect(result.acknowledged).to.eql(true);
   });
 });
 
@@ -190,5 +204,12 @@ describe('query for valid documents', () => {
 
     expect(result.map(doc => doc.item))
       .to.eql(['journal', 'notebook', 'paper', 'planner', 'postcard']);
+  });
+
+  it('should delete documents that dont match schema', async () => {
+    await inventory.deleteMany( { $nor: [ myschema ] } );
+    const docs = await inventory.find().toArray();
+
+    expect(docs.map(doc => doc.item)).to.eql(['apple', 'pears']);
   });
 });

@@ -47,17 +47,17 @@ export class QueryWriteController extends AbstractWriteController {
   ) { super(store); }
 
   @command('insert')
-  public async insert(ns: TashmetNamespace, {insert: coll, documents, ordered}: Document) {
-    return this.write(new InsertCommand(documents, {db: ns.db, coll}), ordered);
+  public async insert(ns: TashmetNamespace, {insert: coll, documents, ordered, bypassDocumentValidation}: Document) {
+    return this.write(new InsertCommand(documents, {db: ns.db, coll}), { ordered, bypassDocumentValidation });
   }
 
   @command('update')
   public async update(ns: TashmetNamespace, {update: coll, updates, ordered}: Document) {
-    return this.write(new QueryUpdateCommand(updates, {db: ns.db, coll}, this.engine), ordered);
+    return this.write(new QueryUpdateCommand(updates, {db: ns.db, coll}, this.engine), { ordered });
   }
 
   @command('delete')
   public async delete(ns: TashmetNamespace, {delete: coll, deletes, ordered}: Document) {
-    return this.write(new QueryDeleteCommand(deletes, {db: ns.db, coll}, this.engine), ordered);
+    return this.write(new QueryDeleteCommand(deletes, {db: ns.db, coll}, this.engine), { ordered });
   }
 }

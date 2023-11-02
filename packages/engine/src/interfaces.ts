@@ -19,7 +19,9 @@ export interface WriteError {
 }
 
 export interface WriteOptions {
-  ordered: boolean;
+  ordered?: boolean;
+
+  bypassDocumentValidation?: boolean;
 }
 
 export interface ReadOptions {

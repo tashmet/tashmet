@@ -3,6 +3,7 @@ import { WriteCommand } from '../commands/write.js';
 import { CursorRegistry } from '../cursor.js';
 import { command } from '../command.js';
 import { Store } from '../store.js';
+import { WriteOptions } from '../interfaces.js';
 
 
 export abstract class AbstractReadController {
@@ -31,12 +32,12 @@ export abstract class AbstractWriteController {
     protected store: Store
   ) {}
 
-  protected async write(command: WriteCommand, ordered: boolean) {
+  protected async write(command: WriteCommand, options: WriteOptions) {
     const changes = await command.execute();
 
-    const writeErrors = await this.store.write(changes, {ordered});
+    const writeErrors = await this.store.write(changes, options);
     const successfulChanges = changes.filter((c, i) => !writeErrors.find(
-      err => ordered ? i >= err.index : i === err.index)
+      err => options.ordered ? i >= err.index : i === err.index)
     );
 
     let res: Document = { ok: 1, n: successfulChanges.length};
