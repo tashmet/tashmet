@@ -148,4 +148,3 @@ If we want to retrieve parameter annotations from class constructor we just omit
 ```typescript
 let annotations = MyAnnotation.onParameters(MyClass);
 ```
-
