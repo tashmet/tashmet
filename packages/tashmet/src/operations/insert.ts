@@ -5,7 +5,11 @@ import { prepareDocs } from './common.js';
 
 
 export class InsertOperation extends CommandOperation<Document> {
-  constructor(private collection: Collection, public readonly documents: Document[], public readonly options: any) {
+  constructor(
+    private collection: Collection,
+    public readonly documents: Document[],
+    public readonly options: any
+  ) {
     super(collection.fullNamespace, options);
   }
 
@@ -58,6 +62,26 @@ export class InsertOneOperation extends InsertOperation {
 }
 
 /** @public */
+export interface BulkWriteOptions extends CommandOperationOptions {
+  /**
+   * Allow driver to bypass schema validation.
+   * @defaultValue `false` - documents will be validated by default
+   **/
+  bypassDocumentValidation?: boolean;
+  /**
+   * If true, when an insert fails, don't execute the remaining writes.
+   * If false, continue with remaining inserts when one fails.
+   * @defaultValue `true` - inserts are ordered by default
+   */
+  ordered?: boolean;
+  /**
+   * Force server to assign _id values instead of driver.
+   * @defaultValue `false` - the driver generates `_id` fields by default
+   **/
+  forceServerObjectId?: boolean;
+}
+
+/** @public */
 export interface InsertManyResult<TSchema = Document> {
   /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined */
   acknowledged: boolean;
@@ -69,7 +93,7 @@ export interface InsertManyResult<TSchema = Document> {
 
 /** @internal */
 export class InsertManyOperation extends InsertOperation {
-  constructor(collection: Collection, docs: Document[], options: any) {
+  constructor(collection: Collection, docs: Document[], options: BulkWriteOptions) {
     super(collection, docs, options);
   }
 
