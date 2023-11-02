@@ -11,7 +11,8 @@ import {
   ExpressionOperator,
   PipelineOperator,
   Store,
-  HashCode
+  HashCode,
+  JsonSchemaValidator
 } from '@tashmet/engine';
 import { hashCode, intersection } from 'mingo/util.js';
 import { BufferAggregator } from './aggregator.js';
@@ -27,10 +28,6 @@ export { BufferAggregator, CollectionBuffers } from './aggregator.js';
 function makeExpressionOperator(op: ExpressionOperator<any>): mingo.ExpressionOperator  {
   return (obj, expr) => op(expr, ((e: any) => mingo.computeValue(obj, e)));
 }
-
-//function makePipelineOperator(op: PipelineOperator<any>): mingo.PipelineOperator  {
-  //return (coll, expr) => op(coll, ((e: any) => mingo.computeValue(obj, e)));
-//}
 
 @provider({key: Comparator})
 export class MingoComparator implements Comparator {
@@ -74,8 +71,10 @@ export class MingoAggregatorFactory extends AggregatorFactory {
   key: ValidatorFactory,
 })
 export class FilterValidatorFactory extends ValidatorFactory {
+  constructor(private config: MingoConfig) { super(); }
+
   public createValidator(rules: Document) {
-    const query = new Query(rules as any);
+    const query = new Query(rules as any, this.config);
 
     return (doc: any) => {
       if (query.test(doc)) {
@@ -102,6 +101,18 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
     this.container.register(Provider.ofInstance(HashCode, hashCode));
     this.container.register(MingoComparator);
     this.container.register(FilterValidatorFactory);
+  }
+
+  public load() {
+    try {
+      const v = this.container.resolve(JsonSchemaValidator);
+
+      this.container.resolve(MingoConfig).jsonSchemaValidator = (s: any) => {
+        return (o: any) => v.validate(o, s);
+      }
+    } catch (err) {
+      // do nothing
+    }
   }
 }
 

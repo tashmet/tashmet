@@ -1,3 +1,5 @@
+import { JsonSchemaValidator } from "mingo/core";
+
 /**
  * Configuration options for the mingo storage engine.
  */
@@ -14,6 +16,8 @@ export interface MingoConfig {
    * @default true
    */
   readonly scriptEnabled?: boolean;
+
+  jsonSchemaValidator?: JsonSchemaValidator;
 }
 
 export abstract class MingoConfig implements MingoConfig {}

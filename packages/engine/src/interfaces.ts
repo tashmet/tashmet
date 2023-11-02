@@ -145,3 +145,9 @@ export abstract class Comparator implements Comparator {}
 export const HashCode = Symbol('HashCode');
 
 export type HashCode = (value: any) => string | null;
+
+export interface JsonSchemaValidator {
+  validate(doc: Document, schema: Document): boolean;
+}
+
+export abstract class JsonSchemaValidator implements JsonSchemaValidator {};
