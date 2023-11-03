@@ -16,10 +16,28 @@ import { Database } from './database.js';
 import { ChangeStream } from "./changeStream.js";
 import { AggregationCursor } from "./cursor/aggregationCursor.js";
 import { FindCursor } from "./cursor/findCursor.js";
-import { BulkWriteOptions, InsertManyOperation, InsertManyResult, InsertOneOperation, InsertOneOptions, InsertOneResult } from "./operations/insert.js";
+import {
+  BulkWriteOptions,
+  InsertManyOperation,
+  InsertManyResult,
+  InsertOneOperation,
+  InsertOneOptions,
+  InsertOneResult
+} from "./operations/insert.js";
 import { DistinctOperation, DistinctOptions } from "./operations/distinct.js";
-import { DeleteManyOperation, DeleteOneOperation, DeleteResult } from "./operations/delete.js";
-import { ReplaceOneOperation, UpdateManyOperation, UpdateOneOperation, UpdateResult } from "./operations/update.js";
+import {
+  DeleteManyOperation,
+  DeleteOneOperation,
+  DeleteOptions,
+  DeleteResult
+} from "./operations/delete.js";
+import {
+  ReplaceOneOperation,
+  UpdateManyOperation,
+  UpdateOneOperation,
+  UpdateResult,
+  UpdateOptions
+} from "./operations/update.js";
 import { CommandOperation } from "./operations/command.js";
 import { AggregateOptions } from "./operations/aggregate.js";
 import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments.js";
@@ -68,12 +86,30 @@ export class Collection<TSchema extends Document = any> {
     return this.ns;
   }
 
-  public aggregate<T extends Document = Document>(pipeline: Document[], options: AggregateOptions = {}): AggregationCursor<T> {
+  /**
+   * Execute an aggregation framework pipeline against the collection
+   *
+   * @param pipeline - An array of aggregation pipelines to execute
+   * @param options - Optional settings for the command
+   */
+  public aggregate<T extends Document = Document>(
+    pipeline: Document[], options: AggregateOptions = {}
+  ): AggregationCursor<T> {
     return new AggregationCursor<T>(this.ns, this.proxy, pipeline, options);
   }
 
-  public countDocuments(filter: Filter<TSchema> = {}, options: CountDocumentsOptions = {}): Promise<number> {
-    return this.executeOperation(new CountDocumentsOperation(this.ns, filter, options));
+  /**
+   * Gets the number of documents matching the filter.
+   *
+   * @param filter - The filter for the count
+   * @param options - Optional settings for the command
+   */
+  public countDocuments(
+    filter: Filter<TSchema> = {}, options: CountDocumentsOptions = {}
+  ): Promise<number> {
+    return this.executeOperation(
+      new CountDocumentsOperation(this.ns, filter, options)
+    );
   }
 
   /**
@@ -84,7 +120,9 @@ export class Collection<TSchema extends Document = any> {
   find(): FindCursor<WithId<TSchema>>;
   find(filter: Filter<TSchema>, options?: FindOptions): FindCursor<WithId<TSchema>>;
 
-  public find(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): FindCursor<WithId<TSchema>> {
+  public find(
+    filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}
+  ): FindCursor<WithId<TSchema>> {
     return new FindCursor<WithId<TSchema>>(this.ns, this.proxy, filter, options);
   }
 
@@ -110,8 +148,12 @@ export class Collection<TSchema extends Document = any> {
    * @param doc - The document to insert
    * @param options - Optional settings for the command
    */
-  public async insertOne(document: OptionalId<TSchema>, options?: InsertOneOptions): Promise<InsertOneResult> {
-    return this.executeOperation(new InsertOneOperation(this, document, options || {}));
+  public async insertOne(
+    document: OptionalId<TSchema>, options?: InsertOneOptions
+  ): Promise<InsertOneResult> {
+    return this.executeOperation(
+      new InsertOneOperation(this, document, options || {})
+    );
   }
 
   /**
@@ -122,26 +164,40 @@ export class Collection<TSchema extends Document = any> {
    * @param docs - The documents to insert
    * @param options - Optional settings for the command
    */
-  public async insertMany(documents: OptionalId<TSchema>[], options?: BulkWriteOptions): Promise<InsertManyResult> {
-    return this.executeOperation(new InsertManyOperation(this, documents, options || {}));
+  public async insertMany(
+    documents: OptionalId<TSchema>[], options?: BulkWriteOptions
+  ): Promise<InsertManyResult> {
+    return this.executeOperation(
+      new InsertManyOperation(this, documents, options || {})
+    );
   }
 
   /**
    * Delete a document from a collection
    *
-   * @param filter The Filter used to select the document to remove
+   * @param filter - The filter used to select the document to remove
+   * @param options - Optional settings for the command
    */
-  public async deleteOne(filter: Filter<TSchema>): Promise<DeleteResult> {
-    return this.executeOperation(new DeleteOneOperation(this.ns, filter, {}));
+  public async deleteOne(
+    filter: Filter<TSchema>, options?: DeleteOptions
+  ): Promise<DeleteResult> {
+    return this.executeOperation(
+      new DeleteOneOperation(this.ns, filter, options || {})
+    );
   }
 
   /**
    * Delete multiple documents from a collection
    *
-   * @param filter The Filter used to select the documents to remove
+   * @param filter - The filter used to select the documents to remove
+   * @param options - Optional settings for the command
    */
-  public async deleteMany(filter: Filter<TSchema>): Promise<DeleteResult> {
-    return this.executeOperation(new DeleteManyOperation(this.ns, filter, {}));
+  public async deleteMany(
+    filter: Filter<TSchema>, options?: DeleteOptions
+  ): Promise<DeleteResult> {
+    return this.executeOperation(
+      new DeleteManyOperation(this.ns, filter, options || {})
+    );
   }
 
   /**
@@ -154,7 +210,9 @@ export class Collection<TSchema extends Document = any> {
   public async replaceOne(
     filter: Filter<TSchema>, replacement: TSchema, options?: ReplaceOneOptions
   ): Promise<UpdateResult> {
-    return this.executeOperation(new ReplaceOneOperation(this.ns, filter, replacement, options || {}));
+    return this.executeOperation(
+      new ReplaceOneOperation(this.ns, filter, replacement, options || {})
+    );
   }
 
   /**
@@ -162,9 +220,14 @@ export class Collection<TSchema extends Document = any> {
    *
    * @param filter - The filter used to select the document to update
    * @param update - The update operations to be applied to the document
+   * @param options - Optional settings for the command
    */
-  public async updateOne(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
-    return this.executeOperation(new UpdateOneOperation(this.ns, filter, update, {}));
+  public async updateOne(
+    filter: Filter<TSchema>, update: UpdateFilter<TSchema>, options?: UpdateOptions
+  ): Promise<UpdateResult> {
+    return this.executeOperation(
+      new UpdateOneOperation(this.ns, filter, update, options || {})
+    );
   }
 
   /**
@@ -172,9 +235,14 @@ export class Collection<TSchema extends Document = any> {
    *
    * @param filter - The filter used to select the documents to update
    * @param update - The update operations to be applied to the documents
+   * @param options - Optional settings for the command
    */
-  public async updateMany(filter: Filter<TSchema>, update: UpdateFilter<TSchema>): Promise<UpdateResult> {
-    return this.executeOperation(new UpdateManyOperation(this.ns, filter, update, {}));
+  public async updateMany(
+    filter: Filter<TSchema>, update: UpdateFilter<TSchema>, options?: UpdateOptions
+  ): Promise<UpdateResult> {
+    return this.executeOperation(
+      new UpdateManyOperation(this.ns, filter, update, options || {})
+    );
   }
 
   /**
@@ -234,7 +302,9 @@ export class Collection<TSchema extends Document = any> {
     filter: Filter<TSchema> = {},
     options: DistinctOptions = {}
   ): Promise<Array<Flatten<WithId<TSchema>[Key]>>> {
-    return this.executeOperation(new DistinctOperation(this.ns, key as any, filter, options));
+    return this.executeOperation(
+      new DistinctOperation(this.ns, key as any, filter, options)
+    );
   }
 
   /**
@@ -251,6 +321,9 @@ export class Collection<TSchema extends Document = any> {
     return cs;
   }
 
+  /**
+   * Drop the collection from the database, removing it permanently. New accesses will create a new collection.
+   */
   public drop() {
     return this.executeOperation(new DropCollectionOperation(this.ns, {}));
   }
