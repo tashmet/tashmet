@@ -41,7 +41,7 @@ import {
 import { CommandOperation } from "./operations/command.js";
 import { AggregateOptions } from "./operations/aggregate.js";
 import { CountDocumentsOperation, CountDocumentsOptions } from "./operations/countDocuments.js";
-import { DropCollectionOperation } from "./operations/drop.js";
+import { DropCollectionOperation, DropCollectionOptions } from "./operations/drop.js";
 import { DEFAULT_PK_FACTORY, TashmetCollectionNamespace } from "./utils.js";
 
 /**
@@ -324,8 +324,8 @@ export class Collection<TSchema extends Document = any> {
   /**
    * Drop the collection from the database, removing it permanently. New accesses will create a new collection.
    */
-  public drop() {
-    return this.executeOperation(new DropCollectionOperation(this.ns, {}));
+  public drop(options: DropCollectionOptions = {}) {
+    return this.executeOperation(new DropCollectionOperation(this.ns, options));
   }
 
   private executeOperation<T>(operation: CommandOperation<T>): Promise<T> {
