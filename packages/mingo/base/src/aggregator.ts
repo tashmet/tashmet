@@ -74,6 +74,7 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
   protected get mingoOptions(): Options {
     return initOptions({
       ...this.mingoConfig,
+      collation: this.options.collation,
       collectionResolver: coll => {
         if (coll.includes('.')) {
           const ns = TashmetCollectionNamespace.fromString(coll);
