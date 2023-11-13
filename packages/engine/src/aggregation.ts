@@ -181,10 +181,10 @@ export class QueryAnalysis {
       : undefined;
   }
 
-  public toNamespace(source: string | TashmetCollectionNamespace) {
-    return typeof source === 'string'
-      ? new TashmetCollectionNamespace(this.ns.db, source)
-      : source;
+  public toNamespace(source: string) {
+    return source.includes('.')
+      ? TashmetCollectionNamespace.fromString(source)
+      : new TashmetCollectionNamespace(this.ns.db, source);
   }
 }
 
