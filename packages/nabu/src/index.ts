@@ -42,7 +42,7 @@ import {
 import { ContentRule } from './content.js';
 import { FileCollectionFactory } from './storage/fileStorage.js';
 import { YamlContentRule, YamlIORule } from './io/yaml.js';
-import { JsonContentRule, JsonIORule } from './io/json.js';
+import { JsonIORule } from './io/json.js';
 
 export * from './interfaces.js';
 export { ContentRule };
@@ -51,8 +51,8 @@ export { IO } from './io.js';
 
 @provider()
 export default class Nabu extends StorageEngine {
-  public static json(config: JsonContentRule = {}) {
-    return new JsonIORule(config);
+  public static json() {
+    return new JsonIORule();
   }
 
   public static yaml(config: YamlContentRule = {}) {

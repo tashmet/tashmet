@@ -31,7 +31,7 @@ describe('fileStorage', () => {
       })
       .io('json', ns => Nabu
         .json()
-        .directory(`test/${ns.db}/${ns.collection}`)
+        .directory(`test/${ns.db}/${ns.collection}`, '.json')
       )
       .use(mingo())
       .bootstrap();

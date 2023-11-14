@@ -94,12 +94,40 @@ export class Yaml {
 
   @op.expression('$objectToYaml')
   public objectToYaml(expr: any, resolve: (expr: any) => any) {
-    return serializeYaml(resolve(expr), this.options);
+    if (typeof expr === 'object' && expr.frontMatter === true) {
+      const key = resolve(expr.contentKey) as string;
+      const data = resolve(expr.path);
+
+      const { [key]: omitted, ...rest } = data;
+      const frontMatter = jsYaml.dump(rest, this.options);
+      let output = '---\n' + frontMatter + '---';
+      if (data[key]) {
+        output += '\n' + data[key].replace(/^\s+|\s+$/g, '');
+      }
+      return output;
+    } else {
+      return jsYaml.dump(resolve(expr), this.options);
+    }
   }
 
   @op.expression('$yamlToObject')
   public yamlToObject(expr: any, resolve: (expr: any) => any) {
-    return parseYaml(resolve(expr), this.options);
+    if (typeof expr === 'object' && expr.frontMatter === true) {
+      const contentKey = resolve(expr.contentKey) as string;
+      const data = resolve(expr.path);
+
+      const doc = loadFront(data) as any;
+      const content = doc.__content.trim();
+      doc[contentKey as string] = content;
+      delete doc.__content;
+      return doc;
+    } else {
+      const doc = jsYaml.load(resolve(expr)) as any;
+      if (typeof doc !== 'object') {
+        throw new Error('Deserialized YAML is not an object')
+      }
+      return doc;
+    }
   }
 
   @op.expression('$objectToYamlfm')

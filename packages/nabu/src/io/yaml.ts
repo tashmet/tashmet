@@ -1,35 +1,33 @@
-import { ContentRule } from "../content.js";
-import { ContentRuleOptions, IORule } from "./content.js";
+import { Document } from "@tashmet/tashmet";
+import { IORule } from "./content.js";
 
-export interface YamlContentRule extends ContentRuleOptions {
+export interface YamlContentRule {
   frontMatter?: boolean;
 
   contentKey?: string;
 }
 
-export class YamlIORule extends IORule<YamlContentRule> {
-  public constructor(config: YamlContentRule = {}) { super(config); }
+export class YamlIORule extends IORule {
+  public constructor(private config: YamlContentRule = {}) { super(); }
 
-  public directory(path: string, extension: string = '.yaml') {
-    return super.directory(path, extension);
+  protected get reader(): Document {
+    return {
+      $yamlToObject: {
+        frontMatter: this.config.frontMatter === true,
+        contentKey: this.config.contentKey,
+        path: '$content'
+      }
+    };
   }
 
-  protected contentRule(config: YamlContentRule): ContentRule {
-    const def: Required<YamlContentRule> = {
-      frontMatter: false,
-      contentKey: '_content',
-      merge: { _id: '$path' },
-      construct: {},
+  protected get writer(): Document {
+    return {
+      $objectToYaml: {
+        frontMatter: this.config.frontMatter === true,
+        contentKey: this.config.contentKey,
+        path: '$content'
+      }
     }
-    const { frontMatter, contentKey, merge, construct } = { ...def, ...config };
-
-    const input = frontMatter ? { $yamlfmToObject: '$content' } : { $yamlToObject: '$content' };
-    const output = frontMatter ? { $objectToYamlfm: '$content' } : { $objectToYaml: '$content' };
-
-    return ContentRule
-      .fromRootReplace(input, output, merge)
-      .rename('_content', contentKey)
-      .assign(construct);
-  }
+  };
 }
 

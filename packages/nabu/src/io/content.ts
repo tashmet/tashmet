@@ -8,30 +8,37 @@ export interface ContentRuleOptions {
   construct?: Document;
 }
 
-export abstract class IORule<TConfig extends ContentRuleOptions> {
-  public constructor(protected config: TConfig) {}
+export abstract class IORule {
+  public directory(path: string, extension: string, options?: ContentRuleOptions) {
+    const merge = Object.assign(
+      { _id: { $basename: ['$path', { $extname: '$path' }] } }, options?.merge
+    );
 
-  public directory(path: string, extension: string) {
-    const merge = { _id: { $basename: ['$path', { $extname: '$path' }] } };
-    const contentConfig = { ...this.config, merge: { ...this.config.merge, ...merge } };
+    const content = ContentRule
+      .fromRootReplace(this.reader, this.writer, merge)
+      .assign(options?.construct || {})
 
     return new FSFactory({
       scan: `${path}/*${extension}`,
       lookup: id => `${path}/${id}${extension}`,
-      content: this.contentRule(contentConfig),
+      content,
     });
   }
 
-  public glob(pattern: string) {
-    const merge = { _id: '$path' };
-    const contentConfig = { ...this.config, merge: { ...this.config.merge, ...merge } };
+  public glob(pattern: string, options?: ContentRuleOptions) {
+    const merge = Object.assign({ _id: '$path' }, options?.merge);
+
+    const content = ContentRule
+      .fromRootReplace(this.reader, this.writer, merge)
+      .assign(options?.construct || {})
 
     return new FSFactory({
       lookup: id => id,
       scan: pattern,
-      content: this.contentRule(contentConfig),
+      content,
     });
   }
 
-  protected abstract contentRule(config: TConfig): ContentRule;
+  protected abstract get reader(): Document;
+  protected abstract get writer(): Document;
 }
