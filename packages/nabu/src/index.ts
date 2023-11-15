@@ -39,7 +39,6 @@ import Fs from '@tashmet/fs';
 import Markdown from '@tashmet/markdown';
 import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
-  FileAccess,
   NabuConfig,
   NabuIOConfig,
 } from './interfaces.js';
@@ -159,7 +158,6 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
   }
 
   public register() {
-    this.container.register(FileAccess);
     this.container.register(AggregationEngine);
     this.container.register(QueryPlanner);
     this.container.register(Provider.ofInstance(NabuConfig, this.config));
