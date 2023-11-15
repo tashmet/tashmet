@@ -1,40 +1,12 @@
-import { Optional, provider } from '@tashmet/core';
 import {
-  AggregatorFactory,
-  CollectionFactory,
   ReadWriteCollection,
   ReadOptions,
   WriteError,
   WriteOptions,
   Validator,
-  ValidatorFactory
 } from '@tashmet/engine';
-import { ChangeStreamDocument, CreateCollectionOptions, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { NabuConfig } from '../interfaces.js';
+import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { IO } from '../io.js';
-
-@provider({
-  inject: [AggregatorFactory, Optional.of(ValidatorFactory), NabuConfig]
-})
-export class FileCollectionFactory extends CollectionFactory {
-  public constructor(
-    private aggregatorFactory: AggregatorFactory,
-    private validatorFactory: ValidatorFactory | undefined,
-    private config: NabuConfig,
-  ) { super(); }
-
-  public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
-    const ioName = options.storageEngine?.io;
-    const ioFactory = this.config.io[ioName](ns, options.storageEngine || {});
-    let validator: Validator | undefined;
-
-    if (this.validatorFactory && options.validator) {
-      validator = this.validatorFactory.createValidator(options.validator);
-    }
-
-    return new FileCollection(ns, ioFactory.createIO(this.aggregatorFactory), validator);
-  }
-}
 
 
 export class FileCollection extends ReadWriteCollection {

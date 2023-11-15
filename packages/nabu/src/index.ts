@@ -4,6 +4,7 @@ import {
   createContainer,
   LogLevel,
   Lookup,
+  Optional,
   PluginConfigurator,
   Provider,
   provider
@@ -28,6 +29,9 @@ import {
   CollectionFactory,
   ReadWriteCollection,
   CommandRunner,
+  AggregatorFactory,
+  ValidatorFactory,
+  Validator,
 } from '@tashmet/engine';
 import Json from '@tashmet/json';
 import Yaml from '@tashmet/yaml';
@@ -40,7 +44,7 @@ import {
   NabuIOConfig,
 } from './interfaces.js';
 import { ContentRule } from './content.js';
-import { FileCollectionFactory } from './storage/fileStorage.js';
+import { FileCollection } from './storage/fileStorage.js';
 import { YamlContentRule, YamlIORule } from './io/yaml.js';
 import { JsonIORule } from './io/json.js';
 
@@ -106,13 +110,19 @@ export default class Nabu extends StorageEngine {
 }
 
 @provider({
-  inject: [FileCollectionFactory, MemoryCollectionFactory, NabuConfig]
+  inject: [
+    MemoryCollectionFactory,
+    NabuConfig,
+    AggregatorFactory,
+    Optional.of(ValidatorFactory)
+  ]
 })
 export class NabuCollectionFactory extends CollectionFactory {
   public constructor(
-    private file: FileCollectionFactory,
     private memory: MemoryCollectionFactory,
     private config: NabuConfig,
+    private aggregatorFactory: AggregatorFactory,
+    private validatorFactory: ValidatorFactory | undefined,
   ) { super(); }
 
   public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
@@ -121,7 +131,16 @@ export class NabuCollectionFactory extends CollectionFactory {
     if (mergedOptions.storageEngine.io === 'memory') {
       return this.memory.createCollection(ns, mergedOptions);
     }
-    return this.file.createCollection(ns, mergedOptions);
+
+    const ioName = mergedOptions.storageEngine?.io;
+    const ioFactory = this.config.io[ioName](ns, mergedOptions.storageEngine || {});
+    let validator: Validator | undefined;
+
+    if (this.validatorFactory && options.validator) {
+      validator = this.validatorFactory.createValidator(options.validator);
+    }
+
+    return new FileCollection(ns, ioFactory.createIO(this.aggregatorFactory), validator);
   }
 }
 
@@ -145,7 +164,6 @@ export class NabuConfigurator extends PluginConfigurator<Nabu> {
     this.container.register(QueryPlanner);
     this.container.register(Provider.ofInstance(NabuConfig, this.config));
     this.container.register(MemoryCollectionFactory);
-    this.container.register(FileCollectionFactory);
     this.container.register(NabuCollectionFactory);
     this.container.register(Provider.ofResolver(CollectionFactory, Lookup.of(NabuCollectionFactory)));
 
