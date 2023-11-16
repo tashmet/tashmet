@@ -1,11 +1,11 @@
 import { AggregatorFactory } from '@tashmet/engine';
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import { IO, IOFactory } from '../io.js';
+import { StreamIO, StreamIOFactory } from '../io.js';
 
 
-export class FSFactory extends IOFactory {
-  public createIO(aggregatorFactory: AggregatorFactory): IO {
-    return new IO(aggregatorFactory, this.inputPipeline, this.outputPipeline, this.config.scan, this.config.lookup);
+export class FileStreamFactory extends StreamIOFactory {
+  public createIO(aggregatorFactory: AggregatorFactory): StreamIO {
+    return new StreamIO(aggregatorFactory, this.inputPipeline, this.outputPipeline, this.config.scan, this.config.lookup);
   }
 
   public get inputPipeline(): Document[] {

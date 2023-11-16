@@ -6,13 +6,13 @@ import {
   Validator,
 } from '@tashmet/engine';
 import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { IO } from '../io.js';
+import { StreamIO } from '../io.js';
 
 
 export class FileCollection extends ReadWriteCollection {
   public constructor(
     ns: TashmetCollectionNamespace,
-    private io: IO,
+    private io: StreamIO,
     private validator: Validator | undefined,
   ) {
     super(ns);

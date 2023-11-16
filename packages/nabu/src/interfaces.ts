@@ -36,7 +36,7 @@ export interface FileStorageConfig {
   lookup: (id: string) => string;
 }
 
-export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => IOFactory;
+export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => IOFactory<any>;
 
 export interface NabuConfig {
   io: Record<string, NabuIOConfig>;
@@ -53,4 +53,3 @@ export interface NabuConfig {
 }
 
 export abstract class NabuConfig implements NabuConfig {}
-

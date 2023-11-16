@@ -6,6 +6,18 @@ export interface ScanOptions {
   filter?: Document;
 }
 
+export interface IO<TOut> {
+  scan(options?: ScanOptions): AsyncIterable<Document>;
+
+  lookup(documentIds: string[]): AsyncIterable<Document>;
+
+  write(output: TOut[]): AsyncIterable<WriteError>;
+}
+
+export interface IOFactory<TOut> {
+  createIO(aggregatorFactory: AggregatorFactory): IO<TOut>;
+}
+
 export type ScanPath = string | ((options: ScanOptions) => string);
 
 export interface IOConfig {
@@ -16,7 +28,7 @@ export interface IOConfig {
   content: ContentRule;
 }
 
-export class IO {
+export class StreamIO implements IO<ChangeStreamDocument> {
   public constructor(
     private aggregatorFactory: AggregatorFactory,
     public readonly inputPipeline: Document[],
@@ -48,8 +60,8 @@ export class IO {
   }
 }
 
-export abstract class IOFactory {
+export abstract class StreamIOFactory {
   public constructor(protected config: IOConfig) {}
 
-  public abstract createIO(aggregatorFactory: AggregatorFactory): IO;
+  public abstract createIO(aggregatorFactory: AggregatorFactory): StreamIO;
 }

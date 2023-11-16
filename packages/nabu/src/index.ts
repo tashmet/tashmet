@@ -46,6 +46,7 @@ import { ContentRule } from './content.js';
 import { FileCollection } from './storage/fileStorage.js';
 import { YamlContentRule, YamlIORule } from './io/yaml.js';
 import { JsonIORule } from './io/json.js';
+import { StreamIOFactory } from './io.js';
 
 export * from './interfaces.js';
 export { ContentRule };
@@ -139,7 +140,11 @@ export class NabuCollectionFactory extends CollectionFactory {
       validator = this.validatorFactory.createValidator(options.validator);
     }
 
-    return new FileCollection(ns, ioFactory.createIO(this.aggregatorFactory), validator);
+    if (ioFactory instanceof StreamIOFactory) {
+      return new FileCollection(ns, ioFactory.createIO(this.aggregatorFactory), validator);
+    }
+
+    throw Error('Unsupported IO');
   }
 }
 

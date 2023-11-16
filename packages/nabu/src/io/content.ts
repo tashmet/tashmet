@@ -1,6 +1,6 @@
 import { Document } from "@tashmet/tashmet";
 import { ContentRule } from "../content.js";
-import { FSFactory } from './fs.js';
+import { FileStreamFactory } from './fs.js';
 
 export interface ContentRuleOptions {
   merge?: Document;
@@ -18,7 +18,7 @@ export abstract class IORule {
       .fromRootReplace(this.reader, this.writer, merge)
       .assign(options?.construct || {})
 
-    return new FSFactory({
+    return new FileStreamFactory({
       scan: `${path}/*${extension}`,
       lookup: id => `${path}/${id}${extension}`,
       content,
@@ -32,7 +32,7 @@ export abstract class IORule {
       .fromRootReplace(this.reader, this.writer, merge)
       .assign(options?.construct || {})
 
-    return new FSFactory({
+    return new FileStreamFactory({
       lookup: id => id,
       scan: pattern,
       content,
