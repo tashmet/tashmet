@@ -1,5 +1,5 @@
 import { Document } from '@tashmet/tashmet';
-import { provider, Provider, Logger } from '@tashmet/core';
+import { provider, Provider, Logger, Optional } from '@tashmet/core';
 import {
   AggregatorFactory,
   AbstractAggregator,
@@ -43,16 +43,17 @@ export class MingoComparator implements Comparator {
 
 @provider({
   key: AggregatorFactory,
+  inject: [Store, Logger, MingoConfig, Optional.of(JsonSchemaValidator)]
 })
 export class MingoAggregatorFactory extends AggregatorFactory {
   protected pipelineOps: Record<string, PipelineOperator<any>> = {};
   protected expressionOps: Record<string, mingo.ExpressionOperator> = {};
-  //protected pipelineOps: Record<string, mingo.PipelineOperator> = {};
 
   public constructor(
     protected store: Store,
     protected logger: Logger,
-    protected config: MingoConfig
+    protected config: MingoConfig,
+    protected validator?: JsonSchemaValidator,
   ) { super(); }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
@@ -60,13 +61,10 @@ export class MingoAggregatorFactory extends AggregatorFactory {
       expression: this.expressionOps
     });
 
-    return new BufferAggregator(pipeline, this.store, options, this.config, context, this.logger);
+    return new BufferAggregator(pipeline, this.store, options, this.config, context, this.logger, this.validator);
   }
 
   public addExpressionOperator(name: string, op: ExpressionOperator<any>) {
-    //mingo.useOperators(mingo.OperatorType.EXPRESSION, {
-      //[name]: makeExpressionOperator(op),
-    //});
     this.expressionOps[name] = makeExpressionOperator(op);
   }
 
@@ -77,12 +75,23 @@ export class MingoAggregatorFactory extends AggregatorFactory {
 
 @provider({
   key: ValidatorFactory,
+  inject: [MingoConfig, Optional.of(JsonSchemaValidator)]
 })
 export class FilterValidatorFactory extends ValidatorFactory {
-  constructor(private config: MingoConfig) { super(); }
+  constructor(
+    private config: MingoConfig,
+    private jsonSchemaValidator?: JsonSchemaValidator,
+  ) { super(); }
 
   public createValidator(rules: Document) {
-    const query = new Query(rules as any, this.config);
+    const v = this.jsonSchemaValidator;
+
+    const query = new Query(rules as any, {
+      ...this.config,
+      jsonSchemaValidator: v !== undefined
+        ? (s: any) => { return (o: any) => v.validate(o, s); }
+        : undefined
+    });
 
     return (doc: any) => {
       if (query.test(doc)) {
@@ -100,6 +109,8 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
   }
 
   public register() {
+    super.register();
+
     const defaultConfig: MingoConfig = {
       useStrictMode: true,
       scriptEnabled: true,
@@ -109,18 +120,6 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
     this.container.register(Provider.ofInstance(HashCode, hashCode));
     this.container.register(MingoComparator);
     this.container.register(FilterValidatorFactory);
-  }
-
-  public load() {
-    try {
-      const v = this.container.resolve(JsonSchemaValidator);
-
-      this.container.resolve(MingoConfig).jsonSchemaValidator = (s: any) => {
-        return (o: any) => v.validate(o, s);
-      }
-    } catch (err) {
-      // do nothing
-    }
   }
 }
 

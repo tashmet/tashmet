@@ -83,7 +83,8 @@ export class AggregationUpdateCommand extends UpdateCommand {
         pipeline = u;
         break;
       case UpdateType.Regular:
-        pipeline = Object.entries(u).reduce<Document[]>((acc, [k, v]) => acc.concat([{[k]: v}]), []);
+        //pipeline = Object.entries(u).reduce<Document[]>((acc, [k, v]) => acc.concat([{[k]: v}]), []);
+        pipeline = [ { $update: u } ];
         break;
       case UpdateType.Replace:
         pipeline = [

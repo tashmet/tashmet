@@ -2,19 +2,21 @@ import { Document } from '@tashmet/tashmet';
 import { Query } from 'mingo/query';
 import { op, OperatorPluginConfigurator } from '@tashmet/engine';
 import { Container, provider } from '@tashmet/core';
+import { updateObject } from "mingo/updater";
+import { cloneDeep } from 'mingo/util';
 
 
 @provider()
 export class MingoStreamPipelineOpertors {
-  @op.pipeline('$match')
-  async* $match(source: AsyncIterable<Document>, expr: Document) {
-    const q = new Query(expr);
-    for await (const item of source) {
-      if (q.test(item as any)) {
-        yield item;
-      }
-    }
-  }
+  //@op.pipeline('$match')
+  //async* $match(source: AsyncIterable<Document>, expr: Document) {
+    //const q = new Query(expr, );
+    //for await (const item of source) {
+      //if (q.test(item as any)) {
+        //yield item;
+      //}
+    //}
+  //}
 
   @op.pipeline('$skip')
   async* $skip(source: AsyncIterable<Document>, expr: number) {
@@ -28,7 +30,7 @@ export class MingoStreamPipelineOpertors {
   }
 
   @op.pipeline('$limit')
-  async* $limit<T>(source: AsyncIterable<Document>, expr: number) {
+  async* $limit(source: AsyncIterable<Document>, expr: number) {
     let n = 0;
     for await (const item of source) {
       if (n < expr) {
@@ -37,6 +39,16 @@ export class MingoStreamPipelineOpertors {
         break;
       }
       n++;
+    }
+  }
+
+  @op.pipeline('$update')
+  async* $update(source: AsyncIterable<Document>, expr: any) {
+    for await (const item of source) {
+      const clone = cloneDeep(item) as any;
+      updateObject(clone, expr);
+      console.log(clone);
+      yield clone;
     }
   }
 }

@@ -5,11 +5,10 @@ import { getOperator, OperatorType, Context } from 'mingo/core';
 import * as mingo from 'mingo/core';
 import { assert, cloneDeep } from 'mingo/util';
 import { Iterator, Lazy } from 'mingo/lazy';
-import { AbstractAggregator, AggregatorFactory, Store, PipelineOperator, AggregatorOptions } from '@tashmet/engine';
-import { Container, Logger, provider } from '@tashmet/core';
+import { AbstractAggregator, AggregatorFactory, Store, PipelineOperator, AggregatorOptions, JsonSchemaValidator } from '@tashmet/engine';
+import { Container, Logger, Optional, provider } from '@tashmet/core';
 import jsonSchema from '@tashmet/schema';
 import streamOperators from './operators.js';
-import * as expressionOperators from "mingo/operators/expression";
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   const result: T[] = [];
@@ -33,9 +32,9 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
     config: MingoConfig,
     context: Context,
     logger: Logger,
-    private streamOperators: string[] = defaultStreamOperators,
+    validator?: JsonSchemaValidator
   ) {
-    super(pipeline, store, options, config, context, logger);
+    super(pipeline, store, options, config, context, logger, validator);
   }
 
   public async *stream<TResult>(input: AsyncIterable<T>): AsyncGenerator<TResult> {
@@ -58,7 +57,7 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
           `invalid aggregation operator ${op}`
         );
 
-        if (this.streamOperators.includes(op)) {
+        if (defaultStreamOperators.includes(op)) {
           output = operatorStreamed(output, operator[op], call, this.mingoOptions);
         } else {
           output = operatorBuffered(output, operator[op], call, this.mingoOptions);
@@ -95,14 +94,16 @@ async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp
 
 @provider({
   key: AggregatorFactory,
+  inject: [Store, Logger, MingoConfig, Optional.of(JsonSchemaValidator)]
 })
 export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
   public constructor(
     store: Store,
     logger: Logger,
-    config: MingoConfig
+    config: MingoConfig,
+    validator?: JsonSchemaValidator
   ) {
-    super(store, logger, config);
+    super(store, logger, config, validator);
   }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
@@ -110,7 +111,7 @@ export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
       expression: this.expressionOps
     });
 
-    return new StreamAggregator(pipeline, this.pipelineOps, this.store, options, this.config, context, this.logger);
+    return new StreamAggregator(pipeline, this.pipelineOps, this.store, options, this.config, context, this.logger, this.validator);
   }
 }
 

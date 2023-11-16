@@ -24,9 +24,17 @@ export class PluginConfigurator<T> {
     this.container.register(app);
   }
 
-  protected register(): void {}
+  protected register(): void {
+    for (const plugin of this.plugins) {
+      plugin.register();
+    }
+  }
 
-  protected load(): void {};
+  protected load(): void {
+    for (const plugin of this.plugins) {
+      plugin.load();
+    }
+  }
 
   public provide(...providers: (Provider<any> | Newable<any>)[]) {
     for (const provider of providers) {

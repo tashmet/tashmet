@@ -1,5 +1,5 @@
 import { TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { AbstractAggregator, AggregatorOptions, ChangeSet, Store } from '@tashmet/engine';
+import { AbstractAggregator, AggregatorOptions, ChangeSet, JsonSchemaValidator, Store } from '@tashmet/engine';
 import { Logger } from '@tashmet/core';
 import { Document, Filter, FindOptions } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
@@ -47,8 +47,9 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
     private options: AggregatorOptions,
     private mingoConfig: MingoConfig,
     private context: Context,
-    private logger: Logger)
-  {
+    private logger: Logger,
+    private validator?: JsonSchemaValidator,
+) {
     super(cloneDeep(pipeline) as Document[]);
     this.foreignBuffers = new CollectionBuffers(store);
     this.aggregator = new Aggregator(this.pipeline, this.mingoOptions);
@@ -73,11 +74,16 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
   }
 
   protected get mingoOptions(): Options {
+    const v = this.validator;
+
     return initOptions({
       ...this.mingoConfig,
       collation: this.options.collation,
       context: this.context,
       useGlobalContext: true,
+      jsonSchemaValidator: v !== undefined
+        ? (s: any) => { return (o: any) => v.validate(o, s); }
+        : undefined,
       collectionResolver: coll => {
         if (coll.includes('.')) {
           const ns = TashmetCollectionNamespace.fromString(coll);
