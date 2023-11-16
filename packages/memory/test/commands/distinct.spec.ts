@@ -1,4 +1,3 @@
-import 'mingo/init/system';
 import chai from 'chai';
 import 'mocha';
 import Memory from '../../src';

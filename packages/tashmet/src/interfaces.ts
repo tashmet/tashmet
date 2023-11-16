@@ -185,12 +185,10 @@ export interface ReplaceOneOptions {
 export interface CollationOptions {
   readonly locale: string;
   readonly caseLevel?: boolean;
-  readonly caseFirst?: string;
-  readonly strength?: number;
+  readonly caseFirst?: "upper" | "lower" | "off";
+  readonly strength?: 2 | 1 | 3;
   readonly numericOrdering?: boolean;
   readonly alternate?: string;
-  readonly maxVariable?: string; // unsupported
-  readonly backwards?: boolean; // unsupported
 }
 
 /** Configuration for view collection */

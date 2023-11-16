@@ -1,5 +1,5 @@
 import { Document } from '@tashmet/tashmet';
-import { Query } from 'mingo/query.js';
+import { Query } from 'mingo/query';
 import { op, OperatorPluginConfigurator } from '@tashmet/engine';
 import { Container, provider } from '@tashmet/core';
 

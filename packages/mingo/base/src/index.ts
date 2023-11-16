@@ -14,11 +14,11 @@ import {
   HashCode,
   JsonSchemaValidator
 } from '@tashmet/engine';
-import { hashCode, intersection } from 'mingo/util.js';
+import { hashCode, intersection } from 'mingo/util';
 import { BufferAggregator } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
 import { Query } from 'mingo';
-import * as mingo from 'mingo/core.js';
+import * as mingo from 'mingo/core';
 import { Container, Newable, PluginConfigurator } from '@tashmet/core';
 
 export * from './interfaces.js';
@@ -26,7 +26,7 @@ export { BufferAggregator, CollectionBuffers } from './aggregator.js';
 
 
 function makeExpressionOperator(op: ExpressionOperator<any>): mingo.ExpressionOperator  {
-  return (obj, expr) => op(expr, ((e: any) => mingo.computeValue(obj, e)));
+  return (obj, expr, options) => op(expr, ((e: any) => mingo.computeValue(obj, e, null, options)));
 }
 
 @provider({key: Comparator})
@@ -46,6 +46,8 @@ export class MingoComparator implements Comparator {
 })
 export class MingoAggregatorFactory extends AggregatorFactory {
   protected pipelineOps: Record<string, PipelineOperator<any>> = {};
+  protected expressionOps: Record<string, mingo.ExpressionOperator> = {};
+  //protected pipelineOps: Record<string, mingo.PipelineOperator> = {};
 
   public constructor(
     protected store: Store,
@@ -54,13 +56,18 @@ export class MingoAggregatorFactory extends AggregatorFactory {
   ) { super(); }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
-    return new BufferAggregator(pipeline, this.store, options, this.config, this.logger);
+    const context: mingo.Context = mingo.Context.init({
+      expression: this.expressionOps
+    });
+
+    return new BufferAggregator(pipeline, this.store, options, this.config, context, this.logger);
   }
 
   public addExpressionOperator(name: string, op: ExpressionOperator<any>) {
-    mingo.useOperators(mingo.OperatorType.EXPRESSION, {
-      [name]: makeExpressionOperator(op),
-    });
+    //mingo.useOperators(mingo.OperatorType.EXPRESSION, {
+      //[name]: makeExpressionOperator(op),
+    //});
+    this.expressionOps[name] = makeExpressionOperator(op);
   }
 
   public addPipelineOperator(name: string, op: PipelineOperator<any>) {
