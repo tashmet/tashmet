@@ -122,7 +122,8 @@ export class Yaml {
       delete doc.__content;
       return doc;
     } else {
-      const doc = jsYaml.load(resolve(expr)) as any;
+      const path = typeof expr === 'string' ? expr : expr.path;
+      const doc = jsYaml.load(resolve(path)) as any;
       if (typeof doc !== 'object') {
         throw new Error('Deserialized YAML is not an object')
       }
