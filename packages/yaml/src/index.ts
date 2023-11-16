@@ -106,7 +106,8 @@ export class Yaml {
       }
       return output;
     } else {
-      return jsYaml.dump(resolve(expr), this.options);
+      const path = typeof expr === 'string' ? expr : expr.path;
+      return jsYaml.dump(resolve(path), this.options);
     }
   }
 
