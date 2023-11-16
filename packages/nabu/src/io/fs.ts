@@ -73,6 +73,13 @@ export class FileBufferFactory extends BufferIOFactory {
   }
 
   public get inputPipeline(): Document[] {
+    let index = this.config.options.includeArrayIndex;
+    let merge: any[] = ['$items'];
+
+    if (index) {
+      merge.push({[index]: `$${index}`});
+    }
+
     return [
       { $glob: { pattern: '$_id' } },
       { $project: {
@@ -81,15 +88,26 @@ export class FileBufferFactory extends BufferIOFactory {
           stats: { $lstat: '$_id' },
           content: { $readFile: '$_id' },
       } },
-      { $replaceRoot: { newRoot: { items: this.config.reader} } },
-      { $unwind: { path: '$items', includeArrayIndex: '_id' } },
-      { $replaceRoot: { newRoot: { $mergeObjects: [{_id: '$_id'}, '$items'] } } }
+      { $replaceRoot: { newRoot: { items: this.config.reader } } },
+      { $unwind: { path: '$items', includeArrayIndex: this.config.options.includeArrayIndex } },
+      { $replaceRoot: { newRoot: { $mergeObjects: merge } } },
+      { $set: { _id: this.config.options.id } }
     ];
   }
 
   public get outputPipeline(): Document[] {
-    return [
-      { $sort: { _id: 1 } },
+    let index = this.config.options.includeArrayIndex;
+
+    let pipeline: Document[] = [];
+
+    if (index) {
+      pipeline = [
+        { $sort: { [index]: 1 } },
+        { $unset: index },
+      ]
+    };
+
+    return pipeline.concat([
       { $unset: '_id' },
       { $group: { _id: this.config.path, content: { $push: '$$ROOT' } } },
       { $set: { content: this.config.writer } },
@@ -98,6 +116,6 @@ export class FileBufferFactory extends BufferIOFactory {
           to: '$_id',
           overwrite: true
       } }
-    ];
+    ]);
   }
 }

@@ -9,7 +9,11 @@ export interface ContentRuleOptions {
 }
 
 export interface FileOptions {
+  id: Document | string;
+
   dictionary?: boolean;
+
+  includeArrayIndex?: string;
 }
 
 export abstract class IORule {
@@ -43,8 +47,8 @@ export abstract class IORule {
     });
   }
 
-  public file(path: string, options?: FileOptions) {
-    return new FileBufferFactory({ path, reader: this.reader, writer: this.writer });
+  public file(path: string, options: FileOptions) {
+    return new FileBufferFactory({ path, reader: this.reader, writer: this.writer, options });
   }
 
   protected abstract get reader(): Document;

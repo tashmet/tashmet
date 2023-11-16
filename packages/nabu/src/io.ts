@@ -1,6 +1,7 @@
 import { AggregatorFactory, WriteError, arrayToGenerator } from '@tashmet/engine';
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import { ContentRule } from './content';
+import { FileOptions } from './io/content';
 
 export interface ScanOptions {
   filter?: Document;
@@ -34,6 +35,8 @@ export interface BufferIOConfig {
   reader: Document;
 
   writer: Document;
+
+  options: FileOptions;
 }
 
 export class StreamIO implements IO<ChangeStreamDocument> {

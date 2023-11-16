@@ -46,7 +46,8 @@ export class FileBufferCollection extends ReadWriteCollection {
     }
 
     for await (const err of this.io.write(documents)) {
-      writeErrors.push(err);
+      //writeErrors.push(err);
+      console.log(err);
     }
     return writeErrors;
   }
