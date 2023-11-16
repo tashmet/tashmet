@@ -1,6 +1,6 @@
 import { AggregatorFactory } from '@tashmet/engine';
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import { StreamIO, StreamIOFactory } from '../io.js';
+import { BufferIO, BufferIOFactory, StreamIO, StreamIOFactory } from '../io.js';
 
 
 export class FileStreamFactory extends StreamIOFactory {
@@ -64,5 +64,40 @@ export class FileStreamFactory extends StreamIOFactory {
         }
       }
     ]
+  }
+}
+
+export class FileBufferFactory extends BufferIOFactory {
+  public createIO(aggregatorFactory: AggregatorFactory): BufferIO {
+    return new BufferIO(aggregatorFactory, this.inputPipeline, this.outputPipeline, this.config.path);
+  }
+
+  public get inputPipeline(): Document[] {
+    return [
+      { $glob: { pattern: '$_id' } },
+      { $project: {
+          _id: 0,
+          path: '$_id',
+          stats: { $lstat: '$_id' },
+          content: { $readFile: '$_id' },
+      } },
+      { $replaceRoot: { newRoot: { items: this.config.reader} } },
+      { $unwind: { path: '$items', includeArrayIndex: '_id' } },
+      { $replaceRoot: { newRoot: { $mergeObjects: [{_id: '$_id'}, '$items'] } } }
+    ];
+  }
+
+  public get outputPipeline(): Document[] {
+    return [
+      { $sort: { _id: 1 } },
+      { $unset: '_id' },
+      { $group: { _id: this.config.path, content: { $push: '$$ROOT' } } },
+      { $set: { content: this.config.writer } },
+      { $writeFile: {
+          content: '$content',
+          to: '$_id',
+          overwrite: true
+      } }
+    ];
   }
 }

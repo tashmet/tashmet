@@ -1,11 +1,15 @@
 import { Document } from "@tashmet/tashmet";
 import { ContentRule } from "../content.js";
-import { FileStreamFactory } from './fs.js';
+import { FileBufferFactory, FileStreamFactory } from './fs.js';
 
 export interface ContentRuleOptions {
   merge?: Document;
 
   construct?: Document;
+}
+
+export interface FileOptions {
+  dictionary?: boolean;
 }
 
 export abstract class IORule {
@@ -37,6 +41,10 @@ export abstract class IORule {
       scan: pattern,
       content,
     });
+  }
+
+  public file(path: string, options?: FileOptions) {
+    return new FileBufferFactory({ path, reader: this.reader, writer: this.writer });
   }
 
   protected abstract get reader(): Document;
