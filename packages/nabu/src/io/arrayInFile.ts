@@ -41,6 +41,7 @@ export class ArrayInFileIO extends BufferIO {
     }
 
     const pipeline: Document[] = [
+      { $glob: { pattern: '$_id'} },
       { $project: { content: this.reader({ $readFile: '$_id' }) } },
       { $replaceRoot: { newRoot: { items: field } } },
       { $unwind: { path: '$items', includeArrayIndex: index } },
@@ -58,7 +59,6 @@ export class ArrayInFileIO extends BufferIO {
 
   public get output(): Document[] {
     let index = this.options.includeArrayIndex;
-
     let pipeline: Document[] = this.options.output || [];
 
     if (index) {
@@ -68,16 +68,26 @@ export class ArrayInFileIO extends BufferIO {
       );
     };
 
+    if (this.options.id) {
+      pipeline.push({ $unset: '_id' });
+    }
+
     if (this.options.field) {
       pipeline.push(
-        { $unset: '_id' },
         { $group: { _id: this.path, items: { $push: '$$ROOT' } } },
-        { $set: { content: this.reader({ $readFile: this.path }) } },
+        { $set: {
+          content: {
+            $cond: {
+              if: { $fileExists: this.path },
+              then: this.reader({ $readFile: this.path }),
+              else: {}
+            }
+          }
+        } },
         { $set: { [`content.${this.options.field}`]: '$items' } },
       );
     } else {
       pipeline.push(
-        { $unset: '_id' },
         { $group: { _id: this.path, content: { $push: '$$ROOT' } } },
       );
     }
