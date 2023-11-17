@@ -32,16 +32,14 @@ export interface IO {
   readonly output: Document[];
 }
 
-export abstract class BufferIO implements IO {
+export abstract class IO implements IO {}
+
+export abstract class BufferIO extends IO {
   public abstract readonly path: string;
-  public abstract readonly input: Document[];
-  public abstract readonly output: Document[];
 }
 
-export abstract class StreamIO implements IO {
+export abstract class StreamIO extends IO {
   public abstract path(id?: string): string;
-  public abstract readonly input: Document[];
-  public abstract readonly output: Document[];
 }
 
 export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => IO;
