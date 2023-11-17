@@ -24,11 +24,13 @@
 		"@tashmet/engine": "^1.0.0-alpha.3",
 		"@tashmet/tashmet": "^1.0.0-alpha.3",
 		"fs-extra": "^11.1.1",
+		"glob": "^10.3.10",
 		"glob-to-regexp": "^0.4.1"
 	},
 	"devDependencies": {
 		"@tashmet/mingo": "^1.0.0-alpha.3",
 		"@types/fs-extra": "^8.0.0",
+		"@types/glob": "^8.1.0",
 		"@types/glob-to-regexp": "^0.4.1",
 		"@types/mock-fs": "^4.10.0",
 		"@types/node": "^20.5.3",

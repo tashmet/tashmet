@@ -1,6 +1,6 @@
 import fs from 'fs';
 import * as nodePath from 'path';
-import { glob } from 'glob';
+import * as glob from 'glob';
 export * from './interfaces.js';
 
 import { Document } from '@tashmet/tashmet';
@@ -26,6 +26,11 @@ export class FileSystem {
       isSocket: res.isSocket(),
       isSymbolicLink: res.isSymbolicLink(),
     };
+  }
+
+  @op.expression('$fileExists')
+  public fileExists(expr: any, resolve: (expr: any) => any) {
+    return fs.existsSync(resolve(expr));
   }
 
   @op.expression('$readFile')
@@ -72,7 +77,7 @@ export class FileSystem {
     const { pattern } = args;
 
     for await (const doc of it) {
-      const files = await glob(resolve(doc, pattern));
+      const files = await glob.glob(resolve(doc, pattern));
       for (const file of files) {
         yield { _id: file };
       }
@@ -95,6 +100,21 @@ export class FileSystem {
   @op.expression('$extname')
   public extname(expr: any, resolve: (expr: any) => any) {
     return nodePath.extname(resolve(expr));
+  };
+
+  @op.expression('$dirname')
+  public dirname(expr: any, resolve: (expr: any) => any) {
+    return nodePath.dirname(resolve(expr));
+  };
+
+  @op.expression('$relativePath')
+  public relativePath(expr: string[], resolve: (expr: any) => any) {
+    return nodePath.relative(resolve(expr[0]), resolve(expr[1]));
+  };
+
+  @op.expression('$joinPaths')
+  public joinPaths(expr: any[], resolve: (expr: any) => any) {
+    return nodePath.join(...expr.map(e => resolve(e)));
   };
 }
 
