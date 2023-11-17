@@ -1,6 +1,6 @@
 import { Document } from "@tashmet/tashmet";
 import { FileStreamIO } from "./fileStream.js";
-import { FileBufferIO } from "./fileBuffer.js";
+import { ArrayInFileIO, ArrayInFileOptions } from "./arrayInFile.js";
 
 export interface ContentRuleOptions {
   merge?: Document;
@@ -8,13 +8,6 @@ export interface ContentRuleOptions {
   construct?: Document;
 }
 
-export interface FileOptions {
-  id: Document | string;
-
-  dictionary?: boolean;
-
-  includeArrayIndex?: string;
-}
 
 export abstract class IORule {
   public directory(path: string, extension: string, options?: ContentRuleOptions) {
@@ -37,8 +30,8 @@ export abstract class IORule {
     return new FileStreamIO(id => id ? id : pattern, this.reader, this.writer, merge, options?.construct);
   }
 
-  public file(path: string, options: FileOptions) {
-    return new FileBufferIO(path, this.reader, this.writer, options);
+  public arrayInFile(path: string, options?: ArrayInFileOptions) {
+    return new ArrayInFileIO(path, this.reader, this.writer, options);
   }
 
   protected abstract get reader(): Document;
