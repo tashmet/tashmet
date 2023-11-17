@@ -47,7 +47,6 @@ export class MingoStreamPipelineOpertors {
     for await (const item of source) {
       const clone = cloneDeep(item) as any;
       updateObject(clone, expr);
-      console.log(clone);
       yield clone;
     }
   }
