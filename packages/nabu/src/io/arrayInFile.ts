@@ -15,6 +15,12 @@ export interface ArrayInFileOptions {
    * If omitted the array is present at the root.
    */
   field?: string;
+
+  /** Additional aggregation steps applied after reading the data */
+  input?: Document[];
+
+  /** Additional aggregation steps applied before writing the data */
+  output?: Document[];
 }
 
 export class ArrayInFileIO extends BufferIO {
@@ -48,13 +54,13 @@ export class ArrayInFileIO extends BufferIO {
       );
     }
 
-    return pipeline;
+    return pipeline.concat(...this.options.input || [])
   }
 
   public get output(): Document[] {
     let index = this.options.includeArrayIndex;
 
-    let pipeline: Document[] = [];
+    let pipeline: Document[] = this.options.output || [];
 
     if (index) {
       pipeline.push(
@@ -78,13 +84,15 @@ export class ArrayInFileIO extends BufferIO {
       );
     }
 
-    return pipeline.concat([
+    pipeline.push(
       { $set: { content: this.writer } },
       { $writeFile: {
         content: '$content',
         to: '$_id',
         overwrite: true
       } }
-    ]);
+    );
+
+    return pipeline;
   }
 }
