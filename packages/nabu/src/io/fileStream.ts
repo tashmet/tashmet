@@ -5,8 +5,8 @@ import { StreamIO } from '../interfaces.js';
 export class FileStreamIO extends StreamIO {
   public constructor(
     public path: (id?: string) => string,
-    private reader: Document,
-    private writer: Document,
+    private reader: (expr: any) => Document,
+    private writer: (expr: any) => Document,
     private merge: Document = {},
     private assign: Document = {}
   ) { super(); }
@@ -18,9 +18,9 @@ export class FileStreamIO extends StreamIO {
         _id: 0,
         path: '$_id',
         stats: { $lstat: '$_id' },
-        content: { $readFile: '$_id' },
+        content: this.reader({ $readFile: '$_id' }),
       } },
-      { $replaceRoot: { newRoot: { $mergeObjects: [ this.merge, this.reader ] } } },
+      { $replaceRoot: { newRoot: { $mergeObjects: [ this.merge, '$content' ] } } },
       { $set: this.assign },
     ];
   }
@@ -49,7 +49,7 @@ export class FileStreamIO extends StreamIO {
         },
       } },
       { $unset: Object.keys(this.assign) },
-      { $set: { content: this.writer } },
+      { $set: { content: this.writer('$content') } },
       { $writeFile: {
         content: {
           $cond: {

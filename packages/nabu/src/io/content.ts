@@ -17,8 +17,8 @@ export abstract class IORule {
 
     return new FileStreamIO(
       id => id ? `${path}/${id}${extension}` : `${path}/*${extension}`,
-      this.reader,
-      this.writer,
+      this.reader.bind(this),
+      this.writer.bind(this),
       merge,
       options?.construct
     );
@@ -27,13 +27,13 @@ export abstract class IORule {
   public glob(pattern: string, options?: ContentRuleOptions) {
     const merge = Object.assign({ _id: '$path' }, options?.merge);
 
-    return new FileStreamIO(id => id ? id : pattern, this.reader, this.writer, merge, options?.construct);
+    return new FileStreamIO(id => id ? id : pattern, this.reader.bind(this), this.writer.bind(this), merge, options?.construct);
   }
 
   public arrayInFile(path: string, options?: ArrayInFileOptions) {
-    return new ArrayInFileIO(path, this.reader, this.writer, options);
+    return new ArrayInFileIO(path, this.reader.bind(this), this.writer.bind(this), options);
   }
 
-  protected abstract get reader(): Document;
-  protected abstract get writer(): Document;
+  protected abstract reader(expr: any): Document;
+  protected abstract writer(expr: any): Document;
 }

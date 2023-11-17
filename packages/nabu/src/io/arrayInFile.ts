@@ -26,8 +26,8 @@ export interface ArrayInFileOptions {
 export class ArrayInFileIO extends BufferIO {
   public constructor(
     public readonly path: string,
-    private reader: Document,
-    private writer: Document,
+    private reader: (expr: any) => Document,
+    private writer: (expr: any) => Document,
     private options: ArrayInFileOptions = {}
   ) { super(); }
 
@@ -41,8 +41,7 @@ export class ArrayInFileIO extends BufferIO {
     }
 
     const pipeline: Document[] = [
-      { $project: { content: { $readFile: '$_id' } } },
-      { $set: { content: this.reader }},
+      { $project: { content: this.reader({ $readFile: '$_id' }) } },
       { $replaceRoot: { newRoot: { items: field } } },
       { $unwind: { path: '$items', includeArrayIndex: index } },
       { $replaceRoot: { newRoot: { $mergeObjects: merge } } },
@@ -73,8 +72,7 @@ export class ArrayInFileIO extends BufferIO {
       pipeline.push(
         { $unset: '_id' },
         { $group: { _id: this.path, items: { $push: '$$ROOT' } } },
-        { $set: { content: { $readFile: this.path } } },
-        { $set: { content: this.reader } },
+        { $set: { content: this.reader({ $readFile: this.path }) } },
         { $set: { [`content.${this.options.field}`]: '$items' } },
       );
     } else {
@@ -85,9 +83,8 @@ export class ArrayInFileIO extends BufferIO {
     }
 
     pipeline.push(
-      { $set: { content: this.writer } },
       { $writeFile: {
-        content: '$content',
+        content: this.writer('$content'),
         to: '$_id',
         overwrite: true
       } }

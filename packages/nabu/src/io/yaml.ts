@@ -10,22 +10,22 @@ export interface YamlContentRule {
 export class YamlIORule extends IORule {
   public constructor(private config: YamlContentRule = {}) { super(); }
 
-  protected get reader(): Document {
+  protected reader(expr: any): Document {
     return {
       $yamlToObject: {
         frontMatter: this.config.frontMatter === true,
         contentKey: this.config.contentKey,
-        path: '$content'
+        path: expr,
       }
     };
   }
 
-  protected get writer(): Document {
+  protected writer(expr: any): Document {
     return {
       $objectToYaml: {
         frontMatter: this.config.frontMatter === true,
         contentKey: this.config.contentKey,
-        path: '$content'
+        path: expr,
       }
     }
   };
