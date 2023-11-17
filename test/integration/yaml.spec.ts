@@ -26,34 +26,141 @@ describe('yaml', () => {
     tashmet = await Tashmet.connect(store.proxy());
   })
 
-  it('should convert object to yaml', async () => {
-    const input = [
-      { object: { foo: 'bar' } }
-    ];
-    const pipeline: Document[] = [
-      { $set: { yaml: { $objectToYaml: '$object' } } }
-    ];
+  describe('$objectToYaml', () => {
+    it('should convert object to yaml using path expression', async () => {
+      const input = [
+        { object: { foo: 'bar' } }
+      ];
+      const pipeline: Document[] = [
+        { $set: { yaml: { $objectToYaml: '$object' } } }
+      ];
 
-    const doc = await tashmet.aggregate(input, pipeline).next();
+      const doc = await tashmet.aggregate(input, pipeline).next();
 
-    expect(doc).to.not.be.undefined;
-    expect((doc as Document).yaml).to.eql('foo: bar\n');
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).yaml).to.eql('foo: bar\n');
+    });
+
+    it('should convert object to yaml using full expression', async () => {
+      const input = [
+        { object: { foo: 'bar' } }
+      ];
+      const pipeline: Document[] = [
+        { $set: { yaml: { $objectToYaml: { path: '$object' } } } }
+      ];
+
+      const doc = await tashmet.aggregate(input, pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).yaml).to.eql('foo: bar\n');
+    });
+
+    it('should handle yaml front matter with default contentKey', async () => {
+      const input = [
+        { object: { title: 'foo', _content: 'Content goes here' } }
+      ];
+      const pipeline: Document[] = [
+        { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true } } } }
+      ];
+      const expected = dedent`
+        ---
+        title: foo
+        ---
+        Content goes here
+      `;
+
+      const doc = await tashmet.aggregate(input, pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).yaml).to.eql(expected.trim());
+    });
+
+    it('should handle yaml front matter with custom contentKey', async () => {
+      const input = [
+        { object: { title: 'foo', body: 'Content goes here' } }
+      ];
+      const pipeline: Document[] = [
+        { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true, contentKey: 'body' } } } }
+      ];
+      const expected = dedent`
+        ---
+        title: foo
+        ---
+        Content goes here
+      `;
+
+      const doc = await tashmet.aggregate(input, pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).yaml).to.eql(expected.trim());
+    });
   });
 
-  it('should convert yaml to object', async () => {
-    const yaml = dedent`
-      title: foo
-      list:
-        - item1
-        - item2
-    `;
-    const pipeline: Document[] = [
-      { $set: { object: { $yamlToObject: '$yaml' } } }
-    ];
+  describe('$yamlToObject', () => {
+    it('should convert yaml to object using path expression', async () => {
+      const yaml = dedent`
+        title: foo
+        list:
+          - item1
+          - item2
+      `;
+      const pipeline: Document[] = [
+        { $set: { object: { $yamlToObject: '$yaml' } } }
+      ];
 
-    const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
 
-    expect(doc).to.not.be.undefined;
-    expect((doc as Document).object).to.eql({title: 'foo', list: ['item1', 'item2']});
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).object).to.eql({title: 'foo', list: ['item1', 'item2']});
+    });
+
+    it('should convert yaml to object using full expression', async () => {
+      const yaml = dedent`
+        title: foo
+        list:
+          - item1
+          - item2
+      `;
+      const pipeline: Document[] = [
+        { $set: { object: { $yamlToObject: { path: '$yaml' } } } }
+      ];
+
+      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).object).to.eql({title: 'foo', list: ['item1', 'item2']});
+    });
+
+    it('should handle yaml front matter with default contentKey', async () => {
+      const yaml = dedent`
+        ---
+        title: foo
+        ---
+        Content goes here
+      `;
+      const pipeline: Document[] = [
+        { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true } } } }
+      ];
+      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).object).to.eql({title: 'foo', _content: 'Content goes here'});
+    });
+
+    it('should handle yaml front matter with custom contentKey', async () => {
+      const yaml = dedent`
+        ---
+        title: foo
+        ---
+        Content goes here
+      `;
+      const pipeline: Document[] = [
+        { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true, contentKey: 'body' } } } }
+      ];
+      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).object).to.eql({title: 'foo', body: 'Content goes here'});
+    });
   });
 });

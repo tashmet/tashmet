@@ -8,21 +8,6 @@
  */
 export interface YamlOptions {
   /**
-   * Specifies if the YAML in the source files is defined as front matter or not.
-   *
-   * default: false
-   */
-  frontMatter?: boolean;
-
-  /**
-   * If frontMatter is set to true the content of the file will be stored in the result object.
-   * This option lets you specify in which property it is stored.
-   *
-   * default: '_content'
-   */
-  contentKey?: string;
-
-  /**
    * Indentation width to use (in spaces) when serializing.
    *
    * default: 2
