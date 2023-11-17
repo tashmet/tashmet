@@ -1,8 +1,6 @@
 import { Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
-import { ContentRule } from './content.js';
-import { IOFactory } from './io.js';
 import { FileSystemOptions } from '@tashmet/fs';
 import { MarkdownOptions } from '@tashmet/markdown';
 
@@ -28,15 +26,25 @@ export type Encoding =
   'hex' |
   undefined;
 
-export interface FileStorageConfig {
-  content: ContentRule;
+export interface IO {
+  readonly input: Document[];
 
-  scan: string;
-
-  lookup: (id: string) => string;
+  readonly output: Document[];
 }
 
-export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => IOFactory<any>;
+export abstract class BufferIO implements IO {
+  public abstract readonly path: string;
+  public abstract readonly input: Document[];
+  public abstract readonly output: Document[];
+}
+
+export abstract class StreamIO implements IO {
+  public abstract path(id?: string): string;
+  public abstract readonly input: Document[];
+  public abstract readonly output: Document[];
+}
+
+export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => IO;
 
 export interface NabuConfig {
   io: Record<string, NabuIOConfig>;

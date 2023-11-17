@@ -41,18 +41,15 @@ import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
   NabuConfig,
   NabuIOConfig,
+  BufferIO,
+  StreamIO,
 } from './interfaces.js';
-import { ContentRule } from './content.js';
-import { FileCollection } from './storage/fileStorage.js';
+import { StreamCollection } from './storage/streamCollection.js';
 import { YamlContentRule, YamlIORule } from './io/yaml.js';
 import { JsonIORule } from './io/json.js';
-import { BufferIOFactory, StreamIOFactory } from './io.js';
-import { FileBufferCollection } from './storage/buffer.js';
+import { BufferCollection } from './storage/bufferCollection.js';
 
 export * from './interfaces.js';
-export { ContentRule };
-export { IO } from './io.js';
-
 
 @provider()
 export default class Nabu extends StorageEngine {
@@ -134,20 +131,24 @@ export class NabuCollectionFactory extends CollectionFactory {
     }
 
     const ioName = mergedOptions.storageEngine?.io;
-    const ioFactory = this.config.io[ioName](ns, mergedOptions.storageEngine || {});
+    const io = this.config.io[ioName](ns, mergedOptions.storageEngine || {});
     let validator: Validator | undefined;
 
     if (this.validatorFactory && options.validator) {
       validator = this.validatorFactory.createValidator(options.validator);
     }
+    
+    const input = this.aggregatorFactory.createAggregator(io.input);
+    const output = this.aggregatorFactory.createAggregator(io.output);
 
-    if (ioFactory instanceof StreamIOFactory) {
-      return new FileCollection(ns, ioFactory.createIO(this.aggregatorFactory), validator);
+    if (io instanceof StreamIO) {
+      return new StreamCollection(ns, io.path, input, output, validator);
     }
 
-    if (ioFactory instanceof BufferIOFactory) {
+    if (io instanceof BufferIO) {
       const buffer = this.memory.createCollection(ns, mergedOptions);
-      return new FileBufferCollection(ns, ioFactory.createIO(this.aggregatorFactory), buffer);
+
+      return new BufferCollection(ns, io.path, input, output, buffer);
     }
 
     throw Error('Unsupported IO');

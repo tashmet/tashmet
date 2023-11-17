@@ -111,14 +111,20 @@ export abstract class AggregatorFactory implements AggregatorFactory {
   }
 };
 
+export async function *arrayToGenerator<T>(array: T[]) {
+  for (const item of array) {
+    yield item;
+  }
+}
+
 export abstract class AbstractAggregator<T extends Document = Document> {
   public constructor(protected pipeline: Document[]) {}
 
   public abstract stream<TResult>(input: AsyncIterable<T>): AsyncIterable<TResult>;
 
-  public async run<TResult>(input: AsyncIterable<T>): Promise<TResult[]> {
+  public async run<TResult>(input: AsyncIterable<T> | T[]): Promise<TResult[]> {
     const buffer = [];
-    for await (const item of this.stream(input)) {
+    for await (const item of this.stream(Array.isArray(input) ? arrayToGenerator(input) : input)) {
       buffer.push(item);
     }
     return buffer as TResult[];

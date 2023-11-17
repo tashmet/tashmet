@@ -44,7 +44,7 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
   public constructor(
     pipeline: Document[],
     private store: Store,
-    private options: AggregatorOptions,
+    private options: AggregatorOptions = {},
     private mingoConfig: MingoConfig,
     private context: Context,
     private logger: Logger,

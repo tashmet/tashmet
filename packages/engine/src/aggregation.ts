@@ -2,13 +2,8 @@ import { CollationOptions, Document, TashmetCollectionNamespace } from "@tashmet
 import { Logger, provider } from "@tashmet/core";
 import { Cursor, CursorRegistry, IteratorCursor } from "./cursor.js";
 import { Store } from "./store.js";
-import { AggregatorFactory, CollectionFactory } from "./interfaces.js";
+import { AggregatorFactory, arrayToGenerator, CollectionFactory } from "./interfaces.js";
 
-export async function *arrayToGenerator<T>(array: T[]) {
-  for (const item of array) {
-    yield item;
-  }
-}
 
 @provider({
   inject: [Store, Logger.inScope('QueryPlanner')]

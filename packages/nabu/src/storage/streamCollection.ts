@@ -4,15 +4,18 @@ import {
   WriteError,
   WriteOptions,
   Validator,
+  AbstractAggregator,
+  arrayToGenerator,
 } from '@tashmet/engine';
 import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { StreamIO } from '../io.js';
 
 
-export class FileCollection extends ReadWriteCollection {
+export class StreamCollection extends ReadWriteCollection {
   public constructor(
     ns: TashmetCollectionNamespace,
-    private io: StreamIO,
+    private path: (id?: string) => string,
+    private input: AbstractAggregator,
+    private output: AbstractAggregator,
     private validator: Validator | undefined,
   ) {
     super(ns);
@@ -20,12 +23,11 @@ export class FileCollection extends ReadWriteCollection {
 
   public read(options: ReadOptions = {}): AsyncIterable<Document> {
     const { documentIds, projection } = options || {};
+    const paths = documentIds
+      ? documentIds.map(id => ({ _id: this.path(id) }))
+      : ([{ _id: this.path() }]);
 
-    if (documentIds) {
-      return this.io.lookup(documentIds);
-    } else {
-      return this.io.scan();
-    }
+    return this.input.stream(arrayToGenerator(paths));
   }
 
   public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
@@ -49,7 +51,7 @@ export class FileCollection extends ReadWriteCollection {
         }
       }
 
-      for await (const err of this.io.write([doc])) {
+      for await (const err of this.output.stream<WriteError>(arrayToGenerator([doc]))) {
         writeErrors.push({ ...err, index });
       }
 

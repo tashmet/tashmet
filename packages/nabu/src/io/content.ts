@@ -1,6 +1,6 @@
 import { Document } from "@tashmet/tashmet";
-import { ContentRule } from "../content.js";
-import { FileBufferFactory, FileStreamFactory } from './fs.js';
+import { FileStreamIO } from "./fileStream.js";
+import { FileBufferIO } from "./fileBuffer.js";
 
 export interface ContentRuleOptions {
   merge?: Document;
@@ -22,33 +22,23 @@ export abstract class IORule {
       { _id: { $basename: ['$path', { $extname: '$path' }] } }, options?.merge
     );
 
-    const content = ContentRule
-      .fromRootReplace(this.reader, this.writer, merge)
-      .assign(options?.construct || {})
-
-    return new FileStreamFactory({
-      scan: `${path}/*${extension}`,
-      lookup: id => `${path}/${id}${extension}`,
-      content,
-    });
+    return new FileStreamIO(
+      id => id ? `${path}/${id}${extension}` : `${path}/*${extension}`,
+      this.reader,
+      this.writer,
+      merge,
+      options?.construct
+    );
   }
 
   public glob(pattern: string, options?: ContentRuleOptions) {
     const merge = Object.assign({ _id: '$path' }, options?.merge);
 
-    const content = ContentRule
-      .fromRootReplace(this.reader, this.writer, merge)
-      .assign(options?.construct || {})
-
-    return new FileStreamFactory({
-      lookup: id => id,
-      scan: pattern,
-      content,
-    });
+    return new FileStreamIO(id => id ? id : pattern, this.reader, this.writer, merge, options?.construct);
   }
 
   public file(path: string, options: FileOptions) {
-    return new FileBufferFactory({ path, reader: this.reader, writer: this.writer, options });
+    return new FileBufferIO(path, this.reader, this.writer, options);
   }
 
   protected abstract get reader(): Document;

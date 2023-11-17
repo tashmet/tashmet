@@ -4,17 +4,19 @@ import {
   WriteError,
   WriteOptions,
   makeWriteChange,
+  AbstractAggregator,
 } from '@tashmet/engine';
 import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { BufferIO } from '../io.js';
 
 
-export class FileBufferCollection extends ReadWriteCollection {
+export class BufferCollection extends ReadWriteCollection {
   private synced = false;
 
   public constructor(
     ns: TashmetCollectionNamespace,
-    private io: BufferIO,
+    private path: string,
+    private input: AbstractAggregator,
+    private output: AbstractAggregator,
     private buffer: ReadWriteCollection,
   ) {
     super(ns);
@@ -22,13 +24,11 @@ export class FileBufferCollection extends ReadWriteCollection {
 
   public async* read(options: ReadOptions = {}): AsyncIterable<Document> {
     if (!this.synced) {
-      const documents: Document[] = [];
-
-      for await (const doc of this.io.scan()) {
-        documents.push(doc);
-      }
+      const documents = await this.input.run<Document>([{ _id: this.path }]);
       
-      await this.buffer.write(documents.map(d => makeWriteChange('insert', d, { db: this.ns.db, coll: this.ns.collection })), {});
+      await this.buffer.write(documents.map(d =>
+        makeWriteChange('insert', d, { db: this.ns.db, coll: this.ns.collection })
+      ), {});
       this.synced = true;
     }
 
@@ -45,10 +45,6 @@ export class FileBufferCollection extends ReadWriteCollection {
       documents.push(doc);
     }
 
-    for await (const err of this.io.write(documents)) {
-      //writeErrors.push(err);
-      console.log(err);
-    }
-    return writeErrors;
+    return writeErrors.concat(await this.output.run<WriteError>(documents));
   }
 }
