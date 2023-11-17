@@ -43,6 +43,7 @@ import {
   NabuIOConfig,
   BufferIO,
   StreamIO,
+  IO,
 } from './interfaces.js';
 import { StreamCollection } from './storage/streamCollection.js';
 import { YamlContentRule, YamlIORule } from './io/yaml.js';
@@ -93,7 +94,9 @@ export default class Nabu extends StorageEngine {
     return this.commandRunner.command(ns, command);
   }
 
-  public aggregate(collection: Document[], pipeline: Document[]): AggregationCursor<Document> {
+  public aggregate<TSchema extends Document = Document>(
+    collection: Document[], pipeline: Document[]
+  ): AggregationCursor<TSchema> {
     return new GlobalAggregationCursor(collection, this.proxy(), pipeline);
   }
 
@@ -104,6 +107,24 @@ export default class Nabu extends StorageEngine {
       { $glob: { pattern: '$_id' } },
       ...pipeline
     ]);
+  }
+
+  public read<TSchema extends Document = Document>(io: BufferIO | StreamIO, pipeline: Document[] = []): AggregationCursor<TSchema> {
+    const path = io instanceof BufferIO ? io.path : io.path();
+
+    return this.aggregate([{ _id: path }], io.input.concat(pipeline));
+  }
+
+  public json<TSchema extends Document>(
+    pattern: string, pipeline: Document[] = []
+  ): AggregationCursor<TSchema> {
+    return this.read(Nabu.json().glob(pattern), pipeline);
+  }
+
+  public yaml<TSchema extends Document>(
+    pattern: string, options?: YamlContentRule, pipeline: Document[] = []
+  ): AggregationCursor<TSchema> {
+    return this.read(Nabu.yaml(options).glob(pattern), pipeline);
   }
 }
 
