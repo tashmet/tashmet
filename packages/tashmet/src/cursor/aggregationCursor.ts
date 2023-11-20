@@ -96,6 +96,11 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
     return this.pushStage({ $redact });
   }
 
+  /** Add a set stage to the aggregation pipeline */
+  public set($set: Document): AggregationCursor<TSchema> {
+    return this.pushStage({ $set });
+  }
+
   /** Add a skip stage to the aggregation pipeline */
   public skip($skip: number): AggregationCursor<TSchema> {
     return this.pushStage({ $skip });
@@ -104,6 +109,11 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
   /** Add a sort stage to the aggregation pipeline */
   public sort($sort: SortingMap): AggregationCursor<TSchema> {
     return this.pushStage({ $sort });
+  }
+
+  /** Add an unset stage to the aggregation pipeline */
+  public unset($unset: string | string[]): AggregationCursor<TSchema> {
+    return this.pushStage({ $unset });
   }
 
   /** Add a unwind stage to the aggregation pipeline */
