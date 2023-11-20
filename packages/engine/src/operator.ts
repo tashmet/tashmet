@@ -2,6 +2,15 @@ import { Annotation, methodDecorator, PluginConfigurator } from "@tashmet/core";
 import { Document } from "@tashmet/tashmet";
 import { AggregatorFactory } from "./interfaces.js";
 
+export interface OperatorContext {
+  set(obj: Record<string, any> | Array<any>, selector: string, value: any): void;
+
+  remove(obj: Record<string, any> | Array<any>, selector: string): void;
+
+  resolve(obj: Record<string, any> | Array<any>, selector: string): any;
+
+  compute(obj: any, expr: any, operator?: string): any;
+}
 
 export class OperatorAnnotation extends Annotation {
   public constructor(
@@ -24,6 +33,14 @@ export class ExpressionOperatorAnnotation extends OperatorAnnotation {
   }
 }
 
+export type ExpressionOperator<T> = (obj: any, args: T, context: OperatorContext) => any;
+
+export type PipelineOperator<T> = (
+  it: AsyncIterable<Document>,
+  args: T,
+  context: OperatorContext,
+) => AsyncIterable<Document>;
+
 export const op = {
   pipeline: (name: string) => methodDecorator<PipelineOperator<any>>(
     ({propertyKey}) => new PipelineOperatorAnnotation(name, propertyKey)
@@ -33,13 +50,6 @@ export const op = {
   ),
 }
 
-export type ExpressionOperator<T> = (args: T, resolve: (path: string) => any) => any;
-
-export type PipelineOperator<T> = (
-  it: AsyncIterable<Document>,
-  args: T,
-  resolve: (doc: Document, path: string) => any
-) => AsyncIterable<Document>;
 
 export class OperatorPluginConfigurator<T> extends PluginConfigurator<T> {
   protected load() {

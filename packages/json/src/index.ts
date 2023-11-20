@@ -1,4 +1,4 @@
-import { op, OperatorPluginConfigurator } from '@tashmet/engine';
+import { op, OperatorContext, OperatorPluginConfigurator } from '@tashmet/engine';
 import { Container, provider, Provider } from '@tashmet/core';
 
 export interface JsonOptions {
@@ -17,13 +17,13 @@ export class Json {
   public constructor(private options: JsonOptions) {}
 
   @op.expression('$objectToJson')
-  public objectToJson(expr: any, resolve: (expr: any) => any) {
-    return JSON.stringify(resolve(expr), undefined, this.options.indent);
+  public objectToJson(obj: any, expr: any, ctx: OperatorContext) {
+    return JSON.stringify(ctx.compute(obj, expr), undefined, this.options.indent);
   }
 
   @op.expression('$jsonToObject')
-  public jsonToObject(expr: any, resolve: (expr: any) => any) {
-    return JSON.parse(resolve(expr));
+  public jsonToObject(obj: any, expr: any, ctx: OperatorContext) {
+    return JSON.parse(ctx.compute(obj, expr));
   }
 }
 

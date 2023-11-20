@@ -1,5 +1,5 @@
 import { Container, Provider, provider } from '@tashmet/core';
-import { op, OperatorPluginConfigurator } from '@tashmet/engine';
+import { op, OperatorContext, OperatorPluginConfigurator } from '@tashmet/engine';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeStringify from 'rehype-stringify';
 import rehypeDocument from 'rehype-document';
@@ -20,14 +20,14 @@ export class Markdown {
   public constructor(public options: MarkdownOptions) {}
 
   @op.expression('$markdownToObject')
-  public markdownToObject(expr: string, resolve: (expr: any) => any) {
+  public markdownToObject(obj: any, expr: string, ctx: OperatorContext) {
     return unified()
       .use(remarkParse)
-      .parse(resolve(expr));
+      .parse(ctx.compute(obj, expr));
   }
 
   @op.expression('$markdownToHtml')
-  public markdownToHtml(expr: string, resolve: (expr: any) => any) {
+  public markdownToHtml(obj: any, expr: string, ctx: OperatorContext) {
     return unified()
       .use(remarkParse)
       .use(remarkRehype)
@@ -36,7 +36,7 @@ export class Markdown {
       .use(rehypeSanitize)
       // @ts-ignore
       .use(rehypeStringify)
-      .processSync(resolve(expr)).value;
+      .processSync(ctx.compute(obj, expr)).value;
   }
 }
 

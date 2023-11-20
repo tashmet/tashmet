@@ -1,5 +1,5 @@
 import { Container, provider, Provider } from '@tashmet/core';
-import { op, OperatorPluginConfigurator } from '@tashmet/engine';
+import { op, OperatorContext, OperatorPluginConfigurator } from '@tashmet/engine';
 import { YamlOptions } from './interfaces.js';
 
 import jsYaml from 'js-yaml';
@@ -51,10 +51,10 @@ export class Yaml {
   public constructor(public options: YamlOptions) {}
 
   @op.expression('$objectToYaml')
-  public objectToYaml(expr: any, resolve: (expr: any) => any) {
+  public objectToYaml(obj: any, expr: any, ctx: OperatorContext) {
     if (typeof expr === 'object' && expr.frontMatter === true) {
-      const key = resolve(expr.contentKey || '_content') as string;
-      const data = resolve(expr.path);
+      const key = ctx.compute(obj, expr.contentKey || '_content') as string;
+      const data = ctx.compute(obj, expr.path);
 
       const { [key]: omitted, ...rest } = data;
       const frontMatter = jsYaml.dump(rest, this.options);
@@ -65,15 +65,15 @@ export class Yaml {
       return output;
     } else {
       const path = typeof expr === 'string' ? expr : expr.path;
-      return jsYaml.dump(resolve(path), this.options);
+      return jsYaml.dump(ctx.compute(obj, path), this.options);
     }
   }
 
   @op.expression('$yamlToObject')
-  public yamlToObject(expr: any, resolve: (expr: any) => any) {
+  public yamlToObject(obj: any, expr: any, ctx: OperatorContext) {
     if (typeof expr === 'object' && expr.frontMatter === true) {
-      const contentKey = resolve(expr.contentKey) as string || '_content';
-      const data = resolve(expr.path);
+      const contentKey = ctx.compute(obj, expr.contentKey) as string || '_content';
+      const data = ctx.compute(obj, expr.path);
 
       const doc = loadFront(data) as any;
       const content = doc.__content.trim();
@@ -84,7 +84,7 @@ export class Yaml {
       const path = typeof expr === 'string'
         ? expr
         : expr.path ? expr.path : expr;
-      const doc = jsYaml.load(resolve(path)) as any;
+      const doc = jsYaml.load(ctx.compute(obj, path)) as any;
       if (typeof doc !== 'object') {
         throw new Error('Deserialized YAML is not an object')
       }

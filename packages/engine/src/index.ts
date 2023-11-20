@@ -9,7 +9,13 @@ export { QueryEngine, Queryable } from './query.js';
 export { Cursor, CursorRegistry } from './cursor.js';
 export { Store } from './store.js';
 export { ChangeSet, idSet } from './changeSet.js';
-export { op, ExpressionOperator, PipelineOperator, OperatorPluginConfigurator } from './operator.js';
+export {
+  op,
+  ExpressionOperator,
+  PipelineOperator,
+  OperatorPluginConfigurator,
+  OperatorContext
+} from './operator.js';
 
 export { AggregationReadController, AggregationWriteController } from './controllers/aggregate.js';
 export { AdminController } from './controllers/admin.js';

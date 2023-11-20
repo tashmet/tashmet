@@ -1,6 +1,6 @@
 import 'mingo/init/system';
 import { Document } from '@tashmet/tashmet';
-import { MingoAggregatorFactory, MingoConfig, MingoConfigurator, BufferAggregator } from '@tashmet/mingo-base';
+import { MingoAggregatorFactory, MingoConfig, MingoConfigurator, BufferAggregator, MingoOperatorContext } from '@tashmet/mingo-base';
 import { getOperator, OperatorType, Context } from 'mingo/core';
 import * as mingo from 'mingo/core';
 import { assert, cloneDeep } from 'mingo/util';
@@ -47,9 +47,8 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
       const op = operatorKeys[0];
 
       if (op in this.pipelineOperators) {
-        output = this.pipelineOperators[op](output as AsyncIterable<T>, operator[op], (doc, path) =>
-          mingo.computeValue(doc, path, null, this.mingoOptions)
-        ) as AsyncIterable<any>;
+        output = this.pipelineOperators[op](
+          output as AsyncIterable<T>, operator[op], new MingoOperatorContext(this.mingoOptions)) as AsyncIterable<any>;
       } else {
         const call = getOperator(OperatorType.PIPELINE, op, this.mingoOptions);
         assert(
