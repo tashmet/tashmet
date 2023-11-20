@@ -35,7 +35,7 @@
 		"socket.io-client": "^4.7.2"
 	},
 	"devDependencies": {
-		"@types/node": "^13.1.8",
+		"@types/node": "^20.5.3",
 		"@types/reflect-metadata": "^0.1.0",
 		"tslib": "^2.3.1"
 	},

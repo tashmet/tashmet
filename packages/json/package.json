@@ -24,7 +24,7 @@
 		"@tashmet/engine": "^1.0.0-alpha.3"
 	},
 	"devDependencies": {
-		"@types/node": "20.5.3",
+		"@types/node": "^20.5.3",
 		"@types/reflect-metadata": "^0.1.0",
 		"tslib": "^2.3.1"
 	}
