@@ -55,12 +55,14 @@ export class Yaml {
     if (typeof expr === 'object' && expr.frontMatter === true) {
       const key = ctx.compute(obj, expr.contentKey || '_content') as string;
       const data = ctx.compute(obj, expr.path);
+      const content = ctx.resolve(data, key);
 
-      const { [key]: omitted, ...rest } = data;
-      const frontMatter = jsYaml.dump(rest, this.options);
+
+      ctx.remove(data, key);
+      const frontMatter = jsYaml.dump(data, this.options);
       let output = '---\n' + frontMatter + '---';
-      if (data[key]) {
-        output += '\n' + data[key].replace(/^\s+|\s+$/g, '');
+      if (content) {
+        output += '\n' + content.replace(/^\s+|\s+$/g, '');
       }
       return output;
     } else {
@@ -76,8 +78,7 @@ export class Yaml {
       const data = ctx.compute(obj, expr.path);
 
       const doc = loadFront(data) as any;
-      const content = doc.__content.trim();
-      doc[contentKey as string] = content;
+      ctx.set(doc, contentKey, doc.__content.trim());
       delete doc.__content;
       return doc;
     } else {

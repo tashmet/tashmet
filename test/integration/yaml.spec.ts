@@ -78,6 +78,28 @@ describe('yaml', () => {
       expect((doc as Document).yaml).to.eql(expected.trim());
     });
 
+    it('should handle yaml front matter with nested contentKey', async () => {
+      const input = [
+        { object: { title: 'foo', body: { raw: 'Content goes here' } } }
+      ];
+      const pipeline: Document[] = [
+        { $documents: input },
+        { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true, contentKey: 'body.raw' } } } }
+      ];
+      const expected = dedent`
+        ---
+        title: foo
+        body: {}
+        ---
+        Content goes here
+      `;
+
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).yaml).to.eql(expected.trim());
+    });
+
     it('should handle yaml front matter with custom contentKey', async () => {
       const input = [
         { object: { title: 'foo', body: 'Content goes here' } }
@@ -169,6 +191,23 @@ describe('yaml', () => {
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).object).to.eql({title: 'foo', body: 'Content goes here'});
+    });
+
+    it('should handle yaml front matter with nested contentKey', async () => {
+      const yaml = dedent`
+        ---
+        title: foo
+        ---
+        Content goes here
+      `;
+      const pipeline: Document[] = [
+        { $documents: [{ yaml }] },
+        { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true, contentKey: 'body.raw' } } } }
+      ];
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
+
+      expect(doc).to.not.be.undefined;
+      expect((doc as Document).object).to.eql({title: 'foo', body: { raw: 'Content goes here'} });
     });
   });
 });
