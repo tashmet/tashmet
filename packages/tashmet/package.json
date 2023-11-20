@@ -29,7 +29,9 @@
     "README.md"
   ],
   "dependencies": {
-    "@types/reflect-metadata": "^0.1.0"
+    "@types/reflect-metadata": "^0.1.0",
+    "bson-objectid": "^2.0.4",
+    "eventemitter3": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.5.3"

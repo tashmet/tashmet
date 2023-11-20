@@ -22,6 +22,8 @@
 	"dependencies": {
 		"@tashmet/core": "^1.0.0-alpha.0",
 		"@tashmet/engine": "^1.0.0-alpha.3",
+		"rehype-document": "^7.0.2",
+		"rehype-format": "^5.0.0",
 		"rehype-sanitize": "6.0.0",
 		"rehype-stringify": "10.0.0",
 		"remark": "^15.0.1",

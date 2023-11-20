@@ -53,7 +53,7 @@ export interface StorageEngine {
   proxy(): TashmetProxy;
 }
 
-export class StorageEngine extends EventEmitter implements StorageEngine {
+export class StorageEngine extends EventEmitter<any> implements StorageEngine {
   public proxy(): TashmetProxy {
     return new StorageEngineProxy(this);
   }

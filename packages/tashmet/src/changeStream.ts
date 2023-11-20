@@ -79,7 +79,7 @@ export interface ChangeStreamEvents<TSchema extends Document> {
 }
 
 export class ChangeStream<TSchema extends Document = Document>
-  extends EventEmitter implements ChangeStreamEvents<TSchema>
+  extends EventEmitter<any> implements ChangeStreamEvents<TSchema>
 {
   private documents: ChangeStreamDocument[] = [];
 

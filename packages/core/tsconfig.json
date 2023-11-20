@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "lib": ["es6", "dom"],
-    "types": ["reflect-metadata", "node"],
+    "types": ["node", "reflect-metadata"],
     "module": "ES6",
     "moduleResolution": "node",
     "rootDirs": ["src", "test"],

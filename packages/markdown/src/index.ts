@@ -1,10 +1,12 @@
-import { Container, Provider, provider } from '@tashmet/core'
-import { op, OperatorPluginConfigurator } from '@tashmet/engine'
-import rehypeSanitize from 'rehype-sanitize'
-import rehypeStringify from 'rehype-stringify'
-import remarkParse from 'remark-parse'
-import remarkRehype from 'remark-rehype'
-import {unified} from 'unified'
+import { Container, Provider, provider } from '@tashmet/core';
+import { op, OperatorPluginConfigurator } from '@tashmet/engine';
+import rehypeSanitize from 'rehype-sanitize';
+import rehypeStringify from 'rehype-stringify';
+import rehypeDocument from 'rehype-document';
+import rehypeFormat from 'rehype-format';
+import remarkParse from 'remark-parse';
+import remarkRehype from 'remark-rehype';
+import {unified} from 'unified';
 
 export interface MarkdownOptions {
 
@@ -29,7 +31,10 @@ export class Markdown {
     return unified()
       .use(remarkParse)
       .use(remarkRehype)
+      .use(rehypeDocument)
+      .use(rehypeFormat)
       .use(rehypeSanitize)
+      // @ts-ignore
       .use(rehypeStringify)
       .processSync(resolve(expr)).value;
   }
