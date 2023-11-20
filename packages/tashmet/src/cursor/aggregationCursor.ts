@@ -21,24 +21,59 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
     });
   }
 
+  /** Add an addFields stage to the aggregation pipeline */
+  addFields<T extends Document = TSchema>($addFields: Document): AggregationCursor<T> {
+    return this.pushStage({ $addFields });
+  }
+
+  /** Add a bucket stage to the aggregation pipeline */
+  bucket<T extends Document = TSchema>($bucket: Document): AggregationCursor<T> {
+    return this.pushStage({ $bucket });
+  }
+
+  /** Add a bucketAuto stage to the aggregation pipeline */
+  bucketAuto<T extends Document = TSchema>($bucketAuto: Document): AggregationCursor<T> {
+    return this.pushStage({ $bucketAuto });
+  }
+
+  /** Add a count stage to the aggregation pipeline */
+  count<T extends Document = TSchema>($count: Document): AggregationCursor<T> {
+    return this.pushStage({ $count });
+  }
+
+  /** Add a facet stage to the aggregation pipeline */
+  facet<T extends Document = TSchema>($facet: Document): AggregationCursor<T> {
+    return this.pushStage({ $facet });
+  }
+
+  /** Add a fill stage to the aggregation pipeline */
+  fill($fill: Document): AggregationCursor<TSchema> {
+    return this.pushStage({ $fill });
+  }
+
   /** Add a group stage to the aggregation pipeline */
   group<T extends Document = TSchema>($group: Document): AggregationCursor<T> {
-    return this.pushStage({$group});
+    return this.pushStage({ $group });
   }
 
   /** Add a limit stage to the aggregation pipeline */
   limit($limit: number): AggregationCursor<TSchema> {
-    return this.pushStage({$limit});
+    return this.pushStage({ $limit });
+  }
+
+  /** Add a lookup stage to the aggregation pipeline */
+  lookup($lookup: Document): AggregationCursor<TSchema> {
+    return this.pushStage({ $lookup });
   }
 
   /** Add a match stage to the aggregation pipeline */
   match($match: Document): AggregationCursor<TSchema> {
-    return this.pushStage({$match});
+    return this.pushStage({ $match });
   }
 
   /** Add an out stage to the aggregation pipeline */
   out($out: { db: string; coll: string } | string): AggregationCursor<TSchema> {
-    return this.pushStage({$out});
+    return this.pushStage({ $out });
   }
 
   /**
@@ -83,12 +118,7 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
    * ```
    */
   project<T extends Document = TSchema>($project: Document): AggregationCursor<T> {
-    return this.pushStage({$project});
-  }
-
-  /** Add a lookup stage to the aggregation pipeline */
-  lookup($lookup: Document): AggregationCursor<TSchema> {
-    return this.pushStage({ $lookup });
+    return this.pushStage({ $project });
   }
 
   /** Add a redact stage to the aggregation pipeline */
@@ -96,8 +126,23 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
     return this.pushStage({ $redact });
   }
 
+  /** Add a replaceRoot stage to the aggregation pipeline */
+  replaceRoot<T extends Document = TSchema>($replaceRoot: { newRoot: Document }): AggregationCursor<T> {
+    return this.pushStage({ $replaceRoot });
+  }
+
+  /** Add a replaceWith stage to the aggregation pipeline */
+  replaceWith<T extends Document = TSchema>($replaceWith: Document): AggregationCursor<T> {
+    return this.pushStage({ $replaceWith });
+  }
+
+  /** Add a sample stage to the aggregation pipeline */
+  sample($sample: { size: number }): AggregationCursor<TSchema> {
+    return this.pushStage({ $sample });
+  }
+
   /** Add a set stage to the aggregation pipeline */
-  set($set: Document): AggregationCursor<TSchema> {
+  set<T extends Document = TSchema>($set: Document): AggregationCursor<T> {
     return this.pushStage({ $set });
   }
 
@@ -112,7 +157,7 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
   }
 
   /** Add an unset stage to the aggregation pipeline */
-  unset($unset: string | string[]): AggregationCursor<TSchema> {
+  unset<T extends Document = TSchema>($unset: string | string[]): AggregationCursor<T> {
     return this.pushStage({ $unset });
   }
 
