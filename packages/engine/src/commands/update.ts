@@ -97,7 +97,7 @@ export class AggregationUpdateCommand extends UpdateCommand {
     if (multi !== true) {
       pipeline.unshift({$limit: 1});
     }
-    let output = await this.aggregate([{$match: q || {}}, ...pipeline], this.ns.coll, collation);
+    const output = await this.aggregate([{$match: q || {}}, ...pipeline], this.ns.coll, collation);
 
     if (output.length === 0 && upsert) {
       await this.upsert(await this.aggregate(pipeline, this.genEmptyDoc(), collation));

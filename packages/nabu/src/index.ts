@@ -55,7 +55,7 @@ export default class Nabu extends StorageEngine {
   private commandRunner: CommandRunner;
 
   constructor(
-    private engine: AggregationEngine,
+    engine: AggregationEngine,
     private store: Store,
     collectionFactory: CollectionFactory,
   ) {
@@ -63,8 +63,8 @@ export default class Nabu extends StorageEngine {
     const views: ViewMap = {};
     this.commandRunner = CommandRunner.fromControllers(
       new AdminController(store, collectionFactory, views),
-      new AggregationReadController(this.engine, views),
-      new AggregationWriteController(store, this.engine)
+      new AggregationReadController(engine, views),
+      new AggregationWriteController(store, engine)
     );
     this.store.on('change', doc => this.emit('change', doc));
   }

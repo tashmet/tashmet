@@ -32,7 +32,7 @@ export class StreamCollection extends ReadWriteCollection {
 
   async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
     const writeErrors: WriteError[] = [];
-    let index=0;
+    const index = 0;
 
     for (const doc of changes) {
       if (doc.ns.db !== this.ns.db || doc.ns.coll !== this.ns.collection) {

@@ -7,20 +7,20 @@ import jsYaml from 'js-yaml';
 export {YamlOptions} from './interfaces.js';
 
 export function loadFront (content: any, options?: any) {
-  let contentKeyName = options && typeof options === 'string'
-      ? options
-      : options && options.contentKeyName
-          ? options.contentKeyName
-          : '__content';
+  const contentKeyName = options && typeof options === 'string'
+    ? options
+    : options && options.contentKeyName
+        ? options.contentKeyName
+        : '__content';
 
-  let passThroughOptions = options && typeof options === 'object'
-      ? options
-      : undefined;
+  const passThroughOptions = options && typeof options === 'object'
+    ? options
+    : undefined;
 
-  let re = /^(-{3}(?:\n|\r)([\w\W]+?)(?:\n|\r)-{3})?([\w\W]*)*/
-      , results = re.exec(content)
-      , conf: any = {}
-      , yamlOrJson;
+  const re = /^(-{3}(?:\n|\r)([\w\W]+?)(?:\n|\r)-{3})?([\w\W]*)*/;
+  const results = re.exec(content);
+  let yamlOrJson;
+  let conf: any = {}
 
   if ((yamlOrJson = (results as any)[2])) {
       if (yamlOrJson.charAt(0) === '{') {
@@ -33,7 +33,7 @@ export function loadFront (content: any, options?: any) {
   conf[contentKeyName] = (results as any)[3] || '';
 
   return conf;
-};
+}
 
 const defaultOptions: YamlOptions = {
   indent: 2,
@@ -71,13 +71,24 @@ export class Yaml {
     }
   }
 
+  /**
+   * Parse YAML
+   * 
+   * @example
+   * 
+   * 
+   * @param obj 
+   * @param expr 
+   * @param ctx 
+   * @returns 
+   */
   @op.expression('$yamlToObject')
   public yamlToObject(obj: any, expr: any, ctx: OperatorContext) {
     if (typeof expr === 'object' && expr.frontMatter === true) {
       const contentKey = ctx.compute(obj, expr.contentKey) as string || '_content';
       const data = ctx.compute(obj, expr.path);
-
       const doc = loadFront(data) as any;
+
       ctx.set(doc, contentKey, doc.__content.trim());
       delete doc.__content;
       return doc;

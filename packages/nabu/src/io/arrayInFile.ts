@@ -32,8 +32,8 @@ export class ArrayInFileIO extends BufferIO {
   ) { super(); }
 
   get input(): Document[] {
-    let index = this.options.includeArrayIndex;
-    let merge: any[] = ['$items'];
+    const index = this.options.includeArrayIndex;
+    const merge: any[] = ['$items'];
     const field = this.options.field ? `$content.${this.options.field}` : '$content';
 
     if (index) {
@@ -59,15 +59,15 @@ export class ArrayInFileIO extends BufferIO {
   }
 
   get output(): Document[] {
-    let index = this.options.includeArrayIndex;
-    let pipeline: Document[] = this.options.output || [];
+    const index = this.options.includeArrayIndex;
+    const pipeline: Document[] = this.options.output || [];
 
     if (index) {
       pipeline.push(
         { $sort: { [index]: 1 } },
         { $unset: index },
       );
-    };
+    }
 
     if (this.options.id) {
       pipeline.push({ $unset: '_id' });

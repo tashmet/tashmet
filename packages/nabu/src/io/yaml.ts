@@ -26,7 +26,7 @@ export class YamlIORule extends IORule {
         contentKey: this.config.contentKey,
         path: expr,
       }
-    };
+    }
   }
 
   protected writer(expr: any): Document {
@@ -37,6 +37,6 @@ export class YamlIORule extends IORule {
         path: expr,
       }
     }
-  };
+  }
 }
 

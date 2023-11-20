@@ -79,7 +79,7 @@ export abstract class AbstractCursor<TSchema> {
    */
   next(): Promise<TSchema | null> {
     return this._next(false);
-  };
+  }
 
   tryNext(): Promise<TSchema | null> {
     return this._next(false);
@@ -119,13 +119,9 @@ export abstract class AbstractCursor<TSchema> {
         // these do need to be transformed since they are copying the rest of the batch
         const internalDocs = this.documents.splice(0, this.documents.length);
         for (let i = 0; i < internalDocs.length; ++i) {
-          try {
-            result = iterator(
-              (transform ? transform(internalDocs[i]) : internalDocs[i]) as TSchema // TODO(NODE-3283): Improve transform typing
-            );
-          } catch (error) {
-            throw error;
-          }
+          result = iterator(
+            (transform ? transform(internalDocs[i]) : internalDocs[i]) as TSchema // TODO(NODE-3283): Improve transform typing
+          );
         }
 
         await fetchDocs();

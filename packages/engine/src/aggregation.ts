@@ -85,7 +85,7 @@ export class AggregationEngine extends CursorRegistry {
 export class QueryAnalysis {
   public static fromPipeline(ns: TashmetCollectionNamespace, pipeline: Document[]): QueryAnalysis {
     let filter: Document = {};
-    let options: Document = {};
+    const options: Document = {};
 
     const handlers: Record<string, (value: any) => void> = {
       '$match': v => filter = v,
@@ -104,7 +104,7 @@ export class QueryAnalysis {
       '$project': allAllowed,
     };
 
-    let prevStepOps: string[] = [];
+    const prevStepOps: string[] = [];
 
     const isValid = (op: string) =>
       op in handlers && prevStepOps.every(prevOp => allowPreceding[op].includes(prevOp));

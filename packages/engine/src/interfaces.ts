@@ -109,7 +109,7 @@ export abstract class AggregatorFactory implements AggregatorFactory {
       op.register(controller, this);
     }
   }
-};
+}
 
 export async function *arrayToGenerator<T>(array: T[]) {
   for (const item of array) {
@@ -158,4 +158,4 @@ export interface JsonSchemaValidator {
   validate(doc: Document, schema: Document): boolean;
 }
 
-export abstract class JsonSchemaValidator implements JsonSchemaValidator {};
+export abstract class JsonSchemaValidator implements JsonSchemaValidator {}

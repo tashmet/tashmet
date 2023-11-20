@@ -6,7 +6,7 @@ export const enum LogLevel {
   Warning,
   Error,
   None,
-};
+}
 
 export interface LogEvent {
   readonly message: string;

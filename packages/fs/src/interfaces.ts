@@ -1,4 +1,3 @@
-export interface FileSystemOptions {
-}
+export interface FileSystemOptions {}
 
-export abstract class FileSystemOptions implements FileSystemOptions {};
+export abstract class FileSystemOptions implements FileSystemOptions {}

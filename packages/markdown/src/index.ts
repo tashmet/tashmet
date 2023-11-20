@@ -12,7 +12,7 @@ export interface MarkdownOptions {
 
 }
 
-export abstract class MarkdownOptions implements MarkdownOptions {};
+export abstract class MarkdownOptions implements MarkdownOptions {}
 
 
 @provider()
