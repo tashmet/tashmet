@@ -1,6 +1,6 @@
 {
   "name": "@tashmet/mingo-base",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "",
   "type": "module",
   "main": "dist/index.js",
@@ -31,8 +31,8 @@
     "README.md"
   ],
   "dependencies": {
-    "@tashmet/engine": "^1.0.0-alpha.3",
-    "@tashmet/tashmet": "^1.0.0-alpha.3",
+    "@tashmet/engine": "^1.0.0-alpha.4",
+    "@tashmet/tashmet": "^1.0.0-alpha.4",
     "mingo": "6.4.9"
   },
   "devDependencies": {
