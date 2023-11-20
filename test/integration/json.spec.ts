@@ -30,10 +30,11 @@ describe('json', () => {
       { object: { foo: 'bar' } }
     ];
     const pipeline: Document[] = [
+      { $documents: input },
       { $set: { json: { $objectToJson: '$object' } } }
     ];
 
-    const doc = await tashmet.aggregate(input, pipeline).next();
+    const doc = await tashmet.db('test').aggregate(pipeline).next();
 
     expect(doc).to.not.be.undefined;
     expect((doc as Document).json).to.eql('{\n  "foo": "bar"\n}');
@@ -44,10 +45,11 @@ describe('json', () => {
       { json: '{ "foo": "bar" }' }
     ];
     const pipeline: Document[] = [
+      { $documents: input },
       { $set: { object: { $jsonToObject: '$json' } } }
     ];
 
-    const doc = await tashmet.aggregate(input, pipeline).next();
+    const doc = await tashmet.db('test').aggregate(pipeline).next();
 
     expect(doc).to.not.be.undefined;
     expect((doc as Document).object).to.eql({ foo: 'bar' });

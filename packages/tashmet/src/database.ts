@@ -8,6 +8,8 @@ import { Collection } from './collection.js';
 import { CommandOperation } from './operations/command.js';
 import { DropCollectionOperation, DropDatabaseOperation } from './operations/drop.js';
 import { TashmetNamespace } from './utils.js';
+import { AggregateOptions } from './operations/aggregate.js';
+import { AggregationCursor } from './cursor/aggregationCursor.js';
 
 /** @public */
 export interface DatabaseOptions {
@@ -34,6 +36,18 @@ export class Database {
     return this.ns.toString();
   }
 
+  /**
+   * Execute an aggregation framework pipeline against the database
+   *
+   * @param pipeline - An array of aggregation stages to be executed
+   * @param options - Optional settings for the command
+   */
+  aggregate<T extends Document = Document>(
+    pipeline: Document[] = [],
+    options?: AggregateOptions
+  ): AggregationCursor<T> {
+    return new AggregationCursor(this.ns, this.proxy, pipeline, options);
+  }
 
   /**
    * Returns a reference to a Tashmet Collection. If it does not exist it will be created implicitly.

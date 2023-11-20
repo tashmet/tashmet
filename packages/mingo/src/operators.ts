@@ -42,6 +42,13 @@ export class MingoStreamPipelineOpertors {
     }
   }
 
+  @op.pipeline('$documents')
+  async* $documents(source: AsyncIterable<Document>, expr: Document[]) {
+    for await (const doc of expr) {
+      yield doc;
+    }
+  }
+
   @op.pipeline('$update')
   async* $update(source: AsyncIterable<Document>, expr: any) {
     for await (const item of source) {

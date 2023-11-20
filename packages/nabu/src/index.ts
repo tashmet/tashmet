@@ -12,7 +12,6 @@ import {
 import {
   AggregationCursor,
   Document,
-  GlobalAggregationCursor,
   TashmetCollectionNamespace,
   CreateCollectionOptions,
   TashmetNamespace
@@ -43,7 +42,6 @@ import {
   NabuIOConfig,
   BufferIO,
   StreamIO,
-  IO,
 } from './interfaces.js';
 import { StreamCollection } from './storage/streamCollection.js';
 import { YamlContentRule, YamlIORule } from './io/yaml.js';
@@ -77,9 +75,6 @@ export default class Nabu extends StorageEngine {
       new AggregationWriteController(store, this.engine)
     );
     this.store.on('change', doc => this.emit('change', doc));
-    //this.databases['__tashmet'] = DatabaseEngine.fromControllers('__tashmet',
-      //new AggregationReadController('__tashmet', engine, views),
-    //);
   }
 
   public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
@@ -94,33 +89,44 @@ export default class Nabu extends StorageEngine {
     return this.commandRunner.command(ns, command);
   }
 
-  public aggregate<TSchema extends Document = Document>(
-    collection: Document[], pipeline: Document[]
-  ): AggregationCursor<TSchema> {
-    return new GlobalAggregationCursor(collection, this.proxy(), pipeline);
-  }
-
   public glob(pattern: string | string[], pipeline: Document[] = []): AggregationCursor<Document> {
     const patterns = Array.isArray(pattern) ? pattern : [pattern];
 
-    return this.aggregate(patterns.map(p => ({_id: p})), [
+    return new AggregationCursor(new TashmetNamespace('nabu'), this.proxy(), [
+      { $documents: patterns.map(p => ({ _id: p })) },
       { $glob: { pattern: '$_id' } },
       ...pipeline
     ]);
   }
 
   public read<TSchema extends Document = Document>(io: BufferIO | StreamIO, pipeline: Document[] = []): AggregationCursor<TSchema> {
-    const path = io instanceof BufferIO ? io.path : io.path();
+    const p: Document[] = io instanceof StreamIO
+      ? [{ _id: io.path() }, ...pipeline]
+      : pipeline;
 
-    return this.aggregate([{ _id: path }], io.input.concat(pipeline));
+    return new AggregationCursor(new TashmetNamespace('nabu'), this.proxy(), io.input.concat(...p));
   }
 
+  /**
+   * Create an aggregation cursor based on reading JSON files
+   * 
+   * @param pattern A glob pattern
+   * @param pipeline An optional aggregation pipeline
+   * @returns An aggregation cursor
+   */
   public json<TSchema extends Document>(
     pattern: string, pipeline: Document[] = []
   ): AggregationCursor<TSchema> {
     return this.read(Nabu.json().glob(pattern), pipeline);
   }
 
+  /**
+   * Create an aggregation cursor based on reading YAML files
+   * 
+   * @param pattern A glob pattern
+   * @param pipeline An optional aggregation pipeline
+   * @returns An aggregation cursor
+   */
   public yaml<TSchema extends Document>(
     pattern: string, options?: YamlContentRule, pipeline: Document[] = []
   ): AggregationCursor<TSchema> {

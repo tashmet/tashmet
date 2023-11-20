@@ -93,7 +93,7 @@ export class Collection<TSchema extends Document = any> {
    * @param options - Optional settings for the command
    */
   public aggregate<T extends Document = Document>(
-    pipeline: Document[], options: AggregateOptions = {}
+    pipeline: Document[] = [], options: AggregateOptions = {}
   ): AggregationCursor<T> {
     return new AggregationCursor<T>(this.ns, this.proxy, pipeline, options);
   }

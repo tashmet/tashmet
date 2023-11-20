@@ -32,10 +32,11 @@ describe('yaml', () => {
         { object: { foo: 'bar' } }
       ];
       const pipeline: Document[] = [
+        { $documents: input },
         { $set: { yaml: { $objectToYaml: '$object' } } }
       ];
 
-      const doc = await tashmet.aggregate(input, pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).yaml).to.eql('foo: bar\n');
@@ -46,10 +47,11 @@ describe('yaml', () => {
         { object: { foo: 'bar' } }
       ];
       const pipeline: Document[] = [
+        { $documents: input },
         { $set: { yaml: { $objectToYaml: { path: '$object' } } } }
       ];
 
-      const doc = await tashmet.aggregate(input, pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).yaml).to.eql('foo: bar\n');
@@ -60,6 +62,7 @@ describe('yaml', () => {
         { object: { title: 'foo', _content: 'Content goes here' } }
       ];
       const pipeline: Document[] = [
+        { $documents: input },
         { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true } } } }
       ];
       const expected = dedent`
@@ -69,7 +72,7 @@ describe('yaml', () => {
         Content goes here
       `;
 
-      const doc = await tashmet.aggregate(input, pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).yaml).to.eql(expected.trim());
@@ -80,6 +83,7 @@ describe('yaml', () => {
         { object: { title: 'foo', body: 'Content goes here' } }
       ];
       const pipeline: Document[] = [
+        { $documents: input },
         { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true, contentKey: 'body' } } } }
       ];
       const expected = dedent`
@@ -89,7 +93,7 @@ describe('yaml', () => {
         Content goes here
       `;
 
-      const doc = await tashmet.aggregate(input, pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).yaml).to.eql(expected.trim());
@@ -105,10 +109,11 @@ describe('yaml', () => {
           - item2
       `;
       const pipeline: Document[] = [
+        { $documents: [{ yaml }] },
         { $set: { object: { $yamlToObject: '$yaml' } } }
       ];
 
-      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).object).to.eql({title: 'foo', list: ['item1', 'item2']});
@@ -122,10 +127,11 @@ describe('yaml', () => {
           - item2
       `;
       const pipeline: Document[] = [
+        { $documents: [{ yaml }] },
         { $set: { object: { $yamlToObject: { path: '$yaml' } } } }
       ];
 
-      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).object).to.eql({title: 'foo', list: ['item1', 'item2']});
@@ -139,9 +145,10 @@ describe('yaml', () => {
         Content goes here
       `;
       const pipeline: Document[] = [
+        { $documents: [{ yaml }] },
         { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true } } } }
       ];
-      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).object).to.eql({title: 'foo', _content: 'Content goes here'});
@@ -155,9 +162,10 @@ describe('yaml', () => {
         Content goes here
       `;
       const pipeline: Document[] = [
+        { $documents: [{ yaml }] },
         { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true, contentKey: 'body' } } } }
       ];
-      const doc = await tashmet.aggregate([{ yaml }], pipeline).next();
+      const doc = await tashmet.db('test').aggregate(pipeline).next();
 
       expect(doc).to.not.be.undefined;
       expect((doc as Document).object).to.eql({title: 'foo', body: 'Content goes here'});

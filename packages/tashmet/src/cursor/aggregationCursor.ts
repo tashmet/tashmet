@@ -1,11 +1,11 @@
 import { Document, SortingMap, TashmetProxy } from '../interfaces.js';
 import { AggregateOptions } from '../operations/aggregate.js';
-import { TashmetCollectionNamespace } from '../utils.js';
+import { TashmetNamespace } from '../utils.js';
 import { AbstractCursor } from './abstractCursor.js';
 
 export class AggregationCursor<TSchema extends Document = Document> extends AbstractCursor<TSchema> {
   public constructor(
-    namespace: TashmetCollectionNamespace,
+    namespace: TashmetNamespace,
     proxy: TashmetProxy,
     public readonly pipeline: Document[],
     options: AggregateOptions = {},
@@ -15,7 +15,7 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
 
   protected async initialize(): Promise<Document> {
     return this.proxy.command(this.namespace, {
-      aggregate: this.namespace.collection,
+      aggregate: this.namespace.collection || 1,
       pipeline: this.pipeline,
       ...this.options
     });

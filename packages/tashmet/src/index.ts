@@ -4,15 +4,12 @@ export { Database } from './database.js';
 export { TashmetNamespace, TashmetCollectionNamespace } from './utils.js';
 export { AbstractCursor } from './cursor/abstractCursor.js';
 export { AggregationCursor } from './cursor/aggregationCursor.js';
-export { GlobalAggregationCursor } from './cursor/globalAggregationCursor.js';
 export { FindCursor } from './cursor/findCursor.js';
 export * from './interfaces.js';
 export { AggregateOptions } from './operations/aggregate.js';
 
-import { TashmetProxy, Document } from './interfaces.js';
+import { TashmetProxy } from './interfaces.js';
 import { Database, DatabaseOptions } from './database.js';
-import { GlobalAggregationCursor } from './cursor/globalAggregationCursor.js';
-import { AggregateOptions } from './operations/aggregate.js';
 
 
 export default class Tashmet {
@@ -42,13 +39,5 @@ export default class Tashmet {
 
   public db(name: string, options: DatabaseOptions = {}): Database {
     return new Database(name, this.proxy, options);
-  }
-
-  public aggregate<TSchema extends Document = Document>(
-    collection: Document[],
-    pipeline: Document[],
-    options?: AggregateOptions
-  ): GlobalAggregationCursor<TSchema> {
-    return new GlobalAggregationCursor(collection, this.proxy, pipeline, options);
   }
 }

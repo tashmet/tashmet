@@ -41,6 +41,7 @@ export class ArrayInFileIO extends BufferIO {
     }
 
     const pipeline: Document[] = [
+      { $documents: [{ _id: this.path }] },
       { $glob: { pattern: '$_id'} },
       { $project: { content: this.reader({ $readFile: '$_id' }) } },
       { $replaceRoot: { newRoot: { items: field } } },

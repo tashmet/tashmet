@@ -24,7 +24,7 @@ export class BufferCollection extends ReadWriteCollection {
 
   public async* read(options: ReadOptions = {}): AsyncIterable<Document> {
     if (!this.synced) {
-      const documents = await this.input.run<Document>([{ _id: this.path }]);
+      const documents = await this.input.run<Document>([]);
       
       await this.buffer.write(documents.map(d =>
         makeWriteChange('insert', d, { db: this.ns.db, coll: this.ns.collection })
