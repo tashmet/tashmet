@@ -21,7 +21,7 @@ export abstract class CommandOperation<T> {
 
   abstract execute(proxy: TashmetProxy): Promise<any>;
 
-  async executeCommand(proxy: TashmetProxy, cmd: Document): Promise<any> {
+  executeCommand(proxy: TashmetProxy, cmd: Document): Promise<any> {
     return proxy.command(this.ns, cmd);
   }
 }

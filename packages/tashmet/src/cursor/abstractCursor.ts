@@ -43,7 +43,7 @@ export abstract class AbstractCursor<TSchema> {
   }
 
   /** Returns an array of documents. */
-  public async toArray(): Promise<TSchema[]> {
+  async toArray(): Promise<TSchema[]> {
     const docs: TSchema[] = [];
     const transform = this.transform;
 
@@ -77,16 +77,16 @@ export abstract class AbstractCursor<TSchema> {
   /**
    * Get the next available document from the cursor, returns null if no more documents are available
    */
-  public async next(): Promise<TSchema | null> {
+  next(): Promise<TSchema | null> {
     return this._next(false);
   };
 
-  public async tryNext(): Promise<TSchema | null> {
+  tryNext(): Promise<TSchema | null> {
     return this._next(false);
   }
 
   /** Check if there is any document still available in the cursor */
-  public async hasNext(): Promise<boolean> {
+  async hasNext(): Promise<boolean> {
     if (this.id === 0) {
       return false;
     }
@@ -105,7 +105,7 @@ export abstract class AbstractCursor<TSchema> {
   }
 
   /** Iterates over all the documents for this cursor using the iterator, callback pattern */
-  public async forEach(iterator: (doc: TSchema) => void): Promise<void> {
+  async forEach(iterator: (doc: TSchema) => void): Promise<void> {
     const transform = this.transform;
 
     const fetchDocs: () => Promise<void> = async () => {
@@ -201,6 +201,8 @@ export abstract class AbstractCursor<TSchema> {
     return null;
   }
 
+  protected abstract initialize(): Promise<Document>;
+
   private async init(): Promise<TSchema | null> {
     const response = await this.initialize();
     if (response.cursor) {
@@ -215,6 +217,4 @@ export abstract class AbstractCursor<TSchema> {
 
     return this.nextDocument();
   }
-
-  protected abstract initialize(): Promise<Document>;
 }

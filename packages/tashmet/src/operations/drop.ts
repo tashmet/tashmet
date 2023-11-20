@@ -26,6 +26,7 @@ export class DropDatabaseOperation extends CommandOperation<boolean> {
   constructor(namespace: TashmetNamespace, public options: DropDatabaseOptions) {
     super(namespace, options);
   }
+
   async execute(proxy: TashmetProxy): Promise<boolean> {
     const {ok} = await this.executeCommand(proxy, { dropDatabase: 1 });
     return ok === 1;

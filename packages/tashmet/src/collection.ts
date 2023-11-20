@@ -71,18 +71,18 @@ export class Collection<TSchema extends Document = any> {
   /**
    * The name of the database this collection belongs to
    */
-  public get dbName(): string {
+  get dbName(): string {
     return this.db.databaseName;
   }
 
   /**
    * The namespace of this collection, in the format `${this.dbName}.${this.collectionName}`
    */
-  public get namespace(): string {
+  get namespace(): string {
     return this.ns.toString();
   }
 
-  public get fullNamespace(): TashmetCollectionNamespace {
+  get fullNamespace(): TashmetCollectionNamespace {
     return this.ns;
   }
 
@@ -92,7 +92,7 @@ export class Collection<TSchema extends Document = any> {
    * @param pipeline - An array of aggregation pipelines to execute
    * @param options - Optional settings for the command
    */
-  public aggregate<T extends Document = Document>(
+  aggregate<T extends Document = Document>(
     pipeline: Document[] = [], options: AggregateOptions = {}
   ): AggregationCursor<T> {
     return new AggregationCursor<T>(this.ns, this.proxy, pipeline, options);
@@ -104,7 +104,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter - The filter for the count
    * @param options - Optional settings for the command
    */
-  public countDocuments(
+  countDocuments(
     filter: Filter<TSchema> = {}, options: CountDocumentsOptions = {}
   ): Promise<number> {
     return this.executeOperation(
@@ -120,7 +120,7 @@ export class Collection<TSchema extends Document = any> {
   find(): FindCursor<WithId<TSchema>>;
   find(filter: Filter<TSchema>, options?: FindOptions): FindCursor<WithId<TSchema>>;
 
-  public find(
+  find(
     filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}
   ): FindCursor<WithId<TSchema>> {
     return new FindCursor<WithId<TSchema>>(this.ns, this.proxy, filter, options);
@@ -132,11 +132,11 @@ export class Collection<TSchema extends Document = any> {
    * @param filter - Query for find Operation
    * @param options - Optional settings for the command
    */
-  async findOne(): Promise<WithId<TSchema> | null>;
-  async findOne(filter: Filter<TSchema>): Promise<WithId<TSchema> | null>;
-  async findOne(filter: Filter<TSchema>, options: FindOptions): Promise<WithId<TSchema> | null>;
+  findOne(): Promise<WithId<TSchema> | null>;
+  findOne(filter: Filter<TSchema>): Promise<WithId<TSchema> | null>;
+  findOne(filter: Filter<TSchema>, options: FindOptions): Promise<WithId<TSchema> | null>;
 
-  public findOne(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Promise<WithId<TSchema> | null> {
+  findOne(filter: Filter<TSchema> = {}, options: FindOptions<TSchema> = {}): Promise<WithId<TSchema> | null> {
     return this.find(filter, options).limit(1).next();
   }
 
@@ -148,7 +148,7 @@ export class Collection<TSchema extends Document = any> {
    * @param doc - The document to insert
    * @param options - Optional settings for the command
    */
-  public async insertOne(
+  insertOne(
     document: OptionalId<TSchema>, options?: InsertOneOptions
   ): Promise<InsertOneResult> {
     return this.executeOperation(
@@ -164,7 +164,7 @@ export class Collection<TSchema extends Document = any> {
    * @param docs - The documents to insert
    * @param options - Optional settings for the command
    */
-  public async insertMany(
+  insertMany(
     documents: OptionalId<TSchema>[], options?: BulkWriteOptions
   ): Promise<InsertManyResult> {
     return this.executeOperation(
@@ -178,9 +178,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter - The filter used to select the document to remove
    * @param options - Optional settings for the command
    */
-  public async deleteOne(
-    filter: Filter<TSchema>, options?: DeleteOptions
-  ): Promise<DeleteResult> {
+  deleteOne(filter: Filter<TSchema>, options?: DeleteOptions): Promise<DeleteResult> {
     return this.executeOperation(
       new DeleteOneOperation(this.ns, filter, options || {})
     );
@@ -192,9 +190,7 @@ export class Collection<TSchema extends Document = any> {
    * @param filter - The filter used to select the documents to remove
    * @param options - Optional settings for the command
    */
-  public async deleteMany(
-    filter: Filter<TSchema>, options?: DeleteOptions
-  ): Promise<DeleteResult> {
+  deleteMany(filter: Filter<TSchema>, options?: DeleteOptions): Promise<DeleteResult> {
     return this.executeOperation(
       new DeleteManyOperation(this.ns, filter, options || {})
     );
@@ -207,7 +203,7 @@ export class Collection<TSchema extends Document = any> {
    * @param replacement - The Document that replaces the matching document
    * @param options - Optional settings for the command
    */
-  public async replaceOne(
+  replaceOne(
     filter: Filter<TSchema>, replacement: TSchema, options?: ReplaceOneOptions
   ): Promise<UpdateResult> {
     return this.executeOperation(
@@ -222,7 +218,7 @@ export class Collection<TSchema extends Document = any> {
    * @param update - The update operations to be applied to the document
    * @param options - Optional settings for the command
    */
-  public async updateOne(
+  updateOne(
     filter: Filter<TSchema>, update: UpdateFilter<TSchema>, options?: UpdateOptions
   ): Promise<UpdateResult> {
     return this.executeOperation(
@@ -237,7 +233,7 @@ export class Collection<TSchema extends Document = any> {
    * @param update - The update operations to be applied to the documents
    * @param options - Optional settings for the command
    */
-  public async updateMany(
+  updateMany(
     filter: Filter<TSchema>, update: UpdateFilter<TSchema>, options?: UpdateOptions
   ): Promise<UpdateResult> {
     return this.executeOperation(
@@ -268,7 +264,7 @@ export class Collection<TSchema extends Document = any> {
    *
    * @param operations - Bulk operations to perform
    */
-  public async bulkWrite(operations: AnyBulkWriteOperation<TSchema>[]): Promise<BulkWriteResult> {
+  async bulkWrite(operations: AnyBulkWriteOperation<TSchema>[]): Promise<BulkWriteResult> {
     throw Error('Not implemented');
   }
 
@@ -297,7 +293,7 @@ export class Collection<TSchema extends Document = any> {
   distinct(key: string, filter: Filter<TSchema>): Promise<any[]>;
   distinct(key: string, filter: Filter<TSchema>, options: DistinctOptions): Promise<any[]>;
 
-  public async distinct<Key extends keyof WithId<TSchema>>(
+  distinct<Key extends keyof WithId<TSchema>>(
     key: Key | string,
     filter: Filter<TSchema> = {},
     options: DistinctOptions = {}
@@ -313,7 +309,7 @@ export class Collection<TSchema extends Document = any> {
    * @param pipeline - An array of {@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/|aggregation pipeline stages} through which to pass change stream documents. This allows for filtering (using $match) and manipulating the change stream documents.
    * @param options - Optional settings for the command
    */
-  public watch<TLocal extends Document = TSchema>(pipeline: Document[] = []): ChangeStream<TLocal> {
+  watch<TLocal extends Document = TSchema>(pipeline: Document[] = []): ChangeStream<TLocal> {
     const cs = new ChangeStream<TLocal>(pipeline, cs => {
       this.changeStreams.splice(this.changeStreams.indexOf(cs), 1);
     });
@@ -324,7 +320,7 @@ export class Collection<TSchema extends Document = any> {
   /**
    * Drop the collection from the database, removing it permanently. New accesses will create a new collection.
    */
-  public drop(options: DropCollectionOptions = {}) {
+  drop(options: DropCollectionOptions = {}) {
     return this.executeOperation(new DropCollectionOperation(this.ns, options));
   }
 

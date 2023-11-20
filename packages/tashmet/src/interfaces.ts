@@ -6,11 +6,11 @@ import { TashmetNamespace } from './utils.js';
 export const { EventEmitter } = ev;
 
 export abstract class TashmetProxy extends EventEmitter {
-  public abstract connect(): void;
+  abstract connect(): void;
 
-  public destroy() {}
+  destroy() {}
 
-  public abstract command(ns: TashmetNamespace, command: Document): Promise<Document>;
+  abstract command(ns: TashmetNamespace, command: Document): Promise<Document>;
 }
 
 export type Document = Record<string, any>;

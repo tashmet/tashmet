@@ -39,17 +39,17 @@ export class FindCursor<TSchema extends Document = Document> extends AbstractCur
    * If the key is given as a key-value map the sorting direction for each of the keys will be
    * determined by its value and the direction argument can be omitted.
    */
-  public sort(key: SortingKey, direction?: SortingDirection): this {
+  sort(key: SortingKey, direction?: SortingDirection): this {
     return this.extendOptions({sort: sortingMap(key, direction)});
   }
 
   /** Set the skip for the cursor. */
-  public skip(count: number): this {
+  skip(count: number): this {
     return this.extendOptions({skip: count});
   }
 
   /** Set the limit for the cursor. */
-  public limit(count: number): this {
+  limit(count: number): this {
     return this.extendOptions({limit: count});
   }
 

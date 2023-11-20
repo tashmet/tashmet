@@ -15,29 +15,27 @@ import { Database, DatabaseOptions } from './database.js';
 export default class Tashmet {
   private connectionPromise: Promise<void>;
 
-  public constructor(
-    private proxy: TashmetProxy,
-  ) {
+  constructor(private proxy: TashmetProxy) {
     this.connectionPromise = new Promise((resolve, reject) => {
       this.proxy.on('connected', resolve);
     });
   }
 
-  public static connect(proxy: TashmetProxy): Promise<Tashmet> {
+  static connect(proxy: TashmetProxy): Promise<Tashmet> {
     return new Tashmet(proxy).connect();
   }
 
-  public async connect(): Promise<this> {
+  async connect(): Promise<this> {
     this.proxy.connect();
     await this.connectionPromise;
     return this;
   }
 
-  public close() {
+  close() {
     this.proxy.destroy();
   }
 
-  public db(name: string, options: DatabaseOptions = {}): Database {
+  db(name: string, options: DatabaseOptions = {}): Database {
     return new Database(name, this.proxy, options);
   }
 }

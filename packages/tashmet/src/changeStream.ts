@@ -88,24 +88,24 @@ export class ChangeStream<TSchema extends Document = Document>
     private closeCb: (cs: ChangeStream) => void,
   ) { super(); }
 
-  public on(event: 'change', fn: (change: ChangeStreamDocument<TSchema>) => void): this {
+  on(event: 'change', fn: (change: ChangeStreamDocument<TSchema>) => void): this {
     return super.on(event, fn);
   }
 
-  public emit(event: 'change', change: ChangeStreamDocument) {
+  emit(event: 'change', change: ChangeStreamDocument) {
     this.documents.push(change);
     return super.emit(event, change);
   }
 
-  public close(): void {
+  close(): void {
     this.closeCb(this);
   }
 
-  public next(): ChangeStreamDocument | undefined {
+  next(): ChangeStreamDocument | undefined {
     return this.documents.shift();
   }
 
-  public hasNext(): boolean {
+  hasNext(): boolean {
     return this.documents.length > 0;
   }
 }

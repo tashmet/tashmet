@@ -22,22 +22,22 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
   }
 
   /** Add a group stage to the aggregation pipeline */
-  public group<T extends Document = TSchema>($group: Document): AggregationCursor<T> {
+  group<T extends Document = TSchema>($group: Document): AggregationCursor<T> {
     return this.pushStage({$group});
   }
 
   /** Add a limit stage to the aggregation pipeline */
-  public limit($limit: number): AggregationCursor<TSchema> {
+  limit($limit: number): AggregationCursor<TSchema> {
     return this.pushStage({$limit});
   }
 
   /** Add a match stage to the aggregation pipeline */
-  public match($match: Document): AggregationCursor<TSchema> {
+  match($match: Document): AggregationCursor<TSchema> {
     return this.pushStage({$match});
   }
 
   /** Add an out stage to the aggregation pipeline */
-  public out($out: { db: string; coll: string } | string): AggregationCursor<TSchema> {
+  out($out: { db: string; coll: string } | string): AggregationCursor<TSchema> {
     return this.pushStage({$out});
   }
 
@@ -82,46 +82,46 @@ export class AggregationCursor<TSchema extends Document = Document> extends Abst
    * }});
    * ```
    */
-  public project<T extends Document = TSchema>($project: Document): AggregationCursor<T> {
+  project<T extends Document = TSchema>($project: Document): AggregationCursor<T> {
     return this.pushStage({$project});
   }
 
   /** Add a lookup stage to the aggregation pipeline */
-  public lookup($lookup: Document): AggregationCursor<TSchema> {
+  lookup($lookup: Document): AggregationCursor<TSchema> {
     return this.pushStage({ $lookup });
   }
 
   /** Add a redact stage to the aggregation pipeline */
-  public redact($redact: Document): AggregationCursor<TSchema> {
+  redact($redact: Document): AggregationCursor<TSchema> {
     return this.pushStage({ $redact });
   }
 
   /** Add a set stage to the aggregation pipeline */
-  public set($set: Document): AggregationCursor<TSchema> {
+  set($set: Document): AggregationCursor<TSchema> {
     return this.pushStage({ $set });
   }
 
   /** Add a skip stage to the aggregation pipeline */
-  public skip($skip: number): AggregationCursor<TSchema> {
+  skip($skip: number): AggregationCursor<TSchema> {
     return this.pushStage({ $skip });
   }
 
   /** Add a sort stage to the aggregation pipeline */
-  public sort($sort: SortingMap): AggregationCursor<TSchema> {
+  sort($sort: SortingMap): AggregationCursor<TSchema> {
     return this.pushStage({ $sort });
   }
 
   /** Add an unset stage to the aggregation pipeline */
-  public unset($unset: string | string[]): AggregationCursor<TSchema> {
+  unset($unset: string | string[]): AggregationCursor<TSchema> {
     return this.pushStage({ $unset });
   }
 
   /** Add a unwind stage to the aggregation pipeline */
-  public unwind($unwind: Document | string): AggregationCursor<TSchema> {
+  unwind($unwind: Document | string): AggregationCursor<TSchema> {
     return this.pushStage({ $unwind });
   }
 
-  public pushStage<T extends Document = TSchema>(stage: Document): AggregationCursor<T> {
+  pushStage<T extends Document = TSchema>(stage: Document): AggregationCursor<T> {
     this.pipeline.push(stage);
     return this as unknown as AggregationCursor<T>;
   }

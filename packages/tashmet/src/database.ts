@@ -57,7 +57,7 @@ export class Database {
    * @param name - the collection name we wish to access.
    * @returns return the new Collection instance
    */
-  public collection<TSchema extends Document>(name: string): Collection<TSchema> {
+  collection<TSchema extends Document>(name: string): Collection<TSchema> {
     return new Collection<TSchema>(name, this.proxy, this);
   }
 
@@ -69,7 +69,7 @@ export class Database {
    * @param name - The name of the collection to create
    * @param options - Optional settings for the command
    */
-  public async createCollection<TSchema extends Document = Document>(
+  async createCollection<TSchema extends Document = Document>(
     name: string, options: CreateCollectionOptions = {}): Promise<Collection<TSchema>>
   {
       await this.command({create: name, ...options});
@@ -81,18 +81,18 @@ export class Database {
    *
    * @param name - Name of collection to drop
    */
-  public async dropCollection(name: string): Promise<boolean> {
+  dropCollection(name: string): Promise<boolean> {
     return this.executeOperation(new DropCollectionOperation(this.ns.withCollection(name), {}));
   }
 
   /**
    * Drop a database, removing it permanently from the server.
    */
-  public async dropDatabase(): Promise<boolean> {
+  dropDatabase(): Promise<boolean> {
     return this.executeOperation(new DropDatabaseOperation(this.ns, {})); 
   }
 
-  public async command(command: Document): Promise<Document> {
+  command(command: Document): Promise<Document> {
     return this.proxy.command(this.ns, command);
   }
 
