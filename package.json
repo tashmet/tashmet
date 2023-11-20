@@ -12,7 +12,8 @@
     "test": "npm run test:packages && npm run test:integration && npm run test:e2e",
     "test:packages": "lerna run test",
     "test:integration": "mocha --config test/integration/.mocharc.json",
-    "test:e2e": "mocha --config test/e2e/.mocharc.json"
+    "test:e2e": "mocha --config test/e2e/.mocharc.json",
+    "publish": "lerna publish --no-private"
   },
   "author": "Björn Andersson",
   "license": "MIT",
