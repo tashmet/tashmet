@@ -31,7 +31,7 @@ export class ArrayInFileIO extends BufferIO {
     private options: ArrayInFileOptions = {}
   ) { super(); }
 
-  public get input(): Document[] {
+  get input(): Document[] {
     let index = this.options.includeArrayIndex;
     let merge: any[] = ['$items'];
     const field = this.options.field ? `$content.${this.options.field}` : '$content';
@@ -58,7 +58,7 @@ export class ArrayInFileIO extends BufferIO {
     return pipeline.concat(...this.options.input || [])
   }
 
-  public get output(): Document[] {
+  get output(): Document[] {
     let index = this.options.includeArrayIndex;
     let pipeline: Document[] = this.options.output || [];
 

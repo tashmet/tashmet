@@ -11,7 +11,7 @@ import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tas
 
 
 export class StreamCollection extends ReadWriteCollection {
-  public constructor(
+  constructor(
     ns: TashmetCollectionNamespace,
     private path: (id?: string) => string,
     private input: AbstractAggregator,
@@ -21,7 +21,7 @@ export class StreamCollection extends ReadWriteCollection {
     super(ns);
   }
 
-  public read(options: ReadOptions = {}): AsyncIterable<Document> {
+  read(options: ReadOptions = {}): AsyncIterable<Document> {
     const { documentIds, projection } = options || {};
     const paths = documentIds
       ? documentIds.map(id => ({ _id: this.path(id) }))
@@ -30,7 +30,7 @@ export class StreamCollection extends ReadWriteCollection {
     return this.input.stream(arrayToGenerator(paths));
   }
 
-  public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
+  async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
     const writeErrors: WriteError[] = [];
     let index=0;
 

@@ -52,17 +52,17 @@ export * from './interfaces.js';
 
 @provider()
 export default class Nabu extends StorageEngine {
-  public static json() {
+  static json() {
     return new JsonIORule();
   }
 
-  public static yaml(config: YamlContentRule = {}) {
+  static yaml(config: YamlContentRule = {}) {
     return new YamlIORule(config);
   }
 
   private commandRunner: CommandRunner;
 
-  public constructor(
+  constructor(
     private engine: AggregationEngine,
     private store: Store,
     collectionFactory: CollectionFactory,
@@ -77,7 +77,7 @@ export default class Nabu extends StorageEngine {
     this.store.on('change', doc => this.emit('change', doc));
   }
 
-  public static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
+  static configure(config: Partial<BootstrapConfig> & Partial<NabuConfig>) {
     return new NabuConfigurator(createContainer({logLevel: LogLevel.None, ...config}), config)
       .use(Fs(config.fs))
       .use(Json(config.json))
@@ -85,11 +85,32 @@ export default class Nabu extends StorageEngine {
       .use(Markdown(config.markdown))
   }
 
-  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
+  /**
+   * Run a command against the storage enegine
+   */
+  command(ns: TashmetNamespace, command: Document): Promise<Document> {
     return this.commandRunner.command(ns, command);
   }
 
-  public glob(pattern: string | string[], pipeline: Document[] = []): AggregationCursor<Document> {
+  /**
+   * Run a glob search for files on the file system
+   * 
+   * The resulting cursor will contain documents with only an _id field
+   * that is the path of the file
+   * 
+   * @example
+   * 
+   * Stat all JSON files in the current directory
+   * 
+   * ```typescript
+   * const cursor = nabu.glob('*.json').project({ stat: { $lstat: '$_id' } });
+   *
+   * 
+   * @param pattern One or more glob patterns
+   * @param pipeline Optional pipeline
+   * @returns An aggregation cursor
+   */
+  glob(pattern: string | string[], pipeline: Document[] = []): AggregationCursor<Document> {
     const patterns = Array.isArray(pattern) ? pattern : [pattern];
 
     return new AggregationCursor(new TashmetNamespace('nabu'), this.proxy(), [
@@ -99,7 +120,10 @@ export default class Nabu extends StorageEngine {
     ]);
   }
 
-  public read<TSchema extends Document = Document>(io: BufferIO | StreamIO, pipeline: Document[] = []): AggregationCursor<TSchema> {
+  read<TSchema extends Document = Document>(
+    io: BufferIO | StreamIO,
+    pipeline: Document[] = []
+  ): AggregationCursor<TSchema> {
     const p: Document[] = io instanceof StreamIO
       ? [{ _id: io.path() }, ...pipeline]
       : pipeline;
@@ -114,7 +138,7 @@ export default class Nabu extends StorageEngine {
    * @param pipeline An optional aggregation pipeline
    * @returns An aggregation cursor
    */
-  public json<TSchema extends Document>(
+  json<TSchema extends Document>(
     pattern: string, pipeline: Document[] = []
   ): AggregationCursor<TSchema> {
     return this.read(Nabu.json().glob(pattern), pipeline);
@@ -127,7 +151,7 @@ export default class Nabu extends StorageEngine {
    * @param pipeline An optional aggregation pipeline
    * @returns An aggregation cursor
    */
-  public yaml<TSchema extends Document>(
+  yaml<TSchema extends Document>(
     pattern: string, options?: YamlContentRule, pipeline: Document[] = []
   ): AggregationCursor<TSchema> {
     return this.read(Nabu.yaml(options).glob(pattern), pipeline);
@@ -150,7 +174,7 @@ export class NabuCollectionFactory extends CollectionFactory {
     private validatorFactory: ValidatorFactory | undefined,
   ) { super(); }
 
-  public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
+  createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
     const mergedOptions = {...options, storageEngine: options.storageEngine || { io: this.config.defaultIO } };
 
     if (mergedOptions.storageEngine.io === 'memory') {
@@ -184,19 +208,19 @@ export class NabuCollectionFactory extends CollectionFactory {
 
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
-  public config: NabuConfig = { io: {}, defaultIO: 'memory', json: {}, yaml: {}, fs: {}, markdown: {} };
+  config: NabuConfig = { io: {}, defaultIO: 'memory', json: {}, yaml: {}, fs: {}, markdown: {} };
 
-  public constructor(container: Container, config: Partial<NabuConfig>) {
+  constructor(container: Container, config: Partial<NabuConfig>) {
     super(Nabu, container);
     this.config = {...this.config, ...config};
   }
 
-  public io(name: string, config: NabuIOConfig): this {
+  io(name: string, config: NabuIOConfig): this {
     this.config.io[name] = config;
     return this;
   }
 
-  public register() {
+  register() {
     this.container.register(AggregationEngine);
     this.container.register(QueryPlanner);
     this.container.register(Provider.ofInstance(NabuConfig, this.config));

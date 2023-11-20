@@ -12,7 +12,7 @@ import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tas
 export class BufferCollection extends ReadWriteCollection {
   private synced = false;
 
-  public constructor(
+  constructor(
     ns: TashmetCollectionNamespace,
     private path: string,
     private input: AbstractAggregator,
@@ -22,7 +22,7 @@ export class BufferCollection extends ReadWriteCollection {
     super(ns);
   }
 
-  public async* read(options: ReadOptions = {}): AsyncIterable<Document> {
+  async* read(options: ReadOptions = {}): AsyncIterable<Document> {
     if (!this.synced) {
       const documents = await this.input.run<Document>([]);
       
@@ -37,7 +37,7 @@ export class BufferCollection extends ReadWriteCollection {
     }
   }
 
-  public async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
+  async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
     const writeErrors = await this.buffer.write(changes, options);
     const documents: Document[] = [];
 

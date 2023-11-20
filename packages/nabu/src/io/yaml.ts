@@ -2,8 +2,17 @@ import { Document } from "@tashmet/tashmet";
 import { IORule } from "./content.js";
 
 export interface YamlContentRule {
+  /**
+   * If true, files contain the yaml as front matter
+   */
   frontMatter?: boolean;
 
+  /**
+   * When frontMatter is true an optional field can be specified where the rest
+   * of the file content should be stored.
+   * 
+   * @default _content
+   */
   contentKey?: string;
 }
 

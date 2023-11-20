@@ -11,7 +11,7 @@ export class FileStreamIO extends StreamIO {
     private assign: Document = {}
   ) { super(); }
 
-  public get input(): Document[] {
+  get input(): Document[] {
     return [
       { $glob: { pattern: '$_id' } },
       { $project: {
@@ -25,7 +25,7 @@ export class FileStreamIO extends StreamIO {
     ];
   }
 
-  public get output(): Document[] {
+  get output(): Document[] {
     const path = (c: ChangeStreamDocument) => this.path(c.documentKey?._id as any);
 
     return [
