@@ -37,9 +37,9 @@ function hash(value: string | object): string {
 
 
 export class MemoryCollection extends AtomicWriteCollection {
-  public indexes: Map<string, number> = new Map();
+  private indexes: Map<string, number> = new Map();
 
-  public constructor(
+  constructor(
     ns: TashmetCollectionNamespace,
     public documents: Document[] = [],
     public readonly rules: Document = {},
@@ -51,7 +51,7 @@ export class MemoryCollection extends AtomicWriteCollection {
     }
   }
 
-  public async* read(options: ReadOptions) {
+  async* read(options: ReadOptions) {
     if (options?.documentIds) {
       for (const id of options.documentIds) {
         if (this.exists(id)) {
@@ -65,11 +65,11 @@ export class MemoryCollection extends AtomicWriteCollection {
     }
   }
 
-  public exists(id: string | Object): boolean {
+  exists(id: string | Object): boolean {
     return this.indexes.has(hash(id));
   }
 
-  public async insert(document: Document, validate: boolean): Promise<void> {
+  async insert(document: Document, validate: boolean): Promise<void> {
     if (this.rules && this.validatorFact && validate) {
       const validator = this.validatorFact.createValidator(this.rules);
       validator(document);
@@ -82,7 +82,7 @@ export class MemoryCollection extends AtomicWriteCollection {
     this.indexes.set(hash(document._id), this.documents.length - 1);
   }
 
-  public async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const index = this.indexes.get(hash(id));
 
     if (index !== undefined) {
@@ -96,7 +96,7 @@ export class MemoryCollection extends AtomicWriteCollection {
     }
   }
 
-  public async replace(id: string, document: Document): Promise<void> {
+  async replace(id: string, document: Document): Promise<void> {
     const index = this.indexes.get(hash(id));
 
     if (index !== undefined) {
@@ -109,9 +109,9 @@ export class MemoryCollection extends AtomicWriteCollection {
   inject: [Optional.of(ValidatorFactory)]
 })
 export class MemoryCollectionFactory extends CollectionFactory {
-  public constructor(public validatorFactory?: ValidatorFactory) { super(); }
+  constructor(public validatorFactory?: ValidatorFactory) { super(); }
 
-  public createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
+  createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
     return new MemoryCollection(ns, [], options.validator || {}, this.validatorFactory);
   }
 }
@@ -121,7 +121,7 @@ export class MemoryCollectionFactory extends CollectionFactory {
 export default class Memory extends StorageEngine {
   private commandRunner: CommandRunner;
 
-  public constructor(
+  constructor(
     private engine: AggregationEngine,
     private store: Store,
     collectionFactory: CollectionFactory,
@@ -136,17 +136,17 @@ export default class Memory extends StorageEngine {
     this.store.on('change', doc => this.emit('change', doc));
   }
 
-  public static configure(config: Partial<BootstrapConfig>) {
+  static configure(config: Partial<BootstrapConfig>) {
     return new MemoryConfigurator(Memory, createContainer({logLevel: LogLevel.None, ...config}));
   }
 
-  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
+  command(ns: TashmetNamespace, command: Document): Promise<Document> {
     return this.commandRunner.command(ns, command);
   }
 }
 
 export class MemoryConfigurator extends PluginConfigurator<Memory> {
-  public register() {
+  register() {
     this.container.register(Memory);
     this.container.register(AggregationEngine);
     this.container.register(QueryPlanner);
