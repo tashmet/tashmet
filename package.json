@@ -25,7 +25,6 @@
     "packages/markdown",
     "packages/memory",
     "packages/mingo",
-    "packages/mingo/base",
     "packages/mingo",
     "packages/nabu",
     "packages/proxy",

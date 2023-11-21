@@ -1,112 +1,120 @@
 import 'mingo/init/system';
-import { Document } from '@tashmet/tashmet';
-import { MingoAggregatorFactory, MingoConfig, MingoConfigurator, BufferAggregator, MingoOperatorContext } from '@tashmet/mingo-base';
-import { getOperator, OperatorType } from 'mingo/core';
-import * as mingo from 'mingo/core';
-import { assert, cloneDeep } from 'mingo/util';
-import { Iterator, Lazy } from 'mingo/lazy';
-import { AbstractAggregator, AggregatorFactory, Store, PipelineOperator, AggregatorOptions, JsonSchemaValidator } from '@tashmet/engine';
-import { Container, Logger, Optional, provider } from '@tashmet/core';
+import { Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
+import {
+  AbstractAggregator,
+  AggregatorFactory,
+  Store,
+  AggregatorOptions,
+  JsonSchemaValidator,
+  PipelineOperator,
+  ExpressionOperator,
+  Comparator,
+  idSet,
+  ChangeSet,
+  HashCode
+} from '@tashmet/engine';
+import {
+  Container,
+  Logger,
+  Newable,
+  Optional,
+  PluginConfigurator,
+  Provider,
+  provider
+} from '@tashmet/core';
 import jsonSchema from '@tashmet/schema';
 import streamOperators from './operators.js';
-import { CollectionBuffer } from '@tashmet/mingo-base/dist/aggregator.js';
+import { MingoStreamAggregator } from './aggregator.js';
+import { MingoConfig } from './interfaces.js';
+import { CollectionBuffer } from './buffer.js';
+import * as mingo from 'mingo/core';
+import { hashCode, intersection } from 'mingo/util';
+import { makeExpressionOperator } from './operator.js';
+import { MingoValidatorFactory } from './validator.js';
 
-export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
-  const result: T[] = [];
-  for await (const item of it) {
-    result.push(item);
-  }
-  return result;
-}
+@provider({key: Comparator})
+export class MingoComparator implements Comparator {
+  difference<TSchema extends Document>(a: TSchema[], b: TSchema[]): ChangeSet<TSchema> {
+    const unchangedIds = idSet(intersection([a, b]));
 
-export const defaultStreamOperators: string[] = [
-  '$addFields', '$set', '$project', '$replaceRoot', '$unset', '$unwind',
-]
-
-
-export class StreamAggregator<T extends Document = Document> extends BufferAggregator<T> {
-  public constructor(
-    pipeline: Document[],
-    options: mingo.Options,
-    buffer: CollectionBuffer,
-    logger: Logger,
-    private pipelineOperators: Record<string, PipelineOperator<any>>,
-  ) {
-    super(pipeline, options, buffer, logger);
-  }
-
-  public async *stream<TResult>(input: AsyncIterable<T>): AsyncGenerator<TResult> {
-    let output = input;
-
-    await this.buffer.load();
-
-    for (const operator of this.pipeline) {
-      const operatorKeys = Object.keys(operator);
-      const op = operatorKeys[0];
-
-      if (op in this.pipelineOperators) {
-        output = this.pipelineOperators[op](
-          output as AsyncIterable<T>, operator[op], new MingoOperatorContext(this.options)) as AsyncIterable<any>;
-      } else {
-        const call = getOperator(OperatorType.PIPELINE, op, this.options);
-        assert(
-          operatorKeys.length === 1 && !!call,
-          `invalid aggregation operator ${op}`
-        );
-
-        if (defaultStreamOperators.includes(op)) {
-          output = operatorStreamed(output, operator[op], call, this.options);
-        } else {
-          output = operatorBuffered(output, operator[op], call, this.options);
-        }
-      }
-    }
-
-    for await (const doc of output as unknown as AsyncIterable<TResult>) {
-      yield doc;
-    }
-
-    await this.buffer.write();
+    return new ChangeSet(
+      b.filter(doc => !unchangedIds.has(doc._id)),
+      a.filter(doc => !unchangedIds.has(doc._id)),
+    );
   }
 }
-
-async function* operatorStreamed<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-  for await (const item of source) {
-    const it = mingoOp(Lazy([cloneDeep(item)]), expr, options) as Iterator;
-
-    for (const item of it.value() as any[]) {
-      yield item;
-    }
-  }
-}
-
-async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-  const buffer = await toArray(source);
-  const it = mingoOp(Lazy(buffer).map(cloneDeep), expr, options) as Iterator;
-  for (const item of it.value() as any[]) {
-    yield item;
-  }
-}
-
 
 @provider({
   key: AggregatorFactory,
   inject: [Store, Logger, MingoConfig, Optional.of(JsonSchemaValidator)]
 })
-export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
+export class MingoStreamAggregatorFactory extends AggregatorFactory {
+  private pipelineOps: Record<string, PipelineOperator<any>> = {};
+  private expressionOps: Record<string, mingo.ExpressionOperator> = {};
+
   constructor(
-    store: Store,
-    logger: Logger,
-    config: MingoConfig,
-    validator?: JsonSchemaValidator
+    private store: Store,
+    private logger: Logger,
+    private config: MingoConfig,
+    private validator?: JsonSchemaValidator
   ) {
-    super(store, logger, config, validator);
+    super();
   }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions = {}): AbstractAggregator<Document> {
     const buffer = new CollectionBuffer(this.store, options.plan);
+    const v = this.validator;
+    const mingoOptions = mingo.initOptions({
+      useStrictMode: this.config.useStrictMode,
+      scriptEnabled: this.config.scriptEnabled,
+      collation: options.collation,
+      context: mingo.Context.init({
+        expression: this.expressionOps
+      }),
+      useGlobalContext: true,
+      jsonSchemaValidator: v !== undefined
+        ? (s: any) => { return (o: any) => v.validate(o, s); }
+        : undefined,
+      collectionResolver: coll => {
+        if (coll.includes('.')) {
+          return buffer.get(TashmetCollectionNamespace.fromString(coll));
+        }
+        if (options.plan) {
+          return buffer.get(new TashmetCollectionNamespace(options.plan.ns.db, coll));
+        }
+        throw Error('cound not resolve collection');
+      }
+    });
 
-    return new StreamAggregator(pipeline, this.options(buffer, options), buffer, this.logger, this.pipelineOps);
+    return new MingoStreamAggregator(pipeline, mingoOptions, buffer, this.logger, this.pipelineOps);
+  }
+
+  addExpressionOperator(name: string, op: ExpressionOperator<any>) {
+    this.expressionOps[name] = makeExpressionOperator(op);
+  }
+
+  addPipelineOperator(name: string, op: PipelineOperator<any>) {
+    this.pipelineOps[name] = op;
+  }
+}
+
+export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
+  constructor(protected app: Newable<AggregatorFactory>, container: Container, protected config: MingoConfig) {
+    super(app, container);
+  }
+
+  register() {
+    super.register();
+
+    const defaultConfig: MingoConfig = {
+      useStrictMode: true,
+      scriptEnabled: true,
+    };
+
+    this.container.register(Provider.ofInstance(MingoConfig, { ...defaultConfig, ...this.config }));
+    this.container.register(Provider.ofInstance(HashCode, hashCode));
+    this.container.register(MingoComparator);
+    this.container.register(MingoValidatorFactory);
   }
 }
 
