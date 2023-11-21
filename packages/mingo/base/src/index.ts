@@ -53,7 +53,7 @@ export class MingoAggregatorFactory extends AggregatorFactory {
   ) { super(); }
 
   createAggregator(pipeline: Document[], options: AggregatorOptions = {}): AbstractAggregator<Document> {
-    const buffer = new CollectionBuffer(this.store, options.queryAnalysis);
+    const buffer = new CollectionBuffer(this.store, options.plan);
 
     return new BufferAggregator(pipeline, this.options(buffer, options), buffer, this.logger);
   }
@@ -85,8 +85,8 @@ export class MingoAggregatorFactory extends AggregatorFactory {
         if (coll.includes('.')) {
           return buffer.get(TashmetCollectionNamespace.fromString(coll));
         }
-        if (options.queryAnalysis) {
-          return buffer.get(new TashmetCollectionNamespace(options.queryAnalysis.ns.db, coll));
+        if (options.plan) {
+          return buffer.get(new TashmetCollectionNamespace(options.plan.ns.db, coll));
         }
         throw Error('cound not resolve collection');
       }

@@ -104,7 +104,7 @@ export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
   }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions = {}): AbstractAggregator<Document> {
-    const buffer = new CollectionBuffer(this.store, options.queryAnalysis);
+    const buffer = new CollectionBuffer(this.store, options.plan);
 
     return new StreamAggregator(pipeline, this.options(buffer, options), buffer, this.logger, this.pipelineOps);
   }

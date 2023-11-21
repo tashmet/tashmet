@@ -7,7 +7,7 @@ import {
   TashmetProxy,
 } from '@tashmet/tashmet';
 import ev from "eventemitter3";
-import { QueryAnalysis } from './aggregation.js';
+import { QueryPlan } from './plan.js';
 import { ChangeSet } from './changeSet.js';
 import { ExpressionOperator, OperatorAnnotation, PipelineOperator } from './operator.js';
 
@@ -89,7 +89,7 @@ export abstract class CollectionFactory {
 }
 
 export interface AggregatorOptions {
-  queryAnalysis?: QueryAnalysis; 
+  plan?: QueryPlan; 
 
   collation?: CollationOptions;
 }

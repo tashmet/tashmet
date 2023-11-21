@@ -1,11 +1,10 @@
 import { TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { AbstractAggregator, ChangeSet, Store } from '@tashmet/engine';
+import { AbstractAggregator, ChangeSet, Store, QueryPlan } from '@tashmet/engine';
 import { Logger } from '@tashmet/core';
 import { Document } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
 import { Options } from 'mingo/core';
 import { cloneDeep } from 'mingo/util';
-import { QueryAnalysis } from '@tashmet/engine/dist/aggregation';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   const result: T[] = [];
@@ -22,13 +21,13 @@ export class CollectionBuffer {
 
   public constructor(
     private store: Store,
-    private qa: QueryAnalysis | undefined,
+    private plan: QueryPlan | undefined,
   ) {
-    this.outNs = qa?.merge || qa?.out;
+    this.outNs = plan?.merge || plan?.out;
   }
 
   async load() {
-    for (const ns of this.qa?.foreignInputs || []) {
+    for (const ns of this.plan?.foreignCollections || []) {
       this.buffers[ns.toString()] = await toArray(this.store.getCollection(ns).read({}));
     }
     if (this.outNs) {

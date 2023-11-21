@@ -3,7 +3,8 @@ import { ReadWriteCollection, WriteError, WriteOptions } from './interfaces.js';
 
 export * from './interfaces.js';
 
-export { AggregationEngine, QueryPlanner } from './aggregation.js';
+export { AggregationEngine } from './aggregation.js';
+export { QueryPlanner, QueryPlan } from './plan.js';
 export { command, CommandRunner } from './command.js';
 export { QueryEngine, Queryable } from './query.js';
 export { Cursor, CursorRegistry } from './cursor.js';
