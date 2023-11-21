@@ -1,4 +1,4 @@
-import { Document } from '@tashmet/tashmet';
+import { Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { provider, Provider, Logger, Optional } from '@tashmet/core';
 import {
   AggregatorFactory,
@@ -6,7 +6,6 @@ import {
   idSet,
   ChangeSet,
   Comparator,
-  ValidatorFactory,
   AggregatorOptions,
   ExpressionOperator,
   PipelineOperator,
@@ -14,42 +13,17 @@ import {
   HashCode,
   JsonSchemaValidator
 } from '@tashmet/engine';
-import { hashCode, intersection, setValue, removeValue, resolve } from 'mingo/util';
-import { BufferAggregator } from './aggregator.js';
+import { hashCode, intersection } from 'mingo/util';
+import { BufferAggregator, CollectionBuffer } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
-import { Query } from 'mingo';
 import * as mingo from 'mingo/core';
 import { Container, Newable, PluginConfigurator } from '@tashmet/core';
-import { OperatorContext } from '@tashmet/engine';
+import { MingoValidatorFactory } from './validator.js';
+import { makeExpressionOperator } from './operator.js';
 
 export * from './interfaces.js';
-export { BufferAggregator, CollectionBuffers } from './aggregator.js';
-
-
-export class MingoOperatorContext implements OperatorContext {
-  constructor(private options: mingo.Options) {}
-
-  set(obj: Record<string, any> | Array<any>, selector: string, value: any): void {
-    setValue(obj, selector, value);
-  }
-
-  remove(obj: Record<string, any> | Array<any>, selector: string): void {
-    removeValue(obj, selector);
-  }
-
-  resolve(obj: any[] | Record<string, any>, selector: string) {
-    return resolve(obj, selector);
-  }
-
-  compute(obj: any, expr: any, operator?: string) {
-     return mingo.computeValue(obj, expr, operator || null, this.options);
-  }
-}
-
-
-function makeExpressionOperator(op: ExpressionOperator<any>): mingo.ExpressionOperator  {
-  return (obj, expr, options) => op(obj, expr, new MingoOperatorContext(options));
-}
+export { BufferAggregator } from './aggregator.js';
+export { MingoOperatorContext } from './operator.js';
 
 @provider({key: Comparator})
 export class MingoComparator implements Comparator {
@@ -71,66 +45,61 @@ export class MingoAggregatorFactory extends AggregatorFactory {
   protected pipelineOps: Record<string, PipelineOperator<any>> = {};
   protected expressionOps: Record<string, mingo.ExpressionOperator> = {};
 
-  public constructor(
+  constructor(
     protected store: Store,
     protected logger: Logger,
     protected config: MingoConfig,
     protected validator?: JsonSchemaValidator,
   ) { super(); }
 
-  public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
+  createAggregator(pipeline: Document[], options: AggregatorOptions = {}): AbstractAggregator<Document> {
+    const buffer = new CollectionBuffer(this.store, options.queryAnalysis);
+
+    return new BufferAggregator(pipeline, this.options(buffer, options), buffer, this.logger);
+  }
+
+  addExpressionOperator(name: string, op: ExpressionOperator<any>) {
+    this.expressionOps[name] = makeExpressionOperator(op);
+  }
+
+  addPipelineOperator(name: string, op: PipelineOperator<any>) {
+    this.pipelineOps[name] = op;
+  }
+
+  protected options(buffer: CollectionBuffer, options: AggregatorOptions) {
+    const v = this.validator;
     const context: mingo.Context = mingo.Context.init({
       expression: this.expressionOps
     });
 
-    return new BufferAggregator(pipeline, this.store, options, this.config, context, this.logger, this.validator);
-  }
-
-  public addExpressionOperator(name: string, op: ExpressionOperator<any>) {
-    this.expressionOps[name] = makeExpressionOperator(op);
-  }
-
-  public addPipelineOperator(name: string, op: PipelineOperator<any>) {
-    this.pipelineOps[name] = op;
-  }
-}
-
-@provider({
-  key: ValidatorFactory,
-  inject: [MingoConfig, Optional.of(JsonSchemaValidator)]
-})
-export class FilterValidatorFactory extends ValidatorFactory {
-  constructor(
-    private config: MingoConfig,
-    private jsonSchemaValidator?: JsonSchemaValidator,
-  ) { super(); }
-
-  public createValidator(rules: Document) {
-    const v = this.jsonSchemaValidator;
-
-    const query = new Query(rules as any, {
-      ...this.config,
+    return mingo.initOptions({
+      useStrictMode: this.config.useStrictMode,
+      scriptEnabled: this.config.scriptEnabled,
+      collation: options.collation,
+      context,
+      useGlobalContext: true,
       jsonSchemaValidator: v !== undefined
         ? (s: any) => { return (o: any) => v.validate(o, s); }
-        : undefined
-    });
-
-    return (doc: any) => {
-      if (query.test(doc)) {
-        return doc;
-      } else {
-        throw new Error('Document failed validation');
+        : undefined,
+      collectionResolver: coll => {
+        if (coll.includes('.')) {
+          return buffer.get(TashmetCollectionNamespace.fromString(coll));
+        }
+        if (options.queryAnalysis) {
+          return buffer.get(new TashmetCollectionNamespace(options.queryAnalysis.ns.db, coll));
+        }
+        throw Error('cound not resolve collection');
       }
-    }
+    });
   }
 }
 
 export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
-  public constructor(protected app: Newable<AggregatorFactory>, container: Container, protected config: MingoConfig) {
+  constructor(protected app: Newable<AggregatorFactory>, container: Container, protected config: MingoConfig) {
     super(app, container);
   }
 
-  public register() {
+  register() {
     super.register();
 
     const defaultConfig: MingoConfig = {
@@ -141,7 +110,7 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
     this.container.register(Provider.ofInstance(MingoConfig, { ...defaultConfig, ...this.config }));
     this.container.register(Provider.ofInstance(HashCode, hashCode));
     this.container.register(MingoComparator);
-    this.container.register(FilterValidatorFactory);
+    this.container.register(MingoValidatorFactory);
   }
 }
 

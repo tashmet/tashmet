@@ -1,17 +1,11 @@
 import { TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { AbstractAggregator, AggregatorOptions, ChangeSet, JsonSchemaValidator, Store } from '@tashmet/engine';
+import { AbstractAggregator, ChangeSet, Store } from '@tashmet/engine';
 import { Logger } from '@tashmet/core';
-import { Document, Filter, FindOptions } from '@tashmet/tashmet';
+import { Document } from '@tashmet/tashmet';
 import { Aggregator } from 'mingo';
-import { initOptions, Options, Context } from 'mingo/core';
+import { Options } from 'mingo/core';
 import { cloneDeep } from 'mingo/util';
-import { MingoConfig } from './interfaces';
-
-export interface PrefetchAggregation {
-  filter: Filter<any>;
-  options: FindOptions<any>;
-  pipeline: Document[];
-}
+import { QueryAnalysis } from '@tashmet/engine/dist/aggregation';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   const result: T[] = [];
@@ -21,42 +15,72 @@ export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   return result;
 }
 
-export class CollectionBuffers {
-  public constructor(private store: Store) {}
+export class CollectionBuffer {
   private buffers: Record<string, Document[]> = {};
+  private outNs: TashmetCollectionNamespace | undefined;
+  private outInit: Document[] = [];
 
-  public async load(ns: TashmetCollectionNamespace, create: boolean = false): Promise<Document[]> {
-    return this.buffers[ns.toString()] = await toArray(this.store
-      .getCollection(ns)
-      .read({}));
+  public constructor(
+    private store: Store,
+    private qa: QueryAnalysis | undefined,
+  ) {
+    this.outNs = qa?.merge || qa?.out;
   }
 
-  public get(ns: TashmetCollectionNamespace): Document[] {
+  async load() {
+    for (const ns of this.qa?.foreignInputs || []) {
+      this.buffers[ns.toString()] = await toArray(this.store.getCollection(ns).read({}));
+    }
+    if (this.outNs) {
+      this.outInit = cloneDeep(this.buffers[this.outNs.toString()]) as Document[];
+    }
+  }
+
+  get(ns: TashmetCollectionNamespace): Document[] {
     return this.buffers[ns.toString()];
   }
+
+  async write() {
+    if (this.outNs) {
+      const cs = new ChangeSet(this.get(this.outNs), this.outInit);
+      await this.store.write(cs.toChanges({db: this.outNs.db, coll: this.outNs.collection}), {ordered: true});
+    }
+  }
+}
+
+// TODO: Should propably clone pipeline
+export function preparePipeline(pipeline: Document[]) {
+  if (pipeline.length === 0) {
+    return pipeline;
+  }
+
+  const lastStep = pipeline[pipeline.length - 1];
+
+  if (lastStep.$merge && typeof lastStep.$merge.into === 'object') {
+    lastStep.$merge.into = `${lastStep.$merge.into.db}.${lastStep.$merge.into.coll}`;
+  }
+  if (lastStep.$out && typeof lastStep.$out === 'object') {
+    lastStep.$out = `${lastStep.$out.db}.${lastStep.$out.coll}`;
+  }
+
+  return pipeline;
 }
 
 export class BufferAggregator<T extends Document> extends AbstractAggregator<T> {
   private aggregator: Aggregator;
-  private foreignBuffers: CollectionBuffers;
-  private outInit: Document[] = [];
 
-  public constructor(
+  constructor(
     pipeline: Document[],
-    private store: Store,
-    private options: AggregatorOptions = {},
-    private mingoConfig: MingoConfig,
-    private context: Context,
-    private logger: Logger,
-    private validator?: JsonSchemaValidator,
+    protected options: Options,
+    protected buffer: CollectionBuffer,
+    protected logger: Logger,
 ) {
-    super(cloneDeep(pipeline) as Document[]);
-    this.foreignBuffers = new CollectionBuffers(store);
-    this.aggregator = new Aggregator(this.pipeline, this.mingoOptions);
+    super(pipeline);
+    this.aggregator = new Aggregator(preparePipeline(cloneDeep(this.pipeline) as Document[]), options);
   }
 
-  public async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
-    await this.loadBuffers();
+  async *stream<TResult>(input: AsyncIterable<Document>): AsyncGenerator<TResult> {
+    await this.buffer.load();
 
     const buffer = await toArray(input);
     this.logger.inScope("MingoBufferAggregator").debug(`process buffer of ${buffer.length} document(s)`)
@@ -70,64 +94,6 @@ export class BufferAggregator<T extends Document> extends AbstractAggregator<T> 
       }
     }
 
-    await this.writeBuffers();
-  }
-
-  protected get mingoOptions(): Options {
-    const v = this.validator;
-
-    return initOptions({
-      ...this.mingoConfig,
-      collation: this.options.collation,
-      context: this.context,
-      useGlobalContext: true,
-      jsonSchemaValidator: v !== undefined
-        ? (s: any) => { return (o: any) => v.validate(o, s); }
-        : undefined,
-      collectionResolver: coll => {
-        if (coll.includes('.')) {
-          const ns = TashmetCollectionNamespace.fromString(coll);
-          return this.foreignBuffers.get(ns);
-        }
-        if (this.options.queryAnalysis) {
-          return this.foreignBuffers.get(new TashmetCollectionNamespace(this.options.queryAnalysis.ns.db, coll));
-        }
-        throw Error('cound not resolve collection');
-      }
-    });
-  }
-
-  protected get outNs(): TashmetCollectionNamespace | undefined {
-    return this.options.queryAnalysis?.out || this.options.queryAnalysis?.merge;
-  }
-
-  protected async loadBuffers() {
-    this.outInit = [];
-    const qa = this.options.queryAnalysis;
-
-    if (qa) {
-      for (const ns of qa.foreignInputs) {
-        await this.foreignBuffers.load(ns);
-      }
-      if (this.outNs) {
-        const step = this.pipeline[this.pipeline.length - 1];
-
-        if (qa.out && typeof step.$out !== 'string') {
-          step.$out = `${step.$out.db}.${step.$out.coll}`;
-        }
-        if (qa.merge && typeof step.$merge.into !== 'string') {
-          step.$merge.into = `${step.$merge.into.db}.${step.$merge.into.coll}`;
-        }
-
-        this.outInit = cloneDeep(this.foreignBuffers.get(this.outNs)) as Document[];
-      }
-    }
-  }
-
-  protected async writeBuffers() {
-    if (this.outNs) {
-      const cs = new ChangeSet(this.foreignBuffers.get(this.outNs), this.outInit);
-      await this.store.write(cs.toChanges({db: this.outNs.db, coll: this.outNs.collection}), {ordered: true});
-    }
+    await this.buffer.write();
   }
 }

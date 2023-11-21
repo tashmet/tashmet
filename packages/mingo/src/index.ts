@@ -1,7 +1,7 @@
 import 'mingo/init/system';
 import { Document } from '@tashmet/tashmet';
 import { MingoAggregatorFactory, MingoConfig, MingoConfigurator, BufferAggregator, MingoOperatorContext } from '@tashmet/mingo-base';
-import { getOperator, OperatorType, Context } from 'mingo/core';
+import { getOperator, OperatorType } from 'mingo/core';
 import * as mingo from 'mingo/core';
 import { assert, cloneDeep } from 'mingo/util';
 import { Iterator, Lazy } from 'mingo/lazy';
@@ -9,6 +9,7 @@ import { AbstractAggregator, AggregatorFactory, Store, PipelineOperator, Aggrega
 import { Container, Logger, Optional, provider } from '@tashmet/core';
 import jsonSchema from '@tashmet/schema';
 import streamOperators from './operators.js';
+import { CollectionBuffer } from '@tashmet/mingo-base/dist/aggregator.js';
 
 export async function toArray<T>(it: AsyncIterable<T>): Promise<T[]> {
   const result: T[] = [];
@@ -26,21 +27,18 @@ export const defaultStreamOperators: string[] = [
 export class StreamAggregator<T extends Document = Document> extends BufferAggregator<T> {
   public constructor(
     pipeline: Document[],
-    private pipelineOperators: Record<string, PipelineOperator<any>>,
-    store: Store,
-    options: AggregatorOptions,
-    config: MingoConfig,
-    context: Context,
+    options: mingo.Options,
+    buffer: CollectionBuffer,
     logger: Logger,
-    validator?: JsonSchemaValidator
+    private pipelineOperators: Record<string, PipelineOperator<any>>,
   ) {
-    super(pipeline, store, options, config, context, logger, validator);
+    super(pipeline, options, buffer, logger);
   }
 
   public async *stream<TResult>(input: AsyncIterable<T>): AsyncGenerator<TResult> {
     let output = input;
 
-    await this.loadBuffers();
+    await this.buffer.load();
 
     for (const operator of this.pipeline) {
       const operatorKeys = Object.keys(operator);
@@ -48,18 +46,18 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
 
       if (op in this.pipelineOperators) {
         output = this.pipelineOperators[op](
-          output as AsyncIterable<T>, operator[op], new MingoOperatorContext(this.mingoOptions)) as AsyncIterable<any>;
+          output as AsyncIterable<T>, operator[op], new MingoOperatorContext(this.options)) as AsyncIterable<any>;
       } else {
-        const call = getOperator(OperatorType.PIPELINE, op, this.mingoOptions);
+        const call = getOperator(OperatorType.PIPELINE, op, this.options);
         assert(
           operatorKeys.length === 1 && !!call,
           `invalid aggregation operator ${op}`
         );
 
         if (defaultStreamOperators.includes(op)) {
-          output = operatorStreamed(output, operator[op], call, this.mingoOptions);
+          output = operatorStreamed(output, operator[op], call, this.options);
         } else {
-          output = operatorBuffered(output, operator[op], call, this.mingoOptions);
+          output = operatorBuffered(output, operator[op], call, this.options);
         }
       }
     }
@@ -68,7 +66,7 @@ export class StreamAggregator<T extends Document = Document> extends BufferAggre
       yield doc;
     }
 
-    await this.writeBuffers();
+    await this.buffer.write();
   }
 }
 
@@ -96,7 +94,7 @@ async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp
   inject: [Store, Logger, MingoConfig, Optional.of(JsonSchemaValidator)]
 })
 export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
-  public constructor(
+  constructor(
     store: Store,
     logger: Logger,
     config: MingoConfig,
@@ -105,12 +103,10 @@ export class MingoStreamAggregatorFactory extends MingoAggregatorFactory {
     super(store, logger, config, validator);
   }
 
-  public createAggregator(pipeline: Document[], options: AggregatorOptions): AbstractAggregator<Document> {
-    const context: mingo.Context = mingo.Context.init({
-      expression: this.expressionOps
-    });
+  public createAggregator(pipeline: Document[], options: AggregatorOptions = {}): AbstractAggregator<Document> {
+    const buffer = new CollectionBuffer(this.store, options.queryAnalysis);
 
-    return new StreamAggregator(pipeline, this.pipelineOps, this.store, options, this.config, context, this.logger, this.validator);
+    return new StreamAggregator(pipeline, this.options(buffer, options), buffer, this.logger, this.pipelineOps);
   }
 }
 
