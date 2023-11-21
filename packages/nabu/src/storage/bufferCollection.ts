@@ -37,7 +37,7 @@ export class BufferCollection extends ReadWriteCollection {
     }
   }
 
-  async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
+  async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
     const writeErrors = await this.buffer.write(changes, options);
     const documents: Document[] = [];
 

@@ -30,7 +30,7 @@ export class StreamCollection extends ReadWriteCollection {
     return this.input.stream(arrayToGenerator(paths));
   }
 
-  async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]> {
+  async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
     const writeErrors: WriteError[] = [];
     const index = 0;
 

@@ -13,29 +13,67 @@ import { ExpressionOperator, OperatorAnnotation, PipelineOperator } from './oper
 
 export const { EventEmitter } = ev;
 
-export interface WriteError {
-  errMsg: string;
-  index: number;
-}
 
-export interface WriteOptions {
-  ordered?: boolean;
-
-  bypassDocumentValidation?: boolean;
-}
-
+/**
+ * Read options that allow for optimization when scanning a collection
+ *
+ * Even though an option has been provided, the readable is not required to act
+ * on it, but it rather serves as a hint.
+ */
 export interface ReadOptions {
+  /**
+   * Option to restrict the documents read to a list of specified ID's
+   *
+   * If this is not defined the whold collection is read.
+   */
   documentIds?: string[];
 
+  /**
+   * Option to project only a subset of fields on each document.
+   */
   projection?: Document;
 }
 
+/**
+ * A readable
+ */
 export interface Readable {
+  /**
+   * Read a stream of documents.
+   *
+   * @param options Optimization options
+   */
   read(options?: ReadOptions): AsyncIterable<Document>;
 }
 
+export interface WriteOptions {
+  /**
+   * If set the write should fail on first error and not continue with remaining changes.
+   */
+  ordered?: boolean;
+
+  /** Bypass validation of documents */
+  bypassDocumentValidation?: boolean;
+}
+
+export interface WriteError {
+  /** Error message */
+  errMsg: string;
+
+  /** Index of document that failed */
+  index: number;
+}
+
+/** A writable */
 export interface Writable {
-  write(changes: ChangeStreamDocument[], options: WriteOptions): Promise<WriteError[]>;
+
+  /**
+   * Write a list of changes.
+   *
+   * @param changes A list of change stream documents
+   * @param options
+   */
+  write(changes: ChangeStreamDocument[], options?: WriteOptions): Promise<WriteError[]>;
 }
 
 export interface View {

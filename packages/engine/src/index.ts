@@ -30,7 +30,7 @@ export abstract class AtomicWriteCollection extends ReadWriteCollection {
   public abstract replace(id: string, document: Document): Promise<void>;
   public abstract delete(id: string): Promise<void>;
 
-  public async write(changes: ChangeStreamDocument[], options: WriteOptions) {
+  public async write(changes: ChangeStreamDocument[], options: WriteOptions = {}) {
     const writeErrors: WriteError[] = [];
 
     let index=0;
