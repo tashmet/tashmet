@@ -4,14 +4,14 @@ import { CollectionFactory, ViewMap } from '../interfaces.js';
 import { Store } from '../store.js';
 
 export class AdminController {
-  public constructor(
+  constructor(
     protected store: Store,
     protected collectionFactory: CollectionFactory,
     protected views: ViewMap | undefined,
   ) {}
 
   @command('create')
-  public async create(ns: TashmetNamespace, {create: name, viewOn, pipeline, ...options}: Document) {
+  async create(ns: TashmetNamespace, {create: name, viewOn, pipeline, ...options}: Document) {
     const fullNs = ns.withCollection(name);
 
     if (viewOn) {
@@ -29,7 +29,7 @@ export class AdminController {
   }
 
   @command('drop')
-  public async drop(ns: TashmetNamespace, {drop: name}: Document) {
+  async drop(ns: TashmetNamespace, {drop: name}: Document) {
     if (this.views && this.views[name]) {
       delete this.views[name];
     } else {

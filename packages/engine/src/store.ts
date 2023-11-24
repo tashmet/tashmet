@@ -6,15 +6,15 @@ import { ReadWriteCollection, WriteError, WriteOptions } from "./interfaces";
 export class Store extends EventEmitter {
   private collections: Record<string, ReadWriteCollection> = {};
 
-  public addCollection(collection: ReadWriteCollection) {
+  addCollection(collection: ReadWriteCollection) {
     this.collections[collection.ns.toString()] = collection;
   }
 
-  public dropCollection(ns: TashmetCollectionNamespace) {
+  dropCollection(ns: TashmetCollectionNamespace) {
     delete this.collections[ns.toString()];
   }
 
-  public getCollection(ns: TashmetCollectionNamespace) {
+  getCollection(ns: TashmetCollectionNamespace) {
     if (this.hasCollection(ns)) {
       return this.collections[ns.toString()];
     } else {
@@ -22,11 +22,11 @@ export class Store extends EventEmitter {
     }
   }
 
-  public hasCollection(ns: TashmetCollectionNamespace) {
+  hasCollection(ns: TashmetCollectionNamespace) {
     return ns.toString() in this.collections;
   }
 
-  public async write(changes: ChangeStreamDocument[], options: WriteOptions) {
+  async write(changes: ChangeStreamDocument[], options: WriteOptions) {
     const namespaces = changes.reduce((acc, cs) => {
       acc.add(`${cs.ns.db}.${cs.ns.coll}`);
       return acc;

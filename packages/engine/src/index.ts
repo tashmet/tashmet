@@ -26,11 +26,11 @@ export { makeWriteChange } from './commands/write.js';
 
 
 export abstract class AtomicWriteCollection extends ReadWriteCollection {
-  public abstract insert(document: Document, validate: boolean): Promise<void>;
-  public abstract replace(id: string, document: Document): Promise<void>;
-  public abstract delete(id: string): Promise<void>;
+  abstract insert(document: Document, validate: boolean): Promise<void>;
+  abstract replace(id: string, document: Document): Promise<void>;
+  abstract delete(id: string): Promise<void>;
 
-  public async write(changes: ChangeStreamDocument[], options: WriteOptions = {}) {
+  async write(changes: ChangeStreamDocument[], options: WriteOptions = {}) {
     const writeErrors: WriteError[] = [];
 
     let index=0;

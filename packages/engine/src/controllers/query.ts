@@ -13,12 +13,12 @@ export class QueryReadController extends AbstractReadController {
   ) { super(engine); }
 
   @command('getMore')
-  public async getMore(ns: TashmetNamespace, cmd: Document) {
+  async getMore(ns: TashmetNamespace, cmd: Document) {
     return super.getMore(ns, cmd);
   }
 
   @command('find')
-  public async find(ns: TashmetNamespace, {find, filter, sort, skip, limit, projection, batchSize, collation}: Document) {
+  async find(ns: TashmetNamespace, {find, filter, sort, skip, limit, projection, batchSize, collation}: Document) {
     const c = this.engine.find(find, {filter, sort, skip, limit, projection}, collation);
     return {
       cursor: {
@@ -31,7 +31,7 @@ export class QueryReadController extends AbstractReadController {
   }
 
   @command('count')
-  public async count(ns: TashmetNamespace, {count, query: filter, sort, skip, limit, collation}: Document) {
+  async count(ns: TashmetNamespace, {count, query: filter, sort, skip, limit, collation}: Document) {
     const c = this.engine.find(count, {filter, sort, skip, limit, projection: {_id: 1}}, collation);
     const n = (await c.toArray()).length;
     this.engine.closeCursor(c.id);
@@ -41,23 +41,23 @@ export class QueryReadController extends AbstractReadController {
 }
 
 export class QueryWriteController extends AbstractWriteController {
-  public constructor(
+  constructor(
     store: Store,
     private engine: QueryEngine,
   ) { super(store); }
 
   @command('insert')
-  public async insert(ns: TashmetNamespace, {insert: coll, documents, ordered, bypassDocumentValidation}: Document) {
+  async insert(ns: TashmetNamespace, {insert: coll, documents, ordered, bypassDocumentValidation}: Document) {
     return this.write(new InsertCommand(documents, {db: ns.db, coll}), { ordered, bypassDocumentValidation });
   }
 
   @command('update')
-  public async update(ns: TashmetNamespace, {update: coll, updates, ordered}: Document) {
+  async update(ns: TashmetNamespace, {update: coll, updates, ordered}: Document) {
     return this.write(new QueryUpdateCommand(updates, {db: ns.db, coll}, this.engine), { ordered });
   }
 
   @command('delete')
-  public async delete(ns: TashmetNamespace, {delete: coll, deletes, ordered}: Document) {
+  async delete(ns: TashmetNamespace, {delete: coll, deletes, ordered}: Document) {
     return this.write(new QueryDeleteCommand(deletes, {db: ns.db, coll}, this.engine), { ordered });
   }
 }

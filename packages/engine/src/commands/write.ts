@@ -3,14 +3,14 @@ import ObjectID from "bson-objectid";
 
 
 export abstract class WriteCommand {
-  public constructor(
+  constructor(
     public readonly op: 'insert' | 'delete' | 'update' | 'replace',
     protected ns: {db: string, coll: string}
   ) {}
 
-  public abstract execute(): Promise<ChangeStreamDocument[]>;
+  abstract execute(): Promise<ChangeStreamDocument[]>;
 
-  public createChanges(...documents: Document[]) {
+  createChanges(...documents: Document[]) {
     return documents.map(doc => makeWriteChange(this.op, doc, this.ns));
   }
 }

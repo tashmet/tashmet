@@ -45,16 +45,16 @@ export interface OperatorContext {
 }
 
 export class OperatorAnnotation extends Annotation {
-  public constructor(
+  constructor(
     public readonly name: string | string[],
     public readonly propertyKey: string
   ) { super(); }
 
-  public register(instance: any, aggFact: AggregatorFactory) {}
+  register(instance: any, aggFact: AggregatorFactory) {}
 }
 
 export class PipelineOperatorAnnotation extends OperatorAnnotation {
-  public register(instance: any, aggFact: AggregatorFactory): void {
+  register(instance: any, aggFact: AggregatorFactory): void {
     for (const op of Array.isArray(this.name) ? this.name : [this.name]) {
       aggFact.addPipelineOperator(op, (...args: any[]) => instance[this.propertyKey](...args));
     }
@@ -62,7 +62,7 @@ export class PipelineOperatorAnnotation extends OperatorAnnotation {
 }
 
 export class ExpressionOperatorAnnotation extends OperatorAnnotation {
-  public register(instance: any, aggFact: AggregatorFactory): void {
+  register(instance: any, aggFact: AggregatorFactory): void {
     for (const op of Array.isArray(this.name) ? this.name : [this.name]) {
       aggFact.addExpressionOperator(op, (...args: any[]) => instance[this.propertyKey](...args));
     }

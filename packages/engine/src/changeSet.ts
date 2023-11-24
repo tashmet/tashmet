@@ -14,25 +14,25 @@ export const makeWriteChange = (operationType: 'insert' | 'update' | 'replace' |
 });
 
 export class ChangeSet<T extends Document = Document> {
-  public constructor(
+  constructor(
     public readonly incoming: T[] = [],
     public readonly outgoing: T[] = [],
   ) {}
 
 
-  public static fromInsert<T extends Document>(docs: T[]): ChangeSet<T> {
+  static fromInsert<T extends Document>(docs: T[]): ChangeSet<T> {
     return new ChangeSet(docs, []);
   }
 
-  public static fromDelete<T extends Document>(docs: T[]): ChangeSet<T> {
+  static fromDelete<T extends Document>(docs: T[]): ChangeSet<T> {
     return new ChangeSet([], docs);
   }
 
-  public static fromReplace<T extends Document>(old: T, replacement: T): ChangeSet<T> {
+  static fromReplace<T extends Document>(old: T, replacement: T): ChangeSet<T> {
     return new ChangeSet([replacement], [old]);
   }
 
-  public toChanges(ns: {db: string, coll: string}): ChangeStreamDocument[] {
+  toChanges(ns: {db: string, coll: string}): ChangeStreamDocument[] {
     return [
       ...this.insertions.map(doc => makeWriteChange('insert', doc, ns)),
       ...this.deletions.map(doc => makeWriteChange('delete', doc, ns)),
@@ -50,21 +50,21 @@ export class ChangeSet<T extends Document = Document> {
   }
   */
 
-  public toInverse(): ChangeSet<T> {
+  toInverse(): ChangeSet<T> {
     return new ChangeSet(this.outgoing, this.incoming);
   }
 
-  public get insertions(): T[] {
+  get insertions(): T[] {
     const outIds = idSet(this.outgoing);
     return this.incoming.filter(doc => !outIds.has(JSON.stringify(doc._id)));
   }
 
-  public get deletions(): T[] {
+  get deletions(): T[] {
     const incIds = idSet(this.incoming);
     return this.outgoing.filter(doc => !incIds.has(JSON.stringify(doc._id)));
   }
 
-  public get replacements(): T[] {
+  get replacements(): T[] {
     const outIds = idSet(this.outgoing);
     return this.incoming.filter(doc => outIds.has(JSON.stringify(doc._id)));
   }

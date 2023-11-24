@@ -3,11 +3,11 @@ import ObjectID from "bson-objectid";
 import { WriteCommand } from "./write.js";
 
 export class InsertCommand extends WriteCommand {
-  public constructor(private documents: Document[], ns: {db: string, coll: string}) {
+  constructor(private documents: Document[], ns: {db: string, coll: string}) {
     super('insert', ns);
   }
 
-  public async execute(): Promise<ChangeStreamDocument[]> {
+  async execute(): Promise<ChangeStreamDocument[]> {
     for (const doc of this.documents) {
       if (!('_id' in doc)) {
         doc._id = new ObjectID().toHexString();

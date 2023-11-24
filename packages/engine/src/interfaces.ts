@@ -92,38 +92,38 @@ export interface StorageEngine {
 }
 
 export class StorageEngine extends EventEmitter<any> implements StorageEngine {
-  public proxy(): TashmetProxy {
+  proxy(): TashmetProxy {
     return new StorageEngineProxy(this);
   }
 }
 
 export class StorageEngineProxy extends TashmetProxy {
-  public constructor(private engine: StorageEngine) {
+  constructor(private engine: StorageEngine) {
     super();
   }
 
-  public connect() {
+  connect() {
     this.engine.on('change', doc => this.emit('change', doc));
     this.emit('connected');
   }
 
-  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
+  command(ns: TashmetNamespace, command: Document): Promise<Document> {
     return this.engine.command(ns, command);
   }
 }
 
 export abstract class ReadWriteCollection implements Readable, Writable {
-  public constructor(
+  constructor(
     public readonly ns: TashmetCollectionNamespace
   ) {}
 
-  public abstract read(options?: ReadOptions): AsyncIterable<Document>;
+  abstract read(options?: ReadOptions): AsyncIterable<Document>;
 
-  public abstract write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]>;
+  abstract write(changes: ChangeStreamDocument<Document>[], options: WriteOptions): Promise<WriteError[]>;
 }
 
 export abstract class CollectionFactory {
-  public abstract createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection;
+  abstract createCollection(ns: TashmetCollectionNamespace, options: any): ReadWriteCollection;
 }
 
 export interface AggregatorOptions {
@@ -142,7 +142,7 @@ export interface AggregatorFactory {
 
 
 export abstract class AggregatorFactory implements AggregatorFactory {
-  public addOperatorController(controller: any) {
+  addOperatorController(controller: any) {
     for (const op of OperatorAnnotation.onClass(controller.constructor, true)) {
       op.register(controller, this);
     }
@@ -156,11 +156,11 @@ export async function *arrayToGenerator<T>(array: T[]) {
 }
 
 export abstract class AbstractAggregator<T extends Document = Document> {
-  public constructor(protected pipeline: Document[]) {}
+  constructor(protected pipeline: Document[]) {}
 
-  public abstract stream<TResult>(input: AsyncIterable<T>): AsyncIterable<TResult>;
+  abstract stream<TResult>(input: AsyncIterable<T>): AsyncIterable<TResult>;
 
-  public async run<TResult>(input: AsyncIterable<T> | T[]): Promise<TResult[]> {
+  async run<TResult>(input: AsyncIterable<T> | T[]): Promise<TResult[]> {
     const buffer = [];
     for await (const item of this.stream(Array.isArray(input) ? arrayToGenerator(input) : input)) {
       buffer.push(item);
@@ -172,7 +172,7 @@ export abstract class AbstractAggregator<T extends Document = Document> {
 export type Validator = (doc: Document) => Promise<Document>;
 
 export abstract class ValidatorFactory {
-  public abstract createValidator(rules: Document): Validator;
+  abstract createValidator(rules: Document): Validator;
 }
 
 export interface Comparator {

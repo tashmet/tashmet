@@ -10,18 +10,18 @@ import { AbstractReadController, AbstractWriteController } from './common.js';
 
 
 export class AggregationReadController extends AbstractReadController {
-  public constructor(
+  constructor(
     protected aggregation: AggregationEngine,
     protected views: ViewMap,
   ) { super(aggregation); }
 
   @command('getMore')
-  public async getMore(ns: TashmetNamespace, cmd: Document) {
+  async getMore(ns: TashmetNamespace, cmd: Document) {
     return super.getMore(ns, cmd);
   }
 
   @command('aggregate')
-  public async aggregate(ns: TashmetNamespace, {aggregate, pipeline, collation, cursor}: Document): Promise<Document> {
+  async aggregate(ns: TashmetNamespace, {aggregate, pipeline, collation, cursor}: Document): Promise<Document> {
     const view = this.views[ns.withCollection(aggregate).toString()];
     if (view) {
       return this.aggregate(ns, {
@@ -45,7 +45,7 @@ export class AggregationReadController extends AbstractReadController {
   }
 
   @command('find')
-  public find(ns: TashmetNamespace, {find, filter, sort, skip, limit, projection, collation, batchSize}: Document) {
+  find(ns: TashmetNamespace, {find, filter, sort, skip, limit, projection, collation, batchSize}: Document) {
     return this.aggregate(ns, {
       aggregate: find,
       pipeline: makeQueryPipeline({filter, sort, skip, limit, projection}),
@@ -55,7 +55,7 @@ export class AggregationReadController extends AbstractReadController {
   }
 
   @command('count')
-  public async count(ns: TashmetNamespace, {count, query: filter, sort, skip, limit, collation}: Document) {
+  async count(ns: TashmetNamespace, {count, query: filter, sort, skip, limit, collation}: Document) {
     const {cursor} = await this.aggregate(ns, {
       aggregate: count,
       pipeline: [...makeQueryPipeline({filter, sort, skip, limit}), {$count: 'count'}],
@@ -68,7 +68,7 @@ export class AggregationReadController extends AbstractReadController {
   }
 
   @command('distinct')
-  public async distinct(ns: TashmetNamespace, {distinct, key, query, collation}: Document) {
+  async distinct(ns: TashmetNamespace, {distinct, key, query, collation}: Document) {
     const {cursor} = await this.aggregate(ns, {
       aggregate: distinct,
       pipeline: [
@@ -90,23 +90,23 @@ export class AggregationReadController extends AbstractReadController {
  * A database reader engine with support for aggregation and views
  */
 export class AggregationWriteController extends AbstractWriteController {
-  public constructor(
+  constructor(
     store: Store,
     protected aggregation: AggregationEngine,
   ) { super(store); }
 
   @command('insert')
-  public async insert(ns: TashmetNamespace, {insert: coll, documents, ordered, bypassDocumentValidation}: Document) {
+  async insert(ns: TashmetNamespace, {insert: coll, documents, ordered, bypassDocumentValidation}: Document) {
     return this.write(new InsertCommand(documents, {db: ns.db, coll}), { ordered, bypassDocumentValidation });
   }
 
   @command('update')
-  public async update(ns: TashmetNamespace, {update: coll, updates, ordered}: Document) {
+  async update(ns: TashmetNamespace, {update: coll, updates, ordered}: Document) {
     return this.write(new AggregationUpdateCommand(updates, {db: ns.db, coll}, this.aggregation), { ordered });
   }
 
   @command('delete')
-  public async delete(ns: TashmetNamespace, {delete: coll, deletes, ordered}: Document) {
+  async delete(ns: TashmetNamespace, {delete: coll, deletes, ordered}: Document) {
     return this.write(new AggregationDeleteCommand(deletes, {db: ns.db, coll}, this.aggregation), { ordered });
   }
 }

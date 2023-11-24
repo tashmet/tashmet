@@ -2,7 +2,7 @@ import { Annotation, methodDecorator } from "@tashmet/core";
 import { Document, TashmetNamespace } from "@tashmet/tashmet";
 
 export class CommandAnnotation extends Annotation {
-  public constructor(
+  constructor(
     public readonly name: string,
     public readonly propertyKey: string
   ) { super(); }
@@ -17,7 +17,7 @@ export type CommandHandler = (ns: TashmetNamespace, command: Document) => Promis
 export class CommandRunner {
   private commandNames = new Set<string>();
 
-  public static fromControllers(...controllers: any[]) {
+  static fromControllers(...controllers: any[]) {
     const commands: Record<string, CommandHandler> = {};
 
     for (const c of controllers) {
@@ -28,13 +28,13 @@ export class CommandRunner {
     return new CommandRunner(commands);
   }
 
-  public constructor(
+  constructor(
     private commands: Record<string, CommandHandler> = {}
   ) {
     this.commandNames = new Set(Object.keys(commands));
   }
 
-  public command(ns: TashmetNamespace, command: Document): Promise<Document> {
+  command(ns: TashmetNamespace, command: Document): Promise<Document> {
     const op = CommandRunner.operation(command);
     if (!this.commandNames.has(op)) {
       throw new Error(`Command ${op} is not supported`);
@@ -42,7 +42,7 @@ export class CommandRunner {
     return this.commands[`${op}`](ns, command);
   }
 
-  public static operation(command: Document): string {
+  static operation(command: Document): string {
     return Object.keys(command)[0];
   }
 }

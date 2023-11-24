@@ -7,14 +7,14 @@ import { QueryPlanner } from "./plan.js";
 
 @provider()
 export class AggregationEngine extends CursorRegistry {
-  public constructor(
+  constructor(
     private aggFact: AggregatorFactory,
     private queryPlanner: QueryPlanner,
     private store: Store,
     private collFactory: CollectionFactory,
   ) { super(); }
 
-  public aggregate(
+  aggregate(
     db: string,
     collection: string | Document[] | AsyncIterable<Document>,
     pipeline: Document[],

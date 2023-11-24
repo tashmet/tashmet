@@ -4,7 +4,7 @@ import { Store } from "./store.js";
 
 
 export class QueryPlan {
-  public constructor(
+  constructor(
     public readonly ns: TashmetCollectionNamespace,
     public readonly pipeline: Document[],
     public readonly filter: Document,
@@ -77,12 +77,12 @@ export class QueryPlan {
   inject: [Store, Logger.inScope('QueryPlanner')]
 })
 export class QueryPlanner {
-  public constructor(
+  constructor(
     private store: Store,
     private logger: Logger,
   ) {}
 
-  public createPlan(ns: TashmetCollectionNamespace, pipeline: Document[]): QueryPlan {
+  createPlan(ns: TashmetCollectionNamespace, pipeline: Document[]): QueryPlan {
     let filter: Document = {};
     const options: Document = {};
 
@@ -122,7 +122,7 @@ export class QueryPlanner {
     return new QueryPlan(ns, pipeline, filter, options.projection);
   }
 
-  public resolveDocuments(plan: QueryPlan): AsyncIterable<Document> {
+  resolveDocuments(plan: QueryPlan): AsyncIterable<Document> {
     let documentIds: string[] | undefined;
 
     const id = plan.filter._id;

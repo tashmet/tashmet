@@ -7,12 +7,10 @@ import { WriteOptions } from '../interfaces.js';
 
 
 export abstract class AbstractReadController {
-  public constructor(
-    protected cursors: CursorRegistry,
-  ) {}
+  constructor(protected cursors: CursorRegistry) {}
 
   @command('getMore')
-  public async getMore(ns: TashmetNamespace, {getMore, collection, batchSize}: Document) {
+  async getMore(ns: TashmetNamespace, {getMore, collection, batchSize}: Document) {
     const c = this.cursors.getCursor(getMore);
     if (!c) throw new Error('Invalid cursor');
 
@@ -28,9 +26,7 @@ export abstract class AbstractReadController {
 }
 
 export abstract class AbstractWriteController {
-  public constructor(
-    protected store: Store
-  ) {}
+  constructor(protected store: Store) {}
 
   protected async write(command: WriteCommand, options: WriteOptions) {
     const changes = await command.execute();

@@ -23,11 +23,11 @@ export function updateType(u: any) {
 abstract class UpdateCommand extends WriteCommand {
   private changes: ChangeStreamDocument[] = [];
 
-  public constructor(private updates: Document[], ns: {db: string, coll: string}) {
+  constructor(private updates: Document[], ns: {db: string, coll: string}) {
     super('update', ns);
   }
 
-  public async execute(): Promise<ChangeStreamDocument[]> {
+  async execute(): Promise<ChangeStreamDocument[]> {
     for (const update of this.updates) {
       await this.executeUpdate(update, updateType(update.u));
     }
@@ -48,7 +48,7 @@ abstract class UpdateCommand extends WriteCommand {
 }
 
 export class QueryUpdateCommand extends UpdateCommand {
-  public constructor(updates: Document[], ns: any, private engine: QueryEngine) {
+  constructor(updates: Document[], ns: any, private engine: QueryEngine) {
     super(updates, ns);
   }
 
@@ -71,7 +71,7 @@ export class QueryUpdateCommand extends UpdateCommand {
 }
 
 export class AggregationUpdateCommand extends UpdateCommand {
-  public constructor(updates: Document[], ns: any, private engine: AggregationEngine) {
+  constructor(updates: Document[], ns: any, private engine: AggregationEngine) {
     super(updates, ns);
   }
 
@@ -83,7 +83,6 @@ export class AggregationUpdateCommand extends UpdateCommand {
         pipeline = u;
         break;
       case UpdateType.Regular:
-        //pipeline = Object.entries(u).reduce<Document[]>((acc, [k, v]) => acc.concat([{[k]: v}]), []);
         pipeline = [ { $update: u } ];
         break;
       case UpdateType.Replace:
