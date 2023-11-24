@@ -23,7 +23,7 @@ import {
   provider
 } from '@tashmet/core';
 import jsonSchema from '@tashmet/schema';
-import streamOperators from './operators.js';
+import pipelineOperators from './pipeline.js';
 import { MingoStreamAggregator } from './aggregator.js';
 import { MingoConfig } from './interfaces.js';
 import { CollectionBuffer } from './buffer.js';
@@ -90,7 +90,7 @@ export class MingoStreamAggregatorFactory extends AggregatorFactory {
   }
 
   addExpressionOperator(name: string, op: ExpressionOperator<any>) {
-    this.expressionOps[name] = makeExpressionOperator(op);
+    this.expressionOps[name] = makeExpressionOperator(name, op);
   }
 
   addPipelineOperator(name: string, op: PipelineOperator<any>) {
@@ -120,5 +120,5 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
 
 export default (config?: MingoConfig) => (container: Container) =>
   new MingoConfigurator(MingoStreamAggregatorFactory, container, config || {})
-    .use(streamOperators())
+    .use(pipelineOperators())
     .use(jsonSchema())

@@ -5,7 +5,7 @@ import { OperatorContext } from '@tashmet/engine';
 
 
 export class MingoOperatorContext implements OperatorContext {
-  constructor(private options: mingo.Options) {}
+  constructor(public readonly op: string, public readonly options: mingo.Options) {}
 
   set(obj: Record<string, any> | Array<any>, selector: string, value: any): void {
     setValue(obj, selector, value);
@@ -20,11 +20,11 @@ export class MingoOperatorContext implements OperatorContext {
   }
 
   compute(obj: any, expr: any, operator?: string) {
-     return mingo.computeValue(obj, expr, operator || null, this.options);
+    return mingo.computeValue(obj, expr, operator || null, this.options);
   }
 }
 
 
-export function makeExpressionOperator(op: ExpressionOperator<any>): mingo.ExpressionOperator  {
-  return (obj, expr, options) => op(obj, expr, new MingoOperatorContext(options));
+export function makeExpressionOperator(name: string, op: ExpressionOperator<any>): mingo.ExpressionOperator  {
+  return (obj, expr, options) => op(obj, expr, new MingoOperatorContext(name, options));
 }

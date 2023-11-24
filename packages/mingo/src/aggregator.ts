@@ -3,16 +3,10 @@ import { AbstractAggregator, PipelineOperator } from '@tashmet/engine';
 import { Logger } from '@tashmet/core';
 import { Document } from '@tashmet/tashmet';
 import { Options } from 'mingo/core';
-import { assert, cloneDeep } from 'mingo/util';
+import { cloneDeep } from 'mingo/util';
 import { CollectionBuffer } from './buffer.js';
-import { toArray } from './util.js';
-import { getOperator, OperatorType } from 'mingo/core';
-import { Iterator, Lazy } from 'mingo/lazy';
 import { MingoOperatorContext } from './operator.js';
 
-export const defaultStreamOperators: string[] = [
-  '$addFields', '$set', '$project', '$replaceRoot', '$unset', '$unwind',
-]
 
 export function preparePipeline(pipeline: Document[]) {
   if (pipeline.length === 0) {
@@ -52,20 +46,12 @@ export class MingoStreamAggregator<T extends Document> extends AbstractAggregato
       const op = operatorKeys[0];
 
       if (op in this.pipelineOperators) {
-        output = this.pipelineOperators[op](
-          output as AsyncIterable<T>, operator[op], new MingoOperatorContext(this.options)) as AsyncIterable<any>;
-      } else {
-        const call = getOperator(OperatorType.PIPELINE, op, this.options);
-        assert(
-          operatorKeys.length === 1 && !!call,
-          `invalid aggregation operator ${op}`
-        );
+        const func = this.pipelineOperators[op];
+        const ctx = new MingoOperatorContext(op, this.options);
 
-        if (defaultStreamOperators.includes(op)) {
-          output = operatorStreamed(output, operator[op], call, this.options);
-        } else {
-          output = operatorBuffered(output, operator[op], call, this.options);
-        }
+        output = func(output as AsyncIterable<T>, operator[op], ctx) as AsyncIterable<any>;
+      } else {
+        throw Error(`Invalid aggregation operator: ${op}`);
       }
     }
 
@@ -74,23 +60,5 @@ export class MingoStreamAggregator<T extends Document> extends AbstractAggregato
     }
 
     await this.buffer.write();
-  }
-}
-
-async function* operatorStreamed<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-  for await (const item of source) {
-    const it = mingoOp(Lazy([cloneDeep(item)]), expr, options) as Iterator;
-
-    for (const item of it.value() as any[]) {
-      yield item;
-    }
-  }
-}
-
-async function* operatorBuffered<T>(source: AsyncIterable<T>, expr: any, mingoOp: any, options: any) {
-  const buffer = await toArray(source);
-  const it = mingoOp(Lazy(buffer).map(cloneDeep), expr, options) as Iterator;
-  for (const item of it.value() as any[]) {
-    yield item;
   }
 }
