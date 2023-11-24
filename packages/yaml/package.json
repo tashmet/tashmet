@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/yaml",
-	"version": "1.0.0-alpha.4",
+	"version": "1.0.0-alpha.5",
 	"description": "YAML content readers/writers",
 	"type": "module",
 	"main": "dist/index.js",
@@ -20,9 +20,9 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmet/core": "^1.0.0-alpha.4",
-		"@tashmet/engine": "^1.0.0-alpha.4",
-		"@tashmet/tashmet": "^1.0.0-alpha.4",
+		"@tashmet/core": "^1.0.0-alpha.5",
+		"@tashmet/engine": "^1.0.0-alpha.5",
+		"@tashmet/tashmet": "^1.0.0-alpha.5",
 		"js-yaml": "^4.1.0"
 	},
 	"devDependencies": {
