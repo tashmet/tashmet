@@ -52,7 +52,6 @@ describe('fileStorage', () => {
   });
 
   afterEach(async () => {
-    //col.removeAllListeners();
     await col.deleteMany({});
   });
 
@@ -77,19 +76,18 @@ describe('fileStorage', () => {
       expect(storedDoc('1'))
         .to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
     });
-    /*
     it('should emit a change event', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('insert');
-        expect(data.length).to.eql(1);
-        expect(data[0]).to.eql({_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 });
+      const cs = col.watch();
+      cs.on('change', ({operationType, fullDocument}) => {
+        expect(operationType).to.eql('insert');
+        expect(fullDocument).to.eql({_id: '6', item: { category: 'brownies', type: 'blondie' }, amount: 10 });
+        cs.close();
         done();
       });
       col.insertOne(
-        {_id: 6, item: { category: 'brownies', type: 'blondie' }, amount: 10 }
+        {_id: '6', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       );
     });
-    */
   });
 
   describe('insertMany', () => {
@@ -110,19 +108,19 @@ describe('fileStorage', () => {
         {_id: 1, item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
-    /*
-    it('should emit a change event', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('insert');
-        expect(data.length).to.eql(2);
-        done();
-      });
-      col.insertMany([
+    it('should emit multiple change events', async () => {
+      const cs = col.watch();
+      await col.insertMany([
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('insert');
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('insert');
+      expect(cs.hasNext()).to.be.false;
+      cs.close();
     });
-    */
   });
 
   describe('replaceOne', () => {
@@ -165,19 +163,19 @@ describe('fileStorage', () => {
       expect(result.upsertedId).to.not.eql(undefined);
       expect(storedDoc(result.upsertedId as any)).to.eql({_id: result.upsertedId, amount: 20 });
     });
-    /*
     it('should emit a change event', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('replace');
-        expect(data[0]).to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
-        expect(data[1]).to.eql({_id: 1, item: { category: 'brownies', type: 'blondie' }, amount: 20 });
+      const cs = col.watch();
+      cs.on('change', ({operationType, documentKey, fullDocument}) => {
+        expect(operationType).to.eql('replace');
+        expect(documentKey).to.eql({_id: '1'})
+        expect(fullDocument).to.eql({item: { category: 'brownies', type: 'blondie' }, amount: 20, _id: '1'});
+        cs.close();
         done();
       });
       col.replaceOne(
-        {_id: 1}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
+        {_id: '1'}, {item: { category: 'brownies', type: 'blondie' }, amount: 20 }
       );
     });
-    */
   });
 
   describe('count', () => {
@@ -285,17 +283,16 @@ describe('fileStorage', () => {
       expect(storedFiles().length).to.eql(storedCount - 1);
       expect(storedFiles()).to.not.contain('1.json');
     });
-    /*
     it('should emit a change event if a document was removed', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('delete');
-        expect(data.length).to.eql(1);
-        expect(data[0]).to.eql({_id: 1, item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+      const cs = col.watch();
+      cs.on('change', ({operationType, documentKey}) => {
+        expect(operationType).to.eql('delete');
+        expect(documentKey).to.eql({_id: '1'});
+        cs.close();
         done();
       });
-      col.deleteOne({_id: 1});
+      col.deleteOne({_id: '1'});
     });
-    */
   });
 
   describe('deleteMany', () => {
@@ -317,16 +314,16 @@ describe('fileStorage', () => {
       await col.deleteMany({'item.category': 'cookies'});
       return expect(col.countDocuments()).to.eventually.eql(3);
     });
-    /*
-    it('should emit a change event', (done) => {
-      col.on('change', ({action, data}) => {
-        expect(action).to.eql('delete');
-        expect(data.length).to.eql(2);
-        done();
-      });
-      col.deleteMany({'item.category': 'cookies'});
+    it('should emit a change event', async () => {
+      const cs = col.watch();
+      await col.deleteMany({'item.category': 'cookies'});
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('delete');
+      expect(cs.hasNext()).to.be.true;
+      expect(cs.next()?.operationType).to.eql('delete');
+      expect(cs.hasNext()).to.be.false;
+      cs.close();
     });
-    */
   });
 
   describe('validation', () => {
