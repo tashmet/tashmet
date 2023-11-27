@@ -1,18 +1,16 @@
 import Ajv, { Schema } from "ajv"
-import { Container, PluginConfigurator, provider } from "@tashmet/core";
-import { Document } from '@tashmet/tashmet';
-import { JsonSchemaValidator } from "@tashmet/engine";
+import { Container } from "@tashmet/core";
+import { op, OperatorContext, OperatorPluginConfigurator } from "@tashmet/engine";
 
-@provider({
-  key: JsonSchemaValidator
-})
-export class AjvJsonSchemaValidator extends JsonSchemaValidator {
-  public validate(doc: Document, schema: Document) {
+export class AjvJsonSchemaOperators {
+  @op.query('$jsonSchema')
+  $jsonSchema(selector: string, schema: Schema, ctx: OperatorContext) {
     const ajv = new Ajv();
-    const v = ajv.compile(schema as Schema);
-    return (v(doc) ? true : false)
+    const v = ajv.compile(schema);
+
+    return (obj: any) => v(obj) ? true : false
   }
 }
 
 export default () => (container: Container) =>
-  new PluginConfigurator(AjvJsonSchemaValidator, container);
+  new OperatorPluginConfigurator(AjvJsonSchemaOperators, container);

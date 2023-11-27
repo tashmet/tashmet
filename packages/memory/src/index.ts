@@ -72,7 +72,7 @@ export class MemoryCollection extends AtomicWriteCollection {
   async insert(document: Document, validate: boolean): Promise<void> {
     if (this.rules && this.validatorFact && validate) {
       const validator = this.validatorFact.createValidator(this.rules);
-      validator(document);
+      await validator(document);
     }
     if (await this.exists(document._id)) {
       throw new Error('Duplicate id');

@@ -41,7 +41,7 @@ export class StreamCollection extends ReadWriteCollection {
 
       if (this.validator && !options.bypassDocumentValidation && ['insert', 'update', 'replace'].includes(doc.operationType)) {
         try {
-          this.validator(doc.fullDocument as Document);
+          await this.validator(doc.fullDocument as Document);
         } catch (err) {
           writeErrors.push({ errMsg: err.message, index });
           if (options.ordered) {

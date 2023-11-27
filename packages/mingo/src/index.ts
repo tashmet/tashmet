@@ -29,7 +29,7 @@ import { MingoConfig } from './interfaces.js';
 import { CollectionBuffer } from './buffer.js';
 import * as mingo from 'mingo/core';
 import { hashCode, intersection } from 'mingo/util';
-import { makeExpressionOperator } from './operator.js';
+import { makeExpressionOperator, makeQueryOperator } from './operator.js';
 import { MingoValidatorFactory } from './validator.js';
 
 @provider({key: Comparator})
@@ -51,6 +51,7 @@ export class MingoComparator implements Comparator {
 export class MingoStreamAggregatorFactory extends AggregatorFactory {
   private pipelineOps: Record<string, PipelineOperator<any>> = {};
   private expressionOps: Record<string, mingo.ExpressionOperator> = {};
+  private queryOps: Record<string, mingo.QueryOperator> = {};
 
   constructor(
     private store: Store,
@@ -69,12 +70,13 @@ export class MingoStreamAggregatorFactory extends AggregatorFactory {
       scriptEnabled: this.config.scriptEnabled,
       collation: options.collation,
       context: mingo.Context.init({
-        expression: this.expressionOps
+        expression: this.expressionOps,
+        query: this.queryOps,
       }),
       useGlobalContext: true,
-      jsonSchemaValidator: v !== undefined
-        ? (s: any) => { return (o: any) => v.validate(o, s); }
-        : undefined,
+      //jsonSchemaValidator: v !== undefined
+        //? (s: any) => { return (o: any) => v.validate(o, s); }
+        //: undefined,
       collectionResolver: coll => {
         if (coll.includes('.')) {
           return buffer.get(TashmetCollectionNamespace.fromString(coll));
@@ -91,6 +93,10 @@ export class MingoStreamAggregatorFactory extends AggregatorFactory {
 
   addExpressionOperator(name: string, op: ExpressionOperator<any>) {
     this.expressionOps[name] = makeExpressionOperator(name, op);
+  }
+
+  addQueryOperator(name: string, op: ExpressionOperator<any>) {
+    this.queryOps[name] = makeQueryOperator(name, op);
   }
 
   addPipelineOperator(name: string, op: PipelineOperator<any>) {

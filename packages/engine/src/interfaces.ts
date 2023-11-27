@@ -9,7 +9,7 @@ import {
 import ev from "eventemitter3";
 import { QueryPlan } from './plan.js';
 import { ChangeSet } from './changeSet.js';
-import { ExpressionOperator, OperatorAnnotation, PipelineOperator } from './operator.js';
+import { ExpressionOperator, OperatorAnnotation, PipelineOperator, QueryOperator } from './operator.js';
 
 export const { EventEmitter } = ev;
 
@@ -138,6 +138,8 @@ export interface AggregatorFactory {
   addExpressionOperator(name: string, op: ExpressionOperator<any>): void;
 
   addPipelineOperator(name: string, op: PipelineOperator<any>): void;
+
+  addQueryOperator(name: string, op: QueryOperator<any>): void;
 }
 
 
@@ -193,7 +195,7 @@ export const HashCode = Symbol('HashCode');
 export type HashCode = (value: any) => string | null;
 
 export interface JsonSchemaValidator {
-  validate(doc: Document, schema: Document): boolean;
+  validate(doc: Document, schema: Document): { passed: boolean, errors: any[]};
 }
 
 export abstract class JsonSchemaValidator implements JsonSchemaValidator {}

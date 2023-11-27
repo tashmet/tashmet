@@ -14,6 +14,7 @@ export {
   op,
   ExpressionOperator,
   PipelineOperator,
+  QueryOperator,
   OperatorPluginConfigurator,
   OperatorContext
 } from './operator.js';

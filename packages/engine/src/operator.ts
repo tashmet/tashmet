@@ -42,6 +42,8 @@ export interface OperatorContext {
    * @returns The computed value
    */
   compute(obj: any, expr: any, operator?: string): any;
+
+  log(message: string): void;
 }
 
 export class OperatorAnnotation extends Annotation {
@@ -69,6 +71,14 @@ export class ExpressionOperatorAnnotation extends OperatorAnnotation {
   }
 }
 
+export class QueryOperatorAnnotation extends OperatorAnnotation {
+  register(instance: any, aggFact: AggregatorFactory): void {
+    for (const op of Array.isArray(this.name) ? this.name : [this.name]) {
+      aggFact.addQueryOperator(op, (...args: any[]) => instance[this.propertyKey](...args));
+    }
+  }
+}
+
 export type ExpressionOperator<T> = (obj: any, args: T, context: OperatorContext) => any;
 
 export type PipelineOperator<T> = (
@@ -77,12 +87,21 @@ export type PipelineOperator<T> = (
   context: OperatorContext,
 ) => AsyncIterable<Document>;
 
+export type QueryOperator<T> = (
+  selector: string,
+  value: T,
+  context: OperatorContext
+) => (obj: any) => boolean;
+
 export const op = {
   pipeline: (name: string | string[]) => methodDecorator<PipelineOperator<any>>(
     ({propertyKey}) => new PipelineOperatorAnnotation(name, propertyKey)
   ),
   expression: (name: string | string[]) => methodDecorator<ExpressionOperator<any>>(
     ({propertyKey}) => new ExpressionOperatorAnnotation(name, propertyKey)
+  ),
+  query: (name: string | string[]) => methodDecorator<QueryOperator<any>>(
+    ({propertyKey}) => new QueryOperatorAnnotation(name, propertyKey)
   ),
 }
 
