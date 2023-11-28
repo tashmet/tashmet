@@ -73,7 +73,7 @@ export class MemoryCollection extends AtomicWriteCollection {
     if (validate && this.validator) {
       await this.validator(document);
     }
-    if (await this.exists(document._id)) {
+    if (this.exists(document._id)) {
       throw new Error('Duplicate id');
     }
 
