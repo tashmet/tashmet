@@ -5,7 +5,6 @@ import {
   AggregatorFactory,
   Store,
   AggregatorOptions,
-  JsonSchemaValidator,
   PipelineOperator,
   ExpressionOperator,
   Comparator,
@@ -17,7 +16,6 @@ import {
   Container,
   Logger,
   Newable,
-  Optional,
   PluginConfigurator,
   Provider,
   provider
@@ -46,7 +44,6 @@ export class MingoComparator implements Comparator {
 
 @provider({
   key: AggregatorFactory,
-  inject: [Store, Logger, MingoConfig, Optional.of(JsonSchemaValidator)]
 })
 export class MingoStreamAggregatorFactory extends AggregatorFactory {
   private pipelineOps: Record<string, PipelineOperator<any>> = {};
@@ -57,14 +54,12 @@ export class MingoStreamAggregatorFactory extends AggregatorFactory {
     private store: Store,
     private logger: Logger,
     private config: MingoConfig,
-    private validator?: JsonSchemaValidator
   ) {
     super();
   }
 
   public createAggregator(pipeline: Document[], options: AggregatorOptions = {}): AbstractAggregator<Document> {
     const buffer = new CollectionBuffer(this.store, options.plan);
-    const v = this.validator;
     const mingoOptions = mingo.initOptions({
       useStrictMode: this.config.useStrictMode,
       scriptEnabled: this.config.scriptEnabled,

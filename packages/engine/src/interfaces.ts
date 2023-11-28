@@ -198,12 +198,6 @@ export const HashCode = Symbol('HashCode');
 
 export type HashCode = (value: any) => string | null;
 
-export interface JsonSchemaValidator {
-  validate(doc: Document, schema: Document): { passed: boolean, errors: any[]};
-}
-
-export abstract class JsonSchemaValidator implements JsonSchemaValidator {}
-
 export class StorageEngineError extends Error {
   constructor(message: string, public info: Document) {
     super(message);
