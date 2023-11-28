@@ -1,4 +1,5 @@
 import { Collection } from '../collection.js';
+import { TashmetServerError } from '../error.js';
 import { Document, InferIdType, TashmetProxy } from '../interfaces.js';
 import { CommandOperation, CommandOperationOptions } from './command.js';
 import { prepareDocs } from './common.js';
@@ -56,7 +57,7 @@ export class InsertOneOperation extends InsertOperation {
     if (!writeErrors) {
       return {acknowledged: true, insertedId: this.documents[0]._id};
     } else {
-      throw new Error(writeErrors[0].errMsg);
+      throw new TashmetServerError(writeErrors[0].errMsg, writeErrors[0].errInfo);
     }
   }
 }

@@ -39,8 +39,6 @@ export class MingoStreamAggregator<T extends Document> extends AbstractAggregato
   async *stream<TResult>(input: AsyncIterable<T>): AsyncGenerator<TResult> {
     let output = input;
 
-    //console.log(this.options.context);
-
     await this.buffer.load();
 
     for (const operator of this.pipeline) {

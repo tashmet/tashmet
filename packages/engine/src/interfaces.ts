@@ -60,6 +60,8 @@ export interface WriteError {
   /** Error message */
   errMsg: string;
 
+  errInfo?: Document;
+
   /** Index of document that failed */
   index: number;
 }
@@ -130,6 +132,8 @@ export interface AggregatorOptions {
   plan?: QueryPlan; 
 
   collation?: CollationOptions;
+
+  variables?: Document
 }
 
 export interface AggregatorFactory {
@@ -199,3 +203,15 @@ export interface JsonSchemaValidator {
 }
 
 export abstract class JsonSchemaValidator implements JsonSchemaValidator {}
+
+export class StorageEngineError extends Error {
+  constructor(message: string, public info: Document) {
+    super(message);
+  }
+}
+
+export class ValidationError extends StorageEngineError {
+  constructor(info: Document) {
+    super('Document failed validation', info);
+  }
+}

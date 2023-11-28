@@ -2,7 +2,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 
-import Tashmet, {Collection} from '../../../packages/tashmet/dist/index.js';
+import Tashmet, { Collection, TashmetServerError } from '../../../packages/tashmet/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import Memory from '../../../packages/memory/dist/index.js';
 
@@ -23,7 +23,7 @@ describe('query validation', () => {
 
     sales = await tashmet.db('test').createCollection('sales', {
       validator: {
-        item: {$type: 'string'}
+        item: { $type: 'string' }
       }
     });
   });
@@ -35,7 +35,16 @@ describe('query validation', () => {
 
   it('should fail to insert an invalid document', () => {
     return expect(sales.insertOne({item : 3, price : 10,  quantity: 2}))
-      .to.eventually.be.rejected;
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$type',
+        specifiedAs: 'string',
+        reason: 'type did not match',
+        consideredValue: 3,
+        consideredType: 'Number',
+      });
   });
 });
 

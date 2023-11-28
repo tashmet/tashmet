@@ -22,17 +22,13 @@ export class MingoOperatorContext implements OperatorContext {
   compute(obj: any, expr: any, operator?: string) {
     return mingo.computeValue(obj, expr, operator || null, this.options);
   }
-
-  log(message: string) {
-    console.log(message);
-  }
 }
 
 
 export function makeExpressionOperator(name: string, op: ExpressionOperator<any>): mingo.ExpressionOperator  {
-  return (obj, expr, options) => op(obj, expr, new MingoOperatorContext(name, options));
+  return (obj, expr, options) => op(obj, expr, new MingoOperatorContext(name, options as any));
 }
 
 export function makeQueryOperator(name: string, op: QueryOperator<any>): mingo.QueryOperator  {
-  return (selector, value, options) => op(selector, value, new MingoOperatorContext(name, options));
+  return (selector, value, options) => op(selector, value, new MingoOperatorContext(name, options as any));
 }

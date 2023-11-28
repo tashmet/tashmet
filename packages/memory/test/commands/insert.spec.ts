@@ -58,7 +58,7 @@ describe('insert', () => {
         insert: 'test',
         documents: [{_id: 1, title: 'foo'}, {_id: 2, title: 'bar'}],
       });
-      expect(result).to.eql({n: 1, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate id'}]});
+      expect(result).to.eql({n: 1, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate id', errInfo: undefined}]});
     });
 
     it('should not insert remaining documents after initial fail when ordered', async () => {
@@ -67,7 +67,7 @@ describe('insert', () => {
         documents: [{_id: 1, title: 'foo'}, {_id: 2, title: 'bar'}],
         ordered: true,
       });
-      expect(result).to.eql({n: 0, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate id'}]});
+      expect(result).to.eql({n: 0, ok: 1, writeErrors: [{index: 0, errMsg: 'Duplicate id', errInfo: undefined}]});
     });
   });
 });

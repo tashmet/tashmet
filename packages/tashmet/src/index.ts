@@ -1,6 +1,7 @@
 export { ChangeStream, ChangeStreamDocument } from './changeStream.js';
 export { Collection } from './collection.js';
 export { Database } from './database.js';
+export { TashmetError, TashmetServerError } from './error.js';
 export { TashmetNamespace, TashmetCollectionNamespace } from './utils.js';
 export { AbstractCursor } from './cursor/abstractCursor.js';
 export { AggregationCursor } from './cursor/aggregationCursor.js';

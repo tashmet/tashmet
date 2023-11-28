@@ -1,5 +1,5 @@
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import { ReadWriteCollection, WriteError, WriteOptions } from './interfaces.js';
+import { ReadWriteCollection, StorageEngineError, WriteError, WriteOptions } from './interfaces.js';
 
 export * from './interfaces.js';
 
@@ -16,7 +16,7 @@ export {
   PipelineOperator,
   QueryOperator,
   OperatorPluginConfigurator,
-  OperatorContext
+  OperatorContext,
 } from './operator.js';
 
 export { AggregationReadController, AggregationWriteController } from './controllers/aggregate.js';
@@ -52,8 +52,8 @@ export abstract class AtomicWriteCollection extends ReadWriteCollection {
             if (c.documentKey)
               await this.delete(c.documentKey._id as any);
         }
-      } catch (err) {
-        writeErrors.push({errMsg: err.message, index});
+      } catch (err: any) {
+        writeErrors.push({errMsg: err.message, errInfo: err.info, index});
         if (options.ordered)
           break;
       }

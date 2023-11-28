@@ -142,7 +142,6 @@ export class MingoStreamPipelineOpertors {
       yield clone;
     }
   }
-
 }
 
 export default () => (container: Container) =>

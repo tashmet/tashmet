@@ -42,8 +42,6 @@ export interface OperatorContext {
    * @returns The computed value
    */
   compute(obj: any, expr: any, operator?: string): any;
-
-  log(message: string): void;
 }
 
 export class OperatorAnnotation extends Annotation {

@@ -30,7 +30,7 @@ import { CollectionBuffer } from './buffer.js';
 import * as mingo from 'mingo/core';
 import { hashCode, intersection } from 'mingo/util';
 import { makeExpressionOperator, makeQueryOperator } from './operator.js';
-import { MingoValidatorFactory } from './validator.js';
+import { MingoValidatorFactory, validationOperators } from './validator.js';
 
 @provider({key: Comparator})
 export class MingoComparator implements Comparator {
@@ -74,9 +74,7 @@ export class MingoStreamAggregatorFactory extends AggregatorFactory {
         query: this.queryOps,
       }),
       useGlobalContext: true,
-      //jsonSchemaValidator: v !== undefined
-        //? (s: any) => { return (o: any) => v.validate(o, s); }
-        //: undefined,
+      variables: options.variables,
       collectionResolver: coll => {
         if (coll.includes('.')) {
           return buffer.get(TashmetCollectionNamespace.fromString(coll));
@@ -127,4 +125,5 @@ export class MingoConfigurator extends PluginConfigurator<AggregatorFactory> {
 export default (config?: MingoConfig) => (container: Container) =>
   new MingoConfigurator(MingoStreamAggregatorFactory, container, config || {})
     .use(pipelineOperators())
+    .use(validationOperators())
     .use(jsonSchema())
