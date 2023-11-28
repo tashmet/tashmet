@@ -22,7 +22,8 @@ import {
   ReadWriteCollection,
   CollectionFactory,
   Store,
-  AtomicWriteCollection
+  AtomicWriteCollection,
+  Validator
 } from '@tashmet/engine';
 import {
   CreateCollectionOptions,
@@ -42,8 +43,7 @@ export class MemoryCollection extends AtomicWriteCollection {
   constructor(
     ns: TashmetCollectionNamespace,
     public documents: Document[] = [],
-    public readonly rules: Document = {},
-    private readonly validatorFact: ValidatorFactory | undefined,
+    private validator: Validator | undefined,
   ) {
     super(ns);
     for (let i = 0; i < documents.length; i++) {
@@ -70,9 +70,8 @@ export class MemoryCollection extends AtomicWriteCollection {
   }
 
   async insert(document: Document, validate: boolean): Promise<void> {
-    if (this.rules && this.validatorFact && validate) {
-      const validator = this.validatorFact.createValidator(this.rules);
-      await validator(document);
+    if (validate && this.validator) {
+      await this.validator(document);
     }
     if (await this.exists(document._id)) {
       throw new Error('Duplicate id');
@@ -105,14 +104,15 @@ export class MemoryCollection extends AtomicWriteCollection {
   }
 }
 
-@provider({
-  inject: [Optional.of(ValidatorFactory)]
-})
+@provider()
 export class MemoryCollectionFactory extends CollectionFactory {
-  constructor(public validatorFactory?: ValidatorFactory) { super(); }
+  constructor(private validatorFactory: ValidatorFactory) { super(); }
 
   createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
-    return new MemoryCollection(ns, [], options.validator || {}, this.validatorFactory);
+    const validator = options.validator
+      ? this.validatorFactory.createValidator(options.validator)
+      : undefined;
+    return new MemoryCollection(ns, [], validator);
   }
 }
 
