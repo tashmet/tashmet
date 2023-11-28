@@ -43,7 +43,7 @@ export class StreamCollection extends ReadWriteCollection {
         try {
           await this.validator(doc.fullDocument as Document);
         } catch (err) {
-          writeErrors.push({ errMsg: err.message, index });
+          writeErrors.push({ errMsg: err.message, errInfo: err.info, index });
           if (options.ordered) {
             break;
           }

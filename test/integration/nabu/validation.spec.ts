@@ -3,7 +3,7 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import fsExtra from 'fs-extra';
 
-import Tashmet, {Collection} from '../../../packages/tashmet/dist/index.js';
+import Tashmet, {Collection, TashmetServerError} from '../../../packages/tashmet/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import Nabu from '../../../packages/nabu/dist/index.js';
 
@@ -14,42 +14,113 @@ const { expect } = chai;
 describe('nabu', () => {
 
 describe('query validation', () => {
-  let sales: Collection;
+  describe('$type', () => {
+    let sales: Collection;
 
-  before(async () => {
-    const store = Nabu
-      .configure({
-        defaultIO: 'json',
-      })
-      .use(mingo())
-      .io('json', ns => Nabu
-        .json()
-        .directory(`${ns.db}/${ns.collection}`, '.json')
-      )
-      .bootstrap();
+    before(async () => {
+      const store = Nabu
+        .configure({
+          defaultIO: 'json',
+        })
+        .use(mingo())
+        .io('json', ns => Nabu
+          .json()
+          .directory(`${ns.db}/${ns.collection}`, '.json')
+        )
+        .bootstrap();
 
-    const tashmet = await Tashmet.connect(store.proxy());
+      const tashmet = await Tashmet.connect(store.proxy());
 
-    sales = await tashmet.db('test').createCollection('sales', {
-      validator: {
-        item: {$type: 'string'}
-      }
+      sales = await tashmet.db('test').createCollection('sales', {
+        validator: {
+          item: { $type: 'string' }
+        }
+      });
+    });
+
+    it('should insert a valid document', async () => {
+      const doc = await sales.insertOne({item : 'abc', price : 10,  quantity: 2});
+      return expect(doc.acknowledged).to.eql(true);
+    });
+
+    it('should fail to insert an invalid document', () => {
+      return expect(sales.insertOne({item : 3, price : 10,  quantity: 2}))
+        .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+        .that.has.property('errInfo')
+        .that.has.property('details')
+        .that.eql({
+          operatorName: '$type',
+          specifiedAs: 'string',
+          reason: 'type did not match',
+          consideredValue: 3,
+          consideredType: 'Number',
+        });
     });
   });
 
-  after(async () => {
-    await sales.deleteMany({});
-    fsExtra.rmdirSync('test/sales');
-  });
+  describe('$expr', () => {
+    let orders: Collection;
 
-  it('should insert a valid document', async () => {
-    const doc = await sales.insertOne({item : 'abc', price : 10,  quantity: 2});
-    return expect(doc.acknowledged).to.eql(true);
-  });
+    before(async () => {
+      const store = Nabu
+        .configure({
+          defaultIO: 'json',
+        })
+        .use(mingo())
+        .io('json', ns => Nabu
+          .json()
+          .directory(`${ns.db}/${ns.collection}`, '.json')
+        )
+        .bootstrap();
 
-  it('should fail to insert an invalid document', () => {
-    return expect(sales.insertOne({item : 3, price : 10,  quantity: 2}))
-      .to.eventually.be.rejected;
+      const tashmet = await Tashmet.connect(store.proxy());
+
+      orders = await tashmet.db('test').createCollection('sales', {
+        validator: {
+          $expr: {
+            $eq: [
+              "$totalWithVAT",
+              { $multiply: [ "$total", { $sum: [ 1, "$VAT" ] } ] }
+            ]
+          }
+        }
+      });
+    });
+
+    it('should insert a valid document', async () => {
+      const doc = await orders.insertOne({
+        total: 141,
+        VAT: 0.20,
+        totalWithVAT: 169.2
+      });
+      return expect(doc.acknowledged).to.eql(true);
+    });
+
+    it('should fail to insert an invalid document', () => {
+      return expect(orders.insertOne({
+        total: 141,
+        VAT: 0.20,
+        totalWithVAT: 169
+      }))
+        .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+        .that.has.property('errInfo')
+        .that.has.property('details')
+        .that.eql({
+          operatorName: '$expr',
+          specifiedAs: {
+            '$expr': {
+              '$eq': [
+                '$totalWithVAT',
+                {
+                  '$multiply': [ '$total', { '$sum': [ 1, '$VAT' ] } ]
+                }
+              ]
+            }
+          },
+          reason: 'expression did not match',
+          expressionResult: false
+        });
+    });
   });
 });
 
