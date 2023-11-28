@@ -171,7 +171,31 @@ describe('json schema validation', () => {
         city: "NYC",
         street: "33rd Street"
       }
-    })).to.eventually.be.rejected;
+    }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Student Object Validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                description: "'year' must be an number in [ 2017, 3017 ] and is required",
+                details: {
+                  consideredValue: 2016,
+                  operatorName: "minimum",
+                  reason: "must be >= 2017",
+                  specifiedAs: 2017,
+                },
+                propertyName: "year"
+              }
+            ]
+          }
+        ]
+      });
   });
 
   it('should bypass validation on invalid document', async () => {
