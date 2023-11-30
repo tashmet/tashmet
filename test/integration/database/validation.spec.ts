@@ -138,7 +138,7 @@ describe('json schema validation', () => {
               description: "'year' must be an number in [ 2017, 3017 ] and is required"
             },
             gpa: {
-              type: [ "number" ],
+              type: "number",
               description: "'gpa' must be a number if the field exists"
             }
           }
@@ -161,7 +161,29 @@ describe('json schema validation', () => {
     expect(result.acknowledged).to.eql(true);
   });
 
-  it('should fail to insert an invalid document', () => {
+  it('should fail to insert a document with missing required properties', () => {
+    return expect(students.insertOne( {
+      name: "Alice",
+      year: 2017,
+      gpa: 3.0,
+    }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Student Object Validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'required',
+            specifiedAs: { required: [ 'address', 'major', 'name', 'year' ] },
+            missingProperties: [ 'address', 'major' ]
+          }
+        ]
+      });
+  });
+
+  it('should fail to insert a document with single failing property', () => {
     return expect(students.insertOne( {
       name: "Alice",
       year: 2016,
@@ -191,6 +213,53 @@ describe('json schema validation', () => {
                   specifiedAs: 2017,
                 },
                 propertyName: "year"
+              }
+            ]
+          }
+        ]
+      });
+  });
+
+  it('should fail to insert a document with multiple failing properties', () => {
+    return expect(students.insertOne( {
+      name: "Alice",
+      year: 4000,
+      major: "History",
+      gpa: '3.0',
+      address: {
+        city: "NYC",
+        street: "33rd Street"
+      }
+    }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Student Object Validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                description: "'year' must be an number in [ 2017, 3017 ] and is required",
+                details: {
+                  consideredValue: 4000,
+                  operatorName: "maximum",
+                  reason: "must be <= 3017",
+                  specifiedAs: 3017,
+                },
+                propertyName: "year"
+              },
+              {
+                description: "'gpa' must be a number if the field exists",
+                details: {
+                  consideredValue: "3.0",
+                  operatorName: "type",
+                  reason: "must be number",
+                  specifiedAs: "number",
+                },
+                propertyName: "gpa"
               }
             ]
           }

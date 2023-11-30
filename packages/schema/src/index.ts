@@ -6,51 +6,75 @@ import { Document } from "@tashmet/tashmet";
 export class AjvJsonSchemaOperators {
   @op.query('$jsonSchema')
   $jsonSchema(selector: string, schema: Document, ctx: OperatorContext) {
-    const ajv = new Ajv();
+    const ajv = new Ajv({ allErrors: true });
     const v = ajv.compile(schema);
 
     return (obj: any) => {
       const passed = v(obj) ? true : false;
 
       if (!passed && ctx.options.variables?.$validator) {
-        function formatMinimum(err: ErrorObject) {
-          const selector = err.instancePath.substring(1).split('/').join('.');
-
-          return {
-            operatorName: 'minimum',
-            specifiedAs: err.params.limit,
-            reason: err.message,
-            consideredValue: ctx.resolve(obj, selector),
+        function formatSpecifiedAs(err: ErrorObject) {
+          switch (err.keyword) {
+            case 'minimum':
+            case 'maximum':
+              return err.params.limit;
+            case 'type':
+              return err.params.type;
           }
         }
 
         function formatPropertyError(err: ErrorObject, propertyName: string, property: Document) {
+          const selector = err.instancePath.substring(1).split('/').join('.');
+
           return {
             propertyName,
             description: property.description,
-            details: formatMinimum(err),
+            details: {
+              operatorName: err.keyword,
+              specifiedAs: formatSpecifiedAs(err),
+              reason: err.message,
+              consideredValue: ctx.resolve(obj, selector),
+            }
           }
         }
 
-        function formatError(err: ErrorObject) {
-          const parts = err.schemaPath.substring(2).split('/')
-          const operatorName = parts[0];
+        function formatObjectErrors(errors: ErrorObject[]) {
+          const output: Document[] = [];
+          const propertyErrors = errors
+            .filter(e => e.schemaPath.startsWith('#/properties'));
+          const requiredErrors = errors
+            .filter(e => e.schemaPath.startsWith('#/required'));
 
-          const selector = parts.slice(0, -1).join('.');
-          const property = ctx.resolve(schema, selector);
+          if (propertyErrors.length > 0) {
+            output.push({
+              operatorName: 'properties',
+              propertiesNotSatisfied: propertyErrors.map(err => {
+                const parts = err.schemaPath.substring(2).split('/');
+                const selector = parts.slice(0, -1).join('.');
+                const property = ctx.resolve(schema, selector);
 
-          return {
-            operatorName,
-            propertiesNotSatisfied: [
-              formatPropertyError(err, parts[1], property)
-            ]
+                return formatPropertyError(err, parts[1], property);
+              })
+            });
           }
+
+          if (requiredErrors.length > 0) {
+            const missingProperties = requiredErrors.map(err => err.params.missingProperty);
+
+            output.push({
+              operatorName: 'required',
+              specifiedAs: { required: ctx.resolve(schema, 'required') },
+              missingProperties: missingProperties,
+            });
+          }
+
+          return output;
         }
 
         const details = {
           operatorName: '$jsonSchema',
           title: schema.title,
-          schemaRulesNotSatisfied: (v.errors || []).map(err => formatError(err)),
+          schemaRulesNotSatisfied: formatObjectErrors(v.errors || []),
         };
 
         throw new ValidationError({
