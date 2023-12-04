@@ -352,6 +352,114 @@ describe('json schema validation', () => {
   });
 });
 
+describe('json schema validation on array', () => {
+  let posts: Collection;
+
+  before(async () => {
+    const store = Memory
+      .configure({})
+      .use(mingo())
+      .bootstrap();
+
+    const tashmet = await Tashmet.connect(store.proxy());
+
+    posts = await tashmet.db('test').createCollection('posts', {
+      validator: {
+        $jsonSchema: {
+          type: "object",
+          title: "Array validation",
+          properties: {
+            tags: {
+              type: "array",
+              description: "tags must be array of strings with at least one item",
+              items: {
+                type: "string"
+              },
+              minItems: 1
+            },
+          }
+        }
+      }
+    });
+  });
+
+  it('should insert a valid document', async () => {
+    const result = await posts.insertOne( {
+      tags: ['tag1']
+    });
+    expect(result.acknowledged).to.eql(true);
+  });
+
+  it('should fail to insert a document with less than minItems', () => {
+    return expect(posts.insertOne({ tags: [] }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Array validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                propertyName: 'tags',
+                description: 'tags must be array of strings with at least one item',
+                details: [
+                  {
+                    operatorName: 'minItems',
+                    specifiedAs: { minItems: 1 },
+                    reason: 'array did not match specified length',
+                    consideredValue: [],
+                    numberOfItems: 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+  });
+
+  it('should fail to insert a document with wrong item type', () => {
+    return expect(posts.insertOne({ tags: [2] }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Array validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                propertyName: 'tags',
+                description: 'tags must be array of strings with at least one item',
+                details: [
+                  {
+                    operatorName: 'items',
+                    reason: 'At least one item did not match the sub-schema',
+                    itemIndex: 0,
+                    details: [
+                      {
+                        operatorName: 'type',
+                        specifiedAs: { type: 'string' },
+                        reason: 'type did not match',
+                        consideredValue: 2,
+                        consideredType: 'number'
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+  });
+});
+
 describe('query for valid documents', () => {
   let inventory: Collection;
 
