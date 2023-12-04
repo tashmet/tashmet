@@ -176,6 +176,8 @@ function makeError(err: ErrorObject, doc: Document, schema: Document, ctx: Opera
       return new SchemaTypeError(instancePath, schemaDefinition, instance);
     case 'minimum':
     case 'maximum':
+    case 'exclusiveMinimum':
+    case 'exclusiveMaximum':
       return new SchemaComparisonError(err.keyword, instancePath, schemaDefinition, instance);
     case 'required':
       return new SchemaRequiredError(instancePath, schemaDefinition, err.params.missingProperty);
