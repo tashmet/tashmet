@@ -140,6 +140,19 @@ describe('json schema validation', () => {
             gpa: {
               type: "number",
               description: "'gpa' must be a number if the field exists"
+            },
+            address: {
+              type: "object",
+              properties: {
+                city: {
+                  type: "string",
+                  description: "'city' must be a string"
+                },
+                street: {
+                  type: "string",
+                  description: "'street' must be a string"
+                }
+              }
             }
           }
         }
@@ -205,14 +218,16 @@ describe('json schema validation', () => {
             operatorName: 'properties',
             propertiesNotSatisfied: [
               {
+                propertyName: 'year',
                 description: "'year' must be an number in [ 2017, 3017 ] and is required",
-                details: {
-                  consideredValue: 2016,
-                  operatorName: "minimum",
-                  reason: "must be >= 2017",
-                  specifiedAs: 2017,
-                },
-                propertyName: "year"
+                details: [
+                  {
+                    operatorName: 'minimum',
+                    specifiedAs: { minimum: 2017 },
+                    reason: 'comparison failed',
+                    consideredValue: 2016
+                  }
+                ]
               }
             ]
           }
@@ -242,24 +257,79 @@ describe('json schema validation', () => {
             operatorName: 'properties',
             propertiesNotSatisfied: [
               {
+                propertyName: 'year',
                 description: "'year' must be an number in [ 2017, 3017 ] and is required",
-                details: {
-                  consideredValue: 4000,
-                  operatorName: "maximum",
-                  reason: "must be <= 3017",
-                  specifiedAs: 3017,
-                },
-                propertyName: "year"
+                details: [
+                  {
+                    operatorName: 'maximum',
+                    specifiedAs: { maximum: 3017 },
+                    reason: 'comparison failed',
+                    consideredValue: 4000
+                  }
+                ]
               },
               {
+                propertyName: 'gpa',
                 description: "'gpa' must be a number if the field exists",
-                details: {
-                  consideredValue: "3.0",
-                  operatorName: "type",
-                  reason: "must be number",
-                  specifiedAs: "number",
-                },
-                propertyName: "gpa"
+                details: [
+                  {
+                    operatorName: 'type',
+                    specifiedAs: { type: 'number' },
+                    reason: 'type did not match',
+                    consideredValue: '3.0',
+                    consideredType: 'string'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+  });
+
+  it('should fail to insert a document with single nested failing property', () => {
+    return expect(students.insertOne( {
+      name: "Alice",
+      year: 2017,
+      major: "History",
+      gpa: 3.0,
+      address: {
+        city: "NYC",
+        street: 33,
+      }
+    }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Student Object Validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                propertyName: 'address',
+                details: [
+                  {
+                    operatorName: 'properties',
+                    propertiesNotSatisfied: [
+                      {
+                        propertyName: 'street',
+                        description: "'street' must be a string",
+                        details: [
+                          {
+                            operatorName: 'type',
+                            specifiedAs: { type: 'string' },
+                            reason: 'type did not match',
+                            consideredValue: 33,
+                            consideredType: 'number'
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           }
