@@ -129,8 +129,9 @@ function makeOperator(sequence: SchemaDefinition[], depth: number): Document {
       return {
         operatorName,
         specifiedAs: { [operatorName]: def.value },
-        reason: 'items are not unique',
+        reason: 'found a duplicate item',
         consideredValue: def.instance,
+        duplicateValue: def.instance[def.params.i]
       }
     default:
       return {};

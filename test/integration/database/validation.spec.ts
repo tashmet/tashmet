@@ -604,12 +604,13 @@ describe('json schema validation on array', () => {
                 description: 'tags must be array of strings with at least one item',
                 details: [
                   {
-                    consideredValue: ["tag1", "tag1"],
                     operatorName: "uniqueItems",
-                    reason: "items are not unique",
                     specifiedAs: {
                       uniqueItems: true
-                    }
+                    },
+                    reason: "found a duplicate item",
+                    consideredValue: ["tag1", "tag1"],
+                    duplicateValue: "tag1",
                   }
                 ]
               }
