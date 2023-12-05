@@ -59,6 +59,25 @@ function makeProperty(sequence: SchemaDefinition[], depth: number) {
   return result;
 }
 
+function makeComparison(operatorName: string, def: SchemaDefinition) {
+  return {
+    operatorName,
+    specifiedAs: { [operatorName]: def.value },
+    reason: 'comparison failed',
+    consideredValue: def.instance,
+  };
+}
+
+function makeArrayLengthComparison(operatorName: string, def: SchemaDefinition) {
+  return {
+    operatorName,
+    specifiedAs: { [operatorName]: def.value },
+    reason: 'array did not match specified length',
+    consideredValue: def.instance,
+    numberOfItems: def.instance.length,
+  }
+}
+
 function makeOperator(sequence: SchemaDefinition[], depth: number): Document {
   const def = sequence[depth];
   const operatorName = def.name;
@@ -85,50 +104,6 @@ function makeOperator(sequence: SchemaDefinition[], depth: number): Document {
         consideredValue: def.instance,
         consideredType: typeof def.instance,
       };
-    case 'minimum':
-      return {
-        operatorName,
-        specifiedAs: { minimum: def.value },
-        reason: 'comparison failed',
-        consideredValue: def.instance,
-      };
-    case 'exclusiveMinimum':
-      return {
-        operatorName,
-        specifiedAs: { exclusiveMinimum: def.value },
-        reason: 'comparison failed',
-        consideredValue: def.instance,
-      };
-    case 'exclusiveMaximum':
-      return {
-        operatorName,
-        specifiedAs: { exclusiveMaximum: def.value },
-        reason: 'comparison failed',
-        consideredValue: def.instance,
-      };
-    case 'maximum':
-      return {
-        operatorName,
-        specifiedAs: { maximum: def.value },
-        reason: 'comparison failed',
-        consideredValue: def.instance,
-      };
-    case 'minItems':
-      return {
-        operatorName,
-        specifiedAs: { minItems: def.value },
-        reason: 'array did not match specified length',
-        consideredValue: def.instance,
-        numberOfItems: def.instance.length,
-      }
-    case 'maxItems':
-      return {
-        operatorName,
-        specifiedAs: { maxItems: def.value },
-        reason: 'array did not match specified length',
-        consideredValue: def.instance,
-        numberOfItems: def.instance.length,
-      }
     case 'items':
       const instancePath = def.instancePath.split('.');
       return {
@@ -139,6 +114,14 @@ function makeOperator(sequence: SchemaDefinition[], depth: number): Document {
           makeOperator(sequence, depth + 1)
         ]
       }
+    case 'minimum':
+    case 'maximum':
+    case 'exclusiveMinimum':
+    case 'exclusiveMaximum':
+      return makeComparison(operatorName, def);
+    case 'minItems':
+    case 'maxItems':
+      return makeArrayLengthComparison(operatorName, def);
     default:
       return {};
   }
