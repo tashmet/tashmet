@@ -352,6 +352,100 @@ describe('json schema validation', () => {
   });
 });
 
+describe('json schema validation on strings', () => {
+  let users: Collection;
+
+  before(async () => {
+    const store = Memory
+      .configure({})
+      .use(mingo())
+      .bootstrap();
+
+    const tashmet = await Tashmet.connect(store.proxy());
+
+    users = await tashmet.db('test').createCollection('students', {
+      validator: {
+        $jsonSchema: {
+          type: "object",
+          title: "User object validation",
+          properties: {
+            name: {
+              type: "string",
+              description: "'name' must be a string",
+              minLength: 5,
+              maxLength: 10
+            },
+          }
+        }
+      }
+    });
+  });
+
+  it('should fail insert a document with too short name', () => {
+    return expect(users.insertOne({
+      name: "Foo"
+    }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'User object validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                propertyName: 'name',
+                description: "'name' must be a string",
+                details: [
+                  {
+                    operatorName: 'minLength',
+                    specifiedAs: { minLength: 5 },
+                    reason: 'specified string length was not satisfied',
+                    consideredValue: 'Foo'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+  });
+
+  it('should fail insert a document with too long name', () => {
+    return expect(users.insertOne({
+      name: "A too long name"
+    }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'User object validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                propertyName: 'name',
+                description: "'name' must be a string",
+                details: [
+                  {
+                    operatorName: 'maxLength',
+                    specifiedAs: { maxLength: 10 },
+                    reason: 'specified string length was not satisfied',
+                    consideredValue: 'A too long name'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+  });
+});
+
 describe('json schema validation on array', () => {
   let posts: Collection;
 
@@ -531,6 +625,7 @@ describe('query for valid documents', () => {
 
   const myschema = {
     $jsonSchema: {
+      type: "object",
       required: [ "item", "qty", "instock" ],
       properties: {
         item: { type: "string" },

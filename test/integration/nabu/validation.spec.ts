@@ -220,6 +220,7 @@ describe('query for valid documents', () => {
 
   const myschema = {
     $jsonSchema: {
+      type: "object",
       required: [ "item", "qty", "instock" ],
       properties: {
         item: { type: "string" },

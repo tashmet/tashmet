@@ -59,11 +59,11 @@ function makeProperty(sequence: SchemaDefinition[], depth: number) {
   return result;
 }
 
-function makeComparison(operatorName: string, def: SchemaDefinition) {
+function makeComparison(operatorName: string, def: SchemaDefinition, reason: string = 'comparison failed') {
   return {
     operatorName,
     specifiedAs: { [operatorName]: def.value },
-    reason: 'comparison failed',
+    reason,
     consideredValue: def.instance,
   };
 }
@@ -114,6 +114,9 @@ function makeOperator(sequence: SchemaDefinition[], depth: number): Document {
           makeOperator(sequence, depth + 1)
         ]
       };
+    case 'minLength':
+    case 'maxLength':
+      return makeComparison(operatorName, def, 'specified string length was not satisfied');
     case 'minimum':
     case 'maximum':
     case 'exclusiveMinimum':
