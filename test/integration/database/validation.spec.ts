@@ -375,7 +375,8 @@ describe('json schema validation on array', () => {
               items: {
                 type: "string"
               },
-              minItems: 1
+              minItems: 1,
+              uniqueItems: true
             },
           }
         }
@@ -457,6 +458,71 @@ describe('json schema validation on array', () => {
           }
         ]
       });
+  });
+
+  it('should fail to insert a document with non-array type', () => {
+    return expect(posts.insertOne({ tags: 'tag1' }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Array validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                propertyName: 'tags',
+                description: 'tags must be array of strings with at least one item',
+                details: [
+                  {
+                    consideredType: "string",
+                    consideredValue: "tag1",
+                    operatorName: "type",
+                    reason: "type did not match",
+                    specifiedAs: {
+                      type: "array"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+    });
+  });
+
+  it('should fail to insert a document when items are not unique', () => {
+    return expect(posts.insertOne({ tags: ['tag1', 'tag1'] }))
+      .to.eventually.be.rejectedWith(TashmetServerError, 'Document failed validation')
+      .that.has.property('errInfo')
+      .that.has.property('details')
+      .that.eql({
+        operatorName: '$jsonSchema',
+        title: 'Array validation',
+        schemaRulesNotSatisfied: [
+          {
+            operatorName: 'properties',
+            propertiesNotSatisfied: [
+              {
+                propertyName: 'tags',
+                description: 'tags must be array of strings with at least one item',
+                details: [
+                  {
+                    consideredValue: ["tag1", "tag1"],
+                    operatorName: "uniqueItems",
+                    reason: "items are not unique",
+                    specifiedAs: {
+                      uniqueItems: true
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+    });
   });
 });
 

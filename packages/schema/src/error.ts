@@ -113,7 +113,7 @@ function makeOperator(sequence: SchemaDefinition[], depth: number): Document {
         details: [
           makeOperator(sequence, depth + 1)
         ]
-      }
+      };
     case 'minimum':
     case 'maximum':
     case 'exclusiveMinimum':
@@ -122,6 +122,13 @@ function makeOperator(sequence: SchemaDefinition[], depth: number): Document {
     case 'minItems':
     case 'maxItems':
       return makeArrayLengthComparison(operatorName, def);
+    case 'uniqueItems':
+      return {
+        operatorName,
+        specifiedAs: { [operatorName]: def.value },
+        reason: 'items are not unique',
+        consideredValue: def.instance,
+      }
     default:
       return {};
   }
