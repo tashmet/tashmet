@@ -23,10 +23,13 @@ describe('query validation', () => {
           defaultIO: 'json',
         })
         .use(mingo())
-        .io('json', ns => Nabu
-          .json()
-          .directory(`${ns.db}/${ns.collection}`, '.json')
-        )
+        .io('json', ns => ({
+          directory: {
+            path: `${ns.db}/${ns.collection}`,
+            extension: '.json',
+            format: 'json',
+          }
+        }))
         .bootstrap();
 
       const tashmet = await Tashmet.connect(store.proxy());
@@ -67,10 +70,13 @@ describe('query validation', () => {
           defaultIO: 'json',
         })
         .use(mingo())
-        .io('json', ns => Nabu
-          .json()
-          .directory(`${ns.db}/${ns.collection}`, '.json')
-        )
+        .io('json', ns => ({
+          directory: {
+            path: `${ns.db}/${ns.collection}`,
+            extension: '.json',
+            format: 'json',
+          }
+        }))
         .bootstrap();
 
       const tashmet = await Tashmet.connect(store.proxy());
@@ -133,10 +139,13 @@ describe('json schema validation', () => {
         defaultIO: 'json',
       })
       .use(mingo())
-      .io('json', ns => Nabu
-        .json()
-        .directory(`${ns.db}/${ns.collection}`, '.json')
-      )
+      .io('json', ns => ({
+        directory: {
+          path: `${ns.db}/${ns.collection}`,
+          extension: '.json',
+          format: 'json',
+        }
+      }))
       .bootstrap();
 
     const tashmet = await Tashmet.connect(store.proxy());
@@ -245,10 +254,13 @@ describe('query for valid documents', () => {
         defaultIO: 'json',
       })
       .use(mingo())
-      .io('json', ns => Nabu
-        .json()
-        .directory(`${ns.db}/${ns.collection}`, '.json')
-      )
+      .io('json', ns => ({
+        directory: {
+          path: `${ns.db}/${ns.collection}`,
+          extension: '.json',
+          format: 'json',
+        }
+      }))
       .bootstrap();
 
     const tashmet = await Tashmet.connect(store.proxy());

@@ -10,13 +10,8 @@ const store = Nabu
     logFormat: terminal(),
   })
   .use(mingo())
-  .io('md+yaml', (ns, options) => Nabu
-    .yaml({
-      frontMatter: true,
-      contentKey: options.contentKey || 'content',
-    })
-    .directory(`./${ns.db}/${ns.collection}`, '.md')
-  )
-  .bootstrap()
+  .bootstrap();
 
-new TashmetServer(store).listen(8080);
+store.load().then(() => {
+  new TashmetServer(store).listen(8080);
+});

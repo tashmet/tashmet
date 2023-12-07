@@ -2,7 +2,7 @@ import Ajv from "ajv"
 import { Container } from "@tashmet/core";
 import { op, OperatorContext, OperatorPluginConfigurator, ValidationError } from "@tashmet/engine";
 import { Document } from "@tashmet/tashmet";
-import { makeError, mergeError } from "./error";
+import { makeError, mergeError } from "./error.js";
 
 export class AjvJsonSchemaOperators {
   @op.query('$jsonSchema')

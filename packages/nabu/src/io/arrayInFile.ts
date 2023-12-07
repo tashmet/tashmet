@@ -1,5 +1,6 @@
 import { Document } from '@tashmet/tashmet';
 import { BufferIO } from '../interfaces.js';
+import { FileFormat } from './content.js';
 
 export interface ArrayInFileOptions {
   id?: string | Document;
@@ -26,8 +27,7 @@ export interface ArrayInFileOptions {
 export class ArrayInFileIO extends BufferIO {
   public constructor(
     public readonly path: string,
-    private reader: (expr: any) => Document,
-    private writer: (expr: any) => Document,
+    private format: FileFormat,
     private options: ArrayInFileOptions = {}
   ) { super(); }
 
@@ -43,7 +43,7 @@ export class ArrayInFileIO extends BufferIO {
     const pipeline: Document[] = [
       { $documents: [{ _id: this.path }] },
       { $glob: { pattern: '$_id'} },
-      { $project: { content: this.reader({ $readFile: '$_id' }) } },
+      { $project: { content: this.format.reader({ $readFile: '$_id' }) } },
       { $replaceRoot: { newRoot: { items: field } } },
       { $unwind: { path: '$items', includeArrayIndex: index } },
       { $replaceRoot: { newRoot: { $mergeObjects: merge } } },
@@ -80,7 +80,7 @@ export class ArrayInFileIO extends BufferIO {
           content: {
             $cond: {
               if: { $fileExists: this.path },
-              then: this.reader({ $readFile: this.path }),
+              then: this.format.reader({ $readFile: this.path }),
               else: {}
             }
           }
@@ -95,7 +95,7 @@ export class ArrayInFileIO extends BufferIO {
 
     pipeline.push(
       { $writeFile: {
-        content: this.writer('$content'),
+        content: this.format.writer('$content'),
         to: '$_id',
         overwrite: true
       } }

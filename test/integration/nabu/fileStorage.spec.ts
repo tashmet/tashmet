@@ -29,10 +29,13 @@ describe('fileStorage', () => {
       .configure({
         defaultIO: 'json'
       })
-      .io('json', ns => Nabu
-        .json()
-        .directory(`test/${ns.db}/${ns.collection}`, '.json')
-      )
+      .io('json', ns => ({
+        directory: {
+          path: `test/${ns.db}/${ns.collection}`,
+          extension: '.json',
+          format: 'json',
+        }
+      }))
       .use(mingo())
       .bootstrap();
 

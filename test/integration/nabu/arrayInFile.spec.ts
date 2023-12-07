@@ -31,10 +31,13 @@ describe('arrayInFile', () => {
       .configure({
         defaultIO: 'json'
       })
-      .io('json', ns => Nabu
-        .json()
-        .arrayInFile(`test/${ns.db}.json`, { field: ns.collection })
-      )
+      .io('json', ns => ({
+        arrayInFile: {
+          path: `test/${ns.db}.json`,
+          format: 'json',
+          field: ns.collection
+        }
+      }))
       .use(mingo())
       .bootstrap();
 

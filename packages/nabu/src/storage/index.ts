@@ -1,5 +1,5 @@
 import { Optional, provider } from '@tashmet/core';
-import { TashmetCollectionNamespace, CreateCollectionOptions } from '@tashmet/tashmet';
+import { TashmetCollectionNamespace, CreateCollectionOptions, Document } from '@tashmet/tashmet';
 import {
   CollectionFactory,
   ReadWriteCollection,
@@ -15,6 +15,8 @@ import {
 } from '../interfaces.js';
 import { StreamCollection } from './streamCollection.js';
 import { BufferCollection } from './bufferCollection.js';
+import { makeIO } from '../io/index.js';
+
 
 @provider({
   inject: [
@@ -33,14 +35,25 @@ export class NabuCollectionFactory extends CollectionFactory {
   ) { super(); }
 
   createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
-    const mergedOptions = {...options, storageEngine: options.storageEngine || { io: this.config.defaultIO } };
+    const store: Document | string = options.storageEngine || this.config.defaultIO;
 
-    if (mergedOptions.storageEngine.io === 'memory') {
-      return this.memory.createCollection(ns, mergedOptions);
+    if (store === 'memory') {
+      return this.memory.createCollection(ns, options);
     }
 
-    const ioName = mergedOptions.storageEngine?.io;
-    const io = this.config.io[ioName](ns, mergedOptions.storageEngine || {});
+    const makeIOHelper = (store: Document | string): StreamIO | BufferIO => {
+      if (typeof store === 'string') {
+        if (store in this.config.io) {
+          return makeIO(this.config.io[store](ns, options.storageEngine || {}));
+        } else {
+          throw new Error('Unsupported IO: ' + store);
+        }
+      }
+      return makeIO(store);
+    }
+
+    const io = makeIOHelper(store);
+
     let validator: Validator | undefined;
 
     if (this.validatorFactory && options.validator) {
@@ -55,11 +68,11 @@ export class NabuCollectionFactory extends CollectionFactory {
     }
 
     if (io instanceof BufferIO) {
-      const buffer = this.memory.createCollection(ns, mergedOptions);
+      const buffer = this.memory.createCollection(ns, options);
 
       return new BufferCollection(ns, io.path, input, output, buffer);
     }
 
-    throw Error('Unsupported IO');
+    throw Error('Unsupported IO type');
   }
 }

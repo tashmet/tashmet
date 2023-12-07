@@ -1,12 +1,12 @@
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import { StreamIO } from '../interfaces.js';
+import { FileFormat } from './content.js';
 
 
 export class FileStreamIO extends StreamIO {
   public constructor(
     public path: (id?: string) => string,
-    private reader: (expr: any) => Document,
-    private writer: (expr: any) => Document,
+    private format: FileFormat,
     private merge: Document = {},
     private assign: Document = {}
   ) { super(); }
@@ -18,7 +18,7 @@ export class FileStreamIO extends StreamIO {
         _id: 0,
         path: '$_id',
         stats: { $lstat: '$_id' },
-        content: this.reader({ $readFile: '$_id' }),
+        content: this.format.reader({ $readFile: '$_id' }),
       } },
       { $replaceRoot: { newRoot: { $mergeObjects: [ this.merge, '$content' ] } } },
       { $set: this.assign },
@@ -49,7 +49,7 @@ export class FileStreamIO extends StreamIO {
         },
       } },
       { $unset: Object.keys(this.assign) },
-      { $set: { content: this.writer('$content') } },
+      { $set: { content: this.format.writer('$content') } },
       { $writeFile: {
         content: {
           $cond: {

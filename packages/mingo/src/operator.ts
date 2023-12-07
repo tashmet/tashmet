@@ -1,7 +1,6 @@
-import { ExpressionOperator, QueryOperator } from '@tashmet/engine';
+import { ExpressionOperator, QueryOperator, OperatorContext } from '@tashmet/engine';
 import { setValue, removeValue, resolve } from 'mingo/util';
 import * as mingo from 'mingo/core';
-import { OperatorContext } from '@tashmet/engine';
 
 
 export class MingoOperatorContext implements OperatorContext {

@@ -3,6 +3,7 @@ import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { FileSystemOptions } from '@tashmet/fs';
 import { MarkdownOptions } from '@tashmet/markdown';
+import { ArrayInFileOptions } from './io/arrayInFile';
 
 export type Encoding =
   'utf-8' |
@@ -33,7 +34,7 @@ export abstract class StreamIO extends IO {
   public abstract path(id?: string): string;
 }
 
-export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => IO;
+export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => Document;
 
 export interface NabuConfig {
   io: Record<string, NabuIOConfig>;

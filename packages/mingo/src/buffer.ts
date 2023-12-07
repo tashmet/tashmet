@@ -2,7 +2,7 @@ import { TashmetCollectionNamespace } from '@tashmet/tashmet';
 import { ChangeSet, Store, QueryPlan } from '@tashmet/engine';
 import { Document } from '@tashmet/tashmet';
 import { cloneDeep } from 'mingo/util';
-import { toArray } from './util';
+import { toArray } from './util.js';
 
 export class CollectionBuffer {
   private buffers: Record<string, Document[]> = {};

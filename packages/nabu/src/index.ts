@@ -11,6 +11,7 @@ import {
 import {
   AggregationCursor,
   Document,
+  TashmetCollectionNamespace,
   TashmetNamespace
 } from '@tashmet/tashmet';
 import {
@@ -33,25 +34,15 @@ import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
   NabuConfig,
   NabuIOConfig,
-  BufferIO,
   StreamIO,
 } from './interfaces.js';
-import { YamlContentRule, YamlIORule } from './io/yaml.js';
-import { JsonIORule } from './io/json.js';
 import { NabuCollectionFactory } from './storage/index.js';
+import { makeIO } from './io/index.js';
 
 export * from './interfaces.js';
 
 @provider()
 export default class Nabu extends StorageEngine {
-  static json() {
-    return new JsonIORule();
-  }
-
-  static yaml(config: YamlContentRule = {}) {
-    return new YamlIORule(config);
-  }
-
   private commandRunner: CommandRunner;
 
   constructor(
@@ -75,6 +66,22 @@ export default class Nabu extends StorageEngine {
       .use(Json(config.json))
       .use(Yaml(config.yaml))
       .use(Markdown(config.markdown))
+  }
+
+  async load() {
+    const cursor = this.read({
+      arrayInFile: {
+        path:'nabu.yaml',
+        field: 'collections'
+      }
+    });
+
+    for await (const doc of cursor) {
+      const { ns: nsString, store: storageEngine, ...rest } = doc;
+      const ns = TashmetCollectionNamespace.fromString(nsString);
+
+      await this.command(ns, { create: ns.collection, storageEngine, ...rest });
+    }
   }
 
   /**
@@ -113,40 +120,16 @@ export default class Nabu extends StorageEngine {
   }
 
   read<TSchema extends Document = Document>(
-    io: BufferIO | StreamIO,
+    reader: Document,
     pipeline: Document[] = []
   ): AggregationCursor<TSchema> {
+    const io = makeIO(reader);
+
     const p: Document[] = io instanceof StreamIO
       ? [{ _id: io.path() }, ...pipeline]
       : pipeline;
 
     return new AggregationCursor(new TashmetNamespace('nabu'), this.proxy(), io.input.concat(...p));
-  }
-
-  /**
-   * Create an aggregation cursor based on reading JSON files
-   * 
-   * @param pattern A glob pattern
-   * @param pipeline An optional aggregation pipeline
-   * @returns An aggregation cursor
-   */
-  json<TSchema extends Document>(
-    pattern: string, pipeline: Document[] = []
-  ): AggregationCursor<TSchema> {
-    return this.read(Nabu.json().glob(pattern), pipeline);
-  }
-
-  /**
-   * Create an aggregation cursor based on reading YAML files
-   * 
-   * @param pattern A glob pattern
-   * @param pipeline An optional aggregation pipeline
-   * @returns An aggregation cursor
-   */
-  yaml<TSchema extends Document>(
-    pattern: string, options?: YamlContentRule, pipeline: Document[] = []
-  ): AggregationCursor<TSchema> {
-    return this.read(Nabu.yaml(options).glob(pattern), pipeline);
   }
 }
 

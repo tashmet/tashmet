@@ -1,0 +1,10 @@
+collections:
+  - ns: content.posts
+    store:
+      directory:
+        path: ./content/posts
+        extension: .md
+        format:
+          yaml:
+            frontMatter: true
+            contentKey: articleBody

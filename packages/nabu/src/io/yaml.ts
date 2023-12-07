@@ -1,7 +1,7 @@
 import { Document } from "@tashmet/tashmet";
-import { IORule } from "./content.js";
+import { FileFormat } from "./content.js";
 
-export interface YamlContentRule {
+export interface YamlConfig {
   /**
    * If true, files contain the yaml as front matter
    */
@@ -16,10 +16,10 @@ export interface YamlContentRule {
   contentKey?: string;
 }
 
-export class YamlIORule extends IORule {
-  public constructor(private config: YamlContentRule = {}) { super(); }
+export class YamlFileFormat implements FileFormat {
+  public constructor(private config: YamlConfig = {}) {}
 
-  protected reader(expr: any): Document {
+  public reader(expr: any): Document {
     return {
       $yamlToObject: {
         frontMatter: this.config.frontMatter === true,
@@ -29,7 +29,7 @@ export class YamlIORule extends IORule {
     }
   }
 
-  protected writer(expr: any): Document {
+  public writer(expr: any): Document {
     return {
       $objectToYaml: {
         frontMatter: this.config.frontMatter === true,
