@@ -87,8 +87,8 @@ export class AggregationUpdateCommand extends UpdateCommand {
         break;
       case UpdateType.Replace:
         pipeline = [
-          {$project: {'_id': 1}},
-          {$set: u}
+          { $project: { _id: 1 } },
+          { $replaceRoot: { newRoot: { $mergeObjects: [{ _id: '$_id' }, { $literal: u }] } } }
         ];
         break;
     }

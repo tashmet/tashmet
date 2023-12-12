@@ -9,7 +9,7 @@ export class InsertCommand extends WriteCommand {
 
   async execute(): Promise<ChangeStreamDocument[]> {
     for (const doc of this.documents) {
-      if (!('_id' in doc)) {
+      if (!('_id' in doc) || doc._id === undefined) {
         doc._id = new ObjectID().toHexString();
       }
     }
