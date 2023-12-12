@@ -8,10 +8,9 @@ const store = Nabu
   .configure({
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
+    persistentState: db => `${db}.yaml`,
   })
   .use(mingo())
   .bootstrap();
 
-store.load().then(() => {
-  new TashmetServer(store).listen(8080);
-});
+new TashmetServer(store).listen(8080);

@@ -11,7 +11,7 @@ export class CommandAnnotation extends Annotation {
 export const command = (name: string) =>
   methodDecorator<CommandHandler>(({propertyKey}) => new CommandAnnotation(name, propertyKey));
 
-export type CommandHandler = (ns: TashmetNamespace, command: Document) => Promise<Document>;
+export type CommandHandler = (ns: TashmetNamespace, command: Document, cmdRunner: CommandRunner) => Promise<Document>;
 
 
 export class CommandRunner {
@@ -22,7 +22,7 @@ export class CommandRunner {
 
     for (const c of controllers) {
       for (const anno of CommandAnnotation.onClass(c.constructor, true)) {
-        commands[anno.name] = (ns, cmd) => c[anno.propertyKey](ns, cmd);
+        commands[anno.name] = (ns, cmd, cmdRunner) => c[anno.propertyKey](ns, cmd, cmdRunner);
       }
     }
     return new CommandRunner(commands);
@@ -39,7 +39,7 @@ export class CommandRunner {
     if (!this.commandNames.has(op)) {
       throw new Error(`Command ${op} is not supported`);
     }
-    return this.commands[`${op}`](ns, command);
+    return this.commands[`${op}`](ns, command, this);
   }
 
   static operation(command: Document): string {

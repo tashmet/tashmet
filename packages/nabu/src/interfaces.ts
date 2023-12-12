@@ -37,6 +37,8 @@ export abstract class StreamIO extends IO {
 export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => Document;
 
 export interface NabuConfig {
+  persistentState: false | ((dbName: string) => string);
+
   io: Record<string, NabuIOConfig>;
 
   defaultIO: string;

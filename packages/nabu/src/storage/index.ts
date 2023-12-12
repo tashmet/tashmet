@@ -35,24 +35,40 @@ export class NabuCollectionFactory extends CollectionFactory {
   ) { super(); }
 
   createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
-    const store: Document | string = options.storageEngine || this.config.defaultIO;
+    let store: Document | string = options.storageEngine || this.config.defaultIO;
+    const persistentState = this.config.persistentState;
+
+    if (ns.collection.startsWith('system')) {
+      if (persistentState) {
+        const path = persistentState(ns.db);
+        const parts = path.split('.');
+        const format = parts[parts.length - 1];
+
+        store = {
+          arrayInFile: { path, format, field: ns.collection.split('.')[1] }
+        };
+      } else {
+        store = 'memory';
+      }
+    }
 
     if (store === 'memory') {
       return this.memory.createCollection(ns, options);
     }
 
-    const makeIOHelper = (store: Document | string): StreamIO | BufferIO => {
+    const resolveStoreConfig = (store: Document | string) => {
       if (typeof store === 'string') {
         if (store in this.config.io) {
-          return makeIO(this.config.io[store](ns, options.storageEngine || {}));
+          return this.config.io[store](ns, options.storageEngine || {});
         } else {
           throw new Error('Unsupported IO: ' + store);
         }
       }
-      return makeIO(store);
+      return store;
     }
 
-    const io = makeIOHelper(store);
+    const config = resolveStoreConfig(store);
+    const io = makeIO(config);
 
     let validator: Validator | undefined;
 

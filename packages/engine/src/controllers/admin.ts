@@ -1,5 +1,5 @@
 import { Document, TashmetNamespace } from '@tashmet/tashmet';
-import { command } from '../command.js';
+import { command, CommandRunner } from '../command.js';
 import { CollectionFactory, ViewMap } from '../interfaces.js';
 import { Store } from '../store.js';
 
@@ -11,8 +11,9 @@ export class AdminController {
   ) {}
 
   @command('create')
-  async create(ns: TashmetNamespace, {create: name, viewOn, pipeline, ...options}: Document) {
+  async create(ns: TashmetNamespace, {create: name, viewOn, pipeline, ...options}: Document, cmdRunner: CommandRunner) {
     const fullNs = ns.withCollection(name);
+    const systemNs = ns.withCollection('system.collections');
 
     if (viewOn) {
       if (this.views) {
@@ -25,7 +26,20 @@ export class AdminController {
       this.store.addCollection(coll);
     }
 
-    return {ok: 1};
+    await cmdRunner.command(systemNs, {
+      update: systemNs.collection,
+      updates: [
+        {
+          q: { _id: name },
+          u: { _id: name, ...options },
+          upsert: true,
+          multi: false,
+        }
+      ],
+      ordered: true,
+    });
+
+    return { ok: 1 };
   }
 
   @command('drop')
@@ -36,6 +50,6 @@ export class AdminController {
       this.store.dropCollection(ns.withCollection(name));
     }
     this.store.emit('change', { operationType: 'drop', ns: { db: ns.db, coll: name } });
-    return {ok: 1};
+    return { ok: 1 };
   }
 }

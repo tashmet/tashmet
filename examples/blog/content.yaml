@@ -1,6 +1,6 @@
 collections:
-  - ns: content.posts
-    store:
+  - _id: posts
+    storageEngine:
       directory:
         path: ./content/posts
         extension: .md

@@ -1,6 +1,5 @@
 import {
   provider,
-  Optional,
   PluginConfigurator,
   BootstrapConfig,
   createContainer,
@@ -124,7 +123,7 @@ export default class Memory extends StorageEngine {
   constructor(
     private engine: AggregationEngine,
     private store: Store,
-    collectionFactory: CollectionFactory,
+    private collectionFactory: CollectionFactory,
   ) {
     super();
     const views: ViewMap = {};
@@ -140,8 +139,24 @@ export default class Memory extends StorageEngine {
     return new MemoryConfigurator(Memory, createContainer({logLevel: LogLevel.None, ...config}));
   }
 
-  command(ns: TashmetNamespace, command: Document): Promise<Document> {
+  async command(ns: TashmetNamespace, command: Document): Promise<Document> {
+    await this.initNamespace(ns);
+
     return this.commandRunner.command(ns, command);
+  }
+
+  private async initNamespace(ns: TashmetNamespace) {
+    const systemNs = ns.withCollection('system.collections');
+
+    if (!this.store.hasCollection(systemNs)) {
+      const coll = this.collectionFactory.createCollection(systemNs, {});
+      this.store.addCollection(coll);
+
+      for await (const doc of coll.read()) {
+        const { _id, ...options } = doc;
+        await this.command(ns, { create: _id, ...options });
+      }
+    }
   }
 }
 

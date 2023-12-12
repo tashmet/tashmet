@@ -11,7 +11,6 @@ import {
 import {
   AggregationCursor,
   Document,
-  TashmetCollectionNamespace,
   TashmetNamespace
 } from '@tashmet/tashmet';
 import {
@@ -48,7 +47,7 @@ export default class Nabu extends StorageEngine {
   constructor(
     engine: AggregationEngine,
     private store: Store,
-    collectionFactory: CollectionFactory,
+    private collectionFactory: CollectionFactory,
   ) {
     super();
     const views: ViewMap = {};
@@ -68,26 +67,12 @@ export default class Nabu extends StorageEngine {
       .use(Markdown(config.markdown))
   }
 
-  async load() {
-    const cursor = this.read({
-      arrayInFile: {
-        path:'nabu.yaml',
-        field: 'collections'
-      }
-    });
-
-    for await (const doc of cursor) {
-      const { ns: nsString, store: storageEngine, ...rest } = doc;
-      const ns = TashmetCollectionNamespace.fromString(nsString);
-
-      await this.command(ns, { create: ns.collection, storageEngine, ...rest });
-    }
-  }
-
   /**
    * Run a command against the storage enegine
    */
-  command(ns: TashmetNamespace, command: Document): Promise<Document> {
+  async command(ns: TashmetNamespace, command: Document): Promise<Document> {
+    await this.initNamespace(ns);
+
     return this.commandRunner.command(ns, command);
   }
 
@@ -131,11 +116,25 @@ export default class Nabu extends StorageEngine {
 
     return new AggregationCursor(new TashmetNamespace('nabu'), this.proxy(), io.input.concat(...p));
   }
+
+  private async initNamespace(ns: TashmetNamespace) {
+    const systemNs = ns.withCollection('system.collections');
+
+    if (!this.store.hasCollection(systemNs)) {
+      const coll = this.collectionFactory.createCollection(systemNs, {});
+      this.store.addCollection(coll);
+
+      for await (const doc of coll.read()) {
+        const { _id, ...options } = doc;
+        await this.command(ns, { create: _id, ...options });
+      }
+    }
+  }
 }
 
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
-  config: NabuConfig = { io: {}, defaultIO: 'memory', json: {}, yaml: {}, fs: {}, markdown: {} };
+  config: NabuConfig = { persistentState: false, io: {}, defaultIO: 'memory', json: {}, yaml: {}, fs: {}, markdown: {} };
 
   constructor(container: Container, config: Partial<NabuConfig>) {
     super(Nabu, container);
