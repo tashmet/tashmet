@@ -1,7 +1,5 @@
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
-import { StreamIO } from '../interfaces.js';
-import { FileFormat } from './content.js';
-
+import { FileFormat, StreamIO } from '../interfaces.js';
 
 export class FileStreamIO extends StreamIO {
   public constructor(

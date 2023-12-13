@@ -1,6 +1,6 @@
 import { Document } from '@tashmet/tashmet';
 import { BufferIO } from '../interfaces.js';
-import { FileFormat } from './content.js';
+import { FileFormat } from '../interfaces.js';
 
 export interface ArrayInFileOptions {
   id?: string | Document;

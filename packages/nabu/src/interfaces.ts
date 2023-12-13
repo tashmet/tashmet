@@ -3,7 +3,6 @@ import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { FileSystemOptions } from '@tashmet/fs';
 import { MarkdownOptions } from '@tashmet/markdown';
-import { ArrayInFileOptions } from './io/arrayInFile';
 
 export type Encoding =
   'utf-8' |
@@ -53,3 +52,14 @@ export interface NabuConfig {
 }
 
 export abstract class NabuConfig implements NabuConfig {}
+
+export interface ContentRuleOptions {
+  merge?: Document;
+
+  construct?: Document;
+}
+
+export interface FileFormat {
+  reader(expr: any): Document;
+  writer(expr: any): Document;
+}

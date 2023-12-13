@@ -1,8 +1,8 @@
 import { Document } from '@tashmet/tashmet';
 import { FileStreamIO } from '../io/fileStream.js';
 import { ArrayInFileIO } from '../io/arrayInFile.js';
-import { YamlFileFormat } from '../io/yaml.js';
-import { JsonFileFormat } from '../io/json.js';
+import { YamlFileFormat } from '../format/yaml.js';
+import { JsonFileFormat } from '../format/json.js';
 import { BufferIO, StreamIO } from '../interfaces.js';
 import { ObjectInFileIO } from './objectInFile.js';
 
