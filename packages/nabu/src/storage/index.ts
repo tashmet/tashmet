@@ -45,7 +45,7 @@ export class NabuCollectionFactory extends CollectionFactory {
         const format = parts[parts.length - 1];
 
         store = {
-          arrayInFile: { path, format, field: ns.collection.split('.')[1] }
+          objectInFile: { path, format, field: ns.collection.split('.')[1] }
         };
       } else {
         store = 'memory';

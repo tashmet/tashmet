@@ -4,6 +4,7 @@ import { ArrayInFileIO } from '../io/arrayInFile.js';
 import { YamlFileFormat } from '../io/yaml.js';
 import { JsonFileFormat } from '../io/json.js';
 import { BufferIO, StreamIO } from '../interfaces.js';
+import { ObjectInFileIO } from './objectInFile.js';
 
 export function makeFileFormat(format: string | Document) {
   const formatName = typeof format === 'object'
@@ -53,6 +54,10 @@ export function makeArrayInFileIO({path, format, ...options}: Document) {
   return new ArrayInFileIO(path, makeFileFormat(format), options);
 }
 
+export function makeObjectInFileIO({path, format, ...options}: Document) {
+  return new ObjectInFileIO(path, makeFileFormat(format), options);
+}
+
 export function makeIO(store: Document): StreamIO | BufferIO {
   const name = Object.keys(store)[0];
   const config = store[name];
@@ -64,6 +69,8 @@ export function makeIO(store: Document): StreamIO | BufferIO {
       return makeGlobIO(config);
     case 'arrayInFile':
       return makeArrayInFileIO(config);
+    case 'objectInFile':
+      return makeObjectInFileIO(config);
     default:
       throw new Error('Unsupported IO: ' + name);
   }
