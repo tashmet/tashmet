@@ -3,6 +3,8 @@ import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { FileSystemOptions } from '@tashmet/fs';
 import { MarkdownOptions } from '@tashmet/markdown';
+import { ArrayInFileOptions } from './io/arrayInFile';
+import { ObjectInFileOptions } from './io/objectInFile';
 
 export type Encoding =
   'utf-8' |
@@ -63,3 +65,35 @@ export interface FileFormat {
   reader(expr: any): Document;
   writer(expr: any): Document;
 }
+
+export interface ArrayInFile extends ArrayInFileOptions{
+  path: string;
+
+  format: FileFormat | string;
+}
+
+export interface ObjectInFile extends ObjectInFileOptions {
+  path: string;
+
+  format: FileFormat | string;
+}
+
+export interface Directory extends ContentRuleOptions {
+  path: string;
+
+  extension: string;
+
+  format: string;
+}
+
+export interface Glob extends ContentRuleOptions {
+  pattern: string;
+
+  format: string;
+}
+
+export type IODescription = 
+  { arrayInFile: ArrayInFile } |
+  { objectInFile: ObjectInFile } |
+  { directory: Directory } |
+  { glob: Glob };

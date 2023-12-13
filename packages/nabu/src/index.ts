@@ -31,6 +31,7 @@ import Fs from '@tashmet/fs';
 import Markdown from '@tashmet/markdown';
 import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
+  IODescription,
   NabuConfig,
   NabuIOConfig,
   StreamIO,
@@ -105,10 +106,10 @@ export default class Nabu extends StorageEngine {
   }
 
   read<TSchema extends Document = Document>(
-    reader: Document,
+    ioDescription: IODescription,
     pipeline: Document[] = []
   ): AggregationCursor<TSchema> {
-    const io = makeIO(reader);
+    const io = makeIO(ioDescription);
 
     const p: Document[] = io instanceof StreamIO
       ? [{ _id: io.path() }, ...pipeline]
