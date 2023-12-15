@@ -1,5 +1,6 @@
 import { Document } from '@tashmet/tashmet';
 import { FileFormat, BufferIO } from '../interfaces.js';
+import { makeFileFormat } from '../format/index.js';
 
 export interface ObjectInFileOptions {
   /**
@@ -17,6 +18,14 @@ export interface ObjectInFileOptions {
 }
 
 export class ObjectInFileIO extends BufferIO {
+  static fromConfig({path, format, ...options}: Document) {
+    if (typeof path !== 'string') {
+      throw new Error('Failed create objectInFile, path is not a string');
+    }
+
+    return new ObjectInFileIO(path, makeFileFormat(format), options);
+  }
+
   public constructor(
     public readonly path: string,
     private format: FileFormat,

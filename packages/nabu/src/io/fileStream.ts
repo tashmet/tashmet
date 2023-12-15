@@ -1,7 +1,42 @@
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import { FileFormat, StreamIO } from '../interfaces.js';
+import { makeFileFormat } from '../format/index.js';
 
 export class FileStreamIO extends StreamIO {
+  static fromGlob({pattern, format, ...options}: Document) {
+    if (typeof pattern !== 'string') {
+      throw new Error('Failed create glob IO, pattern is not a string');
+    }
+
+    const merge = Object.assign(
+      {}, options?.merge, { _id: '$path' }
+    );
+
+    return new FileStreamIO(
+      id => id ? id : pattern,
+      makeFileFormat(format),
+      merge,
+      options?.construct
+    );
+  }
+
+  static fromDirectory({path, extension, format, ...options}: Document) {
+    if (typeof path !== 'string') {
+      throw new Error('Failed create directory IO, path is not a string');
+    }
+
+    const merge = Object.assign(
+      {}, options?.merge, { _id: { $basename: ['$path', { $extname: '$path' }] } }
+    );
+
+    return new FileStreamIO(
+      id => id ? `${path}/${id}${extension}` : `${path}/*${extension}`,
+      makeFileFormat(format),
+      merge,
+      options?.construct
+    );
+  }
+
   public constructor(
     public path: (id?: string) => string,
     private format: FileFormat,
