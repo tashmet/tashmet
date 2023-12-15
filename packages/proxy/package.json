@@ -37,6 +37,7 @@
 	"devDependencies": {
 		"@types/node": "^20.5.3",
 		"@types/reflect-metadata": "^0.1.0",
+		"@types/socket.io-client": "^3.0.0",
 		"tslib": "^2.3.1"
 	},
 	"gitHead": "dbbd23f63f1ea960d230cc15e50cacadac01949b"
