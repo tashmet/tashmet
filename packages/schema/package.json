@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/schema",
-	"version": "1.0.0-alpha.5",
+	"version": "1.0.0-alpha.6",
 	"description": "JSON operators",
 	"type": "module",
 	"main": "dist/index.js",
@@ -21,8 +21,8 @@
 	},
 	"dependencies": {
 		"@tashmet/core": "^1.0.0-alpha.5",
-		"@tashmet/engine": "^1.0.0-alpha.5",
-		"@tashmet/tashmet": "^1.0.0-alpha.5",
+		"@tashmet/engine": "^1.0.0-alpha.6",
+		"@tashmet/tashmet": "^1.0.0-alpha.6",
 		"ajv": "^8.12.0"
 	},
 	"devDependencies": {

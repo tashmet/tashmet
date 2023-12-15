@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/server",
-	"version": "1.0.0-alpha.5",
+	"version": "1.0.0-alpha.6",
 	"description": "",
 	"type": "module",
 	"main": "dist/index.js",
@@ -31,8 +31,8 @@
 	],
 	"dependencies": {
 		"@tashmet/core": "^1.0.0-alpha.5",
-		"@tashmet/engine": "^1.0.0-alpha.5",
-		"@tashmet/tashmet": "^1.0.0-alpha.5",
+		"@tashmet/engine": "^1.0.0-alpha.6",
+		"@tashmet/tashmet": "^1.0.0-alpha.6",
 		"socket.io": "^4.7.2"
 	},
 	"devDependencies": {
