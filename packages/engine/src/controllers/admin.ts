@@ -11,13 +11,13 @@ export class AdminController {
   ) {}
 
   @command('create')
-  async create(ns: TashmetNamespace, {create: name, viewOn, pipeline, ...options}: Document, cmdRunner: CommandRunner) {
+  async create(ns: TashmetNamespace, {create: name, ...options}: Document, cmdRunner: CommandRunner) {
     const fullNs = ns.withCollection(name);
     const systemNs = ns.withCollection('system.collections');
 
-    if (viewOn) {
+    if (options.viewOn) {
       if (this.views) {
-        this.views[fullNs.toString()] = {viewOn, pipeline};
+        this.views[fullNs.toString()] = {viewOn: options.viewOn, pipeline: options.pipeline};
       } else {
         throw new Error('views are not supported by the storage engine');
       }
