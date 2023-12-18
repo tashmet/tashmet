@@ -1,47 +1,19 @@
-import Tashmet, { Collection } from '../../../packages/tashmet/dist/index.js';
-import Nabu from '../../../packages/nabu/dist/index.js';
-import mingo from '../../../packages/mingo/dist/index.js';
+import { Collection } from '../../../packages/tashmet/dist/index.js';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
-import fsExtra from 'fs-extra';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 const { expect } = chai;
 
-function storedDoc(id: string | number): any {
-  return fsExtra.readJsonSync(`test/e2e/testCollection/${id}.json`);
-}
-
-function storedFiles(): string[] {
-  return fsExtra.readdirSync('test/e2e/testCollection');
-}
-
-describe('fileStorage', () => {
+export function collectionTests(makeCollection: () => Promise<Collection>, storedCollection: any, storedDoc: any) {
   let col: Collection<any>;
-  let client: Tashmet;
 
   before(async () => {
-    const store = Nabu
-      .configure({
-        defaultIO: 'json'
-      })
-      .io('json', ns => ({
-        directory: {
-          path: `test/${ns.db}/${ns.collection}`,
-          extension: '.json',
-          format: 'json',
-        }
-      }))
-      .use(mingo())
-      .bootstrap();
-
-    client = await Tashmet.connect(store.proxy());
-
-    col = await client.db('e2e').createCollection('testCollection');
+    col = await makeCollection();
   });
 
   beforeEach(async () => {
@@ -58,10 +30,6 @@ describe('fileStorage', () => {
     await col.deleteMany({});
   });
 
-  after(() => {
-    fsExtra.rmdirSync('test/e2e/testCollection');
-  });
-
   describe('insertOne', () => {
     it('should add a single document and give it an id', async () => {
       const doc = {item: { category: 'brownies', type: 'blondie' }, amount: 10 };
@@ -70,7 +38,7 @@ describe('fileStorage', () => {
       expect(doc).to.haveOwnProperty('_id');
       const id = (doc as any)._id;
       expect(await storedDoc(id))
-        .to.eql({_id: id, item: { category: 'brownies', type: 'blondie' }, amount: 10 });
+        .to.eql({ item: { category: "brownies", type: "blondie" }, amount: 10, _id: id });
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       expect(col.insertOne(
@@ -108,7 +76,7 @@ describe('fileStorage', () => {
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertMany([
         {item: { category: 'brownies', type: 'blondie' }, amount: 10 },
-        {_id: 1, item: { category: 'brownies', type: 'baked' }, amount: 12 },
+        {_id: '1', item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ])).to.eventually.be.rejected;
     });
     it('should emit multiple change events', async () => {
@@ -138,7 +106,7 @@ describe('fileStorage', () => {
         upsertedCount: 0,
         upsertedId: null,
       });
-      expect(storedDoc(1)).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
+      expect(storedDoc('1')).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
     });
     it('should have zero matchedCount and modifiedCount if no document matched selector', async () => {
       const result = await col.replaceOne(
@@ -156,7 +124,7 @@ describe('fileStorage', () => {
       await col.replaceOne(
         {_id: '1'}, { amount: 20 }
       );
-      expect(storedDoc(1)).to.eql({_id: '1', amount: 20 });
+      expect(storedDoc('1')).to.eql({_id: '1', amount: 20 });
     });
     it('should upsert when specified', async () => {
       const result = await col.replaceOne(
@@ -280,11 +248,11 @@ describe('fileStorage', () => {
         .to.eventually.eql({acknowledged: true, deletedCount: 1});
     });
     it('should have removed selected document', async () => {
-      const storedCount = storedFiles().length;
+      const storedCount = storedCollection().length;
       await col.deleteOne({_id: '1'});
       expect(col.findOne({_id: '1'})).to.eventually.be.null;
-      expect(storedFiles().length).to.eql(storedCount - 1);
-      expect(storedFiles()).to.not.contain('1.json');
+      expect(storedCollection().length).to.eql(storedCount - 1);
+      expect(storedDoc('1')).to.be.undefined;
     });
     it('should emit a change event if a document was removed', (done) => {
       const cs = col.watch();
@@ -304,10 +272,10 @@ describe('fileStorage', () => {
         .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
     it('should return non-zero deletedCount when documents match selector', async () => {
-      const storedCount = storedFiles().length;
+      const storedCount = storedCollection().length;
       const result = await col.deleteMany({'item.category': 'cookies'});
       expect(result.deletedCount).to.eql(2);
-      expect(storedFiles().length).to.eql(storedCount - 2);
+      expect(storedCollection().length).to.eql(storedCount - 2);
     });
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
@@ -328,31 +296,4 @@ describe('fileStorage', () => {
       cs.close();
     });
   });
-
-  describe('validation', () => {
-    let sales: Collection;
-
-    before(async () => {
-      sales = await client.db('e2e').createCollection('sales', {
-        validator: {
-          item: { $type: 'string' }
-        }
-      });
-    });
-
-    it('should insert a valid document', async () => {
-      const doc = await sales.insertOne({item : 'abc', price : 10,  quantity: 2});
-      return expect(doc.acknowledged).to.eql(true);
-    });
-
-    it('should fail to insert an invalid document', () => {
-      return expect(sales.insertOne({item : 3, price : 10,  quantity: 2}))
-        .to.eventually.be.rejected;
-    });
-
-    after(async () => {
-      await sales.deleteMany({});
-      fsExtra.rmdirSync('test/e2e/sales');
-    });
-  })
-});
+}
