@@ -7,28 +7,6 @@ import { collectionTests, StoreInspector } from '../collection.js';
 
 
 describe('directory', () => {
-  let client: Tashmet;
-
-  async function makeCollection() {
-    const store = Nabu
-      .configure({
-        defaultIO: 'json'
-      })
-      .io('json', ns => ({
-        directory: {
-          path: `test/${ns.db}/${ns.collection}`,
-          extension: '.json',
-          format: 'json',
-        }
-      }))
-      .use(mingo())
-      .bootstrap();
-
-    client = await Tashmet.connect(store.proxy());
-
-    return client.db('e2e').createCollection('testCollection');
-  }
-
   const storeInspector: StoreInspector = {
     ids: () => {
       return fsExtra.readdirSync('test/e2e/testCollection');
@@ -42,9 +20,24 @@ describe('directory', () => {
     }
   }
 
+  const proxy = Nabu
+    .configure({
+      defaultIO: 'json'
+    })
+    .io('json', ns => ({
+      directory: {
+        path: `test/${ns.db}/${ns.collection}`,
+        extension: '.json',
+        format: 'json',
+      }
+    }))
+    .use(mingo())
+    .bootstrap()
+    .proxy();
+
   after(() => {
     fsExtra.rmdirSync('test/e2e/testCollection');
   });
 
-  collectionTests(makeCollection, storeInspector);
+  collectionTests(proxy, storeInspector);
 });

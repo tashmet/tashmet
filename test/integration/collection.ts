@@ -1,4 +1,4 @@
-import { Collection } from '@tashmet/tashmet';
+import Tashmet, { Collection, TashmetProxy } from '@tashmet/tashmet';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -15,11 +15,12 @@ export interface StoreInspector {
   document(id: string): Document | undefined;
 }
 
-export function collectionTests(makeCollection: () => Promise<Collection>, storeInspector?: StoreInspector) {
+export function collectionTests(proxy: TashmetProxy, storeInspector?: StoreInspector) {
   let col: Collection<any>;
 
   before(async () => {
-    col = await makeCollection();
+    const tashmet = await Tashmet.connect(proxy);
+    col = await tashmet.db('e2e').createCollection('testCollection');
   });
 
   beforeEach(async () => {

@@ -6,27 +6,9 @@ import fsExtra from 'fs-extra';
 import { StoreInspector, collectionTests } from '../collection.js';
 
 describe('arrayInFile', async () => {
-  let client: Tashmet;
-
-  async function makeCollection() {
-    const store = Nabu
-      .configure({
-        defaultIO: 'json'
-      })
-      .io('json', ns => ({
-        arrayInFile: {
-          path: `test/${ns.db}.json`,
-          format: 'json',
-          field: ns.collection
-        }
-      }))
-      .use(mingo())
-      .bootstrap();
-
-    client = await Tashmet.connect(store.proxy());
-
-    return client.db('e2e').createCollection('testCollection');
-  }
+  after(() => {
+    fsExtra.removeSync('test/e2e.json');
+  });
 
   const storeInspector: StoreInspector = {
     ids: () => {
@@ -39,9 +21,20 @@ describe('arrayInFile', async () => {
     }
   }
 
-  after(() => {
-    fsExtra.removeSync('test/e2e.json');
-  });
+  const proxy = Nabu
+    .configure({
+      defaultIO: 'json'
+    })
+    .io('json', ns => ({
+      arrayInFile: {
+        path: `test/${ns.db}.json`,
+        format: 'json',
+        field: ns.collection
+      }
+    }))
+    .use(mingo())
+    .bootstrap()
+    .proxy();
 
-  collectionTests(makeCollection, storeInspector);
+  collectionTests(proxy, storeInspector);
 });

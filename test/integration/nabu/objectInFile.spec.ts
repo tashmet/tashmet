@@ -1,4 +1,3 @@
-import Tashmet from '../../../packages/tashmet/dist/index.js';
 import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
@@ -6,28 +5,20 @@ import fsExtra from 'fs-extra';
 import { StoreInspector, collectionTests } from '../collection.js';
 
 describe('objectInFile', () => {
-  let client: Tashmet;
-  let store: Nabu;
-
-  async function makeCollection() {
-    store = Nabu
-      .configure({
-        defaultIO: 'json'
-      })
-      .io('json', ns => ({
-        objectInFile: {
-          path: `test/${ns.db}.json`,
-          format: 'json',
-          field: ns.collection
-        }
-      }))
-      .use(mingo())
-      .bootstrap();
-
-    client = await Tashmet.connect(store.proxy());
-
-    return client.db('e2e').createCollection('testCollection');
-  }
+  const proxy = Nabu
+    .configure({
+      defaultIO: 'json'
+    })
+    .io('json', ns => ({
+      objectInFile: {
+        path: `test/${ns.db}.json`,
+        format: 'json',
+        field: ns.collection
+      }
+    }))
+    .use(mingo())
+    .bootstrap()
+    .proxy();
 
   const storeInspector: StoreInspector = {
     ids: () => {
@@ -43,5 +34,5 @@ describe('objectInFile', () => {
     }
   }
 
-  collectionTests(makeCollection, storeInspector);
+  collectionTests(proxy, storeInspector);
 });
