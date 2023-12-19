@@ -43,13 +43,27 @@ export class AdminController {
   }
 
   @command('drop')
-  async drop(ns: TashmetNamespace, {drop: name}: Document) {
+  async drop(ns: TashmetNamespace, {drop: name}: Document, cmdRunner: CommandRunner) {
+    const systemNs = ns.withCollection('system.collections');
+
     if (this.views && this.views[name]) {
       delete this.views[name];
     } else {
       this.store.dropCollection(ns.withCollection(name));
     }
+
+    await cmdRunner.command(systemNs, {
+      delete: systemNs.collection,
+      deletes: [
+        {
+          q: { _id: name },
+          limit: 1,
+        }
+      ]
+    });
+
     this.store.emit('change', { operationType: 'drop', ns: { db: ns.db, coll: name } });
+
     return { ok: 1 };
   }
 }
