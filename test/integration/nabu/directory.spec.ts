@@ -3,7 +3,7 @@ import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import fsExtra from 'fs-extra';
-import { collectionTests, StoreInspector } from './collection.js';
+import { collectionTests, StoreInspector } from '../collection.js';
 
 
 describe('directory', () => {

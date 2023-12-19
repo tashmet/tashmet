@@ -3,7 +3,7 @@ import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import fsExtra from 'fs-extra';
-import { StoreInspector, collectionTests } from './collection.js';
+import { StoreInspector, collectionTests } from '../collection.js';
 
 describe('arrayInFile', async () => {
   let client: Tashmet;
