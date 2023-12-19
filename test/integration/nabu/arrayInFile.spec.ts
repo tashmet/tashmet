@@ -3,7 +3,7 @@ import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import fsExtra from 'fs-extra';
-import { collectionTests } from './collection.js';
+import { StoreInspector, collectionTests } from './collection.js';
 
 describe('arrayInFile', async () => {
   let client: Tashmet;
@@ -28,19 +28,20 @@ describe('arrayInFile', async () => {
     return client.db('e2e').createCollection('testCollection');
   }
 
-  function storedDoc(id: string): any {
-    const db = fsExtra.readJsonSync(`test/e2e.json`);
-    return db.testCollection.find((doc: any) => doc._id === id);
-  }
-
-  function storedCollection(): any[] {
-    const db = fsExtra.readJsonSync(`test/e2e.json`);
-    return db.testCollection;
+  const storeInspector: StoreInspector = {
+    ids: () => {
+      const db = fsExtra.readJsonSync(`test/e2e.json`);
+      return db.testCollection;
+    },
+    document: id => {
+      const db = fsExtra.readJsonSync(`test/e2e.json`);
+      return db.testCollection.find((doc: any) => doc._id === id);
+    }
   }
 
   after(() => {
     fsExtra.removeSync('test/e2e.json');
   });
 
-  collectionTests(makeCollection, storedCollection, storedDoc);
+  collectionTests(makeCollection, storeInspector);
 });

@@ -3,7 +3,7 @@ import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import fsExtra from 'fs-extra';
-import { collectionTests } from './collection.js';
+import { StoreInspector, collectionTests } from './collection.js';
 
 describe('objectInFile', () => {
   let client: Tashmet;
@@ -29,19 +29,19 @@ describe('objectInFile', () => {
     return client.db('e2e').createCollection('testCollection');
   }
 
-  function storedDoc(id: string): any {
-    const db = fsExtra.readJsonSync(`test/e2e.json`);
-    const doc = db.testCollection[id];
-    return doc === undefined
-      ? undefined
-      : Object.assign({ _id: id, }, db.testCollection[id]);
+  const storeInspector: StoreInspector = {
+    ids: () => {
+      const db = fsExtra.readJsonSync(`test/e2e.json`);
+      return Object.keys(db.testCollection);
+    },
+    document: id => {
+      const db = fsExtra.readJsonSync(`test/e2e.json`);
+      const doc = db.testCollection[id];
+      return doc === undefined
+        ? undefined
+        : Object.assign({ _id: id, }, db.testCollection[id]);
+    }
   }
 
-  function storedCollection(): any[] {
-    const db = fsExtra.readJsonSync(`test/e2e.json`);
-    return Object.entries(db.testCollection)
-      .map(([ _id, doc ]) => Object.assign({ _id }, doc as Document));
-  }
-
-  collectionTests(makeCollection, storedCollection, storedDoc);
+  collectionTests(makeCollection, storeInspector);
 });

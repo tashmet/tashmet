@@ -3,7 +3,7 @@ import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import fsExtra from 'fs-extra';
-import { collectionTests } from './collection.js';
+import { collectionTests, StoreInspector } from './collection.js';
 
 
 describe('directory', () => {
@@ -29,21 +29,22 @@ describe('directory', () => {
     return client.db('e2e').createCollection('testCollection');
   }
 
-  function storedDoc(id: string | number): any {
-    try {
-      return fsExtra.readJsonSync(`test/e2e/testCollection/${id}.json`);
-    } catch (err) {
-      return undefined;
+  const storeInspector: StoreInspector = {
+    ids: () => {
+      return fsExtra.readdirSync('test/e2e/testCollection');
+    },
+    document: id => {
+      try {
+        return fsExtra.readJsonSync(`test/e2e/testCollection/${id}.json`);
+      } catch (err) {
+        return undefined;
+      }
     }
-  }
-
-  function storedCollection(): string[] {
-    return fsExtra.readdirSync('test/e2e/testCollection');
   }
 
   after(() => {
     fsExtra.rmdirSync('test/e2e/testCollection');
   });
 
-  collectionTests(makeCollection, storedCollection, storedDoc);
+  collectionTests(makeCollection, storeInspector);
 });

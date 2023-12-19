@@ -9,7 +9,13 @@ chai.use(sinonChai);
 
 const { expect } = chai;
 
-export function collectionTests(makeCollection: () => Promise<Collection>, storedCollection: any, storedDoc: any) {
+export interface StoreInspector {
+  ids(): string[];
+
+  document(id: string): Document | undefined;
+}
+
+export function collectionTests(makeCollection: () => Promise<Collection>, storeInspector?: StoreInspector) {
   let col: Collection<any>;
 
   before(async () => {
@@ -37,15 +43,21 @@ export function collectionTests(makeCollection: () => Promise<Collection>, store
       expect(result.acknowledged).to.be.true
       expect(doc).to.haveOwnProperty('_id');
       const id = (doc as any)._id;
-      expect(await storedDoc(id))
-        .to.eql({ item: { category: "brownies", type: "blondie" }, amount: 10, _id: id });
+
+      if (storeInspector) {
+        expect(storeInspector.document(id))
+          .to.eql({ item: { category: "brownies", type: "blondie" }, amount: 10, _id: id });
+      }
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       expect(col.insertOne(
         {_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 10 }
       )).to.eventually.be.rejected;
-      expect(storedDoc('1'))
-        .to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+
+      if (storeInspector) {
+        expect(storeInspector.document('1'))
+          .to.eql({_id: '1', item: { category: 'cake', type: 'chiffon' }, amount: 10 });
+      }
     });
     it('should emit a change event', (done) => {
       const cs = col.watch();
@@ -68,10 +80,13 @@ export function collectionTests(makeCollection: () => Promise<Collection>, store
         {item: { category: 'brownies', type: 'baked' }, amount: 12 },
       ]);
       expect(result.insertedCount).to.eql(2);
-      expect(storedDoc(result.insertedIds[0] as any))
-        .to.eql({_id: result.insertedIds[0], item: { category: 'brownies', type: 'blondie' }, amount: 10 });
-      expect(storedDoc(result.insertedIds[1] as any))
-        .to.eql({_id: result.insertedIds[1], item: { category: 'brownies', type: 'baked' }, amount: 12 });
+
+      if (storeInspector) {
+        expect(storeInspector.document(result.insertedIds[0] as any))
+          .to.eql({_id: result.insertedIds[0], item: { category: 'brownies', type: 'blondie' }, amount: 10 });
+        expect(storeInspector.document(result.insertedIds[1] as any))
+          .to.eql({_id: result.insertedIds[1], item: { category: 'brownies', type: 'baked' }, amount: 12 });
+      }
     });
     it('should throw when trying to insert a document with already existing ID', () => {
       return expect(col.insertMany([
@@ -106,7 +121,9 @@ export function collectionTests(makeCollection: () => Promise<Collection>, store
         upsertedCount: 0,
         upsertedId: null,
       });
-      expect(storedDoc('1')).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
+      if (storeInspector) {
+        expect(storeInspector.document('1')).to.eql({_id: '1', item: { category: 'brownies', type: 'blondie' }, amount: 20 });
+      }
     });
     it('should have zero matchedCount and modifiedCount if no document matched selector', async () => {
       const result = await col.replaceOne(
@@ -124,7 +141,9 @@ export function collectionTests(makeCollection: () => Promise<Collection>, store
       await col.replaceOne(
         {_id: '1'}, { amount: 20 }
       );
-      expect(storedDoc('1')).to.eql({_id: '1', amount: 20 });
+      if (storeInspector) {
+        expect(storeInspector.document('1')).to.eql({_id: '1', amount: 20 });
+      }
     });
     it('should upsert when specified', async () => {
       const result = await col.replaceOne(
@@ -132,7 +151,10 @@ export function collectionTests(makeCollection: () => Promise<Collection>, store
       );
       expect(result.upsertedCount).to.eql(1);
       expect(result.upsertedId).to.not.eql(undefined);
-      expect(storedDoc(result.upsertedId as any)).to.eql({_id: result.upsertedId, amount: 20 });
+
+      if (storeInspector) {
+        expect(storeInspector.document(result.upsertedId as any)).to.eql({_id: result.upsertedId, amount: 20 });
+      }
     });
     it('should emit a change event', (done) => {
       const cs = col.watch();
@@ -248,11 +270,16 @@ export function collectionTests(makeCollection: () => Promise<Collection>, store
         .to.eventually.eql({acknowledged: true, deletedCount: 1});
     });
     it('should have removed selected document', async () => {
-      const storedCount = storedCollection().length;
-      await col.deleteOne({_id: '1'});
-      expect(col.findOne({_id: '1'})).to.eventually.be.null;
-      expect(storedCollection().length).to.eql(storedCount - 1);
-      expect(storedDoc('1')).to.be.undefined;
+      if (storeInspector) {
+        const storedCount = storeInspector.ids().length;
+        await col.deleteOne({_id: '1'});
+        expect(col.findOne({_id: '1'})).to.eventually.be.null;
+        expect(storeInspector.ids().length).to.eql(storedCount - 1);
+        expect(storeInspector.document('1')).to.be.undefined;
+      } else {
+        await col.deleteOne({_id: '1'});
+        expect(col.findOne({_id: '1'})).to.eventually.be.null;
+      }
     });
     it('should emit a change event if a document was removed', (done) => {
       const cs = col.watch();
@@ -272,10 +299,15 @@ export function collectionTests(makeCollection: () => Promise<Collection>, store
         .to.eventually.eql({acknowledged: true, deletedCount: 0});
     });
     it('should return non-zero deletedCount when documents match selector', async () => {
-      const storedCount = storedCollection().length;
-      const result = await col.deleteMany({'item.category': 'cookies'});
-      expect(result.deletedCount).to.eql(2);
-      expect(storedCollection().length).to.eql(storedCount - 2);
+      if (storeInspector) {
+        const storedCount = storeInspector.ids().length;
+        const result = await col.deleteMany({'item.category': 'cookies'});
+        expect(result.deletedCount).to.eql(2);
+        expect(storeInspector.ids().length).to.eql(storedCount - 2);
+      } else {
+        const result = await col.deleteMany({'item.category': 'cookies'});
+        expect(result.deletedCount).to.eql(2);
+      }
     });
     it('should have removed selected documents', async () => {
       await col.deleteMany({'item.category': 'cookies'});
