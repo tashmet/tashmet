@@ -3,10 +3,11 @@ import Proxy from '../../packages/proxy/dist';
 import TashmetServer from '../../packages/server/dist/index.js'
 import mingo from '../../packages/mingo/dist/index.js'
 import Memory from '../../packages/memory/dist/index.js'
-import { collectionTests } from '../integration/collection';
+import * as test from '../lib/index.js';
 
 describe('proxy', () => {
   let server: TashmetServer;
+  let proxy = new Proxy({ uri: 'http://localhost:8000' });
   
   before(() => {
     const store = Memory
@@ -22,5 +23,6 @@ describe('proxy', () => {
     server.close();
   });
 
-  collectionTests(new Proxy({ uri: 'http://localhost:8000' }));
+  test.collection(proxy);
+  test.validation(proxy);
 });

@@ -15,7 +15,7 @@ export interface StoreInspector {
   document(id: string): Document | undefined;
 }
 
-export function collectionTests(proxy: TashmetProxy, storeInspector?: StoreInspector) {
+export function collection(proxy: TashmetProxy, storeInspector?: StoreInspector) {
   let col: Collection<any>;
   let db: Database;
 

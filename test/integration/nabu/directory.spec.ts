@@ -1,10 +1,9 @@
-import Tashmet from '@tashmet/tashmet';
 import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import fsExtra from 'fs-extra';
-import { collectionTests, StoreInspector } from '../collection.js';
-
+import { StoreInspector } from '../../lib/collection.js';
+import * as test from '../../lib/index.js';
 
 describe('directory', () => {
   const storeInspector: StoreInspector = {
@@ -39,5 +38,5 @@ describe('directory', () => {
     fsExtra.rmdirSync('test/e2e/testCollection');
   });
 
-  collectionTests(proxy, storeInspector);
+  test.collection(proxy, storeInspector);
 });

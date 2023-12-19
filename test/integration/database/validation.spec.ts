@@ -4,12 +4,12 @@ import 'mocha';
 
 import mingo from '../../../packages/mingo/dist/index.js';
 import Memory from '../../../packages/memory/dist/index.js';
-import { validationTests } from '../validation.js';
+import * as test from '../../lib/index.js';
 
 chai.use(chaiAsPromised);
 
 describe('memory storage engine validation', () => {
-  validationTests(Memory
+  test.validation(Memory
     .configure({})
     .use(mingo())
     .bootstrap()

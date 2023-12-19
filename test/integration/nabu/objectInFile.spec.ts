@@ -2,7 +2,8 @@ import Nabu from '../../../packages/nabu/dist/index.js';
 import mingo from '../../../packages/mingo/dist/index.js';
 import 'mocha';
 import fsExtra from 'fs-extra';
-import { StoreInspector, collectionTests } from '../collection.js';
+import { StoreInspector } from '../../lib/collection.js';
+import * as test from '../../lib/index.js';
 
 describe('objectInFile', () => {
   const proxy = Nabu
@@ -34,5 +35,5 @@ describe('objectInFile', () => {
     }
   }
 
-  collectionTests(proxy, storeInspector);
+  test.collection(proxy, storeInspector);
 });

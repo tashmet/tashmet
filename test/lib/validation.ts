@@ -9,7 +9,7 @@ chai.use(sinonChai);
 
 const { expect } = chai;
 
-export function validationTests(proxy: TashmetProxy) {
+export function validation(proxy: TashmetProxy) {
   describe('query validation', () => {
     describe('$type', () => {
       let sales: Collection;

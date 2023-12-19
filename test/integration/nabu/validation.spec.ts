@@ -4,7 +4,7 @@ import 'mocha';
 
 import mingo from '../../../packages/mingo/dist/index.js';
 import Nabu from '../../../packages/nabu/dist/index.js';
-import { validationTests } from '../validation.js';
+import * as test from '../../lib/index.js';
 import fsExtra from 'fs-extra';
 
 chai.use(chaiAsPromised);
@@ -15,7 +15,7 @@ describe('nabu storage engine validation', () => {
     fsExtra.removeSync('content');
   });
 
-  validationTests(Nabu
+  test.validation(Nabu
     .configure({
       defaultIO: 'json',
     })
