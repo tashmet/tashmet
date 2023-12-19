@@ -11,25 +11,23 @@ chai.use(chaiAsPromised);
 
 
 describe('nabu storage engine validation', () => {
-  function makeStorageEngine() {
-    return Nabu
-      .configure({
-        defaultIO: 'json',
-      })
-      .use(mingo())
-      .io('json', ns => ({
-        directory: {
-          path: `content/${ns.db}/${ns.collection}`,
-          extension: '.json',
-          format: 'json',
-        }
-      }))
-      .bootstrap();
-  }
-
   after(() => {
     fsExtra.removeSync('content');
   });
 
-  validationTests(makeStorageEngine);
+  validationTests(Nabu
+    .configure({
+      defaultIO: 'json',
+    })
+    .use(mingo())
+    .io('json', ns => ({
+      directory: {
+        path: `content/${ns.db}/${ns.collection}`,
+        extension: '.json',
+        format: 'json',
+      }
+    }))
+    .bootstrap()
+    .proxy()
+  );
 });

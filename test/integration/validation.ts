@@ -1,23 +1,21 @@
-import Tashmet, { Collection, TashmetServerError } from '../../packages/tashmet/dist/index.js';
 import 'mocha';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
-import { StorageEngine } from '@tashmet/engine';
+import Tashmet, { Collection, TashmetServerError, TashmetProxy } from '@tashmet/tashmet';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 const { expect } = chai;
 
-export function validationTests(makeStorageEngine: () => StorageEngine) {
+export function validationTests(proxy: TashmetProxy) {
   describe('query validation', () => {
     describe('$type', () => {
       let sales: Collection;
 
       before(async () => {
-        const store = makeStorageEngine();
-        const tashmet = await Tashmet.connect(store.proxy());
+        const tashmet = await Tashmet.connect(proxy);
 
         sales = await tashmet.db('test').createCollection('sales', {
           validator: {
@@ -54,8 +52,7 @@ export function validationTests(makeStorageEngine: () => StorageEngine) {
       let orders: Collection;
 
       before(async () => {
-        const store = makeStorageEngine();
-        const tashmet = await Tashmet.connect(store.proxy());
+        const tashmet = await Tashmet.connect(proxy);
 
         orders = await tashmet.db('test').createCollection('sales', {
           validator: {
@@ -114,8 +111,7 @@ export function validationTests(makeStorageEngine: () => StorageEngine) {
     let students: Collection;
 
     before(async () => {
-      const store = makeStorageEngine();
-      const tashmet = await Tashmet.connect(store.proxy());
+      const tashmet = await Tashmet.connect(proxy);
 
       students = await tashmet.db('test').createCollection('students', {
         validator: {
@@ -357,8 +353,7 @@ export function validationTests(makeStorageEngine: () => StorageEngine) {
     let users: Collection;
 
     before(async () => {
-      const store = makeStorageEngine();
-      const tashmet = await Tashmet.connect(store.proxy());
+      const tashmet = await Tashmet.connect(proxy);
 
       users = await tashmet.db('test').createCollection('students', {
         validator: {
@@ -451,8 +446,7 @@ export function validationTests(makeStorageEngine: () => StorageEngine) {
     let posts: Collection;
 
     before(async () => {
-      const store = makeStorageEngine();
-      const tashmet = await Tashmet.connect(store.proxy());
+      const tashmet = await Tashmet.connect(proxy);
 
       posts = await tashmet.db('test').createCollection('posts', {
         validator: {
@@ -643,8 +637,7 @@ export function validationTests(makeStorageEngine: () => StorageEngine) {
     }
 
     before(async () => {
-      const store = makeStorageEngine();
-      const tashmet = await Tashmet.connect(store.proxy());
+      const tashmet = await Tashmet.connect(proxy);
 
       inventory = await tashmet.db('test').createCollection('inventory');
 

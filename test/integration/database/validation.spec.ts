@@ -9,13 +9,10 @@ import { validationTests } from '../validation.js';
 chai.use(chaiAsPromised);
 
 describe('memory storage engine validation', () => {
-
-  function makeStorageEngine () {
-    return Memory
-      .configure({})
-      .use(mingo())
-      .bootstrap();
-    }
-
-  validationTests(makeStorageEngine);
+  validationTests(Memory
+    .configure({})
+    .use(mingo())
+    .bootstrap()
+    .proxy()
+  );
 });
