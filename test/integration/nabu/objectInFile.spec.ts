@@ -35,5 +35,11 @@ describe('objectInFile', () => {
     }
   }
 
-  test.collection(proxy, storeInspector);
+  describe('collection', () => {
+    test.collection(proxy, storeInspector);
+  });
+
+  describe('validation', () => {
+    test.validation(proxy);
+  });
 });

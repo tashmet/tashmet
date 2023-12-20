@@ -39,4 +39,6 @@ describe('directory', () => {
   });
 
   test.collection(proxy, storeInspector);
+
+  test.validation(proxy);
 });

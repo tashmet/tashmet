@@ -49,6 +49,13 @@ export class AdminController {
     if (this.views && this.views[name]) {
       delete this.views[name];
     } else {
+      await cmdRunner.command(ns, {
+        delete: name,
+        deletes: [
+          { q: {} }
+        ]
+      });
+
       this.store.dropCollection(ns.withCollection(name));
     }
 
