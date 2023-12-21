@@ -55,6 +55,10 @@ describe('view', () => {
     await sales.deleteMany({});
   });
 
+  after(async () => {
+    await sales.drop();
+  });
+
   it('should initially have correct documents', () => {
     return expect(totals.find().toArray())
       .to.eventually.eql([

@@ -5,13 +5,28 @@ import fsExtra from 'fs-extra';
 import { StoreInspector } from '../../lib/collection.js';
 import * as test from '../../lib/index.js';
 
-describe('objectInFile', () => {
+describe('nabu using arrayInFile', async () => {
+  after(() => {
+    fsExtra.removeSync('test/e2e.json');
+  });
+
+  const storeInspector: StoreInspector = {
+    ids: () => {
+      const db = fsExtra.readJsonSync(`test/e2e.json`);
+      return db.testCollection;
+    },
+    document: id => {
+      const db = fsExtra.readJsonSync(`test/e2e.json`);
+      return db.testCollection.find((doc: any) => doc._id === id);
+    }
+  }
+
   const proxy = Nabu
     .configure({
       defaultIO: 'json'
     })
     .io('json', ns => ({
-      objectInFile: {
+      arrayInFile: {
         path: `test/${ns.db}.json`,
         format: 'json',
         field: ns.collection
@@ -20,20 +35,6 @@ describe('objectInFile', () => {
     .use(mingo())
     .bootstrap()
     .proxy();
-
-  const storeInspector: StoreInspector = {
-    ids: () => {
-      const db = fsExtra.readJsonSync(`test/e2e.json`);
-      return Object.keys(db.testCollection);
-    },
-    document: id => {
-      const db = fsExtra.readJsonSync(`test/e2e.json`);
-      const doc = db.testCollection[id];
-      return doc === undefined
-        ? undefined
-        : Object.assign({ _id: id, }, db.testCollection[id]);
-    }
-  }
 
   describe('collection', () => {
     test.collection(proxy, storeInspector);

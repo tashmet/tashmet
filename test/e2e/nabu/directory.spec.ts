@@ -5,7 +5,7 @@ import fsExtra from 'fs-extra';
 import { StoreInspector } from '../../lib/collection.js';
 import * as test from '../../lib/index.js';
 
-describe('directory', () => {
+describe('nabu using directory', () => {
   const storeInspector: StoreInspector = {
     ids: () => {
       return fsExtra.readdirSync('test/e2e/testCollection');
@@ -38,7 +38,11 @@ describe('directory', () => {
     fsExtra.rmdirSync('test/e2e/testCollection');
   });
 
-  test.collection(proxy, storeInspector);
+  describe('collection', () => {
+    test.collection(proxy, storeInspector);
+  });
 
-  test.validation(proxy);
+  describe('validation', () => {
+    test.validation(proxy);
+  });
 });
