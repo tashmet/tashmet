@@ -1,4 +1,4 @@
-import { BufferCollection } from './bufferCollection';
+import { BufferCollection } from './bufferCollection.js';
 import * as fs from 'fs';
 
 export class FileBufferCollection extends BufferCollection {

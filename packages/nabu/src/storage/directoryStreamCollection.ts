@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { StreamCollection } from './streamCollection';
+import { StreamCollection } from './streamCollection.js';
 
 export class DirectoryStreamCollection extends StreamCollection {
   async drop() {
