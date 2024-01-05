@@ -1,6 +1,6 @@
 {
   "name": "@tashmet/nabu",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "description": "Tashmet file system persistence",
   "type": "module",
   "scripts": {
@@ -28,13 +28,13 @@
   "dependencies": {
     "@async-generators/to-array": "^0.1.0",
     "@tashmet/core": "^1.0.0-alpha.5",
-    "@tashmet/engine": "^1.0.0-alpha.6",
-    "@tashmet/fs": "^1.0.0-alpha.6",
-    "@tashmet/json": "^1.0.0-alpha.6",
-    "@tashmet/markdown": "^1.0.0-alpha.6",
-    "@tashmet/memory": "^1.0.0-alpha.6",
+    "@tashmet/engine": "^1.0.0-alpha.7",
+    "@tashmet/fs": "^1.0.0-alpha.7",
+    "@tashmet/json": "^1.0.0-alpha.7",
+    "@tashmet/markdown": "^1.0.0-alpha.7",
+    "@tashmet/memory": "^1.0.0-alpha.7",
     "@tashmet/tashmet": "^1.0.0-alpha.6",
-    "@tashmet/yaml": "^1.0.0-alpha.6",
+    "@tashmet/yaml": "^1.0.0-alpha.7",
     "eventemitter3": "^3.0.0",
     "glob": "^10.3.10",
     "minimatch": "^3.0.4"

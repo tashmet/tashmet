@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/memory",
-	"version": "1.0.0-alpha.6",
+	"version": "1.0.0-alpha.7",
 	"description": "",
 	"type": "module",
 	"main": "dist/index.js",
@@ -31,11 +31,11 @@
 	],
 	"dependencies": {
 		"@tashmet/core": "^1.0.0-alpha.5",
-		"@tashmet/engine": "^1.0.0-alpha.6",
+		"@tashmet/engine": "^1.0.0-alpha.7",
 		"@tashmet/tashmet": "^1.0.0-alpha.6"
 	},
 	"devDependencies": {
-		"@tashmet/mingo": "^1.0.0-alpha.6",
+		"@tashmet/mingo": "^1.0.0-alpha.7",
 		"@types/node": "^20.5.3",
 		"@types/reflect-metadata": "^0.1.0",
 		"tslib": "^2.3.1"
