@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-alpha.6
+
+- Support storing collection as object in file
+- Improved validation support
+- System collections
+- New format for nabu collection configuration
+
 ## 1.0.0-alpha.5
 
 - Support for nested content key when using YAML front matter
