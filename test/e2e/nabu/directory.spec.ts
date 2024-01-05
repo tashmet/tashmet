@@ -8,11 +8,11 @@ import * as test from '../../lib/index.js';
 describe('nabu using directory', () => {
   const storeInspector: StoreInspector = {
     ids: () => {
-      return fsExtra.readdirSync('test/e2e/testCollection');
+      return fsExtra.readdirSync('e2e/testCollection');
     },
     document: id => {
       try {
-        return fsExtra.readJsonSync(`test/e2e/testCollection/${id}.json`);
+        return fsExtra.readJsonSync(`e2e/testCollection/${id}.json`);
       } catch (err) {
         return undefined;
       }
@@ -25,7 +25,7 @@ describe('nabu using directory', () => {
     })
     .io('json', ns => ({
       directory: {
-        path: `test/${ns.db}/${ns.collection}`,
+        path: `${ns.db}/${ns.collection}`,
         extension: '.json',
         format: 'json',
       }
@@ -33,10 +33,6 @@ describe('nabu using directory', () => {
     .use(mingo())
     .bootstrap()
     .proxy();
-
-  after(() => {
-    fsExtra.rmdirSync('test/e2e/testCollection');
-  });
 
   describe('collection', () => {
     test.collection(proxy, storeInspector);

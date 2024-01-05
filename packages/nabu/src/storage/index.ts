@@ -14,8 +14,12 @@ import {
   StreamIO,
 } from '../interfaces.js';
 import { StreamCollection } from './streamCollection.js';
-import { BufferCollection } from './bufferCollection.js';
 import { makeIO } from '../io/index.js';
+import { ArrayInFileIO } from '../io/arrayInFile.js';
+import { ObjectInFileIO } from '../io/objectInFile.js';
+import { FileBufferCollection } from './fileBufferCollection.js';
+import { DirectoryIO } from '../io/directory.js';
+import { DirectoryStreamCollection } from './directoryStreamCollection.js';
 
 
 @provider({
@@ -69,24 +73,29 @@ export class NabuCollectionFactory extends CollectionFactory {
 
     const config = resolveStoreConfig(store);
     const io = makeIO(config);
+    const input = this.aggregatorFactory.createAggregator(io.input);
+    const output = this.aggregatorFactory.createAggregator(io.output);
 
     let validator: Validator | undefined;
 
     if (this.validatorFactory && options.validator) {
       validator = this.validatorFactory.createValidator(options.validator);
     }
-    
-    const input = this.aggregatorFactory.createAggregator(io.input);
-    const output = this.aggregatorFactory.createAggregator(io.output);
+
+    if (io instanceof DirectoryIO) {
+      return new DirectoryStreamCollection(ns, config, io.path, input, output, validator);
+    }
 
     if (io instanceof StreamIO) {
-      return new StreamCollection(ns, io.path, input, output, validator);
+      return new StreamCollection(ns, config, io.path, input, output, validator);
     }
 
     if (io instanceof BufferIO) {
       const buffer = this.memory.createCollection(ns, options);
 
-      return new BufferCollection(ns, io.path, input, output, buffer);
+      if (io instanceof ArrayInFileIO || io instanceof ObjectInFileIO) {
+        return new FileBufferCollection(ns, config, io.path, input, output, buffer);
+      }
     }
 
     throw Error('Unsupported IO type');

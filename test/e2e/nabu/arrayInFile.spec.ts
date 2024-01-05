@@ -6,10 +6,6 @@ import { StoreInspector } from '../../lib/collection.js';
 import * as test from '../../lib/index.js';
 
 describe('nabu using arrayInFile', async () => {
-  after(() => {
-    fsExtra.removeSync('test/e2e.json');
-  });
-
   const storeInspector: StoreInspector = {
     ids: () => {
       const db = fsExtra.readJsonSync(`test/e2e.json`);

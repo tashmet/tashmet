@@ -469,6 +469,10 @@ export function validation(proxy: TashmetProxy) {
       });
     });
 
+    after(async () => {
+      await posts.drop();
+    });
+
     it('should insert a valid document', async () => {
       const result = await posts.insertOne( {
         tags: ['tag1']

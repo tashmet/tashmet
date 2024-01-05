@@ -1,7 +1,8 @@
-import { Document, TashmetNamespace } from '@tashmet/tashmet';
+import { ChangeStreamDocument, Document, TashmetNamespace } from '@tashmet/tashmet';
 import { command, CommandRunner } from '../command.js';
 import { CollectionFactory, ViewMap } from '../interfaces.js';
 import { Store } from '../store.js';
+import ObjectID from 'bson-objectid';
 
 export class AdminController {
   constructor(
@@ -44,19 +45,20 @@ export class AdminController {
 
   @command('drop')
   async drop(ns: TashmetNamespace, {drop: name}: Document, cmdRunner: CommandRunner) {
+    const collectionNs = ns.withCollection(name);
     const systemNs = ns.withCollection('system.collections');
+    const change: ChangeStreamDocument = { _id: ObjectID.toString(), operationType: 'drop', ns: { db: ns.db, coll: name } };
 
     if (this.views && this.views[name]) {
       delete this.views[name];
     } else {
+      const col = this.store.getCollection(collectionNs);
       await cmdRunner.command(ns, {
         delete: name,
-        deletes: [
-          { q: {} }
-        ]
+        deletes: [{ q: {} }],
       });
-
-      this.store.dropCollection(ns.withCollection(name));
+      await col.write([change], {});
+      this.store.dropCollection(collectionNs);
     }
 
     await cmdRunner.command(systemNs, {
@@ -69,7 +71,7 @@ export class AdminController {
       ]
     });
 
-    this.store.emit('change', { operationType: 'drop', ns: { db: ns.db, coll: name } });
+    this.store.emit('change', change);
 
     return { ok: 1 };
   }

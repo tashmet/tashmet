@@ -13,7 +13,8 @@ import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tas
 export class StreamCollection extends ReadWriteCollection {
   constructor(
     ns: TashmetCollectionNamespace,
-    private path: (id?: string) => string,
+    protected config: Document,
+    protected path: (id?: string) => string,
     private input: AbstractAggregator,
     private output: AbstractAggregator,
     private validator: Validator | undefined,
@@ -31,6 +32,13 @@ export class StreamCollection extends ReadWriteCollection {
   }
 
   async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
+    const drop = changes.find(c => c.operationType === 'drop');
+
+    if (drop) {
+      await this.drop();
+      return [];
+    }
+
     const writeErrors: WriteError[] = [];
     const index = 0;
 
@@ -61,4 +69,6 @@ export class StreamCollection extends ReadWriteCollection {
     }
     return writeErrors;
   }
+
+  protected async drop() {}
 }

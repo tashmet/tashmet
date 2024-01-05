@@ -14,7 +14,8 @@ export class BufferCollection extends ReadWriteCollection {
 
   constructor(
     ns: TashmetCollectionNamespace,
-    private path: string,
+    protected config: Document,
+    protected path: string,
     private input: AbstractAggregator,
     private output: AbstractAggregator,
     private buffer: ReadWriteCollection,
@@ -38,6 +39,13 @@ export class BufferCollection extends ReadWriteCollection {
   }
 
   async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
+    const drop = changes.find(c => c.operationType === 'drop');
+
+    if (drop) {
+      await this.drop();
+      return [];
+    }
+
     const writeErrors = await this.buffer.write(changes, options);
     const documents: Document[] = [];
 
@@ -47,4 +55,6 @@ export class BufferCollection extends ReadWriteCollection {
 
     return writeErrors.concat(await this.output.run<WriteError>(documents));
   }
+
+  protected async drop() {}
 }

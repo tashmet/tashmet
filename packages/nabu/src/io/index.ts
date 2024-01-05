@@ -3,6 +3,7 @@ import { FileStreamIO } from '../io/fileStream.js';
 import { ArrayInFileIO } from '../io/arrayInFile.js';
 import { BufferIO, StreamIO } from '../interfaces.js';
 import { ObjectInFileIO } from './objectInFile.js';
+import { DirectoryIO } from './directory.js';
 
 export function makeIO(store: Document): StreamIO | BufferIO {
   const name = Object.keys(store)[0];
@@ -10,7 +11,7 @@ export function makeIO(store: Document): StreamIO | BufferIO {
 
   switch (name) {
     case 'directory':
-      return FileStreamIO.fromDirectory(config);
+      return DirectoryIO.fromConfig(config);
     case 'glob':
       return FileStreamIO.fromGlob(config);
     case 'arrayInFile':
