@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0-alpha.7
+
+- Drop command cleans up files and directories in nabu
+- Improved unit tests reusing same tests for all collection types
+
 ## 1.0.0-alpha.6
 
 - Support storing collection as object in file
