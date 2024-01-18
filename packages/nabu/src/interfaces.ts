@@ -59,6 +59,8 @@ export interface ContentRuleOptions {
   merge?: Document;
 
   construct?: Document;
+
+  default?: Document;
 }
 
 export interface FileFormat {

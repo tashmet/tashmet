@@ -1,50 +1,27 @@
 import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
 import { FileFormat, StreamIO } from '../interfaces.js';
-import { makeFileFormat } from '../format/index.js';
 
 export class FileStreamIO extends StreamIO {
-  static fromGlob({pattern, format, ...options}: Document) {
-    if (typeof pattern !== 'string') {
-      throw new Error('Failed create glob IO, pattern is not a string');
-    }
-
-    const merge = Object.assign(
-      {}, options?.merge, { _id: '$path' }
-    );
-
-    return new FileStreamIO(
-      id => id ? id : pattern,
-      makeFileFormat(format),
-      merge,
-      options?.construct
-    );
-  }
-
-  static fromDirectory({path, extension, format, ...options}: Document) {
-    if (typeof path !== 'string') {
-      throw new Error('Failed create directory IO, path is not a string');
-    }
-
-    const merge = Object.assign(
-      {}, options?.merge, { _id: { $basename: ['$path', { $extname: '$path' }] } }
-    );
-
-    return new FileStreamIO(
-      id => id ? `${path}/${id}${extension}` : `${path}/*${extension}`,
-      makeFileFormat(format),
-      merge,
-      options?.construct
-    );
-  }
-
   public constructor(
     public path: (id?: string) => string,
     private format: FileFormat,
     private merge: Document = {},
-    private assign: Document = {}
+    private assign: Document = {},
+    private defaults: Document = {},
   ) { super(); }
 
   get input(): Document[] {
+    const construct = Object.assign({}, this.assign);
+    for (const [k, v] of Object.entries(this.defaults)) {
+      construct[k] = {
+        $cond: {
+          if: { $ne: [{ $type: '$' + k }, 'undefined'] },
+          then: '$' + k,
+          else: v
+        }
+      }
+    }
+
     return [
       { $glob: { pattern: '$_id' } },
       { $project: {
@@ -54,7 +31,7 @@ export class FileStreamIO extends StreamIO {
         content: this.format.reader({ $readFile: '$_id' }),
       } },
       { $replaceRoot: { newRoot: { $mergeObjects: [ this.merge, '$content' ] } } },
-      { $set: this.assign },
+      { $set: construct },
     ];
   }
 
@@ -94,6 +71,6 @@ export class FileStreamIO extends StreamIO {
         to: '$path',
         overwrite: { $ne: ['$mode', 'create'] },
       } }
-    ]
+    ];
   }
 }

@@ -10,7 +10,7 @@ export class DirectoryStreamCollection extends StreamCollection {
         fs.rmdirSync(path);
       }
     } catch (err) {
-      // directory dows not exist
+      // directory does not exist
     }
   }
 }

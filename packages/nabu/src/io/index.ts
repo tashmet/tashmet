@@ -1,9 +1,9 @@
 import { Document } from '@tashmet/tashmet';
-import { FileStreamIO } from '../io/fileStream.js';
 import { ArrayInFileIO } from '../io/arrayInFile.js';
 import { BufferIO, StreamIO } from '../interfaces.js';
 import { ObjectInFileIO } from './objectInFile.js';
 import { DirectoryIO } from './directory.js';
+import { GlobIO } from './glob.js';
 
 export function makeIO(store: Document): StreamIO | BufferIO {
   const name = Object.keys(store)[0];
@@ -13,7 +13,7 @@ export function makeIO(store: Document): StreamIO | BufferIO {
     case 'directory':
       return DirectoryIO.fromConfig(config);
     case 'glob':
-      return FileStreamIO.fromGlob(config);
+      return GlobIO.fromConfig(config);
     case 'arrayInFile':
       return ArrayInFileIO.fromConfig(config);
     case 'objectInFile':

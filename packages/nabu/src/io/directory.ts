@@ -16,7 +16,8 @@ export class DirectoryIO extends FileStreamIO {
       id => id ? `${path}/${id}${extension}` : `${path}/*${extension}`,
       makeFileFormat(format),
       merge,
-      options?.construct
+      options?.construct,
+      options?.default
     );
   }
 }
