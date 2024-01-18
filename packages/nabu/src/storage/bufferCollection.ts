@@ -5,22 +5,26 @@ import {
   WriteOptions,
   makeWriteChange,
   AbstractAggregator,
+  AggregatorFactory,
 } from '@tashmet/engine';
 import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
+import { BufferIO } from '../interfaces';
 
 
 export class BufferCollection extends ReadWriteCollection {
   private synced = false;
+  private input: AbstractAggregator;
+  private output: AbstractAggregator;
 
   constructor(
     ns: TashmetCollectionNamespace,
-    protected config: Document,
-    protected path: string,
-    private input: AbstractAggregator,
-    private output: AbstractAggregator,
+    aggregatorFactory: AggregatorFactory,
+    private io: BufferIO,
     private buffer: ReadWriteCollection,
   ) {
     super(ns);
+    this.input = aggregatorFactory.createAggregator(io.input);
+    this.output = aggregatorFactory.createAggregator(io.output);
   }
 
   async* read(options: ReadOptions = {}): AsyncIterable<Document> {
@@ -42,7 +46,7 @@ export class BufferCollection extends ReadWriteCollection {
     const drop = changes.find(c => c.operationType === 'drop');
 
     if (drop) {
-      await this.drop();
+      await this.io.drop();
       return [];
     }
 
@@ -55,6 +59,4 @@ export class BufferCollection extends ReadWriteCollection {
 
     return writeErrors.concat(await this.output.run<WriteError>(documents));
   }
-
-  protected async drop() {}
 }

@@ -1,6 +1,7 @@
 import { Document } from '@tashmet/tashmet';
 import { makeFileFormat } from '../format/index.js';
 import { FileStreamIO } from './fileStream.js';
+import * as fs from 'fs';
 
 export class DirectoryIO extends FileStreamIO {
   static fromConfig({path, extension, format, ...options}: Document) {
@@ -19,5 +20,17 @@ export class DirectoryIO extends FileStreamIO {
       options?.construct,
       options?.default
     );
+  }
+
+  async drop() {
+    const path = this.path().split('*')[0];
+
+    try {
+      if (fs.readdirSync(path).length === 0) {
+        fs.rmdirSync(path);
+      }
+    } catch (err) {
+      // directory does not exist
+    }
   }
 }

@@ -2,6 +2,7 @@ import { Document } from '@tashmet/tashmet';
 import { BufferIO } from '../interfaces.js';
 import { FileFormat } from '../interfaces.js';
 import { makeFileFormat } from '../format/index.js';
+import * as fs from 'fs';
 
 export interface ArrayInFileOptions {
   id?: string | Document;
@@ -111,5 +112,11 @@ export class ArrayInFileIO extends BufferIO {
     );
 
     return pipeline;
+  }
+
+  async drop() {
+    if (this.options.field === undefined && fs.existsSync(this.path)) {
+      fs.rmSync(this.path);
+    }
   }
 }

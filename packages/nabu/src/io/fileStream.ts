@@ -1,4 +1,4 @@
-import { ChangeStreamDocument, Document } from '@tashmet/tashmet';
+import { Document } from '@tashmet/tashmet';
 import { FileFormat, StreamIO } from '../interfaces.js';
 
 export class FileStreamIO extends StreamIO {
@@ -35,42 +35,34 @@ export class FileStreamIO extends StreamIO {
     ];
   }
 
-  get output(): Document[] {
-    const path = (c: ChangeStreamDocument) => this.path(c.documentKey?._id as any);
+  output(mode: 'insert' | 'update' | 'delete') {
+    const path = (c: Document) => this.path((c as any)._id);
+    const pipeline: Document[] = [];
 
-    return [
-      { $project: {
-        _id: 0,
-        content: {
+    if (mode !== 'delete') {
+      const defaults: Document = {};
+      for (const [k, v] of Object.entries(this.defaults)) {
+        defaults[k] = {
           $cond: {
-            if: { $ne: ["$operationType", "delete"] },
-            then: "$fullDocument",
+            if: { $ne: [v, '$' + k] },
+            then: '$' + k,
             else: { $literal: undefined }
-        } },
-        path: { $function: { body: path, args: [ "$$ROOT" ], lang: "js" }},
-        mode: {
-          $switch: {
-            branches: [
-              { case: { $eq: ['$operationType', 'insert'] }, then: 'create' },
-              { case: { $eq: ['$operationType', 'replace'] }, then: 'update' },
-              { case: { $eq: ['$operationType', 'delete'] }, then: 'delete' },
-            ]
           }
-        },
-      } },
-      { $unset: Object.keys(this.assign) },
-      { $set: { content: this.format.writer('$content') } },
+        }
+      }
+
+      pipeline.push(
+        { $unset: Object.keys(this.assign) },
+        { $set: defaults },
+      );
+    }
+
+    return pipeline.concat(
       { $writeFile: {
-        content: {
-          $cond: {
-            if: { $ne: ['$mode', 'delete'] },
-            then: '$content',
-            else: null
-          }
-        },
-        to: '$path',
-        overwrite: { $ne: ['$mode', 'create'] },
+        content: mode !== 'delete' ? this.format.writer('$$ROOT') : null,
+        to: { $function: { body: path, args: [ "$$ROOT" ], lang: "js" }},
+        overwrite: mode !== 'insert',
       } }
-    ];
+    );
   }
 }

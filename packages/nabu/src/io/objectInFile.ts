@@ -1,6 +1,7 @@
 import { Document } from '@tashmet/tashmet';
 import { FileFormat, BufferIO } from '../interfaces.js';
 import { makeFileFormat } from '../format/index.js';
+import * as fs from 'fs';
 
 export interface ObjectInFileOptions {
   /**
@@ -84,5 +85,11 @@ export class ObjectInFileIO extends BufferIO {
     );
 
     return pipeline;
+  }
+
+  async drop() {
+    if (this.options.field === undefined && fs.existsSync(this.path)) {
+      fs.rmSync(this.path);
+    }
   }
 }

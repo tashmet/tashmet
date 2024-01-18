@@ -11,15 +11,10 @@ import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
   NabuConfig,
   BufferIO,
-  StreamIO,
 } from '../interfaces.js';
 import { StreamCollection } from './streamCollection.js';
 import { makeIO } from '../io/index.js';
-import { ArrayInFileIO } from '../io/arrayInFile.js';
-import { ObjectInFileIO } from '../io/objectInFile.js';
-import { FileBufferCollection } from './fileBufferCollection.js';
-import { DirectoryIO } from '../io/directory.js';
-import { DirectoryStreamCollection } from './directoryStreamCollection.js';
+import { BufferCollection } from './bufferCollection.js';
 
 
 @provider({
@@ -73,31 +68,17 @@ export class NabuCollectionFactory extends CollectionFactory {
 
     const config = resolveStoreConfig(store);
     const io = makeIO(config);
-    const input = this.aggregatorFactory.createAggregator(io.input);
-    const output = this.aggregatorFactory.createAggregator(io.output);
-
-    let validator: Validator | undefined;
-
-    if (this.validatorFactory && options.validator) {
-      validator = this.validatorFactory.createValidator(options.validator);
-    }
-
-    if (io instanceof DirectoryIO) {
-      return new DirectoryStreamCollection(ns, config, io.path, input, output, validator);
-    }
-
-    if (io instanceof StreamIO) {
-      return new StreamCollection(ns, config, io.path, input, output, validator);
-    }
 
     if (io instanceof BufferIO) {
       const buffer = this.memory.createCollection(ns, options);
+      return new BufferCollection(ns, this.aggregatorFactory, io, buffer);
+    } else {
+      let validator: Validator | undefined;
 
-      if (io instanceof ArrayInFileIO || io instanceof ObjectInFileIO) {
-        return new FileBufferCollection(ns, config, io.path, input, output, buffer);
+      if (this.validatorFactory && options.validator) {
+        validator = this.validatorFactory.createValidator(options.validator);
       }
+      return new StreamCollection(ns, this.aggregatorFactory, io, validator);
     }
-
-    throw Error('Unsupported IO type');
   }
 }

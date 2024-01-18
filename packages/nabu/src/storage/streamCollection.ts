@@ -6,27 +6,36 @@ import {
   Validator,
   AbstractAggregator,
   arrayToGenerator,
+  AggregatorFactory,
 } from '@tashmet/engine';
 import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
+import { StreamIO } from '../interfaces';
 
 
 export class StreamCollection extends ReadWriteCollection {
+  private input: AbstractAggregator;
+  private insert: AbstractAggregator;
+  private update: AbstractAggregator;
+  private delete: AbstractAggregator;
+
   constructor(
     ns: TashmetCollectionNamespace,
-    protected config: Document,
-    protected path: (id?: string) => string,
-    private input: AbstractAggregator,
-    private output: AbstractAggregator,
+    aggregatorFactory: AggregatorFactory,
+    private io: StreamIO,
     private validator: Validator | undefined,
   ) {
     super(ns);
+    this.input = aggregatorFactory.createAggregator(io.input);
+    this.insert = aggregatorFactory.createAggregator(io.output('insert'));
+    this.update = aggregatorFactory.createAggregator(io.output('update'));
+    this.delete = aggregatorFactory.createAggregator(io.output('delete'));
   }
 
   read(options: ReadOptions = {}): AsyncIterable<Document> {
     const { documentIds, projection } = options || {};
     const paths = documentIds
-      ? documentIds.map(id => ({ _id: this.path(id) }))
-      : ([{ _id: this.path() }]);
+      ? documentIds.map(id => ({ _id: this.io.path(id) }))
+      : ([{ _id: this.io.path() }]);
 
     return this.input.stream(arrayToGenerator(paths));
   }
@@ -35,7 +44,7 @@ export class StreamCollection extends ReadWriteCollection {
     const drop = changes.find(c => c.operationType === 'drop');
 
     if (drop) {
-      await this.drop();
+      await this.io.drop();
       return [];
     }
 
@@ -59,7 +68,21 @@ export class StreamCollection extends ReadWriteCollection {
         }
       }
 
-      for await (const err of this.output.stream<WriteError>(arrayToGenerator([doc]))) {
+      const output = () => {
+        switch (doc.operationType) {
+          case 'insert':
+            return this.insert;
+          case 'update':
+          case 'replace':
+            return this.update;
+          case 'delete':
+            return this.delete;
+          default:
+            return this.delete;
+        }
+      }
+
+      for await (const err of output().stream<WriteError>(arrayToGenerator([doc.fullDocument || { _id: doc.documentKey?._id}]))) {
         writeErrors.push({ ...err, index });
       }
 
@@ -69,6 +92,4 @@ export class StreamCollection extends ReadWriteCollection {
     }
     return writeErrors;
   }
-
-  protected async drop() {}
 }

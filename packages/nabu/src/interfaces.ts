@@ -19,20 +19,24 @@ export type Encoding =
   'hex' |
   undefined;
 
-export interface IO {
-  readonly input: Document[];
+export abstract class BufferIO {
+  abstract readonly input: Document[];
 
-  readonly output: Document[];
+  abstract readonly output: Document[];
+
+  abstract readonly path: string;
+
+  async drop() {}
 }
 
-export abstract class IO implements IO {}
+export abstract class StreamIO {
+  abstract readonly input: Document[];
 
-export abstract class BufferIO extends IO {
-  public abstract readonly path: string;
-}
+  abstract output(mode: 'insert' | 'update' | 'delete'): Document[];
 
-export abstract class StreamIO extends IO {
-  public abstract path(id?: string): string;
+  abstract path(id?: string): string;
+
+  async drop() {}
 }
 
 export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => Document;

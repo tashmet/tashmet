@@ -42,4 +42,9 @@ describe('nabu using objectInFile', () => {
   describe('validation', () => {
     test.validation(proxy);
   });
+
+  after(() => {
+    fsExtra.rmSync('test/e2e.json');
+    fsExtra.rmSync('test/test.json');
+  });
 });

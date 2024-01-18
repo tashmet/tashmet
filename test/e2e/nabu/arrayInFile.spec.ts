@@ -39,4 +39,9 @@ describe('nabu using arrayInFile', async () => {
   describe('validation', () => {
     test.validation(proxy);
   });
+
+  after(() => {
+    fsExtra.rmSync('test/e2e.json');
+    fsExtra.rmSync('test/test.json');
+  });
 });
