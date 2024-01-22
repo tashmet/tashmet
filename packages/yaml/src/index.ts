@@ -1,4 +1,5 @@
 import { Container, provider, Provider } from '@tashmet/core';
+import { Document } from '@tashmet/tashmet';
 import { op, OperatorContext, OperatorPluginConfigurator } from '@tashmet/engine';
 import { YamlOptions } from './interfaces.js';
 
@@ -6,33 +7,27 @@ import jsYaml from 'js-yaml';
 
 export {YamlOptions} from './interfaces.js';
 
-export function loadFront (content: any, options?: any) {
-  const contentKeyName = options && typeof options === 'string'
-    ? options
-    : options && options.contentKeyName
-        ? options.contentKeyName
-        : '__content';
+export interface LoadFrontResult {
+  frontMatter: Document;
 
-  const passThroughOptions = options && typeof options === 'object'
-    ? options
-    : undefined;
+  body: string;
+}
 
+export function loadFront (content: string, options?: YamlOptions) {
   const re = /^(-{3}(?:\n|\r)([\w\W]+?)(?:\n|\r)-{3})?([\w\W]*)*/;
   const results = re.exec(content);
   let yamlOrJson;
-  let conf: any = {}
+  let frontMatter: any = {}
 
   if ((yamlOrJson = (results as any)[2])) {
       if (yamlOrJson.charAt(0) === '{') {
-        conf = JSON.parse(yamlOrJson);
+        frontMatter = JSON.parse(yamlOrJson);
       } else {
-        conf = jsYaml.load(yamlOrJson, passThroughOptions) as any;
+        frontMatter = jsYaml.load(yamlOrJson) as any;
       }
   }
 
-  conf[contentKeyName] = (results as any)[3] || '';
-
-  return conf;
+  return { frontMatter, body: (results as any)[3] || '' }
 }
 
 const defaultOptions: YamlOptions = {
@@ -52,22 +47,22 @@ export class Yaml {
 
   @op.expression('$objectToYaml')
   public objectToYaml(obj: any, expr: any, ctx: OperatorContext) {
-    if (typeof expr === 'object' && expr.frontMatter === true) {
-      const key = ctx.compute(obj, expr.contentKey || '_content') as string;
-      const data = ctx.compute(obj, expr.path);
+    const { path, frontMatter, contentKey, ...options } = this.normalizeExpression(expr);
+
+    if (frontMatter) {
+      const key = ctx.compute(obj, contentKey || '_content') as string;
+      const data = ctx.compute(obj, path);
       const content = ctx.resolve(data, key);
 
-
       ctx.remove(data, key);
-      const frontMatter = jsYaml.dump(data, this.options);
-      let output = '---\n' + frontMatter + '---';
+      const fmData = jsYaml.dump(data, options);
+      let output = '---\n' + fmData + '---';
       if (content) {
         output += '\n' + content.replace(/^\s+|\s+$/g, '');
       }
       return output;
     } else {
-      const path = typeof expr === 'string' ? expr : expr.path;
-      return jsYaml.dump(ctx.compute(obj, path), this.options);
+      return jsYaml.dump(ctx.compute(obj, path), options);
     }
   }
 
@@ -84,13 +79,16 @@ export class Yaml {
    */
   @op.expression('$yamlToObject')
   public yamlToObject(obj: any, expr: any, ctx: OperatorContext) {
-    if (typeof expr === 'object' && expr.frontMatter === true) {
-      const contentKey = ctx.compute(obj, expr.contentKey) as string || '_content';
-      const data = ctx.compute(obj, expr.path);
-      const doc = loadFront(data) as any;
+    const { path, frontMatter, contentKey } = this.normalizeExpression(expr);
 
-      ctx.set(doc, contentKey, doc.__content.trim());
-      delete doc.__content;
+    if (frontMatter) {
+      const selector = ctx.compute(obj, contentKey) as string || '_content';
+      const data = ctx.compute(obj, path);
+      const loadResult = loadFront(data) as any;
+
+      const doc = loadResult.frontMatter;
+      ctx.set(doc, selector, loadResult.body.trim());
+
       return doc;
     } else {
       const path = typeof expr === 'string'
@@ -101,6 +99,14 @@ export class Yaml {
         throw new Error('Deserialized YAML is not an object')
       }
       return doc;
+    }
+  }
+
+  private normalizeExpression(expr: any) {
+    if (typeof expr === 'string') {
+      return Object.assign({ path: expr, frontMatter: false }, this.options);
+    } else {
+      return Object.assign({}, this.options, expr);
     }
   }
 }
