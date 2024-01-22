@@ -9,7 +9,7 @@ export class GlobIO extends FileStreamIO {
     }
 
     const merge = Object.assign(
-      {}, options?.merge, { _id: '$path' }
+      {}, options?.mergeStat, { _id: '$path' }
     );
 
     return new FileStreamIO(

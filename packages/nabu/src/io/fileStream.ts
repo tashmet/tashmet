@@ -5,7 +5,7 @@ export class FileStreamIO extends StreamIO {
   public constructor(
     public path: (id?: string) => string,
     private format: FileFormat,
-    private merge: Document = {},
+    private mergeStat: Document = {},
     private assign: Document = {},
     private defaults: Document = {},
   ) { super(); }
@@ -30,7 +30,7 @@ export class FileStreamIO extends StreamIO {
         stats: { $lstat: '$_id' },
         content: this.format.reader({ $readFile: '$_id' }),
       } },
-      { $replaceRoot: { newRoot: { $mergeObjects: [ this.merge, '$content' ] } } },
+      { $replaceRoot: { newRoot: { $mergeObjects: [ this.mergeStat, '$content' ] } } },
       { $set: construct },
     ];
   }

@@ -59,14 +59,6 @@ export interface NabuConfig {
 
 export abstract class NabuConfig implements NabuConfig {}
 
-export interface ContentRuleOptions {
-  merge?: Document;
-
-  construct?: Document;
-
-  default?: Document;
-}
-
 export interface FileFormat {
   reader(expr: any): Document;
   writer(expr: any): Document;
@@ -84,18 +76,30 @@ export interface ObjectInFile extends ObjectInFileOptions {
   format: FileFormat | string;
 }
 
-export interface Directory extends ContentRuleOptions {
+export interface Directory {
   path: string;
 
   extension: string;
 
   format: string;
+
+  mergeStat?: Document;
+
+  construct?: Document;
+
+  default?: Document;
 }
 
-export interface Glob extends ContentRuleOptions {
+export interface Glob {
   pattern: string;
 
   format: string;
+
+  mergeStat?: Document;
+
+  construct?: Document;
+
+  default?: Document;
 }
 
 export type IODescription = 

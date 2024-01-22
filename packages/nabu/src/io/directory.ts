@@ -10,7 +10,7 @@ export class DirectoryIO extends FileStreamIO {
     }
 
     const merge = Object.assign(
-      {}, options?.merge, { _id: { $basename: ['$path', { $extname: '$path' }] } }
+      {}, options?.mergeStat, { _id: { $basename: ['$path', { $extname: '$path' }] } }
     );
 
     return new DirectoryIO(
