@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-alpha.8
+
+- Support for default field values in directory and glob outputs
+- Changed name of glob and directory merge option to mergeStat
+- Support for all YAML-options in objectToYaml-operator
+- Changed name of data field in yaml operators from 'path' to 'data'
+
 ## 1.0.0-alpha.7
 
 - Drop command cleans up files and directories in nabu

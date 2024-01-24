@@ -1,6 +1,6 @@
 {
   "name": "tashmet",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "private": true,
   "description": "Tashmet is an isomorphic publishing platform",
   "type": "module",

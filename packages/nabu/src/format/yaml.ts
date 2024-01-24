@@ -17,7 +17,7 @@ export interface YamlConfig {
 }
 
 export class YamlFileFormat implements FileFormat {
-  public constructor(private config: YamlConfig) {}
+  public constructor(private config: YamlConfig = {}) {}
 
   public reader(expr: any): Document {
     return {
