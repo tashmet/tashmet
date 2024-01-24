@@ -45,56 +45,47 @@ const defaultOptions: YamlOptions = {
 export class Yaml {
   public constructor(public options: YamlOptions) {}
 
+  /**
+   * Serialize object to YAML
+   */
   @op.expression('$objectToYaml')
   public objectToYaml(obj: any, expr: any, ctx: OperatorContext) {
-    const { path, frontMatter, contentKey, ...options } = this.normalizeExpression(expr);
+    const { data, frontMatter, contentKey, ...options } = this.normalizeExpression(expr);
 
     if (frontMatter) {
       const key = ctx.compute(obj, contentKey || '_content') as string;
-      const data = ctx.compute(obj, path);
-      const content = ctx.resolve(data, key);
+      const doc = ctx.compute(obj, data);
+      const content = ctx.resolve(doc, key);
 
-      ctx.remove(data, key);
-      const fmData = jsYaml.dump(data, options);
+      ctx.remove(doc, key);
+      const fmData = jsYaml.dump(doc, options);
       let output = '---\n' + fmData + '---';
       if (content) {
         output += '\n' + content.replace(/^\s+|\s+$/g, '');
       }
       return output;
     } else {
-      return jsYaml.dump(ctx.compute(obj, path), options);
+      return jsYaml.dump(ctx.compute(obj, data), options);
     }
   }
 
   /**
-   * Parse YAML
-   * 
-   * @example
-   * 
-   * 
-   * @param obj 
-   * @param expr 
-   * @param ctx 
-   * @returns 
+   * Parse YAML to object
    */
   @op.expression('$yamlToObject')
   public yamlToObject(obj: any, expr: any, ctx: OperatorContext) {
-    const { path, frontMatter, contentKey } = this.normalizeExpression(expr);
+    const { data, frontMatter, contentKey } = this.normalizeExpression(expr);
 
     if (frontMatter) {
       const selector = ctx.compute(obj, contentKey) as string || '_content';
-      const data = ctx.compute(obj, path);
-      const loadResult = loadFront(data) as any;
+      const loadResult = loadFront(ctx.compute(obj, data)) as any;
 
       const doc = loadResult.frontMatter;
       ctx.set(doc, selector, loadResult.body.trim());
 
       return doc;
     } else {
-      const path = typeof expr === 'string'
-        ? expr
-        : expr.path ? expr.path : expr;
-      const doc = jsYaml.load(ctx.compute(obj, path)) as any;
+      const doc = jsYaml.load(ctx.compute(obj, data)) as any;
       if (typeof doc !== 'object') {
         throw new Error('Deserialized YAML is not an object')
       }
@@ -102,9 +93,9 @@ export class Yaml {
     }
   }
 
-  private normalizeExpression(expr: any) {
+  private normalizeExpression(expr: string | Document) {
     if (typeof expr === 'string') {
-      return Object.assign({ path: expr, frontMatter: false }, this.options);
+      return Object.assign({ data: expr, frontMatter: false, contentKey: undefined }, this.options);
     } else {
       return Object.assign({}, this.options, expr);
     }

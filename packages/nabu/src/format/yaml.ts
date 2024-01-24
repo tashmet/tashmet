@@ -17,14 +17,14 @@ export interface YamlConfig {
 }
 
 export class YamlFileFormat implements FileFormat {
-  public constructor(private config: YamlConfig = {}) {}
+  public constructor(private config: YamlConfig) {}
 
   public reader(expr: any): Document {
     return {
       $yamlToObject: {
+        data: expr,
         frontMatter: this.config.frontMatter === true,
         contentKey: this.config.contentKey,
-        path: expr,
       }
     }
   }
@@ -32,11 +32,10 @@ export class YamlFileFormat implements FileFormat {
   public writer(expr: any): Document {
     return {
       $objectToYaml: {
+        data: expr,
         frontMatter: this.config.frontMatter === true,
         contentKey: this.config.contentKey,
-        path: expr,
       }
     }
   }
 }
-

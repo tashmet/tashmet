@@ -48,7 +48,7 @@ describe('yaml', () => {
       ];
       const pipeline: Document[] = [
         { $documents: input },
-        { $set: { yaml: { $objectToYaml: { path: '$object' } } } }
+        { $set: { yaml: { $objectToYaml: { data: '$object' } } } }
       ];
 
       const doc = await tashmet.db('test').aggregate(pipeline).next();
@@ -63,7 +63,7 @@ describe('yaml', () => {
       ];
       const pipeline: Document[] = [
         { $documents: input },
-        { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true } } } }
+        { $set: { yaml: { $objectToYaml: { data: '$object', frontMatter: true } } } }
       ];
       const expected = dedent`
         ---
@@ -84,7 +84,7 @@ describe('yaml', () => {
       ];
       const pipeline: Document[] = [
         { $documents: input },
-        { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true, contentKey: 'body.raw' } } } }
+        { $set: { yaml: { $objectToYaml: { data: '$object', frontMatter: true, contentKey: 'body.raw' } } } }
       ];
       const expected = dedent`
         ---
@@ -106,7 +106,7 @@ describe('yaml', () => {
       ];
       const pipeline: Document[] = [
         { $documents: input },
-        { $set: { yaml: { $objectToYaml: { path: '$object', frontMatter: true, contentKey: 'body' } } } }
+        { $set: { yaml: { $objectToYaml: { data: '$object', frontMatter: true, contentKey: 'body' } } } }
       ];
       const expected = dedent`
         ---
@@ -150,7 +150,7 @@ describe('yaml', () => {
       `;
       const pipeline: Document[] = [
         { $documents: [{ yaml }] },
-        { $set: { object: { $yamlToObject: { path: '$yaml' } } } }
+        { $set: { object: { $yamlToObject: { data: '$yaml' } } } }
       ];
 
       const doc = await tashmet.db('test').aggregate(pipeline).next();
@@ -168,7 +168,7 @@ describe('yaml', () => {
       `;
       const pipeline: Document[] = [
         { $documents: [{ yaml }] },
-        { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true } } } }
+        { $set: { object: { $yamlToObject: { data: '$yaml', frontMatter: true } } } }
       ];
       const doc = await tashmet.db('test').aggregate(pipeline).next();
 
@@ -185,7 +185,7 @@ describe('yaml', () => {
       `;
       const pipeline: Document[] = [
         { $documents: [{ yaml }] },
-        { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true, contentKey: 'body' } } } }
+        { $set: { object: { $yamlToObject: { data: '$yaml', frontMatter: true, contentKey: 'body' } } } }
       ];
       const doc = await tashmet.db('test').aggregate(pipeline).next();
 
@@ -202,7 +202,7 @@ describe('yaml', () => {
       `;
       const pipeline: Document[] = [
         { $documents: [{ yaml }] },
-        { $set: { object: { $yamlToObject: { path: '$yaml', frontMatter: true, contentKey: 'body.raw' } } } }
+        { $set: { object: { $yamlToObject: { data: '$yaml', frontMatter: true, contentKey: 'body.raw' } } } }
       ];
       const doc = await tashmet.db('test').aggregate(pipeline).next();
 
