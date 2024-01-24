@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/mingo",
-	"version": "1.0.0-alpha.7",
+	"version": "1.0.0-alpha.8",
 	"description": "",
 	"type": "module",
 	"main": "dist/index.js",
@@ -31,10 +31,10 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@tashmet/core": "^1.0.0-alpha.5",
-		"@tashmet/engine": "^1.0.0-alpha.7",
-		"@tashmet/schema": "^1.0.0-alpha.7",
-		"@tashmet/tashmet": "^1.0.0-alpha.6",
+		"@tashmet/core": "^1.0.0-alpha.8",
+		"@tashmet/engine": "^1.0.0-alpha.8",
+		"@tashmet/schema": "^1.0.0-alpha.8",
+		"@tashmet/tashmet": "^1.0.0-alpha.8",
 		"mingo": "^6.4.9"
 	},
 	"devDependencies": {
