@@ -13,7 +13,7 @@
     "test:packages": "lerna run test",
     "test:integration": "mocha --config test/integration/.mocharc.json",
     "test:e2e": "mocha --config test/e2e/.mocharc.json",
-    "publish": "lerna publish --no-private"
+    "publish": "lerna publish --no-private --force-publish"
   },
   "author": "Björn Andersson",
   "license": "MIT",
