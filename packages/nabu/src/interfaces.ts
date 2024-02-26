@@ -61,7 +61,7 @@ export abstract class NabuConfig implements NabuConfig {}
 
 export interface FileFormat {
   reader(expr: any): Document;
-  writer(expr: any): Document;
+  writer(expr: any): Document | string;
 }
 
 export interface ArrayInFile extends ArrayInFileOptions{
