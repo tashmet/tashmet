@@ -36,7 +36,6 @@ export class FileStreamIO extends StreamIO {
   }
 
   output(mode: 'insert' | 'update' | 'delete') {
-    const path = (c: Document) => this.path((c as any)._id);
     const pipeline: Document[] = [];
 
     if (mode !== 'delete') {
@@ -52,15 +51,17 @@ export class FileStreamIO extends StreamIO {
       }
 
       pipeline.push(
-        { $unset: Object.keys(this.assign) },
+        { $unset: [...Object.keys(this.assign), ...Object.keys(this.mergeStat)].filter(k => k !== '_id')},
         { $set: defaults },
+        { $project: { _id: 1, content: '$$ROOT' } },
+        { $unset: 'content._id' },
       );
     }
 
     return pipeline.concat(
       { $writeFile: {
-        content: mode !== 'delete' ? this.format.writer('$$ROOT') : null,
-        to: { $function: { body: path, args: [ "$$ROOT" ], lang: "js" }},
+        content: mode !== 'delete' ? this.format.writer('$content') : null,
+        to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},
         overwrite: mode !== 'insert',
       } }
     );

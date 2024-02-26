@@ -12,7 +12,8 @@ describe('nabu using directory', () => {
     },
     document: id => {
       try {
-        return fsExtra.readJsonSync(`e2e/testCollection/${id}.json`);
+        const data = fsExtra.readJsonSync(`e2e/testCollection/${id}.json`);
+        return { _id: id, ...data };
       } catch (err) {
         return undefined;
       }
