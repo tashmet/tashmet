@@ -28,8 +28,9 @@ export class FileStreamIO extends StreamIO {
         _id: 0,
         path: '$_id',
         stats: { $lstat: '$_id' },
-        content: this.format.reader({ $readFile: '$_id' }),
+        content: { $readFile: '$_id' },
       } },
+      ...this.format.reader,
       { $replaceRoot: { newRoot: { $mergeObjects: [ this.mergeStat, '$content' ] } } },
       { $set: construct },
     ];
@@ -59,8 +60,9 @@ export class FileStreamIO extends StreamIO {
     }
 
     return pipeline.concat(
+      ...this.format.writer,
       { $writeFile: {
-        content: mode !== 'delete' ? this.format.writer('$content') : null,
+        content: mode !== 'delete' ? '$content' : null,
         to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},
         overwrite: mode !== 'insert',
       } }

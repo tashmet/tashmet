@@ -20,6 +20,7 @@
   "workspaces": [
     "packages/core",
     "packages/engine",
+    "packages/frontmatter",
     "packages/fs",
     "packages/json",
     "packages/markdown",

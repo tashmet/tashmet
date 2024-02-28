@@ -39,7 +39,8 @@ export class ObjectInFileIO extends BufferIO {
     const pipeline: Document[] = [
       { $documents: [{ _id: this.path }] },
       { $glob: { pattern: '$_id'} },
-      { $project: { content: this.format.reader({ $readFile: '$_id' }) } },
+      { $project: { content: { $readFile: '$_id' } } },
+      ...this.format.reader,
       { $set: { content: { $objectToArray: field } } },
       { $unwind: '$content' },
       { $replaceRoot: { newRoot: { $mergeObjects: [{ _id: '$content.k', }, '$content.v'] } } },
@@ -63,11 +64,12 @@ export class ObjectInFileIO extends BufferIO {
           content: {
             $cond: {
               if: { $fileExists: this.path },
-              then: this.format.reader({ $readFile: this.path }),
-              else: {}
+              then: { $readFile: this.path },
+              else: null,
             }
           }
         } },
+        ...this.format.reader,
         { $set: { [`content.${this.options.field}`]: { $arrayToObject: '$items' } } },
       );
     } else {
@@ -77,8 +79,9 @@ export class ObjectInFileIO extends BufferIO {
     }
 
     pipeline.push(
+      ...this.format.writer,
       { $writeFile: {
-        content: this.format.writer('$content'),
+        content: '$content',
         to: '$_id',
         overwrite: true
       } }

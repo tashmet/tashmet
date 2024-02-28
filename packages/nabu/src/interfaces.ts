@@ -60,8 +60,8 @@ export interface NabuConfig {
 export abstract class NabuConfig implements NabuConfig {}
 
 export interface FileFormat {
-  reader(expr: any): Document;
-  writer(expr: any): Document | string;
+  reader: Document[];
+  writer: Document[];
 }
 
 export interface ArrayInFile extends ArrayInFileOptions{

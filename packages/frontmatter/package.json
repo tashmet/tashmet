@@ -1,0 +1,32 @@
+{
+	"name": "@tashmet/frontmatter",
+	"version": "1.0.0-alpha.8",
+	"description": "operators for reading and writing frontmatter",
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint --cache --ext .js,.ts src/",
+		"test": "exit 0"
+	},
+	"author": "Björn Andersson",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tashmet/tashmet"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@tashmet/core": "^1.0.0-alpha.8",
+		"@tashmet/engine": "^1.0.0-alpha.8",
+		"@tashmet/tashmet": "^1.0.0-alpha.8"
+	},
+	"devDependencies": {
+		"@types/node": "^20.5.3",
+		"@types/reflect-metadata": "^0.1.0",
+		"tslib": "^2.3.1"
+	}
+}

@@ -29,6 +29,7 @@ import Json from '@tashmet/json';
 import Yaml from '@tashmet/yaml';
 import Fs from '@tashmet/fs';
 import Markdown from '@tashmet/markdown';
+import Frontmatter from '@tashmet/frontmatter';
 import { MemoryCollectionFactory } from '@tashmet/memory';
 import {
   IODescription,
@@ -66,6 +67,7 @@ export default class Nabu extends StorageEngine {
       .use(Json(config.json))
       .use(Yaml(config.yaml))
       .use(Markdown(config.markdown))
+      .use(Frontmatter())
   }
 
   /**

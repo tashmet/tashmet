@@ -1,12 +1,6 @@
-import { Document } from "@tashmet/tashmet";
-import { FileFormat } from "../interfaces.js";
+import { ExpressionIO } from "./common.js";
 
-export class JsonFileFormat implements FileFormat {
-  public reader(expr: any): Document {
-    return { $jsonToObject: expr };
-  }
-
-  public writer(expr: any): Document {
-    return { $objectToJson: expr }
-  }
+export class JsonExpressionIO implements ExpressionIO {
+  reader(expr: any) { return { $jsonToObject: expr } };
+  writer(expr: any) { return { $objectToJson: expr } };
 }
