@@ -54,13 +54,20 @@ export class FileStreamIO extends StreamIO {
       pipeline.push(
         { $unset: [...Object.keys(this.assign), ...Object.keys(this.mergeStat)].filter(k => k !== '_id')},
         { $set: defaults },
-        { $project: { _id: 1, content: '$$ROOT' } },
-        { $unset: 'content._id' },
+        {
+          $facet: {
+            id: [{ $project: { _id: 1 } }],
+            content: [
+              { $project: { _id: 0, content: '$$ROOT' } },
+              ...this.format.writer,
+            ]
+          }
+        },
+        { $replaceWith: { $mergeObjects: [{ $first: '$id' }, { $first: '$content' } ] } }
       );
     }
 
     return pipeline.concat(
-      ...this.format.writer,
       { $writeFile: {
         content: mode !== 'delete' ? '$content' : null,
         to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},

@@ -29,30 +29,34 @@ export class FrontmatterFileFormat implements FileFormat {
   get writer(): Document[] {
     const body = this.config.body || 'body';
     const field = this.config.field || 'frontmatter';
-    const writer = this.exprIO.writer('$content.frontmatter');
+    const writer = this.exprIO.writer;
 
-    const pipeline: Document[] = [
+    const fmRoot: Document[] = [
+      { $project: { [body]: 0 } },
+      { $project: { frontmatter: writer('$$ROOT') } }
+    ];
+
+    const fmField: Document[] = [
+      { $project: { frontmatter: writer(`$${field}`) } }
+    ]
+
+    return [
+      { $replaceWith: '$content' },
       {
-        $set: {
+        $facet: {
+          body: [ { $project: { body: `$${body}` } } ],
+          frontmatter: this.config.field ? fmField : fmRoot,
+        }
+      },
+      {
+        $project: {
           content: {
-            $mergeObjects: [
-              { frontMatter: this.config.field ? `$content.${field}` : '$content' },
-              { body: `$content.${body}` }
-            ]
-          }
+            $objectToFrontmatter: {
+              $mergeObjects: [ {$first: '$body'}, {$first: '$frontmatter'} ]
+            }
+          },
         }
       },
     ];
-
-    if (this.config.field === undefined) {
-      pipeline.push(
-        { $unset: `content.frontmatter.${body}`},
-      );
-    }
-
-    return pipeline.concat([
-      { $set: { 'content.frontmatter': writer } },
-      { $set: { content: { $objectToFrontmatter: '$content' } }},
-    ]);
   }
 }

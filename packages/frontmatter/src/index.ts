@@ -13,8 +13,8 @@ export class FrontMatter {
     const content = ctx.compute(obj, expr) as any;
 
     let output = '';
-    if (content.frontMatter && typeof content.frontMatter === 'string') {
-      output += '---\n' + content.frontMatter + '---';
+    if (content.frontmatter && typeof content.frontmatter === 'string') {
+      output += '---\n' + content.frontmatter + '---';
     }
 
     if (content.body && typeof content.body === 'string') {
@@ -34,7 +34,7 @@ export class FrontMatter {
     const re = /^(-{3}(?:\n|\r)([\w\W]+?)(?:\n|\r)-{3})?([\w\W]*)*/;
     const results = re.exec(content);
 
-    return { frontMatter: (results as any)[2], body: (results as any)[3] || '' }
+    return { frontmatter: (results as any)[2], body: (results as any)[3] || '' }
   }
 }
 
