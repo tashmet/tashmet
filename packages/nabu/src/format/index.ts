@@ -22,12 +22,8 @@ export function makeFileFormat(format: string | Document): FileFormat {
       return new FrontmatterFileFormat(makeFileFormat, options);
     case 'yaml':
       return new ExpressionFileFormat(new YamlExpressionIO());
-    //case 'yamlFrontmatter':
-      //return new FrontmatterFileFormat(new YamlExpressionIO(), formatOptions || {});
     case 'json':
       return new ExpressionFileFormat(new JsonExpressionIO());
-    //case 'jsonFrontmatter':
-      //return new FrontmatterFileFormat(new YamlExpressionIO(), formatOptions || {});
     case 'text':
       return new TextFileFormat(formatOptions);
     default:

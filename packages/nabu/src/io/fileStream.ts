@@ -24,12 +24,6 @@ export class FileStreamIO extends StreamIO {
 
     return [
       { $glob: { pattern: '$_id' } },
-      //{ $project: {
-        //_id: 0,
-        //path: '$_id',
-        //stats: { $lstat: '$_id' },
-        //content: { $readFile: '$_id' },
-      //} },
       {
         $facet: {
           file: [
