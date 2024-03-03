@@ -3,18 +3,17 @@ import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
 import dedent from 'dedent';
 
-import Tashmet, { Document } from '@tashmet/tashmet';
+import Tashmet from '@tashmet/tashmet';
 import mingo from '../../../packages/mingo/dist/index.js';
 import Nabu from '../../../packages/nabu/dist/index.js';
-import { makeFileFormat } from '../../../packages/nabu/dist/format/index.js';
+import { IOHelper } from './io-helper.js';
 
 chai.use(chaiAsPromised);
 
 const { expect } = chai;
 
-
 describe('frontmatter', () => {
-  let tashmet: Tashmet;
+  let io: IOHelper;
 
   before(async () => {
     const store = Nabu
@@ -22,26 +21,9 @@ describe('frontmatter', () => {
       .use(mingo())
       .bootstrap();
 
-    tashmet = await Tashmet.connect(store.proxy());
+    const tashmet = await Tashmet.connect(store.proxy());
+    io = new IOHelper(tashmet);
   });
-
-  async function readContent(content: string, format: string | Document) {
-    const f = makeFileFormat(format);
-    const pipeline: Document[] = [
-      { $documents: [{ content }] },
-      ...f.reader 
-    ];
-    return await tashmet.db('test').aggregate(pipeline).next();
-  }
-
-  function writeContent(content: Document, format: string | Document) {
-    const f = makeFileFormat(format);
-    const pipeline: Document[] = [
-      { $documents: [{ content }] },
-      ...f.writer 
-    ];
-    return tashmet.db('test').aggregate(pipeline).next() as Promise<Document>;
-  }
 
   describe('input', () => {
     it('should convert frontmatter to object', async () => {
@@ -51,7 +33,7 @@ describe('frontmatter', () => {
         ---
         Document body
       `;
-      const doc = await readContent(content, 'frontmatter');
+      const doc = await io.readContent(content, 'frontmatter');
 
       return expect(doc).to.eql({
         content: { body: 'Document body', frontmatter: 'title: foo' }
@@ -65,7 +47,7 @@ describe('frontmatter', () => {
         ---
         Document body
       `;
-      const doc = await readContent(content, { frontmatter: { field: 'meta', bodyField: 'content' } });
+      const doc = await io.readContent(content, { frontmatter: { field: 'meta', bodyField: 'content' } });
 
       return expect(doc).to.eql({
         content: { content: 'Document body', meta: 'title: foo' }
@@ -79,7 +61,7 @@ describe('frontmatter', () => {
         ---
         Document body
       `;
-      const doc = await readContent(content, { frontmatter: 'json' });
+      const doc = await io.readContent(content, { frontmatter: 'json' });
 
       return expect(doc).to.eql({
         content: { body: 'Document body', title: 'foo' }
@@ -93,7 +75,7 @@ describe('frontmatter', () => {
         ---
         Document body
       `;
-      const doc = await readContent(content, { frontmatter: { format: 'json', root: false} });
+      const doc = await io.readContent(content, { frontmatter: { format: 'json', root: false} });
 
       return expect(doc).to.eql({
         content: { body: 'Document body', frontmatter: { title: 'foo' } }
@@ -107,7 +89,7 @@ describe('frontmatter', () => {
         ---
         Document body
       `;
-      const doc = await readContent(content, { frontmatter: 'yaml' });
+      const doc = await io.readContent(content, { frontmatter: 'yaml' });
 
       return expect(doc).to.eql({
         content: { body: 'Document body', title: 'foo' }
@@ -121,7 +103,7 @@ describe('frontmatter', () => {
         ---
         Document body
       `;
-      const doc = await readContent(content, { frontmatter: { format: 'yaml', root: false } });
+      const doc = await io.readContent(content, { frontmatter: { format: 'yaml', root: false } });
 
       return expect(doc).to.eql({
         content: { body: 'Document body', frontmatter: { title: 'foo' } }
@@ -138,7 +120,7 @@ describe('frontmatter', () => {
         Document body
       `;
       const content = { body: 'Document body', frontmatter: 'title: foo' };
-      const doc = await writeContent(content, 'frontmatter');
+      const doc = await io.writeContent(content, 'frontmatter');
 
       return expect(doc.content).to.equal(expected);
     });
@@ -151,7 +133,7 @@ describe('frontmatter', () => {
         Document body
       `;
       const content = { content: 'Document body', meta: 'title: foo' };
-      const doc = await writeContent(content, { frontmatter: { field: 'meta', bodyField: 'content' } });
+      const doc = await io.writeContent(content, { frontmatter: { field: 'meta', bodyField: 'content' } });
 
       return expect(doc.content).to.equal(expected);
     });
@@ -166,7 +148,7 @@ describe('frontmatter', () => {
         Document body
       `;
       const content = { body: 'Document body', title: 'foo' };
-      const doc = await writeContent(content, { frontmatter: 'json' });
+      const doc = await io.writeContent(content, { frontmatter: 'json' });
 
       return expect(doc.content).to.equal(expected);
     });
@@ -181,7 +163,7 @@ describe('frontmatter', () => {
         Document body
       `;
       const content = { body: 'Document body', frontmatter: { title: 'foo' } }
-      const doc = await writeContent(content, { frontmatter: { format: 'json', root: false} });
+      const doc = await io.writeContent(content, { frontmatter: { format: 'json', root: false} });
 
       return expect(doc.content).to.equal(expected);
     });
@@ -194,7 +176,7 @@ describe('frontmatter', () => {
         Document body
       `;
       const content = { body: 'Document body', title: 'foo' };
-      const doc = await writeContent(content, { frontmatter: 'yaml' });
+      const doc = await io.writeContent(content, { frontmatter: 'yaml' });
 
       return expect(doc.content).to.equal(expected);
     });
@@ -207,7 +189,7 @@ describe('frontmatter', () => {
         Document body
       `;
       const content = { body: 'Document body', frontmatter: { title: 'foo' } };
-      const doc = await writeContent(content, { frontmatter: { format: 'yaml', root: false} });
+      const doc = await io.writeContent(content, { frontmatter: { format: 'yaml', root: false} });
 
       return expect(doc.content).to.equal(expected);
     });
