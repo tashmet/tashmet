@@ -24,13 +24,30 @@ export class FileStreamIO extends StreamIO {
 
     return [
       { $glob: { pattern: '$_id' } },
-      { $project: {
-        _id: 0,
-        path: '$_id',
-        stats: { $lstat: '$_id' },
-        content: { $readFile: '$_id' },
-      } },
-      ...this.format.reader,
+      //{ $project: {
+        //_id: 0,
+        //path: '$_id',
+        //stats: { $lstat: '$_id' },
+        //content: { $readFile: '$_id' },
+      //} },
+      {
+        $facet: {
+          file: [
+            {
+              $project: {
+                _id: 0,
+                path: '$_id',
+                stats: { $lstat: '$_id' },
+              }
+            },
+          ],
+          content: [
+            { $project: { _id: 0, content: { $readFile: '$_id' } } },
+            ...this.format.reader,
+          ]
+        }
+      },
+      { $replaceRoot: { newRoot: { $mergeObjects: [ { $first: '$file' }, { $first: '$content'} ] } } },
       { $replaceRoot: { newRoot: { $mergeObjects: [ this.mergeStat, '$content' ] } } },
       { $set: construct },
     ];

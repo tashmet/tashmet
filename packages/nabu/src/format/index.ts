@@ -4,8 +4,9 @@ import { TextFileFormat } from './text.js';
 import { FrontmatterFileFormat } from './frontmatter.js';
 import { ExpressionFileFormat } from './common.js';
 import { JsonExpressionIO } from './json.js';
+import { FileFormat } from '../interfaces.js';
 
-export function makeFileFormat(format: string | Document) {
+export function makeFileFormat(format: string | Document): FileFormat {
   const formatName = typeof format === 'object'
     ? Object.keys(format)[0]
     : format;
@@ -14,14 +15,19 @@ export function makeFileFormat(format: string | Document) {
     : undefined;
       
   switch (formatName) {
+    case 'frontmatter':
+      const options = typeof formatOptions === 'string'
+        ? { format: formatOptions, root: true }
+        : formatOptions
+      return new FrontmatterFileFormat(makeFileFormat, options);
     case 'yaml':
       return new ExpressionFileFormat(new YamlExpressionIO());
-    case 'yamlFrontmatter':
-      return new FrontmatterFileFormat(new YamlExpressionIO(), formatOptions || {});
+    //case 'yamlFrontmatter':
+      //return new FrontmatterFileFormat(new YamlExpressionIO(), formatOptions || {});
     case 'json':
       return new ExpressionFileFormat(new JsonExpressionIO());
-    case 'jsonFrontmatter':
-      return new FrontmatterFileFormat(new YamlExpressionIO(), formatOptions || {});
+    //case 'jsonFrontmatter':
+      //return new FrontmatterFileFormat(new YamlExpressionIO(), formatOptions || {});
     case 'text':
       return new TextFileFormat(formatOptions);
     default:

@@ -14,7 +14,7 @@ export class FrontMatter {
 
     let output = '';
     if (content.frontmatter && typeof content.frontmatter === 'string') {
-      output += '---\n' + content.frontmatter + '---';
+      output += '---\n' + content.frontmatter.trim() + '\n---';
     }
 
     if (content.body && typeof content.body === 'string') {
@@ -34,7 +34,9 @@ export class FrontMatter {
     const re = /^(-{3}(?:\n|\r)([\w\W]+?)(?:\n|\r)-{3})?([\w\W]*)*/;
     const results = re.exec(content);
 
-    return { frontmatter: (results as any)[2], body: (results as any)[3] || '' }
+    const body = (results as any)[3] || '';
+
+    return { frontmatter: (results as any)[2], body: body.trim() }
   }
 }
 
