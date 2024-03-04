@@ -82,7 +82,7 @@ export class StreamCollection extends ReadWriteCollection {
         }
       }
 
-      for await (const err of output().stream<WriteError>(arrayToGenerator([doc.fullDocument || { _id: doc.documentKey?._id}]))) {
+      for await (const err of output().stream<WriteError>(arrayToGenerator([doc.fullDocument || doc.documentKey as any]))) {
         writeErrors.push({ ...err, index });
       }
 

@@ -6,7 +6,7 @@ import { ExpressionFileFormat } from './common.js';
 import { JsonExpressionIO } from './json.js';
 import { FileFormat } from '../interfaces.js';
 
-export function makeFileFormat(format: string | Document): FileFormat {
+export function makeFileFormat(format: string | Document, field: string = 'content'): FileFormat {
   const formatName = typeof format === 'object'
     ? Object.keys(format)[0]
     : format;
@@ -21,9 +21,9 @@ export function makeFileFormat(format: string | Document): FileFormat {
         : formatOptions
       return new FrontmatterFileFormat(makeFileFormat, options);
     case 'yaml':
-      return new ExpressionFileFormat(new YamlExpressionIO());
+      return new ExpressionFileFormat(field, new YamlExpressionIO());
     case 'json':
-      return new ExpressionFileFormat(new JsonExpressionIO());
+      return new ExpressionFileFormat(field, new JsonExpressionIO());
     case 'text':
       return new TextFileFormat(formatOptions);
     default:

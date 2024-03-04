@@ -14,39 +14,23 @@ export interface FrontmatterConfig {
 export class FrontmatterFileFormat implements FileFormat {
   private format: FileFormat;
 
-  constructor(makeFileFormat: (format: string | Document) => FileFormat, private config: FrontmatterConfig = {}) {
-    this.format = makeFileFormat(config.format || 'text');
+  constructor(makeFileFormat: (format: string | Document, field: string) => FileFormat, private config: FrontmatterConfig = {}) {
+    this.format = makeFileFormat(config.format || 'text', 'content.frontmatter');
   }
 
   get reader(): Document[] {
     const body = this.config.bodyField || 'body';
     const field = this.config.field || 'frontmatter';
     const reader = this.config.format ? this.format.reader : [];
+    const merge = this.config.root
+      ? '$content.frontmatter'
+      : { [field]: '$content.frontmatter' };
 
-    const pipeline: Document[] = [
-      { $replaceRoot: { newRoot: { $frontmatterToObject: '$content' } } },
-      {
-        $facet: {
-          frontmatter: [
-            { $project: { content: '$frontmatter' } },
-            ...reader,
-            { $project: { [field]: '$content' } },
-          ],
-          body: [
-            { $project: { [body]: '$body' } },
-          ],
-        }
-      },
-      { $project: { content: { $mergeObjects: [ { $first: '$body' }, { $first: '$frontmatter' } ] } } },
+    return [
+      { $set: { content: { $frontmatterToObject: '$content' } } },
+      ...reader,
+      { $project: { content: { $mergeObjects: [merge, {[body]: `$content.body`}] } } },
     ];
-
-    if (this.config.root) {
-      pipeline.push({
-        $set: { content: { $mergeObjects: [`$content.${field}`, {[body]: `$content.${body}`}] } }
-      });
-    }
-
-    return pipeline;
   }
 
   get writer(): Document[] {
@@ -54,36 +38,18 @@ export class FrontmatterFileFormat implements FileFormat {
     const field = this.config.field || 'frontmatter';
     const writer = this.config.format ? this.format.writer : [];
 
-    const fmRoot: Document[] = [
-      { $project: { [body]: 0 } },
-      { $project: { content: '$$ROOT' } },
-      ...writer,
-      { $project: { frontmatter: '$content' } }
-    ];
+    const pipeline: Document[] = this.config.root
+      ? [
+        { $set: { content: { frontmatter: '$content', body: `$content.${body}` } } },
+        { $unset: `content.frontmatter.${body}`},
+      ]
+      : [
+        { $set: { content: { frontmatter: `$content.${field}`, body: `$content.${body}` } } },
+      ];
 
-    const fmField: Document[] = [
-      { $project: { content: `$${field}` } },
+    return pipeline.concat([
       ...writer,
-      { $project: { frontmatter: '$content' } }
-    ]
-
-    return [
-      { $replaceWith: '$content' },
-      {
-        $facet: {
-          body: [ { $project: { body: `$${body}` } } ],
-          frontmatter: this.config.root ? fmRoot : fmField
-        }
-      },
-      {
-        $project: {
-          content: {
-            $objectToFrontmatter: {
-              $mergeObjects: [ {$first: '$body'}, {$first: '$frontmatter'} ]
-            }
-          },
-        }
-      },
-    ];
+      { $set: { content: { $objectToFrontmatter: '$content' } } },
+    ]);
   }
 }

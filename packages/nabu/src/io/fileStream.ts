@@ -25,23 +25,14 @@ export class FileStreamIO extends StreamIO {
     return [
       { $glob: { pattern: '$_id' } },
       {
-        $facet: {
-          file: [
-            {
-              $project: {
-                _id: 0,
-                path: '$_id',
-                stats: { $lstat: '$_id' },
-              }
-            },
-          ],
-          content: [
-            { $project: { _id: 0, content: { $readFile: '$_id' } } },
-            ...this.format.reader,
-          ]
+        $project: {
+          _id: 1,
+          path: '$_id',
+          stats: { $lstat: '$_id' },
+          content: { $readFile: '$_id' },
         }
       },
-      { $replaceRoot: { newRoot: { $mergeObjects: [ { $first: '$file' }, { $first: '$content'} ] } } },
+      ...this.format.reader,
       { $replaceRoot: { newRoot: { $mergeObjects: [ this.mergeStat, '$content' ] } } },
       { $set: construct },
     ];
@@ -65,16 +56,9 @@ export class FileStreamIO extends StreamIO {
       pipeline.push(
         { $unset: [...Object.keys(this.assign), ...Object.keys(this.mergeStat)].filter(k => k !== '_id')},
         { $set: defaults },
-        {
-          $facet: {
-            id: [{ $project: { _id: 1 } }],
-            content: [
-              { $project: { _id: 0, content: '$$ROOT' } },
-              ...this.format.writer,
-            ]
-          }
-        },
-        { $replaceWith: { $mergeObjects: [{ $first: '$id' }, { $first: '$content' } ] } }
+        { $project: { _id: 1, content: '$$ROOT' } },
+        { $unset: 'content._id' },
+        ...this.format.writer,
       );
     }
 

@@ -7,13 +7,13 @@ export interface ExpressionIO {
 }
 
 export class ExpressionFileFormat implements FileFormat {
-  constructor(private exprIO: ExpressionIO) {}
+  constructor(private field: string, private exprIO: ExpressionIO) {}
 
   get reader(): Document[] {
-    return [{ $set: { content: this.exprIO.reader('$content') } }];
+    return [{ $set: { [this.field]: this.exprIO.reader(`$${this.field}`) } }];
   }
 
   get writer(): Document[] {
-    return [{ $set: { content: this.exprIO.writer('$content') } }];
+    return [{ $set: { [this.field]: this.exprIO.writer(`$${this.field}`) } }];
   }
 }
