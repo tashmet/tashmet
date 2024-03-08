@@ -2,9 +2,10 @@ import { Document } from '@tashmet/tashmet';
 import { makeFileFormat } from '../format/index.js';
 import { FileStreamIO } from './fileStream.js';
 import * as fs from 'fs';
+import { Validator } from '@tashmet/engine';
 
 export class DirectoryIO extends FileStreamIO {
-  static fromConfig({path, extension, format, ...options}: Document) {
+  static fromConfig({path, extension, format, ...options}: Document, validator?: Validator) {
     if (typeof path !== 'string') {
       throw new Error('Failed create directory IO, path is not a string');
     }
@@ -18,7 +19,8 @@ export class DirectoryIO extends FileStreamIO {
       makeFileFormat(format),
       merge,
       options?.construct,
-      options?.default
+      options?.default,
+      validator,
     );
   }
 

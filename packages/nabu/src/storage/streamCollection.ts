@@ -14,33 +14,35 @@ import { StreamIO } from '../interfaces';
 
 export class StreamCollection extends ReadWriteCollection {
   private input: AbstractAggregator;
-  private insert: AbstractAggregator;
-  private update: AbstractAggregator;
-  private delete: AbstractAggregator;
+  private output: AbstractAggregator;
+  //private update: AbstractAggregator;
+  //private delete: AbstractAggregator;
 
   constructor(
     ns: TashmetCollectionNamespace,
     aggregatorFactory: AggregatorFactory,
-    private io: StreamIO,
+    io: StreamIO,
     private validator: Validator | undefined,
   ) {
     super(ns);
     this.input = aggregatorFactory.createAggregator(io.input);
-    this.insert = aggregatorFactory.createAggregator(io.output('insert'));
-    this.update = aggregatorFactory.createAggregator(io.output('update'));
-    this.delete = aggregatorFactory.createAggregator(io.output('delete'));
+    this.output = aggregatorFactory.createAggregator(io.output('insert'));
+    //this.update = aggregatorFactory.createAggregator(io.output('update'));
+    //this.delete = aggregatorFactory.createAggregator(io.output('delete'));
   }
 
   read(options: ReadOptions = {}): AsyncIterable<Document> {
     const { documentIds, projection } = options || {};
-    const paths = documentIds
-      ? documentIds.map(id => ({ _id: this.io.path(id) }))
-      : ([{ _id: this.io.path() }]);
+    const ids: Document[] = documentIds
+      ? documentIds.map(_id => ({ _id }))
+      : ([{ _id: undefined }]);
 
-    return this.input.stream(arrayToGenerator(paths));
+    return this.input.stream(arrayToGenerator(ids));
   }
 
   async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
+     return this.output.run<WriteError>(arrayToGenerator(changes));
+    /*
     const drop = changes.find(c => c.operationType === 'drop');
 
     if (drop) {
@@ -91,5 +93,6 @@ export class StreamCollection extends ReadWriteCollection {
       }
     }
     return writeErrors;
+    */
   }
 }
