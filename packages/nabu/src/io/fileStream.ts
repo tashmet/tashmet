@@ -52,59 +52,53 @@ export class FileStreamIO extends StreamIO {
     }
 
     const processOutput: Document[] = [
-      { $replaceRoot: { newRoot: '$change.fullDocument' } },
+      { $replaceRoot: { newRoot: { $mergeObjects: ['$change.fullDocument', { _index: '$index', _ordered: '$ordered' } ] } } },
       { $unset: [...Object.keys(this.assign), ...Object.keys(this.mergeStat)].filter(k => k !== '_id')},
       { $set: defaults },
-      { $project: { _id: 1, content: '$$ROOT' } },
-      { $unset: 'content._id' },
+      { $project: { _id: 1, index: '$_index', ordered: '$_ordered', content: '$$ROOT' } },
+      { $unset: ['content._id', 'content._index', 'content._ordered'] },
       ...this.format.output,
     ]
 
     const pipeline: Document[] = [
       {
         $facet: {
-          errors: [
-            { $match: { error: { $ne: false} } },
-            { $replaceRoot: { newRoot: '$error' } },
-          ],
           inserts: [
-            { $match: { 'change.operationType': 'insert', error: false } },
+            { $match: { 'change.operationType': 'insert', valid: true } },
             ...processOutput,
-            { $writeFile: {
-              content: '$content',
-              to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},
-              overwrite: false,
-            } }
+            { $set: { op: 'insert' } },
           ],
           updates: [
-            { $match: { 'change.operationType': { $in: ['update', 'replace'] }, error: false } },
+            { $match: { 'change.operationType': { $in: ['update', 'replace'] }, valid: true } },
             ...processOutput,
-            { $writeFile: {
-              content: '$content',
-              to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},
-              overwrite: true,
-            } }
+            { $set: { op: 'update' } },
           ],
           deletes: [
             { $match: { 'change.operationType': 'delete' } },
             { $replaceRoot: { newRoot: '$change.documentKey' } },
-            { $writeFile: {
-              content: null,
-              to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},
-              overwrite: true,
-            } }
+            { $set: { op: 'delete' } },
           ],
         }
       },
       {
         $project: {
-          errors: {
-            $concatArrays: [ '$errors', '$inserts', '$updates', '$deletes' ]
+          operations: {
+            $concatArrays: [ '$inserts', '$updates', '$deletes' ]
           }
         }
       },
-      { $unwind: '$errors' },
-      { $replaceRoot: { newRoot: '$errors' } },
+      { $unwind: '$operations' },
+      { $replaceRoot: { newRoot: '$operations' } },
+      { $sort: { index: 1 } },
+      {
+        $writeFile: {
+          content: '$content',
+          to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},
+          overwrite: { $ne: ['$op', 'insert'] },
+          ordered: '$ordered',
+          index: '$index',
+        }
+      }
     ];
 
     return pipeline;

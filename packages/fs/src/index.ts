@@ -40,18 +40,19 @@ export class FileSystem {
 
   @op.pipeline('$writeFile')
   async *$writeFile(it: AsyncIterable<Document>, expr: any, ctx: OperatorContext) {
-    let index = 0;
+    let i = 0;
 
     for await (const doc of it) {
-      const content = ctx.compute(doc, expr.content);
-      const path = ctx.compute(doc, expr.to);
-      const overwrite = ctx.compute(doc, expr.overwrite);
+      const { content, to: path, overwrite, ordered, index } = ctx.compute(doc, expr);
 
       if (!overwrite && fs.existsSync(path)) {
         yield {
           errMsg: `Trying to overwrite file: ${path} with overwrite flag set to false`,
-          index
+          index: index || i,
         };
+        if (ordered) {
+          return;
+        }
       }
 
       if (content) {
@@ -68,7 +69,7 @@ export class FileSystem {
         }
       }
 
-      index++;
+      i++;
     }
   }
 

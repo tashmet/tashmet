@@ -38,25 +38,28 @@ export class StreamCollection extends ReadWriteCollection {
 
   async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
     const docs: Document[] = [];
+    const writeErrors: WriteError[] = [];
 
-    for (const doc of changes) {
-      let error: WriteError | false = false;
+    for (let i=0; i<changes.length; i++) {
+      const doc = changes[i];
+      let validation: WriteError | true = true;
 
       if (this.validator && !options.bypassDocumentValidation && ['insert', 'update', 'replace'].includes(doc.operationType)) {
         try {
           await this.validator(doc.fullDocument as Document);
         } catch (err) {
-          error = { errMsg: err.message, errInfo: err.info, index: 0 };
+          validation = { errMsg: err.message, errInfo: err.info, index: i };
           if (options.ordered) {
-            return [error]
+            return [validation];
+          } else {
+            writeErrors.push(validation);
           }
-          continue;
         }
       }
 
-      docs.push({ change: doc, ordered: options.ordered, error });
+      docs.push({ change: doc, index: i, ordered: options.ordered, valid: validation === true});
     }
 
-    return this.output.run<WriteError>(arrayToGenerator(docs));
+    return writeErrors.concat(await this.output.run<WriteError>(arrayToGenerator(docs)));
   }
 }
