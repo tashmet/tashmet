@@ -4,17 +4,16 @@ import { makeObjectInFileIO } from './objectInFile.js';
 import { BufferIO, StreamIO } from '../interfaces.js';
 import { DirectoryIO } from './directory.js';
 import { GlobIO } from './glob.js';
-import { Validator } from '@tashmet/engine';
 
-export function makeIO(store: Document, validator?: Validator): StreamIO | BufferIO {
+export function makeIO(store: Document): StreamIO | BufferIO {
   const name = Object.keys(store)[0];
   const config = store[name];
 
   switch (name) {
     case 'directory':
-      return DirectoryIO.fromConfig(config, validator);
+      return DirectoryIO.fromConfig(config);
     case 'glob':
-      return GlobIO.fromConfig(config, validator);
+      return GlobIO.fromConfig(config);
     case 'arrayInFile':
       return makeArrayInFileIO(config);
     case 'objectInFile':

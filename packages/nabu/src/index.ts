@@ -114,10 +114,10 @@ export default class Nabu extends StorageEngine {
     const io = makeIO(ioDescription);
 
     const p: Document[] = io instanceof StreamIO
-      ? [{ _id: io.path() }, ...pipeline]
-      : pipeline;
+      ? [{ $documents: [{ _id: undefined }] }, ...io.input, ...pipeline]
+      : [...io.input, ...pipeline];
 
-    return new AggregationCursor(new TashmetNamespace('nabu'), this.proxy(), io.input.concat(...p));
+    return new AggregationCursor(new TashmetNamespace('nabu'), this.proxy(), p);
   }
 
   private async initNamespace(ns: TashmetNamespace) {

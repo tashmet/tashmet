@@ -20,27 +20,17 @@ export type Encoding =
   undefined;
 
 export class BufferIO  implements IOSegment {
-  constructor(private io: IOSegment) {
-
-  }
+  constructor(private io: IOSegment) { }
 
   get input() { return this.io.input; }
 
   get output() { return this.io.output; }
-
-  //abstract readonly path: string;
-
-  //async drop() {}
 }
 
 export abstract class StreamIO {
   abstract readonly input: Document[];
 
-  abstract output(mode: 'insert' | 'update' | 'delete'): Document[];
-
-  abstract path(id?: string): string;
-
-  async drop() {}
+  abstract readonly output: Document[];
 }
 
 export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => Document;

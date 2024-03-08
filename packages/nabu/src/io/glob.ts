@@ -1,10 +1,9 @@
 import { Document } from '@tashmet/tashmet';
 import { makeFileFormat } from '../format/index.js';
 import { FileStreamIO } from './fileStream.js';
-import { Validator } from '@tashmet/engine';
 
 export class GlobIO extends FileStreamIO {
-  static fromConfig({pattern, format, ...options}: Document, validator?: Validator) {
+  static fromConfig({pattern, format, ...options}: Document) {
     if (typeof pattern !== 'string') {
       throw new Error('Failed create glob IO, pattern is not a string');
     }
@@ -19,7 +18,6 @@ export class GlobIO extends FileStreamIO {
       merge,
       options?.construct,
       options?.default,
-      validator,
     );
   }
 }

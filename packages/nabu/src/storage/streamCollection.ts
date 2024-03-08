@@ -15,8 +15,6 @@ import { StreamIO } from '../interfaces';
 export class StreamCollection extends ReadWriteCollection {
   private input: AbstractAggregator;
   private output: AbstractAggregator;
-  //private update: AbstractAggregator;
-  //private delete: AbstractAggregator;
 
   constructor(
     ns: TashmetCollectionNamespace,
@@ -26,9 +24,7 @@ export class StreamCollection extends ReadWriteCollection {
   ) {
     super(ns);
     this.input = aggregatorFactory.createAggregator(io.input);
-    this.output = aggregatorFactory.createAggregator(io.output('insert'));
-    //this.update = aggregatorFactory.createAggregator(io.output('update'));
-    //this.delete = aggregatorFactory.createAggregator(io.output('delete'));
+    this.output = aggregatorFactory.createAggregator(io.output);
   }
 
   read(options: ReadOptions = {}): AsyncIterable<Document> {
@@ -41,58 +37,26 @@ export class StreamCollection extends ReadWriteCollection {
   }
 
   async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
-     return this.output.run<WriteError>(arrayToGenerator(changes));
-    /*
-    const drop = changes.find(c => c.operationType === 'drop');
-
-    if (drop) {
-      await this.io.drop();
-      return [];
-    }
-
-    const writeErrors: WriteError[] = [];
-    const index = 0;
+    const docs: Document[] = [];
 
     for (const doc of changes) {
-      if (doc.ns.db !== this.ns.db || doc.ns.coll !== this.ns.collection) {
-        continue;
-      }
+      let error: WriteError | false = false;
 
       if (this.validator && !options.bypassDocumentValidation && ['insert', 'update', 'replace'].includes(doc.operationType)) {
         try {
           await this.validator(doc.fullDocument as Document);
         } catch (err) {
-          writeErrors.push({ errMsg: err.message, errInfo: err.info, index });
+          error = { errMsg: err.message, errInfo: err.info, index: 0 };
           if (options.ordered) {
-            break;
+            return [error]
           }
           continue;
         }
       }
 
-      const output = () => {
-        switch (doc.operationType) {
-          case 'insert':
-            return this.insert;
-          case 'update':
-          case 'replace':
-            return this.update;
-          case 'delete':
-            return this.delete;
-          default:
-            return this.delete;
-        }
-      }
-
-      for await (const err of output().stream<WriteError>(arrayToGenerator([doc.fullDocument || doc.documentKey as any]))) {
-        writeErrors.push({ ...err, index });
-      }
-
-      if (options.ordered && writeErrors.length > 0) {
-        break;
-      }
+      docs.push({ change: doc, ordered: options.ordered, error });
     }
-    return writeErrors;
-    */
+
+    return this.output.run<WriteError>(arrayToGenerator(docs));
   }
 }

@@ -1,6 +1,5 @@
 import { Document } from '@tashmet/tashmet';
 import { IOSegment, StreamIO } from '../interfaces.js';
-import { Validator } from '@tashmet/engine';
 
 export class FileStreamIO extends StreamIO {
   public constructor(
@@ -9,7 +8,6 @@ export class FileStreamIO extends StreamIO {
     private mergeStat: Document = {},
     private assign: Document = {},
     private defaults: Document = {},
-    private validator: Validator | undefined = undefined,
   ) { super(); }
 
   get input(): Document[] {
@@ -41,7 +39,7 @@ export class FileStreamIO extends StreamIO {
     ];
   }
 
-  output() {
+  get output() {
     const defaults: Document = {};
     for (const [k, v] of Object.entries(this.defaults)) {
       defaults[k] = {
@@ -54,7 +52,7 @@ export class FileStreamIO extends StreamIO {
     }
 
     const processOutput: Document[] = [
-      { $replaceRoot: { newRoot: '$fullDocument' } },
+      { $replaceRoot: { newRoot: '$change.fullDocument' } },
       { $unset: [...Object.keys(this.assign), ...Object.keys(this.mergeStat)].filter(k => k !== '_id')},
       { $set: defaults },
       { $project: { _id: 1, content: '$$ROOT' } },
@@ -65,8 +63,12 @@ export class FileStreamIO extends StreamIO {
     const pipeline: Document[] = [
       {
         $facet: {
+          errors: [
+            { $match: { error: { $ne: false} } },
+            { $replaceRoot: { newRoot: '$error' } },
+          ],
           inserts: [
-            { $match: { operationType: 'insert' } },
+            { $match: { 'change.operationType': 'insert', error: false } },
             ...processOutput,
             { $writeFile: {
               content: '$content',
@@ -75,7 +77,7 @@ export class FileStreamIO extends StreamIO {
             } }
           ],
           updates: [
-            { $match: { operationType: { $in: ['update', 'replace'] } } },
+            { $match: { 'change.operationType': { $in: ['update', 'replace'] }, error: false } },
             ...processOutput,
             { $writeFile: {
               content: '$content',
@@ -84,8 +86,8 @@ export class FileStreamIO extends StreamIO {
             } }
           ],
           deletes: [
-            { $match: { operationType: 'delete' } },
-            { $replaceRoot: { newRoot: '$documentKey' } },
+            { $match: { 'change.operationType': 'delete' } },
+            { $replaceRoot: { newRoot: '$change.documentKey' } },
             { $writeFile: {
               content: null,
               to: { $function: { body: this.path, args: [ "$_id" ], lang: "js" }},
@@ -97,7 +99,7 @@ export class FileStreamIO extends StreamIO {
       {
         $project: {
           errors: {
-            $concatArrays: [ '$inserts', '$updates', '$deletes' ]
+            $concatArrays: [ '$errors', '$inserts', '$updates', '$deletes' ]
           }
         }
       },
