@@ -1,13 +1,13 @@
-import { FileFormat } from "../interfaces.js";
+import { IOSegment } from "../interfaces.js";
 
 export interface TextConfig {
   contentKey?: string;
 }
 
-export class TextFileFormat implements FileFormat {
+export class TextFileFormat implements IOSegment {
   constructor(private config: TextConfig = {}) {}
 
-  reader = [{ $set: { content: {[this.config.contentKey || 'content']: '$content' } } }];
-  writer = [{ $set: { content: `$content.${this.config.contentKey || 'content'}`} }];
+  input = [{ $set: { content: {[this.config.contentKey || 'content']: '$content' } } }];
+  output = [{ $set: { content: `$content.${this.config.contentKey || 'content'}`} }];
 }
 

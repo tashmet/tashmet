@@ -1,7 +1,7 @@
 import { Document } from '@tashmet/tashmet';
-import { ArrayInFileIO } from '../io/arrayInFile.js';
+import { makeArrayInFileIO } from './arrayInFile.js';
+import { makeObjectInFileIO } from './objectInFile.js';
 import { BufferIO, StreamIO } from '../interfaces.js';
-import { ObjectInFileIO } from './objectInFile.js';
 import { DirectoryIO } from './directory.js';
 import { GlobIO } from './glob.js';
 
@@ -15,10 +15,14 @@ export function makeIO(store: Document): StreamIO | BufferIO {
     case 'glob':
       return GlobIO.fromConfig(config);
     case 'arrayInFile':
-      return ArrayInFileIO.fromConfig(config);
+      return makeArrayInFileIO(config);
     case 'objectInFile':
-      return ObjectInFileIO.fromConfig(config);
+      return makeObjectInFileIO(config);
     default:
       throw new Error('Unsupported IO: ' + name);
   }
+}
+
+class Fill {
+  
 }

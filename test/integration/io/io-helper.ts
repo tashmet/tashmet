@@ -8,7 +8,7 @@ export class IOHelper {
     const f = makeFileFormat(format);
     const pipeline: Document[] = [
       { $documents: [{ content }] },
-      ...f.reader 
+      ...f.input 
     ];
     return this.tashmet.db('test').aggregate(pipeline).next();
   }
@@ -17,7 +17,7 @@ export class IOHelper {
     const f = makeFileFormat(format);
     const pipeline: Document[] = [
       { $documents: [{ content }] },
-      ...f.writer 
+      ...f.output 
     ];
     return this.tashmet.db('test').aggregate(pipeline).next() as Promise<Document>;
   }

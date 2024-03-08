@@ -19,14 +19,18 @@ export type Encoding =
   'hex' |
   undefined;
 
-export abstract class BufferIO {
-  abstract readonly input: Document[];
+export class BufferIO  implements IOSegment {
+  constructor(private io: IOSegment) {
 
-  abstract readonly output: Document[];
+  }
 
-  abstract readonly path: string;
+  get input() { return this.io.input; }
 
-  async drop() {}
+  get output() { return this.io.output; }
+
+  //abstract readonly path: string;
+
+  //async drop() {}
 }
 
 export abstract class StreamIO {
@@ -59,21 +63,21 @@ export interface NabuConfig {
 
 export abstract class NabuConfig implements NabuConfig {}
 
-export interface FileFormat {
-  reader: Document[];
-  writer: Document[];
+export interface IOSegment {
+  input: Document[];
+  output: Document[];
 }
 
 export interface ArrayInFile extends ArrayInFileOptions{
   path: string;
 
-  format: FileFormat | string;
+  format: IOSegment | string;
 }
 
 export interface ObjectInFile extends ObjectInFileOptions {
   path: string;
 
-  format: FileFormat | string;
+  format: IOSegment | string;
 }
 
 export interface Directory {

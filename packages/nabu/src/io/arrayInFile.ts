@@ -1,8 +1,9 @@
 import { Document } from '@tashmet/tashmet';
 import { BufferIO } from '../interfaces.js';
-import { FileFormat } from '../interfaces.js';
+import { IOSegment } from '../interfaces.js';
 import { makeFileFormat } from '../format/index.js';
-import * as fs from 'fs';
+import { FileIO } from '../format/file.js';
+import { CompositeIO } from '../format/common.js';
 
 export interface ArrayInFileOptions {
   id?: string | Document;
@@ -26,100 +27,56 @@ export interface ArrayInFileOptions {
   output?: Document[];
 }
 
-export class ArrayInFileIO extends BufferIO {
-  static fromConfig({path, format, ...options}: Document) {
-    if (typeof path !== 'string') {
-      throw new Error('Failed create arrayInFile, path is not a string');
-    }
-
-    return new ArrayInFileIO(path, makeFileFormat(format), options);
-  }
-
-  public constructor(
-    public readonly path: string,
-    private format: FileFormat,
-    private options: ArrayInFileOptions = {}
-  ) { super(); }
+export class ArrayIO implements IOSegment {
+  constructor(private index: string | undefined, private id: string | Document | undefined) {}
 
   get input(): Document[] {
-    const index = this.options.includeArrayIndex;
-    const merge: any[] = ['$items'];
-    const field = this.options.field ? `$content.${this.options.field}` : '$content';
-
-    if (index) {
-      merge.push({[index]: `$${index}`});
-    }
+    const root = this.index ? { $mergeObjects: ['$content', { [this.index]: `$${this.index}`}] } : '$content';
 
     const pipeline: Document[] = [
-      { $documents: [{ _id: this.path }] },
-      { $glob: { pattern: '$_id'} },
-      { $project: { content: { $readFile: '$_id' } } },
-      ...this.format.reader,
-      { $replaceRoot: { newRoot: { items: field } } },
-      { $unwind: { path: '$items', includeArrayIndex: index } },
-      { $replaceRoot: { newRoot: { $mergeObjects: merge } } },
-    ]
+      { $unwind: { path: '$content', includeArrayIndex: this.index } },
+      { $replaceRoot: { newRoot: root } },
+    ];
 
-    if (this.options.id) {
+    if (this.id) {
       pipeline.push(
-        { $set: { _id: this.options.id } }
+        { $set: { _id: this.id } }
       );
     }
-
-    return pipeline.concat(...this.options.input || [])
-  }
-
-  get output(): Document[] {
-    const index = this.options.includeArrayIndex;
-    const pipeline: Document[] = this.options.output || [];
-
-    if (index) {
-      pipeline.push(
-        { $sort: { [index]: 1 } },
-        { $unset: index },
-      );
-    }
-
-    if (this.options.id) {
-      pipeline.push({ $unset: '_id' });
-    }
-
-    if (this.options.field) {
-      pipeline.push(
-        { $group: { _id: this.path, items: { $push: '$$ROOT' } } },
-        { $set: {
-          content: {
-            $cond: {
-              if: { $fileExists: this.path },
-              then: { $readFile: this.path },
-              else: null,
-            }
-          }
-        } },
-        ...this.format.reader,
-        { $set: { [`content.${this.options.field}`]: '$items' } },
-      );
-    } else {
-      pipeline.push(
-        { $group: { _id: this.path, content: { $push: '$$ROOT' } } },
-      );
-    }
-
-    pipeline.push(
-      ...this.format.writer,
-      { $writeFile: {
-        content: '$content',
-        to: '$_id',
-        overwrite: true
-      } }
-    );
-
     return pipeline;
   }
 
-  async drop() {
-    if (this.options.field === undefined && fs.existsSync(this.path)) {
-      fs.rmSync(this.path);
+  get output(): Document[] {
+    const pipeline: Document[] = [];
+
+    if (this.index) {
+      pipeline.push(
+        { $sort: { [this.index]: 1 } },
+        { $unset: this.index },
+      );
     }
+
+    if (this.id) {
+      pipeline.push({ $unset: '_id' });
+    }
+
+    return pipeline.concat([
+      { $group: { _id: 1, content: { $push: '$$ROOT' } } },
+    ]);
   }
+}
+
+export function makeArrayInFileIO({path, format, includeArrayIndex, field, id}: Document) {
+  if (typeof path !== 'string') {
+    throw new Error('Failed create arrayInFile, path is not a string');
+  }
+
+  const formatIO = makeFileFormat(format);
+
+  const io = new CompositeIO(
+    new FileIO(path, formatIO, field), 
+    new ArrayIO(includeArrayIndex, id)
+  );
+
+  return new BufferIO(io);
 }

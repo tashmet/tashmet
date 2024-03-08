@@ -1,10 +1,10 @@
 import { Document } from '@tashmet/tashmet';
-import { FileFormat, StreamIO } from '../interfaces.js';
+import { IOSegment, StreamIO } from '../interfaces.js';
 
 export class FileStreamIO extends StreamIO {
   public constructor(
     public path: (id?: string) => string,
-    private format: FileFormat,
+    private format: IOSegment,
     private mergeStat: Document = {},
     private assign: Document = {},
     private defaults: Document = {},
@@ -32,7 +32,7 @@ export class FileStreamIO extends StreamIO {
           content: { $readFile: '$_id' },
         }
       },
-      ...this.format.reader,
+      ...this.format.input,
       { $replaceRoot: { newRoot: { $mergeObjects: [ this.mergeStat, '$content' ] } } },
       { $set: construct },
     ];
@@ -58,7 +58,7 @@ export class FileStreamIO extends StreamIO {
         { $set: defaults },
         { $project: { _id: 1, content: '$$ROOT' } },
         { $unset: 'content._id' },
-        ...this.format.writer,
+        ...this.format.output,
       );
     }
 

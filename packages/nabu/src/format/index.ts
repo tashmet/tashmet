@@ -4,9 +4,9 @@ import { TextFileFormat } from './text.js';
 import { FrontmatterFileFormat } from './frontmatter.js';
 import { ExpressionFileFormat } from './common.js';
 import { JsonExpressionIO } from './json.js';
-import { FileFormat } from '../interfaces.js';
+import { IOSegment } from '../interfaces.js';
 
-export function makeFileFormat(format: string | Document, field: string = 'content'): FileFormat {
+export function makeFileFormat(format: string | Document, field: string = 'content'): IOSegment {
   const formatName = typeof format === 'object'
     ? Object.keys(format)[0]
     : format;

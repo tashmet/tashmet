@@ -1,5 +1,5 @@
 import { Document } from "@tashmet/tashmet";
-import { FileFormat } from "../interfaces";
+import { IOSegment } from "../interfaces";
 
 export interface FrontmatterConfig {
   format?: string;
@@ -11,17 +11,17 @@ export interface FrontmatterConfig {
   bodyField?: string
 }
 
-export class FrontmatterFileFormat implements FileFormat {
-  private format: FileFormat;
+export class FrontmatterFileFormat implements IOSegment {
+  private format: IOSegment;
 
-  constructor(makeFileFormat: (format: string | Document, field: string) => FileFormat, private config: FrontmatterConfig = {}) {
+  constructor(makeFileFormat: (format: string | Document, field: string) => IOSegment, private config: FrontmatterConfig = {}) {
     this.format = makeFileFormat(config.format || 'text', 'content.frontmatter');
   }
 
-  get reader(): Document[] {
+  get input(): Document[] {
     const body = this.config.bodyField || 'body';
     const field = this.config.field || 'frontmatter';
-    const reader = this.config.format ? this.format.reader : [];
+    const reader = this.config.format ? this.format.input : [];
     const merge = this.config.root
       ? '$content.frontmatter'
       : { [field]: '$content.frontmatter' };
@@ -33,10 +33,10 @@ export class FrontmatterFileFormat implements FileFormat {
     ];
   }
 
-  get writer(): Document[] {
+  get output(): Document[] {
     const body = this.config.bodyField || 'body';
     const field = this.config.field || 'frontmatter';
-    const writer = this.config.format ? this.format.writer : [];
+    const writer = this.config.format ? this.format.output : [];
 
     const pipeline: Document[] = this.config.root
       ? [

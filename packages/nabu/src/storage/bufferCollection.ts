@@ -19,7 +19,7 @@ export class BufferCollection extends ReadWriteCollection {
   constructor(
     ns: TashmetCollectionNamespace,
     aggregatorFactory: AggregatorFactory,
-    private io: BufferIO,
+    io: BufferIO,
     private buffer: ReadWriteCollection,
   ) {
     super(ns);
@@ -46,7 +46,7 @@ export class BufferCollection extends ReadWriteCollection {
     const drop = changes.find(c => c.operationType === 'drop');
 
     if (drop) {
-      await this.io.drop();
+      //await this.io.drop();
       return [];
     }
 

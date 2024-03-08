@@ -1,7 +1,8 @@
 import { Document } from '@tashmet/tashmet';
-import { FileFormat, BufferIO } from '../interfaces.js';
+import { IOSegment, BufferIO } from '../interfaces.js';
 import { makeFileFormat } from '../format/index.js';
-import * as fs from 'fs';
+import { FileIO } from '../format/file.js';
+import { CompositeIO } from '../format/common.js';
 
 export interface ObjectInFileOptions {
   /**
@@ -18,81 +19,36 @@ export interface ObjectInFileOptions {
   output?: Document[];
 }
 
-export class ObjectInFileIO extends BufferIO {
-  static fromConfig({path, format, ...options}: Document) {
-    if (typeof path !== 'string') {
-      throw new Error('Failed create objectInFile, path is not a string');
-    }
-
-    return new ObjectInFileIO(path, makeFileFormat(format), options);
-  }
-
-  public constructor(
-    public readonly path: string,
-    private format: FileFormat,
-    private options: ObjectInFileOptions = {}
-  ) { super(); }
-
+export class ObjectIO implements IOSegment {
   get input(): Document[] {
-    const field = this.options.field ? `$content.${this.options.field}` : '$content';
-
-    const pipeline: Document[] = [
-      { $documents: [{ _id: this.path }] },
-      { $glob: { pattern: '$_id'} },
-      { $project: { content: { $readFile: '$_id' } } },
-      ...this.format.reader,
-      { $set: { content: { $objectToArray: field } } },
+    return [
+      { $set: { content: { $objectToArray: '$content' } } },
       { $unwind: '$content' },
       { $replaceRoot: { newRoot: { $mergeObjects: [{ _id: '$content.k', }, '$content.v'] } } },
     ];
-
-    return pipeline.concat(...this.options.input || []);
   }
 
   get output(): Document[] {
-    const pipeline: Document[] = this.options.output || [];
-
-    pipeline.push(
+    return [
       { $project: { _id: 0, k: '$_id', v: '$$ROOT' } },
       { $unset: 'v._id' },
-      { $group: { _id: this.path, items: { $push: '$$ROOT' } } },
-    );
+      { $group: { _id: 1, items: { $push: '$$ROOT' } } },
+      { $set: { content: { $arrayToObject: '$items' } } },
+    ];
+  }
+}
 
-    if (this.options.field) {
-      pipeline.push(
-        { $set: {
-          content: {
-            $cond: {
-              if: { $fileExists: this.path },
-              then: { $readFile: this.path },
-              else: null,
-            }
-          }
-        } },
-        ...this.format.reader,
-        { $set: { [`content.${this.options.field}`]: { $arrayToObject: '$items' } } },
-      );
-    } else {
-      pipeline.push(
-        { $set: { content: { $arrayToObject: '$items' } } }
-      );
-    }
-
-    pipeline.push(
-      ...this.format.writer,
-      { $writeFile: {
-        content: '$content',
-        to: '$_id',
-        overwrite: true
-      } }
-    );
-
-    return pipeline;
+export function makeObjectInFileIO({path, format, field}: Document) {
+  if (typeof path !== 'string') {
+    throw new Error('Failed create objectInFile, path is not a string');
   }
 
-  async drop() {
-    if (this.options.field === undefined && fs.existsSync(this.path)) {
-      fs.rmSync(this.path);
-    }
-  }
+  const formatIO = makeFileFormat(format);
+
+  const io = new CompositeIO(
+    new FileIO(path, formatIO, field), 
+    new ObjectIO()
+  );
+
+  return new BufferIO(io);
 }
