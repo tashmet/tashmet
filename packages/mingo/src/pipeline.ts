@@ -1,5 +1,5 @@
 import { Document } from '@tashmet/tashmet';
-import { op, OperatorPluginConfigurator } from '@tashmet/engine';
+import { AggregatorFactory, op, OperatorPluginConfigurator } from '@tashmet/engine';
 import { Container, provider } from '@tashmet/core';
 import { Query } from 'mingo/query';
 import { getOperator, OperatorType, PipelineOperator } from 'mingo/core';
@@ -17,8 +17,12 @@ import { MingoOperatorContext } from './operator.js';
  * operators to be streamed asynchronously, with the rest being async but
  * with buffering of the previous step.
  */
-@provider()
+@provider({
+  inject: [AggregatorFactory],
+})
 export class MingoStreamPipelineOpertors {
+  constructor(private factory: AggregatorFactory) {}
+
   /**
    * Handler for all mingo pipeline operators that can be streamed.
    * 
@@ -140,6 +144,26 @@ export class MingoStreamPipelineOpertors {
       const clone = cloneDeep(item) as any;
       updateObject(clone, expr);
       yield clone;
+    }
+  }
+
+  @op.pipeline('$facet')
+  async* $facet(source: AsyncIterable<Document>, expr: Document) {
+    const output: Document = {};
+    const array = await toArray(source);
+    for (const [k, pipeline] of Object.entries(expr)) {
+      const aggregator = this.factory.createAggregator(pipeline);
+      output[k] = await aggregator.run(array);
+    }
+    yield output;
+  }
+
+  @op.pipeline('$log')
+  async *$log(source: AsyncIterable<Document>, expr: any, ctx: MingoOperatorContext) {
+    for await (const item of source) {
+      const data = ctx.compute(item, expr);
+      console.log(data);
+      yield item;
     }
   }
 }
