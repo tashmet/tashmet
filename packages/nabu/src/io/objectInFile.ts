@@ -33,7 +33,7 @@ export class ObjectIO implements IOSegment {
       { $project: { _id: 0, k: '$_id', v: '$$ROOT' } },
       { $unset: 'v._id' },
       { $group: { _id: 1, items: { $push: '$$ROOT' } } },
-      { $set: { content: { $arrayToObject: '$items' } } },
+      { $project: { _id: 0, content: { $arrayToObject: '$items' } } },
     ];
   }
 }
