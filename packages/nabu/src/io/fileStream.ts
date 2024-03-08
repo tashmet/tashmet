@@ -42,25 +42,33 @@ export class FileStreamIO extends StreamIO {
   get output() {
     const defaults: Document = {};
     for (const [k, v] of Object.entries(this.defaults)) {
-      defaults[k] = {
+      defaults[`$content.${k}`] = {
         $cond: {
-          if: { $ne: [v, '$' + k] },
-          then: '$' + k,
+          if: { $ne: [v, `$content.${k}`] },
+          then: `$content.${k}`,
           else: { $literal: undefined }
         }
       }
     }
 
+    const unsetKeys = [...Object.keys(this.assign), ...Object.keys(this.mergeStat)]
+      .map(k => `content.${k}`);
+
     const processOutput: Document[] = [
-      { $replaceRoot: { newRoot: { $mergeObjects: ['$change.fullDocument', { _index: '$index', _ordered: '$ordered' } ] } } },
-      { $unset: [...Object.keys(this.assign), ...Object.keys(this.mergeStat)].filter(k => k !== '_id')},
+      {
+        $project: {
+          _id: '$change.documentKey._id',
+          index: 1,
+          ordered: 1,
+          content: '$change.fullDocument' 
+        } 
+      },
+      { $unset: unsetKeys },
       { $set: defaults },
-      { $project: { _id: 1, index: '$_index', ordered: '$_ordered', content: '$$ROOT' } },
-      { $unset: ['content._id', 'content._index', 'content._ordered'] },
       ...this.format.output,
     ]
 
-    const pipeline: Document[] = [
+    return [
       {
         $facet: {
           inserts: [
@@ -100,7 +108,5 @@ export class FileStreamIO extends StreamIO {
         }
       }
     ];
-
-    return pipeline;
   }
 }
