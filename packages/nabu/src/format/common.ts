@@ -27,7 +27,7 @@ export class Fill implements IOSegment {
 
   get input(): Document[] {
     const output = Object.keys(this.fields).reduce((acc, curr) => {
-      acc[curr] = { value: this.fields[curr] };
+      acc[`content.${curr}`] = { value: this.fields[curr] };
       return acc;
     }, {} as Document);
 
@@ -35,7 +35,25 @@ export class Fill implements IOSegment {
   }
 
   get output(): Document[] {
-    return [];
+    const defaults: Document = {};
+    for (const [k, v] of Object.entries(this.fields)) {
+      const key = `content.${k}`;
+      const selector = `$content.${k}`;
+      defaults[key] = {
+        $cond: {
+          if: {
+            $or: [
+              { $eq: [selector, v] },
+              { $eq: [selector, undefined] },
+              { $eq: [selector, null] },
+            ]
+          },
+          then: '$$REMOVE',
+          else: selector,
+        }
+      }
+    }
+    return [ { $set: defaults } ];
   }
 }
 

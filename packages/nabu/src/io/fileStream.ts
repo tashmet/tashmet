@@ -1,29 +1,23 @@
 import { Document } from '@tashmet/tashmet';
 import { IOSegment } from '../interfaces.js';
+import { Fill } from '../format/common.js';
 
 export class FileStreamIO implements IOSegment {
   readonly type = 'stream';
+
+  private fill: Fill;
 
   constructor(
     public path: (id?: string) => string,
     private format: IOSegment,
     private mergeStat: Document = {},
     private assign: Document = {},
-    private defaults: Document = {},
-  ) {}
+    defaults: Document = {},
+  ) {
+    this.fill = new Fill(defaults);
+  }
 
   get input(): Document[] {
-    const construct = Object.assign({}, this.assign);
-    for (const [k, v] of Object.entries(this.defaults)) {
-      construct[k] = {
-        $cond: {
-          if: { $ne: [{ $type: '$' + k }, 'undefined'] },
-          then: '$' + k,
-          else: v
-        }
-      }
-    }
-
     return [
       { $project: { _id: { $function: { body: this.path, args: [ "$_id" ], lang: "js" } } } },
       { $glob: { pattern: '$_id' } },
@@ -37,22 +31,12 @@ export class FileStreamIO implements IOSegment {
       },
       ...this.format.input,
       { $replaceRoot: { newRoot: { $mergeObjects: [ this.mergeStat, '$content' ] } } },
-      { $set: construct },
+      ...this.fill.input,
+      { $set: this.assign },
     ];
   }
 
   get output() {
-    const defaults: Document = {};
-    for (const [k, v] of Object.entries(this.defaults)) {
-      defaults[`$content.${k}`] = {
-        $cond: {
-          if: { $ne: [v, `$content.${k}`] },
-          then: `$content.${k}`,
-          else: { $literal: undefined }
-        }
-      }
-    }
-
     const unsetKeys = [...Object.keys(this.assign), ...Object.keys(this.mergeStat)]
       .map(k => `content.${k}`);
 
@@ -66,7 +50,7 @@ export class FileStreamIO implements IOSegment {
         } 
       },
       { $unset: unsetKeys },
-      { $set: defaults },
+      ...this.fill.output,
       ...this.format.output,
     ]
 
