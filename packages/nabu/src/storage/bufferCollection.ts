@@ -8,7 +8,7 @@ import {
   AggregatorFactory,
 } from '@tashmet/engine';
 import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { BufferIO } from '../interfaces';
+import { IOSegment } from '../interfaces';
 
 
 export class BufferCollection extends ReadWriteCollection {
@@ -19,7 +19,7 @@ export class BufferCollection extends ReadWriteCollection {
   constructor(
     ns: TashmetCollectionNamespace,
     aggregatorFactory: AggregatorFactory,
-    io: BufferIO,
+    io: IOSegment,
     private buffer: ReadWriteCollection,
   ) {
     super(ns);
@@ -43,13 +43,6 @@ export class BufferCollection extends ReadWriteCollection {
   }
 
   async write(changes: ChangeStreamDocument<Document>[], options: WriteOptions = {}): Promise<WriteError[]> {
-    const drop = changes.find(c => c.operationType === 'drop');
-
-    if (drop) {
-      //await this.io.drop();
-      return [];
-    }
-
     const writeErrors = await this.buffer.write(changes, options);
     const documents: Document[] = [];
 

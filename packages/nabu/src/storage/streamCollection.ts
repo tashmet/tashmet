@@ -9,7 +9,7 @@ import {
   AggregatorFactory,
 } from '@tashmet/engine';
 import { ChangeStreamDocument, Document, TashmetCollectionNamespace } from '@tashmet/tashmet';
-import { StreamIO } from '../interfaces';
+import { IOSegment } from '../interfaces';
 
 
 export class StreamCollection extends ReadWriteCollection {
@@ -19,7 +19,7 @@ export class StreamCollection extends ReadWriteCollection {
   constructor(
     ns: TashmetCollectionNamespace,
     aggregatorFactory: AggregatorFactory,
-    io: StreamIO,
+    io: IOSegment,
     private validator: Validator | undefined,
   ) {
     super(ns);

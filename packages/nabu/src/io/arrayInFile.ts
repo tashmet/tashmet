@@ -1,5 +1,4 @@
 import { Document } from '@tashmet/tashmet';
-import { BufferIO } from '../interfaces.js';
 import { IOSegment } from '../interfaces.js';
 import { makeFileFormat } from '../format/index.js';
 import { FileIO } from '../format/file.js';
@@ -28,6 +27,8 @@ export interface ArrayInFileOptions {
 }
 
 export class ArrayIO implements IOSegment {
+  readonly type = 'content';
+
   constructor(private index: string | undefined, private id: string | Document | undefined) {}
 
   get input(): Document[] {
@@ -73,10 +74,8 @@ export function makeArrayInFileIO({path, format, includeArrayIndex, field, id}: 
 
   const formatIO = makeFileFormat(format);
 
-  const io = new CompositeIO(
+  return new CompositeIO(
     new FileIO(path, formatIO, field), 
     new ArrayIO(includeArrayIndex, id)
   );
-
-  return new BufferIO(io);
 }

@@ -12,6 +12,7 @@ export interface FrontmatterConfig {
 }
 
 export class FrontmatterFileFormat implements IOSegment {
+  readonly type = 'content';
   private format: IOSegment;
 
   constructor(makeFileFormat: (format: string | Document, field: string) => IOSegment, private config: FrontmatterConfig = {}) {

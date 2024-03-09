@@ -8,14 +8,10 @@ import {
   Validator,
 } from '@tashmet/engine';
 import { MemoryCollectionFactory } from '@tashmet/memory';
-import {
-  NabuConfig,
-  BufferIO,
-} from '../interfaces.js';
+import { NabuConfig } from '../interfaces.js';
 import { StreamCollection } from './streamCollection.js';
 import { makeIO } from '../io/index.js';
 import { BufferCollection } from './bufferCollection.js';
-
 
 @provider({
   inject: [
@@ -69,7 +65,7 @@ export class NabuCollectionFactory extends CollectionFactory {
     const config = resolveStoreConfig(store);
     const io = makeIO(config);
 
-    if (io instanceof BufferIO) {
+    if (io.type === 'buffer') {
       const buffer = this.memory.createCollection(ns, options);
       return new BufferCollection(ns, this.aggregatorFactory, io, buffer);
     } else {

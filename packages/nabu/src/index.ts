@@ -35,7 +35,6 @@ import {
   IODescription,
   NabuConfig,
   NabuIOConfig,
-  StreamIO,
 } from './interfaces.js';
 import { NabuCollectionFactory } from './storage/index.js';
 import { makeIO } from './io/index.js';
@@ -113,7 +112,7 @@ export default class Nabu extends StorageEngine {
   ): AggregationCursor<TSchema> {
     const io = makeIO(ioDescription);
 
-    const p: Document[] = io instanceof StreamIO
+    const p: Document[] = io.type === 'stream'
       ? [{ $documents: [{ _id: undefined }] }, ...io.input, ...pipeline]
       : [...io.input, ...pipeline];
 

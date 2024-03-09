@@ -2,6 +2,8 @@ import { Document } from "@tashmet/tashmet";
 import { IOSegment } from "../interfaces";
 
 export class FileIO implements IOSegment {
+  readonly type = 'buffer';
+
   constructor(private path: string, private format: IOSegment, private field?: string | undefined) {}
 
   get input(): Document[] {

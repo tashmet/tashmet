@@ -19,19 +19,28 @@ export type Encoding =
   'hex' |
   undefined;
 
-export class BufferIO  implements IOSegment {
-  constructor(private io: IOSegment) { }
 
-  get input() { return this.io.input; }
+export interface IOSegment {
+  type: 'stream' | 'buffer' | 'content';
 
-  get output() { return this.io.output; }
+  input: Document[];
+
+  output: Document[];
 }
 
-export abstract class StreamIO {
-  abstract readonly input: Document[];
+//export class BufferIO  implements IOSegment {
+  //constructor(private io: IOSegment) { }
 
-  abstract readonly output: Document[];
-}
+  //get input() { return this.io.input; }
+
+  //get output() { return this.io.output; }
+//}
+
+//export abstract class StreamIO {
+  //abstract readonly input: Document[];
+
+  //abstract readonly output: Document[];
+//}
 
 export type NabuIOConfig = (ns: TashmetCollectionNamespace, options: Document) => Document;
 
@@ -52,11 +61,6 @@ export interface NabuConfig {
 }
 
 export abstract class NabuConfig implements NabuConfig {}
-
-export interface IOSegment {
-  input: Document[];
-  output: Document[];
-}
 
 export interface ArrayInFile extends ArrayInFileOptions{
   path: string;

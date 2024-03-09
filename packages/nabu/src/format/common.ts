@@ -7,6 +7,8 @@ export interface ExpressionIO {
 }
 
 export class ExpressionFileFormat implements IOSegment {
+  readonly type = 'content';
+
   constructor(private field: string, private exprIO: ExpressionIO) {}
 
   get input(): Document[] {
@@ -19,6 +21,8 @@ export class ExpressionFileFormat implements IOSegment {
 }
 
 export class Fill implements IOSegment {
+  readonly type = 'content';
+
   constructor(private fields: Document) {}
 
   get input(): Document[] {
@@ -36,6 +40,8 @@ export class Fill implements IOSegment {
 }
 
 export class CompositeIO implements IOSegment {
+  readonly type = 'buffer';
+
   public input: Document[] = [];
   public output: Document[] = [];
 

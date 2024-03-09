@@ -5,6 +5,7 @@ export interface TextConfig {
 }
 
 export class TextFileFormat implements IOSegment {
+  readonly type = 'content';
   constructor(private config: TextConfig = {}) {}
 
   input = [{ $set: { content: {[this.config.contentKey || 'content']: '$content' } } }];

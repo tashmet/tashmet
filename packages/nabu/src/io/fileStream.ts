@@ -1,14 +1,16 @@
 import { Document } from '@tashmet/tashmet';
-import { IOSegment, StreamIO } from '../interfaces.js';
+import { IOSegment } from '../interfaces.js';
 
-export class FileStreamIO extends StreamIO {
-  public constructor(
+export class FileStreamIO implements IOSegment {
+  readonly type = 'stream';
+
+  constructor(
     public path: (id?: string) => string,
     private format: IOSegment,
     private mergeStat: Document = {},
     private assign: Document = {},
     private defaults: Document = {},
-  ) { super(); }
+  ) {}
 
   get input(): Document[] {
     const construct = Object.assign({}, this.assign);
