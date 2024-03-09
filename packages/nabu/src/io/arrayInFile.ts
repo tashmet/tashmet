@@ -67,7 +67,7 @@ export class ArrayIO implements IOSegment {
   }
 }
 
-export function makeArrayInFileIO({path, format, includeArrayIndex, field, id}: Document) {
+export function makeArrayInFileIO({path, format, includeArrayIndex, field, id, input, output}: Document) {
   if (typeof path !== 'string') {
     throw new Error('Failed create arrayInFile, path is not a string');
   }
@@ -76,6 +76,7 @@ export function makeArrayInFileIO({path, format, includeArrayIndex, field, id}: 
 
   return new CompositeIO(
     new FileIO(path, formatIO, field), 
-    new ArrayIO(includeArrayIndex, id)
+    new ArrayIO(includeArrayIndex, id),
+    { type: 'content', input: input || [], output: output || [] }
   );
 }

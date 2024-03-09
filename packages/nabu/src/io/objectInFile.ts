@@ -40,7 +40,7 @@ export class ObjectIO implements IOSegment {
   }
 }
 
-export function makeObjectInFileIO({path, format, field}: Document) {
+export function makeObjectInFileIO({path, format, field, input, output}: Document) {
   if (typeof path !== 'string') {
     throw new Error('Failed create objectInFile, path is not a string');
   }
@@ -49,6 +49,7 @@ export function makeObjectInFileIO({path, format, field}: Document) {
 
   return new CompositeIO(
     new FileIO(path, formatIO, field), 
-    new ObjectIO()
+    new ObjectIO(),
+    { type: 'content', input: input || [], output: output || [] }
   );
 }
