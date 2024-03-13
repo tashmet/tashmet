@@ -31,11 +31,11 @@ export class NabuCollectionFactory extends CollectionFactory {
 
   createCollection(ns: TashmetCollectionNamespace, options: CreateCollectionOptions): ReadWriteCollection {
     let store: Document | string = options.storageEngine || this.config.defaultIO;
-    const persistentState = this.config.persistentState;
+    const dbFile = this.config.dbFile;
 
     if (ns.collection.startsWith('system')) {
-      if (persistentState) {
-        const path = persistentState(ns.db);
+      if (dbFile) {
+        const path = dbFile(ns.db);
         const parts = path.split('.');
         const format = parts[parts.length - 1];
 

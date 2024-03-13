@@ -136,7 +136,7 @@ export default class Nabu extends StorageEngine {
 
 
 export class NabuConfigurator extends PluginConfigurator<Nabu> {
-  config: NabuConfig = { persistentState: false, io: {}, defaultIO: 'memory', json: {}, yaml: {}, fs: {}, markdown: {} };
+  config: NabuConfig = { dbFile: false, io: {}, defaultIO: 'memory', json: {}, yaml: {}, fs: {}, markdown: {} };
 
   constructor(container: Container, config: Partial<NabuConfig>) {
     super(Nabu, container);

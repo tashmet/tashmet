@@ -8,7 +8,7 @@ const store = Nabu
   .configure({
     logLevel: LogLevel.Debug,
     logFormat: terminal(),
-    persistentState: db => `${db}.yaml`,
+    dbFile: db => `${db}.yaml`,
   })
   .use(mingo())
   .bootstrap();
