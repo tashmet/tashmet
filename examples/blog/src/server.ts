@@ -13,4 +13,4 @@ const store = Nabu
   .use(mingo())
   .bootstrap();
 
-new TashmetServer(store).listen(8080);
+new TashmetServer(store, 8080).listen();

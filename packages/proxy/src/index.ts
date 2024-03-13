@@ -2,7 +2,7 @@ import { Document, TashmetNamespace, TashmetProxy } from '@tashmet/tashmet';
 import { io, Socket } from "socket.io-client";
 
 export interface ServerProxyConfig {
-  uri: string;
+  extraHeaders?: Record<string, string>;
 }
 
 export abstract class ServerProxyConfig implements ServerProxyConfig {}
@@ -13,12 +13,14 @@ export abstract class ServerProxyConfig implements ServerProxyConfig {}
 export default class ServerProxy extends TashmetProxy {
   private socket: Socket;
 
-  public constructor(private config: ServerProxyConfig) {
+  public constructor(private uri: string, private config: ServerProxyConfig = {}) {
     super();
   }
 
   public connect() {
-    this.socket = io(this.config.uri);
+    this.socket = io(this.uri, {
+      extraHeaders: this.config.extraHeaders,
+    });
     this.socket.on('connect', () => {
       this.emit('connected');
       this.socket.on('change', doc => this.emit('change', doc));

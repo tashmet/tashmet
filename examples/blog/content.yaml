@@ -5,6 +5,6 @@ collections:
         path: ./content/posts
         extension: .md
         format:
-          yaml:
-            frontMatter: true
-            contentKey: articleBody
+          frontmatter:
+            format: yaml
+            bodyField: articleBody

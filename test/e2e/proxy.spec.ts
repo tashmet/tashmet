@@ -7,7 +7,7 @@ import * as test from '../lib/index.js';
 
 describe('proxy', () => {
   let server: TashmetServer;
-  let proxy = new Proxy({ uri: 'http://localhost:8000' });
+  let proxy = new Proxy('http://localhost:8000');
   
   before(() => {
     const store = Memory
@@ -15,8 +15,8 @@ describe('proxy', () => {
       .use(mingo())
       .bootstrap();
 
-    server = new TashmetServer(store)
-    server.listen(8000);
+    server = new TashmetServer(store, 8000);
+    server.listen();
   });
 
   after(async () => {
