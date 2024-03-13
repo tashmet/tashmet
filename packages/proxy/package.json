@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/proxy",
-	"version": "1.0.0-alpha.8",
+	"version": "1.0.0",
 	"description": "",
 	"type": "module",
 	"main": "dist/index.js",
@@ -30,8 +30,8 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@tashmet/core": "^1.0.0-alpha.8",
-		"@tashmet/tashmet": "^1.0.0-alpha.8",
+		"@tashmet/core": "^1.0.0",
+		"@tashmet/tashmet": "^1.0.0",
 		"socket.io-client": "^4.7.2"
 	},
 	"devDependencies": {
