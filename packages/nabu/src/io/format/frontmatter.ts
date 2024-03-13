@@ -30,7 +30,7 @@ export class FrontmatterFileFormat implements IOSegment {
     return [
       { $set: { content: { $frontmatterToObject: '$content' } } },
       ...reader,
-      { $project: { content: { $mergeObjects: [merge, {[body]: `$content.body`}] } } },
+      { $set: { content: { $mergeObjects: [merge, {[body]: `$content.body`}] } } },
     ];
   }
 
