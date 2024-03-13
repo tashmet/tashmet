@@ -1,5 +1,5 @@
 import Tashmet, { Document } from '@tashmet/tashmet';
-import { makeFileFormat } from '../../../packages/nabu/dist/format/index.js';
+import { makeFileFormat } from '../../../packages/nabu/dist/io/format/index.js';
 import { IOSegment } from '@tashmet/nabu';
 
 export class IOHelper {

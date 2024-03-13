@@ -6,7 +6,7 @@ import Tashmet from '@tashmet/tashmet';
 import mingo from '../../../packages/mingo/dist/index.js';
 import Nabu from '../../../packages/nabu/dist/index.js';
 import { IOHelper } from './io-helper.js';
-import { ObjectIO } from '@tashmet/nabu/dist/io/objectInFile.js';
+import { ObjectIO } from '@tashmet/nabu/dist/io/storageEngine/objectInFile.js';
 
 chai.use(chaiAsPromised);
 
