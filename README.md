@@ -1,8 +1,7 @@
 # Tashmet
 
-This is the Tashmet mono-repo, containing code, tests and documentation for
-the Tashmet database. To get started head over to the
-[user documentation](https://tashmet.gitbook.io/).
+This is the Tashmet mono-repo, containing code and tests for
+the Tashmet database.
 
 ## What is this?
 
@@ -32,19 +31,21 @@ to as the proxy.
 
 ### Hello World!
 
-To illustate the basics lets first look at a simple example where we use the
-memory storage engine to create a purely volatile store in memory.
+To illustate the basics lets first look at a simple example where we configure
+a storage engine without any persistent storage and insert a document into it. 
+The default storage engine is called Nabu and it will fall back to memory if 
+not configured otherwise.
 
-The storage engine is first configured to use mingo as its aggregation engine.
+First we need to tell it to use mingo as its aggregation engine.
 We then connect to the storage engine directly, using its proxy interface. 
 Note that no network connection is made in this example.
 
 ```ts
 import Tashmet from '@tashmet/tashmet';
 import mingo from '@tashmet/mingo';
-import Memory from '@tashmet/memory';
+import Nabu from '@tashmet/nabu';
 
-const store = Memory
+const store = Nabu
   .configure({})
   .use(mingo())
   .bootstrap();
@@ -76,9 +77,9 @@ comes straight from the MongoDB docs on [aggregation](https://www.mongodb.com/do
 ```ts
 import Tashmet from '@tashmet/tashmet';
 import mingo from '@tashmet/mingo';
-import Memory from '@tashmet/memory';
+import Nabu from '@tashmet/nabu';
 
-const store = Memory
+const store = Nabu
   .configure({})
   .use(mingo())
   .bootstrap();
@@ -124,4 +125,71 @@ We then loop over each output document and print it to the console:
 { _id: 3, count: 1 }
 { _id: 4, count: 2 }
 { _id: 5, count: 1 }
+```
+
+## File system persistence
+
+### Persistent database configuration
+
+One important aspect of the Nabu  storage engine is that the state of the
+databases, ie which collections they have and how they are set up, can be persisted to disk in human
+readable form. If you don't need to create databases and collections dynamically
+at runtime it's probably more convenient to just craft a configuration file by
+hand in yaml.
+
+The following configuration option will tell Nabu to look up a database
+configuration in a yaml file with the same name as the database.
+
+```typescript
+const store = Nabu
+  .configure({
+    dbFile: db => `${db}.yaml`
+  })
+  // ...
+```
+
+Let's create a database configuration file called *mydb.yaml* where we can
+define the configuration for each of our collections. Here we specify that
+documents should be stored in .md-files with yaml frontmatter within a
+specific directory.
+
+```yaml
+collections:
+  posts:
+    storageEngine:
+      directory:
+        path: ./content/posts
+        extension: .md
+        format:
+          frontmatter: yaml
+```
+
+When we connect to the database are use the *posts* collection all data will be
+written to and read from the files in the directory specified.
+
+```typescript
+Tashmet
+  .connect(store.proxy())
+  .then(async tashmet =>  {
+    const db = tashmet.db('mydb');
+    const posts = await db.collection('posts');
+```
+
+### Dynamically created collections
+
+The same can also be done at runtime using a storageEngine option when creating
+collections.
+
+```typescript
+Tashmet.connect(store.proxy()).then(async tashmet => {
+  const collection = await tashmet.db('myDb').createCollection('myCollection', {
+    storageEngine: {
+      directory: {
+        path: 'content/myCollection',
+        extension: '.yaml',
+        format: 'yaml'
+      }
+    }
+  });
+});
 ```
