@@ -1,6 +1,6 @@
 import { Document } from '@tashmet/tashmet';
 import { IOSegment } from '../interfaces.js';
-import { Fill } from '../format/common.js';
+import { Fill } from './fill.js';
 
 export class FileStreamIO implements IOSegment {
   readonly type = 'stream';

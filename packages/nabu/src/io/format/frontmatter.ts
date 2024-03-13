@@ -1,5 +1,5 @@
 import { Document } from "@tashmet/tashmet";
-import { IOSegment } from "../interfaces";
+import { IOSegment } from "../../interfaces";
 
 export interface FrontmatterConfig {
   format?: string;

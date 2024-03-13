@@ -3,8 +3,8 @@ import { JsonOptions } from '@tashmet/json';
 import { YamlOptions } from '@tashmet/yaml';
 import { FileSystemOptions } from '@tashmet/fs';
 import { MarkdownOptions } from '@tashmet/markdown';
-import { ArrayInFileOptions } from './io/arrayInFile';
-import { ObjectInFileOptions } from './io/objectInFile';
+import { ArrayInFileOptions } from './io/storageEngine/arrayInFile';
+import { ObjectInFileOptions } from './io/storageEngine/objectInFile';
 
 export type Encoding =
   'utf-8' |

@@ -1,4 +1,4 @@
-import { IOSegment } from "../interfaces.js";
+import { IOSegment } from "../../interfaces.js";
 
 export interface TextConfig {
   contentKey?: string;

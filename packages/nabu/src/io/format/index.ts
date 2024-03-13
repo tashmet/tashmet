@@ -1,10 +1,10 @@
 import { Document } from '@tashmet/tashmet';
-import { YamlExpressionIO } from '../format/yaml.js';
+import { YamlExpressionIO } from './yaml.js';
 import { TextFileFormat } from './text.js';
 import { FrontmatterFileFormat } from './frontmatter.js';
-import { ExpressionFileFormat } from './common.js';
+import { ExpressionFileFormat } from './expression.js';
 import { JsonExpressionIO } from './json.js';
-import { IOSegment } from '../interfaces.js';
+import { IOSegment } from '../../interfaces.js';
 
 export function makeFileFormat(format: string | Document, field: string = 'content'): IOSegment {
   const formatName = typeof format === 'object'
@@ -13,7 +13,7 @@ export function makeFileFormat(format: string | Document, field: string = 'conte
   const formatOptions = typeof format === 'object'
     ? format[formatName]
     : undefined;
-      
+
   switch (formatName) {
     case 'frontmatter':
       const options = typeof formatOptions === 'string'

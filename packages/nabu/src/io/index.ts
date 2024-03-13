@@ -1,8 +1,8 @@
 import { Document } from '@tashmet/tashmet';
-import { makeArrayInFileIO } from './arrayInFile.js';
-import { makeObjectInFileIO } from './objectInFile.js';
-import { makeDirectoryIO } from './directory.js';
-import { makeGlobIO } from './glob.js';
+import { makeArrayInFileIO } from './storageEngine/arrayInFile.js';
+import { makeObjectInFileIO } from './storageEngine/objectInFile.js';
+import { makeDirectoryIO } from './storageEngine/directory.js';
+import { makeGlobIO } from './storageEngine/glob.js';
 import { IOSegment } from '../interfaces.js';
 
 export function makeIO(store: Document): IOSegment {

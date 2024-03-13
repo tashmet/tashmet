@@ -1,6 +1,6 @@
 import { Document } from '@tashmet/tashmet';
 import { makeFileFormat } from '../format/index.js';
-import { FileStreamIO } from './fileStream.js';
+import { FileStreamIO } from '../fileStream.js';
 
 export function makeGlobIO({pattern, format, ...options}: Document) {
   if (typeof pattern !== 'string') {
