@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0
+
+- Remove _id field in file stream output
+- Support working with raw text files
+- Generic frontmatter support
+- Support for custom operators in facet pipeline stage
+- Improved client/server interface
+
 ## 1.0.0-alpha.8
 
 - Support for default field values in directory and glob outputs
