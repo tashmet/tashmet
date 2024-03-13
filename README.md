@@ -193,3 +193,82 @@ Tashmet.connect(store.proxy()).then(async tashmet => {
   });
 });
 ```
+
+### Storage options
+
+Nabu supports a wide range of different storage options that determine how documents are read from and written to disk.
+These can be configured per collection or be specified for the whole database
+
+#### Array in file
+
+Store a whole collection as an array within a single file.
+
+```typescript
+Tashmet.connect(store.proxy()).then(async tashmet => {
+  const collection = await tashmet.db('myDb').createCollection('myCollection', {
+    storageEngine: {
+      arrayInFile: {
+        path: 'content/myCollection.yaml',
+        format: 'yaml'
+      }
+    }
+  });
+});
+```
+
+#### Object in file
+
+Store a whole collection as an object within a single file. 
+The *_id* field of each document is represented by each key of the object in
+the file and the rest of the document is represented by the value for that key.
+
+```typescript
+Tashmet.connect(store.proxy()).then(async tashmet => {
+  const collection = await tashmet.db('myDb').createCollection('myCollection', {
+    storageEngine: {
+      objectInFile: {
+        path: 'content/myCollection.yaml',
+        format: 'yaml'
+      }
+    }
+  });
+});
+```
+
+#### Directory
+
+Store a collection as multiple files within a single directory.
+The *_id* field of each document is represented by the file name relative to
+the directory path without extension.
+
+```typescript
+Tashmet.connect(store.proxy()).then(async tashmet => {
+  const collection = await tashmet.db('myDb').createCollection('myCollection', {
+    storageEngine: {
+      directory: {
+        path: 'content/myCollection',
+        extension: '.yaml',
+        format: 'yaml'
+      }
+    }
+  });
+});
+```
+
+#### Glob
+
+Store a collection as multiple files within multiple directories.
+The *_id* field of each document is represented by the file path matched by the pattern
+
+```typescript
+Tashmet.connect(store.proxy()).then(async tashmet => {
+  const collection = await tashmet.db('myDb').createCollection('myCollection', {
+    storageEngine: {
+      glob: {
+        pattern: 'content/**/*.yaml',
+        format: 'yaml'
+      }
+    }
+  });
+});
+```
