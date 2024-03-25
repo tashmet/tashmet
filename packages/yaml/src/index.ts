@@ -28,7 +28,11 @@ export class Yaml {
   @op.expression('$objectToYaml')
   public objectToYaml(obj: any, expr: any, ctx: OperatorContext) {
     const { data, ...options } = this.normalizeExpression(expr);
+    const output = ctx.compute(obj, data);
 
+    if (Object.keys(output).length === 0) {
+      return '';
+    }
     return jsYaml.dump(ctx.compute(obj, data), options);
   }
 
@@ -39,7 +43,7 @@ export class Yaml {
   public yamlToObject(obj: any, expr: any, ctx: OperatorContext) {
     const doc = jsYaml.load(ctx.compute(obj, expr)) as any;
     if (typeof doc !== 'object') {
-      throw new Error('Deserialized YAML is not an object')
+      return {};
     }
     return doc;
   }
