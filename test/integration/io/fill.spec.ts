@@ -27,45 +27,45 @@ describe('FillIO', () => {
 
   describe('input', () => {
     it('should fill in undefined fields', async () => {
-      const content = { content: { foo: undefined } };
+      const content = { foo: undefined };
       const output = await io.input([content], new Fill({ foo: 'bar' })).next();
 
-      return expect(output).to.eql({ content: { foo: 'bar' } });
+      return expect(output).to.eql({ foo: 'bar' });
     });
 
     it('should fill in null fields', async () => {
-      const content = { content: { foo: null } };
+      const content = { foo: null };
       const output = await io.input([content], new Fill({ foo: 'bar' })).next();
 
-      return expect(output).to.eql({ content: { foo: 'bar' } });
+      return expect(output).to.eql({ foo: 'bar' });
     });
 
     it('should not fill in defined fields', async () => {
-      const content = { content: { foo: 'baz' } };
+      const content = { foo: 'baz' };
       const output = await io.input([content], new Fill({ foo: 'bar' })).next();
 
-      return expect(output).to.eql({ content: { foo: 'baz' } });
+      return expect(output).to.eql({ foo: 'baz' });
     });
   });
 
   describe('output', () => {
     it('should remove fields with default value', async () => {
-      const content = { content: { foo: 'bar' } };
+      const content = { foo: 'bar' };
       const output = await io.output([content], new Fill({ foo: 'bar' })).next();
 
-      return expect(output).to.eql({ content: {} });
+      return expect(output).to.eql({});
     });
     it('should remove fields with null value', async () => {
-      const content = { content: { foo: null } };
+      const content = { foo: null };
       const output = await io.output([content], new Fill({ foo: 'bar' })).next();
 
-      return expect(output).to.eql({ content: {} });
+      return expect(output).to.eql({});
     });
     it('should keep fields with non-default value', async () => {
-      const content = { content: { foo: 'baz' } };
+      const content = { foo: 'baz' };
       const output = await io.output([content], new Fill({ foo: 'bar' })).next();
 
-      return expect(output).to.eql({ content: { foo: 'baz' } });
+      return expect(output).to.eql({ foo: 'baz' });
     });
   });
 });
