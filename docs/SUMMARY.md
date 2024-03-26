@@ -1,25 +1,28 @@
 # Table of contents
 
+## Getting Started
+
 * [Introduction](README.md)
-
-## Getting started
-
+* [Installation](getting-started/installation.md)
 * [Hello World](getting-started/hello-world.md)
 
 ## Concepts
 
-* [Operations](concepts/operations.md)
-* [Aggregation](concepts/aggregation.md)
 * [Storage engines](concepts/storage-engines.md)
+* [Connection](concepts/connection.md)
+* [Collections](concepts/collections.md)
+* [Aggregation](concepts/aggregation.md)
 
-## Storage engines
+## Storage
 
-* [Nabu](storage-engines/nabu/README.md)
-  * [JSON](storage-engines/nabu/json.md)
-  * [YAML & Markdown](storage-engines/nabu/yaml-and-markdown.md)
-* [Memory](storage-engines/mingo.md)
+* [Memory](storage/memory.md)
+* [Directory](storage/directory.md)
+* [Glob](storage/glob.md)
+* [Array in file](storage/array-in-file.md)
+* [Object in file](storage/object-in-file.md)
 
-## Internals
+## Custom operators
 
-* [Dependency injection](concepts/ioc.md)
-* [Reflection](concepts/reflection.md)
+* [JSON](custom-operators/json.md)
+* [YAML](custom-operators/yaml.md)
+* [File system](custom-operators/fs.md)

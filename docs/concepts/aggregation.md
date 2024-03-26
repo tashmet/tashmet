@@ -1,19 +1,22 @@
-# Aggregation
+---
+title: Aggregation
+description: Running an aggregation pipeline
+---
 
-### Overview
+## Overview
 
 In this example we create a storage engine in memory and perform a simple aggregation on a set of documents. It closely mimics the aggregation example from MongoDB docs: [https://www.mongodb.com/docs/drivers/node/current/fundamentals/aggregation/](https://www.mongodb.com/docs/drivers/node/current/fundamentals/aggregation/)
 
-### Examples
+## Examples
 
 The following example is available in the [repo](https://github.com/tashmet/tashmet/tree/master/examples/aggregation).
 
 ```typescript
 import Tashmet from '@tashmet/tashmet';
+import Nabu from '@tashmet/nabu';
 import mingo from '@tashmet/mingo';
-import Memory from '@tashmet/memory';
 
-const store = Memory
+const store = Nabu
   .configure({})
   .use(mingo())
   .bootstrap();
@@ -54,8 +57,10 @@ Tashmet
 
 The above example should yield the following output
 
+{% file title="Terminal" %}
 ```typescript
 { _id: 3, count: 1 }
 { _id: 4, count: 2 }
 { _id: 5, count: 1 }
 ```
+{% /file %}
