@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- Updated documentation
+- YAML writes empty string rather than empty object
+- Fixed bug with default assignment for directory and glob storage
+
 ## 1.0.0
 
 - Remove _id field in file stream output
