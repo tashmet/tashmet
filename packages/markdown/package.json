@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/markdown",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Remark/Rehype integration",
 	"type": "module",
 	"main": "dist/index.js",
@@ -20,8 +20,8 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@tashmet/core": "^1.0.0",
-		"@tashmet/engine": "^1.0.0",
+		"@tashmet/core": "^1.0.1",
+		"@tashmet/engine": "^1.0.1",
 		"rehype-document": "^7.0.2",
 		"rehype-format": "^5.0.0",
 		"rehype-sanitize": "6.0.0",
