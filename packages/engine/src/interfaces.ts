@@ -10,6 +10,7 @@ import ev from "eventemitter3";
 import { QueryPlan } from './plan.js';
 import { ChangeSet } from './changeSet.js';
 import { ExpressionOperator, OperatorAnnotation, PipelineOperator, QueryOperator } from './operator.js';
+import { Logger } from '@tashmet/core';
 
 export const { EventEmitter } = ev;
 
@@ -86,6 +87,8 @@ export interface View {
 export type ViewMap = Record<string, View>;
 
 export interface StorageEngine {
+  readonly logger: Logger;
+
   command(ns: TashmetNamespace, command: Document): Promise<Document>;
 
   on(event: 'change', listener: (change: Document) => void): this;

@@ -5,7 +5,8 @@ import {
   createContainer,
   LogLevel,
   Lookup,
-  Provider
+  Provider,
+  Logger
 } from '@tashmet/core';
 import {
   AdminController,
@@ -124,6 +125,7 @@ export default class Memory extends StorageEngine {
     private engine: AggregationEngine,
     private store: Store,
     private collectionFactory: CollectionFactory,
+    public readonly logger: Logger,
   ) {
     super();
     const views: ViewMap = {};

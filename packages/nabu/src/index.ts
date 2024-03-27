@@ -2,6 +2,7 @@ import {
   BootstrapConfig,
   Container,
   createContainer,
+  Logger,
   LogLevel,
   Lookup,
   PluginConfigurator,
@@ -49,6 +50,7 @@ export default class Nabu extends StorageEngine {
     engine: AggregationEngine,
     private store: Store,
     private collectionFactory: CollectionFactory,
+    public readonly logger: Logger,
   ) {
     super();
     const views: ViewMap = {};
