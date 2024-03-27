@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2
+
+- Fixed missing dependency on frontmatter package in nabu
+- $log pipeline operator now uses logger
+- $dump pipeline operator replaces functionality of $log
+- Expose logger on storage engine
+
 ## 1.0.1
 
 - Updated documentation
