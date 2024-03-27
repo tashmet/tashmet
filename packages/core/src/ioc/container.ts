@@ -21,7 +21,7 @@ export abstract class AbstractContainer extends Container {
 
   public register<T>(provider: Provider<T> | Newable<T>): void {
     if (provider instanceof Provider) {
-      this.logger.inScope('register').info(`key '${this.nameOf(provider.key)}'`);
+      this.logger.inScope('register').debug(`key '${this.nameOf(provider.key)}'`);
       return this.registerResolver(provider.key, provider.resolver);
     }
     if (ClassProviderAnnotation.existsOnClass(provider)) {
@@ -36,7 +36,7 @@ export abstract class AbstractContainer extends Container {
       const config = FactoryProviderAnnotation.onClass(provider)[0];
       return this.register(Provider.ofFactory(config));
     }
-    this.logger.inScope('register').info(`key '${this.nameOf(provider)}'`);
+    this.logger.inScope('register').debug(`key '${this.nameOf(provider)}'`);
     this.register(Provider.ofClass({ctr: provider}));
   }
 
