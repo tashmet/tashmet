@@ -1,6 +1,6 @@
 import { Document } from '@tashmet/tashmet';
 import { AggregatorFactory, op, OperatorPluginConfigurator } from '@tashmet/engine';
-import { Container, provider } from '@tashmet/core';
+import { Container, Logger, provider } from '@tashmet/core';
 import { Query } from 'mingo/query';
 import { getOperator, OperatorType, PipelineOperator } from 'mingo/core';
 import { Iterator, Lazy } from 'mingo/lazy';
@@ -18,10 +18,10 @@ import { MingoOperatorContext } from './operator.js';
  * with buffering of the previous step.
  */
 @provider({
-  inject: [AggregatorFactory],
+  inject: [AggregatorFactory, Logger],
 })
 export class MingoStreamPipelineOpertors {
-  constructor(private factory: AggregatorFactory) {}
+  constructor(private factory: AggregatorFactory, private logger: Logger) {}
 
   /**
    * Handler for all mingo pipeline operators that can be streamed.
@@ -158,11 +158,43 @@ export class MingoStreamPipelineOpertors {
     yield output;
   }
 
+  @op.pipeline('$dump')
+  async *$dump(source: AsyncIterable<Document>, expr: any, ctx: MingoOperatorContext) {
+    for await (const item of source) {
+      const data = ctx.compute(item, expr);
+      console.dir(data);
+      yield item;
+    }
+  }
+
   @op.pipeline('$log')
   async *$log(source: AsyncIterable<Document>, expr: any, ctx: MingoOperatorContext) {
     for await (const item of source) {
-      const data = ctx.compute(item, expr);
-      console.log(data);
+      const { scope, level, message } = ctx.compute(item, expr) as Document;
+
+      const logger = this.logger.inScope(scope);
+
+      switch (level) {
+        case 'error':
+        case 'err':
+        case 'e':
+          logger.error(message);
+          break;
+        case 'warning':
+        case 'warn':
+        case 'w':
+          logger.warn(message);
+          break;
+        case 'debug':
+        case 'd':
+          logger.debug(message);
+          break;
+        case 'info':
+        case 'i':
+        default:
+          logger.info(message);
+          break;
+      }
       yield item;
     }
   }
