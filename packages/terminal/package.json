@@ -1,6 +1,6 @@
 {
 	"name": "@tashmet/terminal",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "",
 	"type": "module",
 	"main": "dist/index.js",
@@ -30,7 +30,7 @@
 		"README.md"
 	],
 	"dependencies": {
-		"@tashmet/core": "^1.0.1",
+		"@tashmet/core": "^1.0.2",
 		"chalk": "^3.0.0"
 	},
 	"devDependencies": {
