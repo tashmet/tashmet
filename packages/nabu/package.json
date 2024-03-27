@@ -29,6 +29,7 @@
     "@async-generators/to-array": "^0.1.0",
     "@tashmet/core": "^1.0.1",
     "@tashmet/engine": "^1.0.1",
+    "@tashmet/frontmatter": "^1.0.1",
     "@tashmet/fs": "^1.0.1",
     "@tashmet/json": "^1.0.1",
     "@tashmet/markdown": "^1.0.1",
