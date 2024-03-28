@@ -3,12 +3,16 @@ title: Memory
 description: Storing a collection in memory
 ---
 
-Tashmet works by combining three components; a storage engine, an aggregation engine and a client.
-Tashmet is the client and Nabu is the default storage engine. Mingo is currently the one and only
-aggregation engine.
+# Introduction
 
-To get started let's install all three.
+This is the default storage when no storageEngine directive is given.
 
-```shell
-$ npm install @tashmet/tashmet @tashmet/nabu @tashmet/mingo
+# Usage
+
+## Create a single memory collection
+
+```typescript
+Tashmet.connect(store.proxy()).then(async tashmet => {
+  const collection = await tashmet.db('myDb').createCollection('myCollection');
+});
 ```

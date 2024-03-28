@@ -1,28 +1,27 @@
 ---
 title: Glob
-description: Storing a collection in multiple files targeted by a 
+description: Storing a collection in multiple files matching a glob pattern
 ---
 
 # Introduction
 
 This page describes how to set up persistent file storage for a collection using Nabu,
-where each document is stored within a file under a specific directory on the file system.
+where each document is stored within a file under multiple directories on the file system
 
 {% hint style="check" %}
-Directory storage requires the Nabu storage engine
+Glob storage requires the Nabu storage engine
 {% /hint %}
 
 # Usage
 
-## Create a single directory collection
+## Create a single glob collection
 
 ```typescript
 Tashmet.connect(store.proxy()).then(async tashmet => {
   const collection = await tashmet.db('myDb').createCollection('myCollection', {
     storageEngine: {
-      directory: {
-        path: 'content/myCollection',
-        extension: '.yaml',
+      glob: {
+        pattern: 'content/myCollection/**/*.yaml',
         format: 'yaml'
       }
     }
@@ -30,7 +29,7 @@ Tashmet.connect(store.proxy()).then(async tashmet => {
 });
 ```
 
-The collection stored in `'content/myCollection'` where each document will reside in a yaml file
+The collection stored in `'content/myCollection/**/*.yaml'` where each document will reside in a yaml file
 that derives its name from the `_id` of the document. 
 
 ## Reuse across database
@@ -42,9 +41,8 @@ const store = Nabu
   .configure({})
   .use(mingo())
   .io('yaml', (ns, options) => ({
-    directory: {
-      path: `${ns.db}/${ns.collection}`,
-      extension: '.yaml',
+    glob: {
+      pattern: `${ns.db}/${ns.collection}/**/*.yaml`,
       format: 'yaml'
     }
   }))
@@ -75,22 +73,10 @@ Tashmet.connect(store.proxy()).then(async tashmet => {
 
 # Parameters
 
-## Path 
-`path: string`
+## Pattern
+`pattern: string`
 
-Path to the directory where files are stored
-
-## Extension
-`extension: string`
-
-File extension *(including the dot)*
-
-```typescript
-{
-  // ...
-  extension: '.yaml'
-}
-```
+Pattern matching files that should be included in the collection
 
 ## Format 
 `format: string | Document`
@@ -156,8 +142,7 @@ to add an additional field `html` that contains the converted output.
 
 ```typescript
 {
-  path: '/content',
-  extension: '.md',
+  pattern: '/content/**/*.md',
   format: {
     yaml: {
       frontMatter: true,
